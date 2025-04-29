@@ -28,27 +28,46 @@ class Login extends Component
      * Handle an incoming authentication request.
      */
     public function login(): void
-    {
-        $this->validate();
+{
+    $this->validate();
 
-        $this->ensureIsNotRateLimited();
+    $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt(['matricula' => $this->matricula, 'password' => $this->password], $this->remember)) {
-            RateLimiter::hit($this->throttleKey());
+    // Buscar al usuario por matrícula
+    $user = \App\Models\User::where('matricula', $this->matricula)->first();
 
-            throw ValidationException::withMessages([
-                'matricula' => __('auth.failed'),
-            ]);
-        }
-
-        RateLimiter::clear($this->throttleKey());
-        Session::regenerate();
-
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
-
-        Flash::success('Bienvenido de nuevo, ' . Auth::user()->username . '.');
-
+    // Verificar que exista el usuario
+    if (! $user) {
+        RateLimiter::hit($this->throttleKey());
+        throw ValidationException::withMessages([
+            'matricula' => __('auth.failed'),
+        ]);
     }
+
+    // Verificar si tiene status activo
+    if ($user->status === 'false') {
+        throw ValidationException::withMessages([
+            'matricula' => 'Tu cuenta está inactiva. Contacta al administrador.',
+        ]);
+    }
+
+    // Intentar autenticar
+    if (! Auth::attempt(['matricula' => $this->matricula, 'password' => $this->password], $this->remember)) {
+        RateLimiter::hit($this->throttleKey());
+        throw ValidationException::withMessages([
+            'matricula' => __('auth.failed'),
+        ]);
+    }
+
+    RateLimiter::clear($this->throttleKey());
+    Session::regenerate();
+
+    Flash::success('Bienvenido de nuevo, ' . Auth::user()->username . '.');
+
+    $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+}
+
+
 
     /**
      * Ensure the authentication request is not rate limited.

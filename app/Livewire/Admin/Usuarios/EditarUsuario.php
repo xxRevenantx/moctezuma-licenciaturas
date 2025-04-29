@@ -45,7 +45,6 @@ class EditarUsuario extends Component
       {
 
 
-
           $this->validate([
                 'username' => 'required|string|max:255',
                 'email' => 'required|email|max:255',
@@ -60,6 +59,11 @@ class EditarUsuario extends Component
                 abort(403, 'No autorizado a asignar el rol SuperAdmin');
             }
 
+            if($this->status == true) {
+                $this->status = 'true';
+            } else {
+                $this->status = 'false';
+            }
 
 
 

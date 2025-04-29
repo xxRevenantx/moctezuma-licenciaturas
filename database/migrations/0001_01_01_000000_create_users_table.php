@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('photo')->nullable();
             $table->enum('status', ["true","false"])->nullable()->default("true");
+            $table->integer('order');
             $table->rememberToken();
             $table->timestamps();
         });
