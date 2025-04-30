@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\UsersExport;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
@@ -19,6 +21,7 @@ class UserController extends Controller
         // Return the view with the users data
         return view('admin.users.index', compact('users'));
     }
+
 
     /**
      * Show the form for creating a new resource.

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('generaciones', function (Blueprint $table) {
             $table->id();
             $table->string('generacion');
-            $table->enum('egresada', ["true","false"])->nullable()->default("true");
+            $table->enum('activa', ["true","false"])->nullable()->default("true");
             $table->timestamps();
         });
     }

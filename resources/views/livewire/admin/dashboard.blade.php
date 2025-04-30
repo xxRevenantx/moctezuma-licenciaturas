@@ -1,9 +1,6 @@
-
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
+<div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <div class="grid auto-rows-min gap-4 md:grid-cols-1">
-
             <div class="relative overflow-hidden bg-white rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 dark:bg-neutral-800">
-
                 <form wire:submit.prevent="guardarDatos">
                     <flux:field>
                         <flux:input wire:model.live="ciclo_escolar" :label="__('Ciclo escolar')" type="text"  autofocus autocomplete="ciclo_escolar" />

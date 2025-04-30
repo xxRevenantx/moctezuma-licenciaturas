@@ -7,12 +7,12 @@
     <form wire:submit="login" class="flex flex-col gap-6">
         <!-- Email Address -->
         <flux:input
-            wire:model="matricula"
-            :label="__('Matrícula')"
-            type="text"
+            wire:model="email"
+            :label="__('Coreo electrónico')"
+            type="email"
             autofocus
-            autocomplete="matricula"
-            placeholder="Matrícula"
+            autocomplete="Email"
+            placeholder="Correo electrónico"
         />
 
         <!-- Password -->

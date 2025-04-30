@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin\Usuarios;
 
+use App\Exports\UsersExport;
 use App\Models\User;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MostrarUsuarios extends Component
 {
@@ -44,6 +46,18 @@ class MostrarUsuarios extends Component
     {
         $this->resetPage();
     }
+
+
+    public function exportarUsuarios()
+{
+    $usuariosFiltrados = User::where('username', 'like', '%' . $this->search . '%')
+        ->orWhere('matricula', 'like', '%' . $this->search . '%')
+        ->orWhere('email', 'like', '%' . $this->search . '%')
+        ->orderBy('id', 'desc')
+        ->get(['order','username', 'email', 'matricula', 'status']); // columnas deseadas
+
+    return Excel::download(new UsersExport($usuariosFiltrados), 'usuarios_filtrados.xlsx');
+}
 
 
     #[On('refreshUsuarios')]

@@ -46,15 +46,20 @@ class EditarUsuario extends Component
 
 
           $this->validate([
-                'username' => 'required|string|max:255',
-                'email' => 'required|email|max:255',
-                'matricula' => 'required|string|max:255',
+                'username' => 'required|string|max:255|unique:users,username,' . $this->userId,
+                'email' => 'required|email|max:255|unique:users,email,' . $this->userId,
+                'matricula' => 'required|string|max:255|unique:users,matricula,' . $this->userId,
                 'status' => 'required|boolean',
-                'rol' => 'required|unique:roles,name,' . $this->userId,
+                'rol' => 'required'
           ]);
 
           // ❗ Validación de seguridad para evitar que alguien asigne el rol SuperAdmin sin tenerlo
             $superAdminRoleId = \Spatie\Permission\Models\Role::where('name', 'SuperAdmin')->value('id');
+            // Verificar que los inputs no tengan espacios a los lados
+            $this->username = trim($this->username);
+            $this->email = trim($this->email);
+            $this->matricula = trim($this->matricula);
+
             if (in_array($superAdminRoleId, $this->rol) && !auth()->user()->hasRole('SuperAdmin')) {
                 abort(403, 'No autorizado a asignar el rol SuperAdmin');
             }

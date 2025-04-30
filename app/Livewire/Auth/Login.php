@@ -17,7 +17,7 @@ use Livewire\Component;
 class Login extends Component
 {
     #[Validate('required|string')]
-    public string $matricula = '';
+    public string $email = '';
 
     #[Validate('required|string')]
     public string $password = '';
@@ -34,28 +34,28 @@ class Login extends Component
     $this->ensureIsNotRateLimited();
 
     // Buscar al usuario por matrícula
-    $user = \App\Models\User::where('matricula', $this->matricula)->first();
+    $user = \App\Models\User::where('email', $this->email)->first();
 
     // Verificar que exista el usuario
     if (! $user) {
         RateLimiter::hit($this->throttleKey());
         throw ValidationException::withMessages([
-            'matricula' => __('auth.failed'),
+            'email' => __('auth.failed'),
         ]);
     }
 
     // Verificar si tiene status activo
     if ($user->status === 'false') {
         throw ValidationException::withMessages([
-            'matricula' => 'Tu cuenta está inactiva. Contacta al administrador.',
+            'email' => 'Tu cuenta está inactiva. Contacta al administrador.',
         ]);
     }
 
     // Intentar autenticar
-    if (! Auth::attempt(['matricula' => $this->matricula, 'password' => $this->password], $this->remember)) {
+    if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
         RateLimiter::hit($this->throttleKey());
         throw ValidationException::withMessages([
-            'matricula' => __('auth.failed'),
+            'email' => __('auth.failed'),
         ]);
     }
 
@@ -83,7 +83,7 @@ class Login extends Component
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'matricula' => __('auth.throttle', [
+            'email' => __('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -95,6 +95,6 @@ class Login extends Component
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->matricula).'|'.request()->ip());
+        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
 }

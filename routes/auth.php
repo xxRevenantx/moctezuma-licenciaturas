@@ -20,7 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::get('verificar-email', VerifyEmail::class)
         ->name('verification.notice');
 
-    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+    Route::get('verificar-email/{id}/{hash}', VerifyEmailController::class)
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
 

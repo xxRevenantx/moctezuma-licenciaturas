@@ -23,10 +23,7 @@ class LicenciaturaController extends Controller
     }
 
 
-    public function export()
-    {
-        return Excel::download(new LicenciaturaExport, 'licenciaturas.xlsx');
-    }
+
 
     public function create()
     {

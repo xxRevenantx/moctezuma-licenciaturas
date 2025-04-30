@@ -29,14 +29,16 @@
             </flux:navlist>
             @endcan
 
-
+            @can('admin.administracion')
             <flux:navlist >
                 <flux:navlist.group :heading="__('Administración')" class="grid">
                     <flux:navlist.item icon="rectangle-stack" :href="route('admin.licenciaturas.index')" :current="request()->routeIs('admin.licenciaturas.index')" wire:navigate>{{ __('Licenciaturas') }}</flux:navlist.item>
                     <flux:navlist.item icon="rectangle-stack" :href="route('admin.directivos.index')" :current="request()->routeIs('admin.directivos.index')" wire:navigate>{{ __('Personal directivo') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
+            @endcan
 
+            @can('admin.generaciones')
             <flux:navlist >
                 <flux:navlist.group :heading="__('Generaciones')" expandable >
                     <flux:navlist.item icon="rectangle-stack" :href="route('admin.generaciones.index')"
@@ -44,6 +46,7 @@
                      wire:navigate>{{ __('Crear generación') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
+            @endcan
 
 
 

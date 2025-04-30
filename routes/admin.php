@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DirectivoController;
 use App\Http\Controllers\Admin\GeneracionController;
 use App\Http\Controllers\Admin\LicenciaturaController;
 use App\Http\Controllers\Admin\UserController;
+use App\Livewire\Admin\Usuarios\MostrarUsuarios;
 use App\Models\Generacion;
 use Illuminate\Support\Facades\Route;
 
@@ -13,17 +14,13 @@ use Illuminate\Support\Facades\Route;
 // })->middleware(['auth'])->name('admin.dashboard');
 Route::middleware(['auth'])->group(function () {
 
-    Route::resource('usuarios', UserController::class)->names('admin.usuarios');
+    Route::resource('usuarios', UserController::class)->middleware('can:admin.usuarios')->names('admin.usuarios');
 
 
-    Route::resource('licenciaturas', LicenciaturaController::class)->names('admin.licenciaturas');
-    Route::resource('directivos', DirectivoController::class)->names('admin.directivos');
-    Route::resource('generaciones', GeneracionController::class)->names('admin.generaciones');
+    Route::resource('licenciaturas', LicenciaturaController::class)->middleware('can:admin.administracion')->names('admin.licenciaturas');
+    Route::resource('directivos', DirectivoController::class)->middleware('can:admin.administracion')->names('admin.directivos');
+    Route::resource('generaciones', GeneracionController::class)->middleware('can:admin.generaciones')->names('admin.generaciones');
 
 
 
-
-    Route::get('exportar-licenciaturas', [LicenciaturaController::class, 'export'])->name('exportar.licenciaturas');
-
-    Route::get('exportar-directivos', [DirectivoController::class, 'export'])->name('exportar.directivos');
 });

@@ -26,20 +26,38 @@
             <flux:input type="text" wire:model.live="search" placeholder="Buscar Personal..." class="p-2 mb-4  w-full" />
             <div class="flex space-x-4 mb-4">
 
-                <a href="{{ route('admin.exportar.directivos') }}"
-                class="text-white bg-green-700 hover:bg-green-800 focus:ring-4
-                 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600
-                  dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
+                <button wire:click="exportarDirectivos"  class="text-white bg-green-700 hover:bg-green-800 focus:ring-4
+                focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600
+                 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
+                 <div class="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                      </svg>
+                     <span> Exportar</span>
+                </div>
+                </button>
 
 
-                    <div class="flex items-center gap-1">
+
+                 <form wire:submit.prevent="importarDirectivos">
+                    {{-- <input type="file" wire:model="archivo" accept=".xlsx,.xls,.csv" class="mb-2"> --}}
+                    <flux:input type="file" wire:model="archivo" accept=".xlsx,.xls,.csv" class="mb-2" />
+
+                    @error('archivo')
+                        <div class="text-red-500 text-sm mb-2">{{ $message }}</div>
+                    @enderror
+
+                    <button type="submit"  class="text-white bg-indigo-700 hover:bg-indigo-800 focus:ring-4
+                    focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-indigo-600
+                     dark:hover:bg-indigo-700 focus:outline-none dark:focus:ring-indigo-800">
+                     <div class="flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                           </svg>
-                         <span> Exportar</span>
+                         <span> Importar</span>
                     </div>
-
-                </a>
+                    </button>
+                </form>
 
             </div>
             <table class="min-w-full border-collapse border border-gray-200">

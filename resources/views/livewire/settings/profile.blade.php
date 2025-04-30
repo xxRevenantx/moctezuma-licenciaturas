@@ -33,6 +33,10 @@
             <div>
                 <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
 
+
+                <flux:description>Este correo será tomado en cuenta para el envío de tus calificaciones. Evita extraviarlo para el mejor control de tu historial académico.</flux:description>
+
+
                 @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
                     <div>
                         <flux:text class="mt-4">

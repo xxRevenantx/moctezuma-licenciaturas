@@ -2,10 +2,14 @@
 
 namespace App\Livewire\Admin\Directivo;
 
+use App\Exports\DirectivoExport;
+use App\Imports\DirectivoImport;
 use App\Models\Directivo;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MostrarDirectivos extends Component
 {
@@ -13,6 +17,12 @@ class MostrarDirectivos extends Component
     use WithPagination;
 
     public $search = '';
+
+    use WithFileUploads;
+
+    public $archivo;
+
+
 
     public function updatingSearch()
     {
@@ -33,6 +43,46 @@ class MostrarDirectivos extends Component
             'position' => 'top-end',
             ]);
         }
+    }
+
+    public function exportarDirectivos()
+    {
+
+        $directivosFiltrados = Directivo::where('nombre', 'like', '%' . $this->search . '%')
+            ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
+            ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
+            ->orWhere('telefono', 'like', '%' . $this->search . '%')
+            ->orWhere('correo', 'like', '%' . $this->search . '%')
+            ->orWhere('cargo', 'like', '%' . $this->search . '%')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return Excel::download(new DirectivoExport($directivosFiltrados), 'directivos_filtradas.xlsx');
+    }
+
+    public function importarDirectivos()
+    {
+        $this->validate([
+            'archivo' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        if ($this->archivo && $this->archivo->isValid()) {
+            Excel::import(new DirectivoImport, $this->archivo->getRealPath());
+        } else {
+            $this->dispatch('swal', [
+                'title' => 'Error al importar el archivo. Verifique el archivo e inténtelo de nuevo.',
+                'icon' => 'error',
+                'position' => 'top-end',
+            ]);
+            return;
+        }
+
+
+        $this->dispatch('swal', [
+            'title' => '¡Directivos importados correctamente!',
+            'icon' => 'success',
+            'position' => 'top-end',
+            ]);
     }
 
 

@@ -64,6 +64,20 @@ class Profile extends Component
                 'max:255',
                 Rule::unique(User::class)->ignore($user->id),
             ],
+        ],[
+            'username.required' => 'El nombre de usuario es obligatorio.',
+            'username.unique' => 'El nombre de usuario ya está en uso.',
+            'username.max' => 'El nombre de usuario no puede tener más de 255 caracteres.',
+
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe ser una dirección válida.',
+            'email.unique' => 'El correo electrónico ya está en uso.',
+            'email.lowercase' => 'El correo electrónico debe estar en minúsculas.',
+            'email.max' => 'El correo electrónico no puede tener más de 255 caracteres.',
+
+            'photo.image' => 'La foto debe ser una imagen.',
+            'photo.max' => 'La foto no puede pesar más de 2 MB.',
+            'photo.mimes' => 'La foto debe ser un archivo JPEG, JPG o PNG.',
         ]);
 
 
