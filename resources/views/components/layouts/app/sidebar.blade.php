@@ -44,6 +44,9 @@
                     <flux:navlist.item icon="rectangle-stack" :href="route('admin.generaciones.index')"
                     :current="request()->routeIs('admin.generaciones.index')"
                      wire:navigate>{{ __('Crear generación') }}</flux:navlist.item>
+                    <flux:navlist.item icon="rectangle-stack" :href="route('admin.asignar.generacion.index')"
+                    :current="request()->routeIs('admin.asignar.generacion.index')"
+                     wire:navigate>{{ __('Asignación') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
             @endcan

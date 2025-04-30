@@ -22,6 +22,7 @@ class MostrarDirectivos extends Component
 
     public $archivo;
 
+    public $erroresImportacion;
 
 
     public function updatingSearch()
@@ -66,23 +67,41 @@ class MostrarDirectivos extends Component
             'archivo' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
-        if ($this->archivo && $this->archivo->isValid()) {
-            Excel::import(new DirectivoImport, $this->archivo->getRealPath());
-        } else {
+        $import = new DirectivoImport;
+
+        try {
+            Excel::import($import, $this->archivo->getRealPath());
+
+            if ($import->failures()->isNotEmpty()) {
+
+                $this->erroresImportacion = $import->failures()->toArray();
+
+                $this->dispatch('swal', [
+                    'title' => 'Errores en la importación. Verifica el archivo.',
+                    'icon' => 'error',
+                    'position' => 'top-end',
+                ]);
+
+            } else {
+                $this->reset(['archivo', 'erroresImportacion']);
+                $this->dispatch('swal', [
+                    'title' => '¡Directivos importados correctamente!',
+                    'icon' => 'success',
+                    'position' => 'top-end',
+                ]);
+            }
+        } catch (\Exception $e) {
             $this->dispatch('swal', [
-                'title' => 'Error al importar el archivo. Verifique el archivo e inténtelo de nuevo.',
+                'title' => 'Error al importar el archivo: ' . $e->getMessage(),
                 'icon' => 'error',
                 'position' => 'top-end',
             ]);
-            return;
         }
 
+        $this->reset();
 
-        $this->dispatch('swal', [
-            'title' => '¡Directivos importados correctamente!',
-            'icon' => 'success',
-            'position' => 'top-end',
-            ]);
+
+
     }
 
 

@@ -14,9 +14,7 @@ Route::get('register', function(){
     return redirect()->route('login');
 })->name('register');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');

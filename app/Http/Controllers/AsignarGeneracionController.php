@@ -1,21 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\asignar_generacion;
+use App\Http\Requests\Storeasignar_generacionRequest;
+use App\Http\Requests\Updateasignar_generacionRequest;
 
-use App\Models\Dashboard;
-use App\Http\Requests\StoreDashboardRequest;
-use App\Http\Requests\UpdateDashboardRequest;
-
-class DashboardController extends Controller
+class AsignarGeneracionController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+
+        return view('admin.asignar-generacion.index');
     }
 
     /**
@@ -29,7 +28,7 @@ class DashboardController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreDashboardRequest $request)
+    public function store(Storeasignar_generacionRequest $request)
     {
         //
     }
@@ -37,7 +36,7 @@ class DashboardController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Dashboard $dashboard)
+    public function show(asignar_generacion $asignar_generacion)
     {
         //
     }
@@ -45,7 +44,7 @@ class DashboardController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Dashboard $dashboard)
+    public function edit(asignar_generacion $asignar_generacion)
     {
         //
     }
@@ -53,7 +52,7 @@ class DashboardController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateDashboardRequest $request, Dashboard $dashboard)
+    public function update(Updateasignar_generacionRequest $request, asignar_generacion $asignar_generacion)
     {
         //
     }
@@ -61,7 +60,7 @@ class DashboardController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Dashboard $dashboard)
+    public function destroy(asignar_generacion $asignar_generacion)
     {
         //
     }

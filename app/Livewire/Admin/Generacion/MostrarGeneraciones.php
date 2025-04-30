@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin\Generacion;
 
+use App\Exports\GeneracionExport;
 use App\Models\Generacion;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MostrarGeneraciones extends Component
 {
@@ -29,6 +31,12 @@ class MostrarGeneraciones extends Component
     public function getGeneracionesProperty()
     {
         return Generacion::where('generacion', 'like', '%' . $this->search . '%')
+            ->orWhere(function ($query) {
+            $query->where('activa', "true")->whereRaw('? like ?', ['si', '%' . $this->search . '%']);
+            })
+            ->orWhere(function ($query) {
+            $query->where('activa', "false")->whereRaw('? like ?', ['no', '%' . $this->search . '%']);
+            })
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(10);
     }
@@ -43,10 +51,10 @@ class MostrarGeneraciones extends Component
 
     public function eliminarGeneracion($id)
     {
-        $directivo = Generacion::find($id);
+        $generacion = Generacion::find($id);
 
-        if ($directivo) {
-            $directivo->delete();
+        if ($generacion) {
+            $generacion->delete();
 
             $this->dispatch('swal', [
             'title' => 'Generación eliminada correctamente!',
@@ -54,6 +62,17 @@ class MostrarGeneraciones extends Component
             'position' => 'top-end',
             ]);
         }
+    }
+
+    public function exportarGeneraciones()
+    {
+
+        $generacionesFiltradas = Generacion::where('generacion', 'like', '%' . $this->search . '%')
+            ->orWhere('activa', 'like', '%' . $this->search . '%')
+            ->orderBy('id', 'desc')
+            ->get();
+
+    return Excel::download(new GeneracionExport($generacionesFiltradas), 'generaciones_filtradas.xlsx');
     }
 
 

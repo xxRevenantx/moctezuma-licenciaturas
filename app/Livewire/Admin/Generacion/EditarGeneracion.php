@@ -11,7 +11,7 @@ class EditarGeneracion extends Component
 
     public $generacionId;
     public $generacion;
-    public $egresada;
+    public $activa;
     public $open = false;
 
     #[On('abrirGeneracion')]
@@ -20,7 +20,7 @@ class EditarGeneracion extends Component
         $generacion = Generacion::findOrFail($id);
         $this->generacionId = $generacion->id;
         $this->generacion = $generacion->generacion;
-        $this->egresada = $generacion->egresada == "true" ? true : false;
+        $this->activa = $generacion->activa == "true" ? true : false;
         $this->open = true;
     }
 
@@ -28,26 +28,27 @@ class EditarGeneracion extends Component
     {
         $this->validate([
             'generacion' => 'required|string|max:9|unique:generaciones,generacion,' . $this->generacionId,
-            'egresada' => 'required',
+            'activa' => 'required',
         ],[
             'generacion.required' => 'El campo generación es obligatorio.',
             'generacion.string' => 'El campo generación debe ser una cadena de texto.',
             'generacion.max' => 'El campo generación no puede tener más de 9 caracteres.',
             'generacion.unique' => 'La generacion ya existe en la base de datos.',
-            'egresada.required' => 'El campo egresada es obligatorio.',
+            'activa.required' => 'El campo activa es obligatorio.',
+
         ]);
 
-        if($this->egresada == true){
-            $this->egresada = "true";
+        if($this->activa == true){
+            $this->activa = "true";
         }else{
-            $this->egresada = "false";
+            $this->activa = "false";
         }
 
         $generacion = Generacion::find($this->generacionId);
         if ($generacion) {
             $generacion->update([
                 'generacion' => trim($this->generacion),
-                'egresada' => $this->egresada,
+                'activa' => $this->activa,
             ]);
 
             $this->dispatch('swal', [
@@ -56,13 +57,13 @@ class EditarGeneracion extends Component
                 'position' => 'top-end',
             ]);
 
-            $this->reset(['open', 'generacionId', 'generacion', 'egresada']);
+            $this->reset(['open', 'generacionId', 'generacion', 'activa']);
             $this->dispatch('refreshGeneracion');
         }
     }
     public function cerrarModal()
     {
-        $this->reset(['open', 'generacionId', 'generacion', 'egresada']);
+        $this->reset(['open', 'generacionId', 'generacion', 'activa']);
     }
 
 

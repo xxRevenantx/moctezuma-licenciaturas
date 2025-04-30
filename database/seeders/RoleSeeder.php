@@ -32,6 +32,9 @@ class RoleSeeder extends Seeder
 
         Permission::create(['name' => 'admin.generaciones'])->syncRoles([$role1]);
 
+        Permission::create(['name' => 'admin.asignar.generacion'])->syncRoles([$role1]);
+
+
 
         Permission::create(['name' => 'exportar.licenciaturas'])->syncRoles([$role1]);
         Permission::create(['name' => 'exportar.directivos'])->syncRoles([$role1]);

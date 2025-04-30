@@ -15,7 +15,13 @@ class Generacion extends Model
 
     protected $fillable = [
         'generacion',
-        'egresada',
+        'activa',
     ];
+
+    public function asignarGeneracion()
+    {
+        return $this->hasMany(AsignarGeneracion::class);
+    }
+
 
 }

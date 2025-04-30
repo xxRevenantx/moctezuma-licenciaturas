@@ -23,7 +23,7 @@ class CrearDirectivo extends Component
         'nombre' => 'required|string|max:255',
         'apellido_paterno' => 'required|string|max:255',
         'apellido_materno' => 'nullable|string|max:255',
-        'telefono' => 'nullable|string|max:255',
+        'telefono' => 'nullable|string|max:10|regex:/^[0-9]{10}$/',
         'correo' => 'nullable|email|max:255',
         'cargo' => 'required|string|max:255',
 

@@ -24,8 +24,8 @@
                         <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white text-center">Editar Generación <flux:badge color="indigo">{{ $generacion }} </flux:badge></h2>
                        <flux:input wire:model.live="generacion" :label="__('Generacion')" type="text" placeholder="2020-2023"  autofocus autocomplete="generacion" />
 
-                       <flux:label>¿Egresada?</flux:label>
-                       <flux:switch wire:model.live="egresada" />
+                       <flux:label>¿Activa?</flux:label>
+                       <flux:switch wire:model.live="activa" />
 
                    <div class="mt-6 flex justify-end gap-2">
                               <div class="flex items-center">
