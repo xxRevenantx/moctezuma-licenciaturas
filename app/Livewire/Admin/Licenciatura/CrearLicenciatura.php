@@ -74,6 +74,8 @@ class CrearLicenciatura extends Component
             'position' => 'top-end',
         ]);
 
+
+
         $this->dispatch('refreshLicenciaturas'); // Emitir el evento para refrescar la lista de licenciaturas
     }
 

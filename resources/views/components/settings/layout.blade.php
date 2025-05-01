@@ -19,7 +19,5 @@
     </div>
 
 
-    @include('components.toast-message')
-
 
 </div>

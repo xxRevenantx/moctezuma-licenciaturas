@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\AsignarGeneracion;
 
+use App\Exports\AsignarGeneracionExport;
+use App\Imports\AsignarGeneracionImport;
 use App\Models\AsignarGeneracion;
 use App\Models\Generacion;
 use App\Models\Licenciatura;
@@ -9,11 +11,13 @@ use App\Models\Modalidad;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MostrarGeneraciones extends Component
 {
     use WithPagination;
     public $search = '';
+    public $archivo;
 
     public $filtrar_licenciatura = '';
     public $filtrar_generacion = '';
@@ -21,9 +25,10 @@ class MostrarGeneraciones extends Component
     public $filtrar_activa = '';
 
 
-    public $sortField = 'id';
+    public $sortField = 'order';
     public $sortDirection = 'asc';
 
+    public $erroresImportacion;
 
 
     public function sortBy($field)
@@ -153,6 +158,88 @@ class MostrarGeneraciones extends Component
             ]);
         }
     }
+
+
+    // exportar a excel
+        public function exportarAsignacion(){
+            $asignaciones = AsignarGeneracion::with(['licenciatura', 'modalidad', 'generacion'])
+                ->when($this->filtrar_licenciatura, function ($query) {
+                    $query->where('licenciatura_id', $this->filtrar_licenciatura);
+                })
+                ->when($this->filtrar_generacion, function ($query) {
+                    $query->where('generacion_id', $this->filtrar_generacion);
+                })
+                ->when($this->filtrar_modalidad, function ($query) {
+                    $query->where('modalidad_id', $this->filtrar_modalidad);
+                })
+                ->when($this->filtrar_activa !== '', function ($query) {
+                    $query->whereHas('generacion', function ($q) {
+                        $q->where('activa', $this->filtrar_activa === 'true' ? "true" : "false");
+                    });
+                })
+                ->when($this->search, function ($query) {
+                    $query->where(function ($q) {
+                        $q->whereHas('licenciatura', function ($query) {
+                            $query->where('nombre', 'like', '%' . $this->search . '%');
+                        })
+                        ->orWhereHas('modalidad', function ($query) {
+                            $query->where('nombre', 'like', '%' . $this->search . '%');
+                        })
+                        ->orWhereHas('generacion', function ($query) {
+                            $query->where('generacion', 'like', '%' . $this->search . '%');
+                        });
+                    });
+                })
+                ->orderBy($this->sortField, $this->sortDirection)
+                ->get();
+
+            return Excel::download(new AsignarGeneracionExport($asignaciones), 'generaciones_asignadas.xlsx');
+        }
+
+    // Importar desde excel
+        // public function importarAsignaciones(){
+        //     $this->validate([
+        //         'archivo' => 'required|file|mimes:xlsx,xls,csv',
+        //     ]);
+
+        //     $import = new AsignarGeneracionImport;
+
+        //     try {
+        //         Excel::import($import, $this->archivo->getRealPath());
+
+        //         if ($import->failures()->isNotEmpty()) {
+
+        //             $this->erroresImportacion = $import->failures()->toArray();
+
+        //             $this->dispatch('swal', [
+        //                 'title' => 'Errores en la importación. Verifica el archivo.',
+        //                 'icon' => 'error',
+        //                 'position' => 'top-end',
+        //             ]);
+
+        //         } else {
+        //             $this->reset(['archivo', 'erroresImportacion']);
+        //             $this->dispatch('swal', [
+        //                 'title' => 'Generaciones importadas correctamente!',
+        //                 'icon' => 'success',
+        //                 'position' => 'top-end',
+        //             ]);
+        //         }
+        //     } catch (\Exception $e) {
+        //         $this->dispatch('swal', [
+        //             'title' => 'Error al importar el archivo',
+        //             'icon' => 'error',
+        //             'position' => 'top-end',
+        //         ]);
+        //     }
+
+        //     $this->reset();
+
+
+        // }
+
+
+
 
     #[On("refreshAsignacion")]
     public function render()

@@ -44,6 +44,21 @@ class AsignarGeneracion extends Component
             'generacion_id.exists' => 'La generación seleccionada no es válida.',
         ]);
 
+        // Verifica si ya existe una asignación para la combinación seleccionada
+        $existingAssignment = AsignarGeneracionModel::where('licenciatura_id', $this->licenciatura_id)
+            ->where('modalidad_id', $this->modalidad_id)
+            ->where('generacion_id', $this->generacion_id)
+            ->first();
+        if ($existingAssignment) {
+            $this->dispatch('swal', [
+                'title' => 'Ya existe una asignación para esta combinación.',
+                'icon' => 'error',
+                'position' => 'top',
+            ]);
+            return;
+        }
+
+
         // Aquí puedes agregar la lógica para asignar la generación a la licenciatura y modalidad seleccionadas
         // Por ejemplo, podrías crear un nuevo registro en la tabla asignar_generaciones
             AsignarGeneracionModel::create([

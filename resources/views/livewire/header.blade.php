@@ -1,6 +1,18 @@
 <div class="w-full flex flex-wrap justify-between rounded-xl p-4 bg-white dark:bg-neutral-800 shadow-md border border-neutral-200 dark:border-neutral-700 mb-4">
     <div class="flex items-center gap-2 w-full sm:w-auto text-center justify-center lg:justify-start">
-        <flux:icon.calendar /> {{ now()->format('d \d\e F \d\e Y') }}
+        <flux:icon.calendar /> {{ now()->translatedFormat('d \d\e F \d\e Y') }} - <flux:icon.clock /> <span id="live-clock">{{ now()->format('H:i') }}</span>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+            const clockElement = document.getElementById('live-clock');
+            setInterval(() => {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                clockElement.textContent = `${hours}:${minutes}`;
+            }, 1000);
+            });
+        </script>
     </div>
 
     <div class="w-full flex gap-4 flex-col lg:flex-row  sm:w-auto text-center mt-5 sm:mt-0 items-center">

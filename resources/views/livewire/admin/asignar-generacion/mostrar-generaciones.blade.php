@@ -22,11 +22,11 @@
 
 
         <div class="overflow-x-auto">
-            <h3 class="mt-5 flex items-center gap-1">
+            <h3 class="mt-5 flex items-center gap-1 text-2xl font-bold text-gray-800 dark:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
                 </svg>
-                <span>Filtrar por:</span>
+               <span>Filtrar por:</span>
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2  p-2">
                 <flux:field>
@@ -69,12 +69,10 @@
 
               </flux:field>
 
-
             </div>
-
             <flux:input type="text" wire:model.live="search" placeholder="Buscar..." class="p-2 mb-4  w-full" />
-            <div class="flex space-x-4 mb-4">
-
+            <div class="flex space-x-4 mb-4 justify-between p-1">
+                <div>
                 @if($asignaciones->isNotEmpty())
                 <button wire:click="exportarAsignacion"  class="text-white bg-green-700 hover:bg-green-800 focus:ring-4
                 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600
@@ -103,6 +101,8 @@
             </div>
 
 
+        </div>
+
             <div wire:loading.delay
                 wire:target="search, filtrar_licenciatura, filtrar_generacion, filtrar_modalidad, filtrar_activa"
                class="flex justify-center" >
@@ -117,10 +117,10 @@
                             <thead>
                                 <tr>
                                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
-                                        @click="$wire.sortBy('id')">
+                                        @click="$wire.sortBy('order')">
                                         <div class="flex items-center justify-between">
                                             <span>ID</span>
-                                            @if($sortField === 'id')
+                                            @if($sortField === 'order')
                                                 @if($sortDirection === 'asc')
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
@@ -197,11 +197,17 @@
                                 @else
                                 @foreach($asignaciones as $key => $asignacion)
                                     <tr>
-                                    <td class="border px-4 py-2">{{ $asignacion->id}}</td>
+                                    <td class="border px-4 py-2">{{ $asignacion->order}}</td>
                                     <td class="border px-4 py-2">{{ $asignacion->licenciatura->nombre }}</td>
                                     <td class="border px-4 py-2">
                                         @if($asignacion->generacion != NULL)
-                                            {{ $asignacion->generacion->generacion }}
+
+                                            @if($asignacion->generacion->activa == "true")
+                                            <flux:badge color="green"> {{ $asignacion->generacion->generacion }}</flux:badge>
+                                            @else
+
+                                                <flux:badge color="red"> {{ $asignacion->generacion->generacion }}</flux:badge>
+                                            @endif
                                         @else
                                         <flux:badge color="red">N/A</flux:badge>
                                         @endif
@@ -249,7 +255,8 @@
 
 
     {{-- MODAL PARA EDITAR --}}
-    <livewire:admin.asignar-generacion.editar-generacion />
+
+     <livewire:admin.asignar-generacion.editar-generacion />
 
 
 </div>

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('licenciatura_id');
             $table->unsignedBigInteger('modalidad_id');
             $table->unsignedBigInteger('generacion_id')->nullable();
+            $table->integer('order');
 
             $table->foreign('licenciatura_id')->references('id')->on('licenciaturas')->onDelete('cascade');
             $table->foreign('modalidad_id')->references('id')->on('modalidades')->onDelete('cascade');
