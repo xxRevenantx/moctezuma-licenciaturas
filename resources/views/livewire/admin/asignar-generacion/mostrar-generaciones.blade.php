@@ -26,37 +26,48 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
                 </svg>
-                <span>Filtrar:</span>
+                <span>Filtrar por:</span>
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2  p-2">
-                <flux:select wire:model.live="filtrar_licenciatura" class="p-2 mb-4 w-full">
-                    <flux:select.option value="">--Selecciona una licenciatura---</flux:select.option>
-                    @foreach($licenciaturas as $licenciatura)
-                        <flux:select.option value="{{ $licenciatura->id }}">{{ $licenciatura->nombre }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <flux:field>
+                    <flux:label>Licenciatura</flux:label>
+                    <flux:select wire:model.live="filtrar_licenciatura" class="p-2 mb-4 w-full">
+                        <flux:select.option value="">--Selecciona una licenciatura---</flux:select.option>
+                        @foreach($licenciaturas as $licenciatura)
+                            <flux:select.option value="{{ $licenciatura->id }}">{{ $licenciatura->nombre }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+              </flux:field>
 
+              <flux:field>
+                <flux:label>Generación</flux:label>
                 <flux:select wire:model.live="filtrar_generacion" class="p-2 mb-4 w-full">
                     <flux:select.option value="">--Selecciona una generación---</flux:select.option>
                     @foreach($generaciones as $generacion)
                         <flux:select.option value="{{ $generacion->id }}">{{ $generacion->generacion }}</flux:select.option>
                     @endforeach
                 </flux:select>
+              </flux:field>
 
+              <flux:field>
+                <flux:label>Modalidad</flux:label>
                 <flux:select wire:model.live="filtrar_modalidad" class="p-2 mb-4 w-full">
                     <flux:select.option value="">--Selecciona una modalidad---</flux:select.option>
                     @foreach($modalidades as $modalidad)
                         <flux:select.option value="{{ $modalidad->id }}">{{ $modalidad->nombre }}</flux:select.option>
                     @endforeach
                 </flux:select>
+              </flux:field>
 
+              <flux:field>
+                <flux:label>Activa / Inactiva</flux:label>
                 <flux:select wire:model.live="filtrar_activa" class="p-2 mb-4 w-full">
                     <flux:select.option value="">--Selecciona una opción---</flux:select.option>
                     <flux:select.option value="true">ACTIVA</flux:select.option>
                     <flux:select.option value="false">INACTIVA</flux:select.option>
                 </flux:select>
 
-
+              </flux:field>
 
 
             </div>
@@ -90,21 +101,19 @@
                 @endif
 
             </div>
+
+
             <div wire:loading.delay
                 wire:target="search, filtrar_licenciatura, filtrar_generacion, filtrar_modalidad, filtrar_activa"
-                class="w-full flex items-center justify-center gap-4 p-8 text-blue-600 font-bold text-xl">
-                <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                            stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
+               class="flex justify-center" >
+                <img class="w-20 h-20  block m-auto" src="{{ asset('storage/loader.svg') }}" alt="">
             </div>
+
+
             <div wire:loading.remove
                  wire:target="search, filtrar_licenciatura, filtrar_generacion, filtrar_modalidad, filtrar_activa">
 
-                        <table class="min-w-full border-collapse border border-gray-200">
+                        <table class="min-w-full border-collapse border border-gray-200 table-striped">
                             <thead>
                                 <tr>
                                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
@@ -175,23 +184,8 @@
                                         @endif
                                     </div>
                                 </th>
-                                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
-                                    @click="$wire.sortBy('activa')">
-                                    <div class="flex items-center justify-between">
-                                        <span>Activa</span>
-                                        @if($sortField === 'activa')
-                                            @if($sortDirection === 'asc')
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                                                </svg>
-                                            @else
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            @endif
-                                        @endif
-                                    </div>
-                                </th>
+
+                                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">STATUS</th>
                                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700"></th>
                                 </tr>
                             </thead>
@@ -205,13 +199,26 @@
                                     <tr>
                                     <td class="border px-4 py-2">{{ $asignacion->id}}</td>
                                     <td class="border px-4 py-2">{{ $asignacion->licenciatura->nombre }}</td>
-                                    <td class="border px-4 py-2">{{ $asignacion->generacion->generacion }}</td>
-                                    <td class="border px-4 py-2">{{ $asignacion->modalidad->nombre }}</td>
-                                    <td class="border px-4 py-2 text-center">
-                                        @if($asignacion->generacion->activa == "true")
-                                            <span class="text-green-500">✔ ACTIVA</span>
+                                    <td class="border px-4 py-2">
+                                        @if($asignacion->generacion != NULL)
+                                            {{ $asignacion->generacion->generacion }}
                                         @else
-                                            <span class="text-red-500">✘ INACTIVA</span>
+                                        <flux:badge color="red">N/A</flux:badge>
+                                        @endif
+
+                                    </td>
+                                    <td class="border px-4 py-2">{{ $asignacion->modalidad->nombre }}</td>
+                                    <td class="border px-4 py-2">
+
+                                        @if($asignacion->generacion != NULL)
+                                            @if($asignacion->generacion->activa == "true")
+                                            <flux:badge color="green">✔ ACTIVA</flux:badge>
+                                            @else
+
+                                                <flux:badge color="red">✘ INACTIVA</flux:badge>
+                                            @endif
+                                            @else
+                                            <flux:badge color="red">N/A</flux:badge>
                                         @endif
 
                                     </td>
@@ -242,7 +249,7 @@
 
 
     {{-- MODAL PARA EDITAR --}}
-    {{-- <livewire:admin.generacion.editar-generacion /> --}}
+    <livewire:admin.asignar-generacion.editar-generacion />
 
 
 </div>

@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('licenciatura_id');
             $table->unsignedBigInteger('modalidad_id');
-            $table->unsignedBigInteger('generacion_id');
+            $table->unsignedBigInteger('generacion_id')->nullable();
 
             $table->foreign('licenciatura_id')->references('id')->on('licenciaturas')->onDelete('cascade');
             $table->foreign('modalidad_id')->references('id')->on('modalidades')->onDelete('cascade');
-            $table->foreign('generacion_id')->references('id')->on('generaciones')->onDelete('cascade');
+            $table->foreign('generacion_id')->references('id')->on('generaciones')->onDelete('set null');
             $table->timestamps();
         });
     }

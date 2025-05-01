@@ -24,8 +24,9 @@
         <div class="overflow-x-auto">
             <h3 class="mt-5">Buscar Generación:</h3>
             <flux:input type="text" wire:model.live="search" placeholder="Buscar Generación..." class="p-2 mb-4  w-full" />
-            <div class="flex space-x-4 mb-4">
 
+            <div class="flex space-x-4 mb-4 justify-between">
+            <div>
                 @if($generaciones->isNotEmpty())
                 <button wire:click="exportarGeneraciones"  class="text-white bg-green-700 hover:bg-green-800 focus:ring-4
                 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600
@@ -52,7 +53,45 @@
                 @endif
 
             </div>
-            <table class="min-w-full border-collapse border border-gray-200">
+
+            <form wire:submit.prevent="importarGeneraciones">
+                {{-- <input type="file" wire:model="archivo" accept=".xlsx,.xls,.csv" class="mb-2"> --}}
+
+                @error('archivo')
+                    <div class="text-red-500 text-sm mb-2">{{ $message }}</div>
+                @enderror
+
+
+                <div class="flex gap-3">
+
+                <div class="relative">
+                    <label title="Click para importar" for="button2" class="cursor-pointer flex items-center gap-4 px-5 py-2.5 before:border-gray-400/60 hover:before:border-gray-300 group before:bg-gray-100 before:absolute before:inset-0 before:rounded-lg before:border before:border-dashed before:transition-transform before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95">
+                      <div class="w-max relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                          </svg>
+
+                      </div>
+                      <div class="relative">
+                          <span class="block text-base font-semibold relative text-blue-900 group-hover:text-blue-500">
+                              Selecciona un archivo
+                          </span>
+                          <span class="mt-0.5 block text-sm text-gray-500"></span>
+                      </div>
+                     </label>
+                    <input hidden="" accept=".xlsx,.xls,.csv"  wire:model.live="archivo" type="file" name="button2" id="button2">
+
+                </div>
+
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
+                    Importar
+                </button>
+
+            </div>
+            </form>
+            </div>
+
+            <table class="min-w-full border-collapse border border-gray-200 table-striped">
                 <thead>
                     <tr>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
@@ -89,7 +128,7 @@
                             @endif
                         </div>
                     </th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Activa</th>
+                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Status</th>
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Acciones</th>
                     </tr>
                 </thead>
@@ -105,9 +144,11 @@
                         <td class="border px-4 py-2">{{ $generacion->generacion }}</td>
                         <td class="border px-4 py-2 text-center">
                             @if($generacion->activa == "true")
-                                <span class="text-green-500">✔ Si</span>
+                                <flux:badge color="green">✔ ACTIVA</flux:badge>
+
                             @else
-                                <span class="text-red-500">✘ No</span>
+                                <flux:badge color="red">✘ INACTIVA</flux:badge>
+
                             @endif
 
                         </td>

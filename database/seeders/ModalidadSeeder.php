@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class ModalidadeSeeder extends Seeder
+class ModalidadSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -18,7 +18,7 @@ class ModalidadeSeeder extends Seeder
         ];
 
         foreach ($modalidades as $modalidad) {
-            \App\Models\Modalidade::create($modalidad);
+            \App\Models\Modalidad::create($modalidad);
         }
     }
 }

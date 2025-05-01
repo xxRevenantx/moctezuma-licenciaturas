@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             LicenciaturaSeeder::class,
-            ModalidadeSeeder::class,
+            ModalidadSeeder::class,
             // Add other seeders here
         ]);
 
