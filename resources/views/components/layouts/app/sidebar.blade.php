@@ -12,9 +12,12 @@
                 <x-app-logo />
             </a>
 
+
             <flux:navlist >
                 <flux:navlist.group :heading="__('Platform')" class="grid ">
+
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+
                 </flux:navlist.group>
             </flux:navlist>
 
@@ -29,31 +32,34 @@
 
             @can('admin.administracion')
             <flux:navlist >
-                <flux:navlist.group :heading="__('Administración')" class="grid">
-                    <flux:navlist.item icon="rectangle-stack" :href="route('admin.licenciaturas.index')" :current="request()->routeIs('admin.licenciaturas.index')" wire:navigate>{{ __('Licenciaturas') }}</flux:navlist.item>
+                <flux:navlist.group :heading="__('Administración')" expandable>
+                    <flux:navlist >
+                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.asignacion.licenciaturas.index')" :current="request()->routeIs('admin.asignacion.licenciaturas.index')" wire:navigate>{{ __('Licenciaturas') }}</flux:navlist.item>
+
+                        <flux:navlist.group :heading="__('Generaciones')" expandable >
+                            <flux:navlist.item icon="rectangle-stack" :href="route('admin.generaciones.index')"
+                            :current="request()->routeIs('admin.generaciones.index')"
+                            wire:navigate>{{ __('Crear') }}</flux:navlist.item>
+                            <flux:navlist.item icon="rectangle-stack" :href="route('admin.asignar.generacion.index')"
+                            :current="request()->routeIs('admin.asignar.generacion.index')"
+                            wire:navigate>{{ __('Asignar') }}</flux:navlist.item>
+                        </flux:navlist.group>
+                    </flux:navlist>
+
+                    <flux:navlist.item icon="rectangle-stack" :href="route('admin.cuatrimestres.index')" :current="request()->routeIs('admin.cuatrimestres.index')" wire:navigate>{{ __('Cuatrimestres') }}</flux:navlist.item>
+                    <flux:navlist.item icon="rectangle-stack" :href="route('admin.periodos.index')" :current="request()->routeIs('admin.periodos.index')" wire:navigate>{{ __('Periodos') }}</flux:navlist.item>
                     <flux:navlist.item icon="rectangle-stack" :href="route('admin.directivos.index')" :current="request()->routeIs('admin.directivos.index')" wire:navigate>{{ __('Personal directivo') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
             @endcan
 
-            @can('admin.generaciones')
-            <flux:navlist >
-                <flux:navlist.group :heading="__('Generaciones')" expandable >
-                    <flux:navlist.item icon="rectangle-stack" :href="route('admin.generaciones.index')"
-                    :current="request()->routeIs('admin.generaciones.index')"
-                     wire:navigate>{{ __('Crear generación') }}</flux:navlist.item>
-                    <flux:navlist.item icon="rectangle-stack" :href="route('admin.asignar.generacion.index')"
-                    :current="request()->routeIs('admin.asignar.generacion.index')"
-                     wire:navigate>{{ __('Asignación') }}</flux:navlist.item>
-                </flux:navlist.group>
-            </flux:navlist>
-            @endcan
 
 
 
 
+            @can('admin.licenciaturas')
             <livewire:sidebar>
-
+            @endcan
 
 
             <flux:spacer />

@@ -1,46 +1,61 @@
 <div>
     <h3>Buscar Usuario:</h3>
-    <div x-data ="{
+    <div x-data="{
         destroyUsuario(id, matricula) {
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: `El usuario con ${matricula} se eliminará de forma permanente`,
-                    icon: 'info',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    cancelButtonText: 'cancelar',
-                    confirmButtonText: 'Sí, eliminar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        @this.call('eliminarUsuario', id);
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `El usuario con matrícula ${matricula} se eliminará de forma permanente`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Sí, eliminar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('eliminarUsuario', id);
+                }
+            });
+        },
+        inactivarUsuarios() {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: 'Los roles Estudiante y Profesor se inactivarán',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Sí, inactivar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('inactivarUsuarios');
+                }
+            });
+        },
 
-                    }
-                })
-            }
+        activarUsuarios() {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: 'Los roles Estudiante y Profesor se activarán',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Sí, activar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('activarUsuarios');
+                }
+            });
+        },
     }">
 
 
     <flux:input type="text" wire:model.live="search" placeholder="Buscar Usuarios..." class=" p-2 mb-4 w-full" />
         <div class="overflow-x-auto">
-            <div class="flex space-x-4 mb-4">
-
-
-
-              {{-- <a href="{{ route('admin.exportar.usuarios', ['search' => $search]) }}"
-                class="text-white bg-green-700 hover:bg-green-800 focus:ring-4
-                 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600
-                  dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
-
-
-                    <div class="flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                          </svg>
-                         <span> Exportar</span>
-                    </div>
-                </a> --}}
-
+            <div class="flex space-x-4 mb-4 p-1">
 
                 <button wire:click="exportarUsuarios"  class="text-white bg-green-700 hover:bg-green-800 focus:ring-4
                 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600
@@ -53,8 +68,35 @@
                 </div>
                 </button>
 
+
+                <button @click="inactivarUsuarios" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4
+                focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600
+                 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">
+                 <div class="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                      </svg>
+
+                     <span> Inactivar</span>
+                </div>
+                </button>
+                <button @click="activarUsuarios" class="text-white bg-indigo-700 hover:bg-indigo-800 focus:ring-4
+                focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-indigo-600
+                 dark:hover:bg-indigo-700 focus:outline-none dark:focus:ring-indigo-800">
+                 <div class="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                      </svg>
+
+
+                     <span> Activar</span>
+                </div>
+                </button>
+
+
+
             </div>
-            <table class="min-w-full border-collapse border border-gray-200">
+            <table class="min-w-full border-collapse border border-gray-200 table-striped">
             <thead>
                 <tr>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>

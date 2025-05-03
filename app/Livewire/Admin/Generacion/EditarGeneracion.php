@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Generacion;
 
+use App\Models\Cuatrimestre;
 use App\Models\Generacion;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -71,6 +72,7 @@ class EditarGeneracion extends Component
 
     public function render()
     {
+
         return view('livewire.admin.generacion.editar-generacion');
     }
 }

@@ -24,6 +24,8 @@ class RoleSeeder extends Seeder
 
 
 
+
+
         Permission::create(['name' => 'admin.usuarios'])->syncRoles([$role1, $role2]);
         Permission::create(['name' => 'admin.usuarios.acciones'])->syncRoles([$role1]);
 
@@ -34,9 +36,12 @@ class RoleSeeder extends Seeder
 
         Permission::create(['name' => 'admin.asignar.generacion'])->syncRoles([$role1]);
 
-
+        // ROL PARA VER LAS LICENCIATURAS
+        Permission::create(['name' => 'admin.asignacion.licenciaturas'])->syncRoles([$role1, $role2]);
 
         Permission::create(['name' => 'exportar.licenciaturas'])->syncRoles([$role1]);
+
+
         Permission::create(['name' => 'exportar.directivos'])->syncRoles([$role1]);
 
 

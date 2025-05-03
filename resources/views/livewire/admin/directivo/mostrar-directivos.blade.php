@@ -91,7 +91,7 @@
 
 
             </div>
-            <table class="min-w-full border-collapse border border-gray-200">
+            <table class="min-w-full border-collapse border border-gray-200 table-striped">
             <thead>
                 <tr>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>

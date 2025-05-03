@@ -37,6 +37,38 @@ class MostrarUsuarios extends Component
         }
     }
 
+    public function inactivarUsuarios()
+    {
+        $user = User::all();
+        foreach ($user as $u) {
+            if ($u->roles()->whereIn('name', ['Estudiante', 'Profesor', 'Invitado'])->exists()) {
+                $u->status = 'false';
+                $u->save();
+            }
+        }
+        $this->dispatch('swal', [
+            'title' => 'Usuarios inactivados correctamente!',
+            'icon' => 'success',
+            'position' => 'top-end',
+        ]);
+    }
+
+    public function activarUsuarios()
+    {
+        $user = User::all();
+        foreach ($user as $u) {
+            if ($u->roles()->whereIn('name', ['Estudiante', 'Profesor', 'Invitado'])->exists()) {
+                $u->status = 'true';
+                $u->save();
+            }
+        }
+        $this->dispatch('swal', [
+            'title' => 'Usuarios activados correctamente!',
+            'icon' => 'success',
+            'position' => 'top-end',
+        ]);
+    }
+
 
     public static function placeholder(){
         return view('placeholder');

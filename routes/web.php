@@ -16,6 +16,8 @@ Route::get('register', function(){
 
 
 
+
+
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 

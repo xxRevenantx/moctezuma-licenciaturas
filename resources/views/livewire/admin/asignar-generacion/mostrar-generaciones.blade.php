@@ -133,23 +133,7 @@
                                             @endif
                                         </div>
                                 </th>
-                                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
-                                    @click="$wire.sortBy('licenciatura_id')">
-                                    <div class="flex items-center justify-between">
-                                        <span>Licenciatura</span>
-                                        @if($sortField === 'licenciatura_id')
-                                        @if($sortDirection === 'asc')
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                                                </svg>
-                                            @else
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            @endif
-                                        @endif
-                                    </div>
-                                </th>
+
                                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
                                     @click="$wire.sortBy('generacion_id')">
                                     <div class="flex items-center justify-between">
@@ -195,53 +179,53 @@
                                     <td colspan="6" class="border px-4 py-2 text-center">No hay asignaciones disponibles.</td>
                                 </tr>
                                 @else
-                                @foreach($asignaciones as $key => $asignacion)
+                                @php
+                                $agrupadas = $asignaciones->groupBy('licenciatura_id');
+                                 @endphp
+
+                            @forelse($agrupadas as $licenciaturaId => $grupo)
+                                <tr class="bg-gray-200 dark:bg-neutral-700">
+                                    <td colspan="6" class="px-4 py-2 font-semibold text-left text-lg  dark:text-white">
+                                        Licenciatura en: {{ $grupo->first()->licenciatura->nombre }}
+                                    </td>
+                                </tr>
+
+                                @foreach($grupo as $asignacion)
                                     <tr>
-                                    <td class="border px-4 py-2">{{ $asignacion->order}}</td>
-                                    <td class="border px-4 py-2">{{ $asignacion->licenciatura->nombre }}</td>
-                                    <td class="border px-4 py-2">
-                                        @if($asignacion->generacion != NULL)
-
-                                            @if($asignacion->generacion->activa == "true")
-                                            <flux:badge color="green"> {{ $asignacion->generacion->generacion }}</flux:badge>
+                                        <td class="border px-4 py-2">{{ $asignacion->order }}</td>
+                                        <td class="border px-4 py-2">
+                                            @if($asignacion->generacion)
+                                                <flux:badge color="{{ $asignacion->generacion->activa == 'true' ? 'green' : 'red' }}">
+                                                    {{ $asignacion->generacion->generacion }}
+                                                </flux:badge>
                                             @else
-
-                                                <flux:badge color="red"> {{ $asignacion->generacion->generacion }}</flux:badge>
+                                                <flux:badge color="red">N/A</flux:badge>
                                             @endif
-                                        @else
-                                        <flux:badge color="red">N/A</flux:badge>
-                                        @endif
-
-                                    </td>
-                                    <td class="border px-4 py-2">{{ $asignacion->modalidad->nombre }}</td>
-                                    <td class="border px-4 py-2">
-
-                                        @if($asignacion->generacion != NULL)
-                                            @if($asignacion->generacion->activa == "true")
-                                            <flux:badge color="green">✔ ACTIVA</flux:badge>
+                                        </td>
+                                        <td class="border px-4 py-2">{{ $asignacion->modalidad->nombre }}</td>
+                                        <td class="border px-4 py-2">
+                                            @if($asignacion->generacion)
+                                                <flux:badge color="{{ $asignacion->generacion->activa == 'true' ? 'green' : 'red' }}">
+                                                    {{ $asignacion->generacion->activa == 'true' ? '✔ ACTIVA' : '✘ INACTIVA' }}
+                                                </flux:badge>
                                             @else
-
-                                                <flux:badge color="red">✘ INACTIVA</flux:badge>
+                                                <flux:badge color="red">N/A</flux:badge>
                                             @endif
-                                            @else
-                                            <flux:badge color="red">N/A</flux:badge>
-                                        @endif
-
-                                    </td>
-
-
-                                    <td class="border px-4 py-2">
-                                        <flux:button  @click="Livewire.dispatch('abrirAsignacion', { id: {{ $asignacion->id }} })"
-                                            class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
-
-                                            <flux:button variant="danger"
-                                        @click="destroyAsignacion({{ $asignacion->id }})"
-                                        class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
-                                        Eliminar
-                                        </flux:button>
-                                    </td>
+                                        </td>
+                                        <td class="border px-4 py-2">
+                                            <flux:button @click="Livewire.dispatch('abrirAsignacion', { id: {{ $asignacion->id }} })"
+                                                class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
+                                            <flux:button variant="danger" @click="destroyAsignacion({{ $asignacion->id }})"
+                                                class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">Eliminar</flux:button>
+                                        </td>
                                     </tr>
                                 @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="border px-4 py-2 text-center">No hay asignaciones disponibles.</td>
+                                </tr>
+                            @endforelse
+
                                 @endif
                             </tbody>
                         </table>

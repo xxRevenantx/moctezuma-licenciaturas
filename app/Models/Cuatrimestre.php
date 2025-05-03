@@ -5,29 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Generacion extends Model
+class Cuatrimestre extends Model
 {
-
-    protected $table = 'generaciones';
-
-    /** @use HasFactory<\Database\Factories\GeneracionFactory> */
+    protected $table = 'cuatrimestres';
+    /** @use HasFactory<\Database\Factories\CuatrimestreFactory> */
     use HasFactory;
 
     protected $fillable = [
-        'generacion',
-        'activa',
+        'cuatrimestre',
+        'mes_id'
     ];
-
-    public function asignarGeneracion()
+    public function mes()
     {
-        return $this->hasMany(AsignarGeneracion::class);
+        return $this->belongsTo(Mes::class);
     }
-
     public function periodos()
     {
         return $this->hasMany(Periodo::class);
     }
-
-
-
 }

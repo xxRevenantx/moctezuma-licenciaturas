@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class MostrarGeneraciones extends Component
 {
     use WithFileUploads;
-   use WithPagination;
+    use WithPagination;
 
     public $search = '';
 

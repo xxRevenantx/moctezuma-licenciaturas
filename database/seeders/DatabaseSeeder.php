@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             LicenciaturaSeeder::class,
             ModalidadSeeder::class,
+            MesSeeder::class,
             // Add other seeders here
         ]);
 
