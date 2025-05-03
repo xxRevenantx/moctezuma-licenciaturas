@@ -26,7 +26,7 @@
                 <flux:field>
 
 
-                <flux:select :label="__('Licenciatura')" wire:model.live="licenciatura_id" id="licenciatura_id" class="w-full">
+                <flux:select :label="__('Licenciatura')" wire:model="licenciatura_id" id="licenciatura_id" class="w-full">
                     <flux:select.option value="">--Selecciona una opción---</flux:select.option>
                     @foreach ($licenciaturas as $licenciatura)
                     <option value="{{ $licenciatura->id }}">{{ $licenciatura->nombre }}</option>
@@ -34,14 +34,14 @@
                 </flux:select>
 
 
-                <flux:select :label="__('Generación')" wire:model.live="generacion_id" id="generacion_id" class="w-full">
+                <flux:select :label="__('Generación')" wire:model="generacion_id" id="generacion_id" class="w-full">
                     <flux:select.option value="">--Selecciona una opción---</flux:select.option>
                     @foreach ($generaciones as $generacion)
                     <option value="{{ $generacion->id }}">{{ $generacion->generacion }}</option>
                     @endforeach
                 </flux:select>
 
-                <flux:select :label="__('Modalidad')" wire:model.live="modalidad_id" id="modalidad_id" class="w-full">
+                <flux:select :label="__('Modalidad')" wire:model="modalidad_id" id="modalidad_id" class="w-full">
                     <flux:select.option value="">--Selecciona una opción---</flux:select.option>
                     @foreach ($modalidades as $modalidad)
                     <option value="{{ $modalidad->id }}">{{ $modalidad->nombre }}</option>

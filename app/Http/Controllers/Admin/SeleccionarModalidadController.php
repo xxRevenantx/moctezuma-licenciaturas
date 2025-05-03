@@ -1,29 +1,26 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
-
-
 use App\Http\Controllers\Controller;
 
-use App\Exports\LicenciaturaExport;
-use App\Models\Licenciatura;
-use App\Http\Requests\StoreLicenciaturaRequest;
-use App\Http\Requests\UpdateLicenciaturaRequest;
-use Maatwebsite\Excel\Facades\Excel;
 
-class LicenciaturaController extends Controller
+use Illuminate\Http\Request;
+
+class SeleccionarModalidadController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('admin.licenciatura.index');
+
+        return view('admin.licenciaturas.index');
+
     }
 
-
-
-
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
         //
@@ -32,7 +29,7 @@ class LicenciaturaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreLicenciaturaRequest $request)
+    public function store(Request $request)
     {
         //
     }
@@ -40,7 +37,7 @@ class LicenciaturaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Licenciatura $licenciatura)
+    public function show(string $id)
     {
         //
     }
@@ -48,7 +45,7 @@ class LicenciaturaController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Licenciatura $licenciatura)
+    public function edit(string $id)
     {
         //
     }
@@ -56,7 +53,7 @@ class LicenciaturaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateLicenciaturaRequest $request, Licenciatura $licenciatura)
+    public function update(Request $request, string $id)
     {
         //
     }
@@ -64,7 +61,7 @@ class LicenciaturaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Licenciatura $licenciatura)
+    public function destroy(string $id)
     {
         //
     }

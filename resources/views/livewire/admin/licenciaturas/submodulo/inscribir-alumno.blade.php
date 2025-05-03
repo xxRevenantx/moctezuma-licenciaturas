@@ -1,0 +1,3 @@
+<div>
+    {{$modalidad}}
+</div>

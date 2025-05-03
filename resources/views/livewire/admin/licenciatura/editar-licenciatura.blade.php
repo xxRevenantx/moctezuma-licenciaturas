@@ -47,15 +47,19 @@
 
 
                        <flux:input wire:model.live="nombre" :label="__('Licenciatura')" type="text" placeholder="Nombre de la licenciatura"  autofocus autocomplete="nombre" />
-                       <flux:input wire:model.live="slug" readonly :label="__('Url')" type="text" placeholder="Url"  autofocus autocomplete="slug" />
-                       <flux:input wire:model.live="nombre_corto" :label="__('Nombre corto')" type="text" placeholder="Nombre corto"  autofocus autocomplete="nombre_corto" />
-                       <flux:input wire:model.live="RVOE" :label="__('RVOE')" type="text" placeholder="RVOE"  autofocus autocomplete="RVOE" />
+                       <flux:input wire:model="slug" readonly :label="__('Url')" type="text" placeholder="Url"  autofocus autocomplete="slug" />
+                       <flux:input wire:model="nombre_corto" :label="__('Nombre corto')" type="text" placeholder="Nombre corto"  autofocus autocomplete="nombre_corto" />
+                       <flux:input wire:model="RVOE" :label="__('RVOE')" type="text" placeholder="RVOE"  autofocus autocomplete="RVOE" />
 
 
                        <div class="mt-6 flex justify-end gap-2">
-                           <button @click="show = false; $wire.cerrarModal()" type="button" class="bg-neutral-600 cursor-pointer text-white px-4 py-2 rounded">Cerrar</button>
-                           <button type="submit" class="bg-blue-600 cursor-pointer text-white px-4 py-2 rounded">Actualizar</button>
+                        <div class="flex items-center">
+                             <flux:button variant="primary" type="submit" class="w-full cursor-pointer">{{ __('Actualizar') }}</flux:button>
+                      </div>
+                       <div class="flex items-center">
+                         <flux:button  @click="show = false; $wire.cerrarModal()" class="w-full cursor-pointer">{{ __('Cancelar') }}</flux:button>
                        </div>
+               </div>
                    </div>
                </div>
 

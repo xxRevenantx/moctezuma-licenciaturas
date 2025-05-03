@@ -47,9 +47,9 @@
                             @endif
 
                             <flux:input wire:model.live="nombre" :label="__('Licenciatura')" type="text" placeholder="Nombre de la licenciatura" autofocus autocomplete="nombre" />
-                            <flux:input wire:model.live="slug" readonly :label="__('Url')" type="text" placeholder="Url" autofocus autocomplete="slug" />
-                            <flux:input wire:model.live="nombre_corto" :label="__('Nombre corto')" type="text" placeholder="Nombre corto" autofocus autocomplete="nombre_corto" />
-                            <flux:input wire:model.live="RVOE" :label="__('RVOE')" type="text" placeholder="RVOE" autofocus autocomplete="RVOE" />
+                            <flux:input wire:model="slug" readonly :label="__('Url')" type="text" placeholder="Url" autofocus autocomplete="slug" />
+                            <flux:input wire:model="nombre_corto" :label="__('Nombre corto')" type="text" placeholder="Nombre corto" autofocus autocomplete="nombre_corto" />
+                            <flux:input wire:model="RVOE" :label="__('RVOE')" type="text" placeholder="RVOE" autofocus autocomplete="RVOE" />
 
                             <div class="flex items-center gap-4 mt-3">
                                 <div class="flex items-center">

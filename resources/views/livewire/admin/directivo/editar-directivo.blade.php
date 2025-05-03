@@ -23,13 +23,13 @@
 
                     <div class="w-120 border-2 border-gray-50  dark:bg-neutral-800 shadow-md rounded-3xl p-7 space-y-5">
                         <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white text-center">Editar Directivo <flux:badge color="indigo">{{ $nombre }} {{ $apellido_paterno }} {{ $apellido_materno }} </flux:badge></h2>
-                       <flux:input wire:model.live="titulo" :label="__('Título')" type="text" placeholder="Ejem: M.C, Lic, Dr, Mtro, Profr, etc."  autofocus autocomplete="titulo" />
-                       <flux:input wire:model.live="nombre" :label="__('Nombre')" type="text" placeholder="Nombre del directivo"  autofocus autocomplete="nombre" />
-                       <flux:input wire:model.live="apellido_paterno" :label="__('Apellido Paterno')" type="text" placeholder="Apellido Paterno"  autocomplete="apellido_paterno" />
-                       <flux:input wire:model.live="apellido_materno" :label="__('Apellido Materno')" type="text" placeholder="Apellido Materno"  autocomplete="apellido_materno" />
-                       <flux:input wire:model.live="cargo" :label="__('Cargo')" type="text" placeholder="Cargo" autocomplete="cargo" />
-                       <flux:input wire:model.live="telefono" :label="__('Teléfono')" type="text" placeholder="Teléfono"  autocomplete="telefono" />
-                       <flux:input wire:model.live="correo" :label="__('Correo Electrónico')" type="email" placeholder="Correo electrónico"  autocomplete="correo" />
+                       <flux:input wire:model="titulo" :label="__('Título')" type="text" placeholder="Ejem: M.C, Lic, Dr, Mtro, Profr, etc."  autofocus autocomplete="titulo" />
+                       <flux:input wire:model="nombre" :label="__('Nombre')" type="text" placeholder="Nombre del directivo"  autofocus autocomplete="nombre" />
+                       <flux:input wire:model="apellido_paterno" :label="__('Apellido Paterno')" type="text" placeholder="Apellido Paterno"  autocomplete="apellido_paterno" />
+                       <flux:input wire:model="apellido_materno" :label="__('Apellido Materno')" type="text" placeholder="Apellido Materno"  autocomplete="apellido_materno" />
+                       <flux:input wire:model="cargo" :label="__('Cargo')" type="text" placeholder="Cargo" autocomplete="cargo" />
+                       <flux:input wire:model="telefono" :label="__('Teléfono')" type="text" placeholder="Teléfono"  autocomplete="telefono" />
+                       <flux:input wire:model="correo" :label="__('Correo Electrónico')" type="email" placeholder="Correo electrónico"  autocomplete="correo" />
 
 
 
