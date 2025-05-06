@@ -20,7 +20,7 @@ class SeleccionarModalidad extends Component
         return redirect()->route('licenciaturas.submodulo', [
             'slug' => $this->licenciatura->slug,
             'modalidad' => $modalidad,
-            'submodulo' => 'inscribir-alumno' // puedes cambiar esto según el flujo
+            'submodulo' => 'inscripcion',
         ]);
     }
 

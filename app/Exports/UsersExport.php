@@ -29,7 +29,6 @@ class UsersExport implements FromCollection, WithHeadings, WithStyles, ShouldAut
             return [
                 $user->username,
                 $user->email,
-                $user->matricula,
                 $user->status ? 'Activo' : 'Inactivo',
             ];
         });
@@ -40,7 +39,6 @@ class UsersExport implements FromCollection, WithHeadings, WithStyles, ShouldAut
         return [
             'Usuario',
             'Correo electrónico',
-            'Matrícula',
             'Estado',
         ];
     }

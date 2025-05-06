@@ -83,10 +83,9 @@ class MostrarUsuarios extends Component
     public function exportarUsuarios()
 {
     $usuariosFiltrados = User::where('username', 'like', '%' . $this->search . '%')
-        ->orWhere('matricula', 'like', '%' . $this->search . '%')
         ->orWhere('email', 'like', '%' . $this->search . '%')
         ->orderBy('id', 'desc')
-        ->get(['order','username', 'email', 'matricula', 'status']); // columnas deseadas
+        ->get(['order','username', 'email', 'status']); // columnas deseadas
 
     return Excel::download(new UsersExport($usuariosFiltrados), 'usuarios_filtrados.xlsx');
 }
@@ -96,7 +95,6 @@ class MostrarUsuarios extends Component
     public function render()
     {
         $usuarios = User::where('username', 'like', '%' . $this->search . '%')
-             ->orWhere('matricula', 'like', '%' . $this->search . '%')
             ->orWhere('email', 'like', '%' . $this->search . '%')
             ->orderBy('id', 'desc')
             ->paginate(10);

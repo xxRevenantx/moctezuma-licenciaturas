@@ -1,10 +1,10 @@
 <div>
     <h3>Buscar Usuario:</h3>
     <div x-data="{
-        destroyUsuario(id, matricula) {
+        destroyUsuario(id, username) {
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: `El usuario con matrícula ${matricula} se eliminará de forma permanente`,
+                text: `El usuario con matrícula ${username} se eliminará de forma permanente`,
                 icon: 'info',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -101,7 +101,6 @@
                 <tr>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foto</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Matrícula</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Username</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Email</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Status</th>
@@ -127,7 +126,6 @@
                         @endif
 
                     </td>
-                    <td class="border px-4 py-2">{{ $usuario->matricula }}</td>
                     <td class="border px-4 py-2">{{ $usuario->username }}</td>
                     <td class="border px-4 py-2">{{ $usuario->email }}</td>
                     <td class="border px-4 py-2">

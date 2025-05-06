@@ -28,6 +28,10 @@
     --color-accent-foreground: var(--color-white);
 }
 
+body{
+    font-family: 'Nunito', sans-serif;
+}
+
 @layer theme {
     .dark {
         --color-accent: var(--color-white);

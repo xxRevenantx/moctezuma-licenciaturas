@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Controller;
 
-use App\Models\Cuatrimestre;
-use App\Http\Requests\StoreCuatrimestreRequest;
-use App\Http\Requests\UpdateCuatrimestreRequest;
+use App\Models\Periodo;
+use App\Http\Requests\StorePeriodoRequest;
+use App\Http\Requests\UpdatePeriodoRequest;
 
-class CuatrimestreController extends Controller
+class PeriodoController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-
-        return view('admin.cuatrimestres.index');
+        return view('admin.periodos.index');
     }
 
     /**
@@ -28,7 +28,7 @@ class CuatrimestreController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCuatrimestreRequest $request)
+    public function store(StorePeriodoRequest $request)
     {
         //
     }
@@ -36,7 +36,7 @@ class CuatrimestreController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Cuatrimestre $cuatrimestre)
+    public function show(Periodo $periodo)
     {
         //
     }
@@ -44,7 +44,7 @@ class CuatrimestreController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Cuatrimestre $cuatrimestre)
+    public function edit(Periodo $periodo)
     {
         //
     }
@@ -52,7 +52,7 @@ class CuatrimestreController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCuatrimestreRequest $request, Cuatrimestre $cuatrimestre)
+    public function update(UpdatePeriodoRequest $request, Periodo $periodo)
     {
         //
     }
@@ -60,7 +60,7 @@ class CuatrimestreController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Cuatrimestre $cuatrimestre)
+    public function destroy(Periodo $periodo)
     {
         //
     }

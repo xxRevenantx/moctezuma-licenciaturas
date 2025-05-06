@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "03a6cbbebe7288e0055aa277ea6afa5f",
+    "content-hash": "b52d7e7ca13c1a96f72c4964b27ebc29",
     "packages": [
         {
             "name": "brick/math",
@@ -3120,6 +3120,72 @@
             "time": "2024-12-30T11:07:19+00:00"
         },
         {
+            "name": "nnjeim/world",
+            "version": "1.1.34",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nnjeim/world.git",
+                "reference": "0769db33d47c02e65e4bfc5e410fe363d53eccc3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nnjeim/world/zipball/0769db33d47c02e65e4bfc5e410fe363d53eccc3",
+                "reference": "0769db33d47c02e65e4bfc5e410fe363d53eccc3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "orchestra/testbench": ">=v4.0.0",
+                "phpunit/phpunit": ">=8.5.8"
+            },
+            "type": "laravel-package",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Country": "Nnjeim\\World\\World"
+                    },
+                    "providers": [
+                        "Nnjeim\\World\\WorldServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Nnjeim\\World\\": "src/",
+                    "Nnjeim\\World\\Database\\Seeders\\": "src/Database/Seeders/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Najm Njeim",
+                    "email": "najm@njeim.net",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Laravel countries, states, cities and currencies",
+            "homepage": "https://github.com/nnjeim/world.git",
+            "keywords": [
+                "cities",
+                "countries",
+                "currencies",
+                "laravel",
+                "lumen",
+                "states",
+                "timezones"
+            ],
+            "support": {
+                "issues": "https://github.com/nnjeim/world/issues",
+                "source": "https://github.com/nnjeim/world/tree/1.1.34"
+            },
+            "time": "2025-03-03T07:24:39+00:00"
+        },
+        {
             "name": "nunomaduro/termwind",
             "version": "v2.3.0",
             "source": {
@@ -4172,6 +4238,43 @@
                 }
             ],
             "time": "2025-04-08T15:06:14+00:00"
+        },
+        {
+            "name": "sufyan/laravel-countries-states-cities",
+            "version": "1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sufyan-ashraf/laravel-countries-states-cities.git",
+                "reference": "4c4ecf7674714af75f26da7a7650bad805e3fa4d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sufyan-ashraf/laravel-countries-states-cities/zipball/4c4ecf7674714af75f26da7a7650bad805e3fa4d",
+                "reference": "4c4ecf7674714af75f26da7a7650bad805e3fa4d",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Sufyan\\LaravelCountriesStatesCities\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "sufyan",
+                    "email": "sufyanashraf312@gmail.com"
+                }
+            ],
+            "description": "A simple laravel library using json files to populate the data for countries, states and cities.",
+            "support": {
+                "issues": "https://github.com/sufyan-ashraf/laravel-countries-states-cities/issues",
+                "source": "https://github.com/sufyan-ashraf/laravel-countries-states-cities/tree/1.0.3"
+            },
+            "time": "2024-02-25T22:13:44+00:00"
         },
         {
             "name": "symfony/clock",
@@ -11533,5 +11636,5 @@
         "php": "^8.2"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }

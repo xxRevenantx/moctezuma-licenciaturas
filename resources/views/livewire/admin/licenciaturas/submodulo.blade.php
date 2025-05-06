@@ -1,3 +1,0 @@
-<div>
-    Inscribir Alumno
-</div>

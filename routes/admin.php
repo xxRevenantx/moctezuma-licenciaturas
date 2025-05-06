@@ -1,17 +1,18 @@
 <?php
 
-use App\Http\Controllers\AccionController;
+use App\Http\Controllers\Admin\AccionController;
+use App\Http\Controllers\Admin\AsignarGeneracionController;
+use App\Http\Controllers\Admin\CuatrimestreController;
 use App\Http\Controllers\Admin\DirectivoController;
 use App\Http\Controllers\Admin\GeneracionController;
+use App\Http\Controllers\Admin\InscripcionController;
 use App\Http\Controllers\Admin\LicenciaturaController;
+use App\Http\Controllers\Admin\PeriodoController;
 use App\Http\Controllers\Admin\SeleccionarModalidadController;
+use App\Http\Controllers\Admin\SubmoduloController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\AsignarGeneracionController;
-use App\Http\Controllers\CuatrimestreController;
 use App\Http\Controllers\MesController;
-use App\Http\Controllers\PeriodoController;
 use App\Livewire\Admin\Licenciaturas\SeleccionarModalidad;
-use App\Livewire\Admin\Licenciaturas\Submodulo;
 use App\Livewire\Admin\Usuarios\MostrarUsuarios;
 use App\Models\Generacion;
 use Illuminate\Support\Facades\Route;
@@ -48,8 +49,14 @@ Route::middleware(['auth'])->group(function () {
         // Paso 1: Selección de modalidad
         Route::get('{slug}', [SeleccionarModalidadController::class, 'index'])->name('licenciaturas.seleccionar-modalidad');
 
+
+        Route::get('{slug}/{modalidad}/{submodulo}', [SubmoduloController::class, 'index'])->name('licenciaturas.submodulo');
+        // Route::get('{slug}/{modalidad}/horarios', Horarios::class)->name('licenciaturas.horarios');
+        // Route::get('{slug}/{modalidad}/calificaciones', Calificaciones::class)->name('licenciaturas.calificaciones');
+        // Route::get('{slug}/{modalidad}/documentacion', Documentacion::class)->name('licenciaturas.documentacion');
+
         // Paso 2: Submódulos por modalidad
-        Route::get('{slug}/{modalidad}/{submodulo}', Submodulo::class)->name('licenciaturas.submodulo');
+        // Route::get('{slug}/{modalidad}/{submodulo}', Submodulo::class)->name('licenciaturas.submodulo');
     });
 
 

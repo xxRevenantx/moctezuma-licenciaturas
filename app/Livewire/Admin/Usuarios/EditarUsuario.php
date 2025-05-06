@@ -17,7 +17,6 @@ class EditarUsuario extends Component
     public $userId;
     public $username;
     public $email;
-    public $matricula;
     public $status;
     public $rol;
 
@@ -32,7 +31,6 @@ class EditarUsuario extends Component
             $this->userId = $user->id;
             $this->username = $user->username;
             $this->email = $user->email;
-            $this->matricula = $user->matricula;
             $this->status = $user->status == "true" ? true : false;
             $this->rol = $user->roles->pluck('id')->toArray();
 
@@ -48,7 +46,6 @@ class EditarUsuario extends Component
           $this->validate([
                 'username' => 'required|string|max:255|unique:users,username,' . $this->userId,
                 'email' => 'required|email|max:255|unique:users,email,' . $this->userId,
-                'matricula' => 'required|string|max:255|unique:users,matricula,' . $this->userId,
                 'status' => 'required|boolean',
                 'rol' => 'required'
           ]);
@@ -58,7 +55,6 @@ class EditarUsuario extends Component
             // Verificar que los inputs no tengan espacios a los lados
             $this->username = trim($this->username);
             $this->email = trim($this->email);
-            $this->matricula = trim($this->matricula);
 
             if (in_array($superAdminRoleId, $this->rol) && !auth()->user()->hasRole('SuperAdmin')) {
                 abort(403, 'No autorizado a asignar el rol SuperAdmin');
@@ -75,7 +71,6 @@ class EditarUsuario extends Component
           $this->usuario->update([
               'username' => $this->username,
               'email' => $this->email,
-              'matricula' => $this->matricula,
               'status' => $this->status,
           ]);
 
@@ -94,7 +89,7 @@ class EditarUsuario extends Component
 
       public function cerrarModal()
       {
-          $this->reset(['open', 'userId', 'username', 'email', 'matricula', 'status', 'rol']);
+          $this->reset(['open', 'userId', 'username', 'email', 'status', 'rol']);
           $this->resetValidation();
       }
 

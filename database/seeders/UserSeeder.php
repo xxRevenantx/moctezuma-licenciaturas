@@ -17,7 +17,6 @@ class UserSeeder extends Seeder
         User::factory()->create([
             'username' => 'Revenant',
             'email' => 'ingcanp@gmail.com',
-            'matricula' => '20252025',
             'password' => bcrypt('12345678'),
         ])->assignRole('SuperAdmin');
 

@@ -11,7 +11,6 @@ class CrearUsuario extends Component
 {
 
     public $username;
-    public $matricula;
     public $email;
     public $rol;
 
@@ -20,7 +19,6 @@ class CrearUsuario extends Component
     public function mount()
     {
         $this->username = $this->generarUsernameUnico();
-        $this->matricula = $this->generarMatriculaUnica();
     }
 
     private function generarUsernameUnico(): string
@@ -32,14 +30,7 @@ class CrearUsuario extends Component
         return $username;
     }
 
-    private function generarMatriculaUnica(): string
-    {
-        do {
-            $matricula = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
-        } while (User::where('matricula', $matricula)->exists());
 
-        return $matricula;
-    }
 
 
     public function guardarUsuario(){
@@ -48,7 +39,6 @@ class CrearUsuario extends Component
 
         $this->validate([
             'username' => 'required|unique:users,username',
-            'matricula' => 'required|unique:users,matricula|size:8',
             'email' => 'required|email|unique:users,email',
             'rol' => 'required',
         ]);
@@ -59,7 +49,6 @@ class CrearUsuario extends Component
 
         $user = User::create([
             'username' => trim($this->username),
-            'matricula' => trim($this->matricula),
             'email' => trim($this->email),
             'password' => bcrypt('12345678'), // Cambia esto según tus necesidades
             'status' => 'true',
@@ -79,7 +68,6 @@ class CrearUsuario extends Component
 
         // Limpiar los campos después de guardar
         $this->username = $this->generarUsernameUnico();
-        $this->matricula = $this->generarMatriculaUnica();
         $this->email = '';
         $this->rol = [];
 

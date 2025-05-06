@@ -28,7 +28,6 @@
 
                        <flux:input wire:model.live="username" :label="__('Nombre de usuario')" type="text" placeholder="Nombre de usuario"  autofocus autocomplete="Nombre de usuario" />
                        <flux:input wire:model.live="email" :label="__('Email')" type="email" placeholder="Email"  autocomplete="Email" />
-                       <flux:input wire:model.live="matricula" :label="__('Matrícula')" type="text" placeholder="Matrícula"  autocomplete="Matrícula" />
                        <flux:label>Status</flux:label>
                        <flux:switch wire:model.live="status" />
 
@@ -53,9 +52,13 @@
 
 
                        <div class="mt-6 flex justify-end gap-2">
-                           <button @click="show = false; $wire.cerrarModal()" type="button" class="bg-neutral-600 cursor-pointer hover:bg-neutral-700 text-white px-4 py-2 rounded">Cerrar</button>
-                           <button type="submit" class="bg-blue-600 cursor-pointer text-white px-4 py-2 rounded hover:bg-blue-800">Actualizar</button>
+                        <div class="flex items-center">
+                             <flux:button variant="primary" type="submit" class="w-full cursor-pointer">{{ __('Actualizar') }}</flux:button>
+                      </div>
+                       <div class="flex items-center">
+                         <flux:button  @click="show = false; $wire.cerrarModal()" class="w-full cursor-pointer">{{ __('Cancelar') }}</flux:button>
                        </div>
+               </div>
                    </div>
                </div>
 
