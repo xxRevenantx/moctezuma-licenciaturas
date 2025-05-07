@@ -18,18 +18,29 @@
             <hr class="mb-4">
 
             <flux:field>
-                <flux:input type="text" badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
+
+            <flux:select badge="Requerido" label="Usuario" wire:model.live="usuario_id">
+                <option value="0">--Seleccione un usuario--</option>
+                @foreach($usuarios as $usuario)
+                    <option value="{{ $usuario->id }}">{{ $usuario->username }} => {{ $usuario->email }}</option>
+                @endforeach
+            </flux:select>
+
+
+                <flux:input type="text" readonly badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
                 <flux:input type="text" label="Folio" placeholder="Folio" wire:model="folio" />
-                <flux:input type="text" label="CURP" placeholder="CURP" wire:model="CURP" />
-                <flux:input type="text" label="Apellido Paterno" placeholder="Apellido Paterno" wire:model="apellido_paterno" />
-                <flux:input type="text" label="Apellido Materno" placeholder="Apellido Materno" wire:model="apellido_materno" />
-                <flux:input type="date" label="Fecha de Nacimiento" placeholder="Fecha de Nacimiento" wire:model="fecha_nacimiento" />
-                <flux:input type="number" label="Edad" placeholder="Edad" wire:model="edad" />
-                <flux:field>
-                    <flux:label>Sexo</flux:label>
-                    <flux:radio name="sexo" label="Hombre" value="Masculino" wire:model="sexo">Masculino</flux:radio>
-                    <flux:radio name="sexo" label="Mujer" value="Femenino" wire:model="sexo">Femenino</flux:radio>
-                </flux:field>
+                <flux:input type="text" badge="Requerido" label="CURP" placeholder="CURP" wire:model="CURP" />
+                <flux:input type="text" badge="Requerido" label="Apellido Paterno" placeholder="Apellido Paterno" wire:model="apellido_paterno" />
+                <flux:input type="text" badge="Requerido" label="Apellido Materno" placeholder="Apellido Materno" wire:model="apellido_materno" />
+                <flux:input type="date" badge="Requerido" label="Fecha de Nacimiento" placeholder="Fecha de Nacimiento" wire:model="fecha_nacimiento" />
+                <flux:input type="number" badge="Requerido" label="Edad" placeholder="Edad" wire:model="edad" />
+
+                <flux:radio.group wire:model="sexo" label="Sexo" >
+                    <flux:radio   label="Hombre" value="Hombre">Masculino</flux:radio>
+                    <flux:radio   label="Mujer" value="Mujer">Femenino</flux:radio>
+                </flux:radio.group>
+
+
 
 
 
@@ -86,8 +97,25 @@
             <hr class="mb-4">
             <flux:field>
                 <flux:input type="text" label="Bachillerato Procedente" placeholder="Bachillerato Procedente" wire:model="bachillerato_procedente" />
-                <flux:input type="text" label="Generación" placeholder="Generación" wire:model="generacion" />
-                <flux:input type="text" label="Cuatrimestre" placeholder="Cuatrimestre" wire:model="cuatrimestre" />
+
+
+
+                <flux:select label="Generación" wire:model.live="generacion_id">
+                    <option value="">--Seleccione una generación--</option>
+                    @foreach($generaciones as $generacion)
+                        <option value="{{ $generacion->generacion_id }}">{{ $generacion->generacion->generacion }}</option>
+                    @endforeach
+                </flux:select>
+
+
+
+
+                <flux:select label="Cuatrimestre" wire:model="cuatrimestre_id">
+                    @foreach($cuatrimestres as $cuatrimestre)
+                        <option value="{{ $cuatrimestre->id }}">{{ $cuatrimestre->cuatrimestre->cuatrimestre }}° Cuatrimestre</option>
+                    @endforeach
+                </flux:select>
+
 
 
             </flux:field>

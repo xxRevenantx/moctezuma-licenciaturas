@@ -4,7 +4,7 @@
             @foreach ($licenciaturas as $licenciatura)
                 <flux:navlist.item
                     icon="rectangle-stack"
-                    :href="route('licenciaturas.seleccionar-modalidad', ['slug' => $licenciatura->slug])"
+                    :href="route('licenciaturas.seleccionar-modalidad', ['slug_licenciatura' => $licenciatura->slug])"
                     :current="request()->segment(2) === $licenciatura->slug"
                     wire:navigate>
                     {{ $licenciatura->nombre_corto }}

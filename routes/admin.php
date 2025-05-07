@@ -47,23 +47,14 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('licenciaturas')->group(function () {
         // Paso 1: Selección de modalidad
-        Route::get('{slug}', [SeleccionarModalidadController::class, 'index'])->name('licenciaturas.seleccionar-modalidad');
+        Route::get('{slug_licenciatura}', [SeleccionarModalidadController::class, 'index'])->name('licenciaturas.seleccionar-modalidad');
 
+        Route::get('{slug_licenciatura}/{slug_modalidad}/{submodulo}', [SubmoduloController::class, 'index'])->name('licenciaturas.submodulo');
 
-        Route::get('{slug}/{modalidad}/{submodulo}', [SubmoduloController::class, 'index'])->name('licenciaturas.submodulo');
-        // Route::get('{slug}/{modalidad}/horarios', Horarios::class)->name('licenciaturas.horarios');
-        // Route::get('{slug}/{modalidad}/calificaciones', Calificaciones::class)->name('licenciaturas.calificaciones');
-        // Route::get('{slug}/{modalidad}/documentacion', Documentacion::class)->name('licenciaturas.documentacion');
-
-        // Paso 2: Submódulos por modalidad
-        // Route::get('{slug}/{modalidad}/{submodulo}', Submodulo::class)->name('licenciaturas.submodulo');
     });
 
 
-    // Route::prefix('licenciaturas/{slug}')->name('licenciaturas.')->group(function () {
-    //     Route::get('/{submodulo}', \App\Livewire\Licenciaturas\MostrarModulo::class)
-    //         ->name('modulo');
-    // });
+
 
 });
 

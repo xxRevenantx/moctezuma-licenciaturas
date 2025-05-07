@@ -9,7 +9,7 @@
                 <div class="text-center ">
 
 
-                    <div class="flex justify-between items-center">
+                    <div class="flex flex-col xl:flex-row items-center">
                     @foreach ($modalidades as $modalidad)
                                 <div class="mx-4 sm:max-w-sm md:max-w-sm lg:max-w-sm xl:max-w-sm sm:mx-auto md:mx-auto lg:mx-auto xl:mx-auto mt-16 bg-white shadow-xl rounded-lg text-gray-900">
                             <div class="rounded-t-lg h-32 overflow-hidden">
@@ -47,7 +47,7 @@
                             <div class="p-4 border-t mx-8 mt-2">
 
 
-                                 <flux:button  wire:navigate wire:click="irAModalidad('{{strtolower($modalidad->nombre)}}')" variant="primary" >{{$modalidad->nombre}}</flux:button>
+                                 <flux:button  wire:navigate wire:click="irAModalidad('{{strtolower($modalidad->slug)}}')" variant="primary" >{{$modalidad->slug}}</flux:button>
 
                             </div>
                             </div>

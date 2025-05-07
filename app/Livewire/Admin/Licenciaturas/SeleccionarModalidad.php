@@ -15,11 +15,11 @@ class SeleccionarModalidad extends Component
         $this->licenciatura = Licenciatura::where('slug', $slug)->firstOrFail();
     }
 
-    public function irAModalidad($modalidad)
+    public function irAModalidad($modalidad_slug)
     {
         return redirect()->route('licenciaturas.submodulo', [
-            'slug' => $this->licenciatura->slug,
-            'modalidad' => $modalidad,
+            'slug_licenciatura' => $this->licenciatura->slug,
+            'slug_modalidad' => $modalidad_slug,
             'submodulo' => 'inscripcion',
         ]);
     }

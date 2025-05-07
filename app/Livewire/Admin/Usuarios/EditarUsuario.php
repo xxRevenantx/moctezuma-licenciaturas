@@ -44,8 +44,8 @@ class EditarUsuario extends Component
 
 
           $this->validate([
-                'username' => 'required|string|max:255|unique:users,username,' . $this->userId,
-                'email' => 'required|email|max:255|unique:users,email,' . $this->userId,
+                'username' => 'required|string|max:15|unique:users,username,' . $this->userId,
+                'email' => 'required|email|max:50|unique:users,email,' . $this->userId,
                 'status' => 'required|boolean',
                 'rol' => 'required'
           ]);

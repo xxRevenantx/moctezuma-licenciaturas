@@ -4,7 +4,7 @@
         <flux:navbar class=" flex flex-col xl:flex-row gap-5 justify-around  dark:bg-neutral-800  rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 bg-gray-100">
             @foreach ($acciones as $accion)
 
-               <flux:navbar.item href="{{route('licenciaturas.submodulo', ['slug' => $licenciatura->slug, 'modalidad' => $modalidad, 'submodulo' => $accion->slug])}}">
+               <flux:navbar.item href="{{route('licenciaturas.submodulo', ['slug_licenciatura' => $slug_licenciatura, 'slug_modalidad' => $slug_modalidad, 'submodulo' => $accion->slug])}}">
                 <div class="flex items-center  gap-1">
                     <img class="w-7" src="{{asset('storage/acciones/'.$accion->icono)}}">
 
@@ -26,7 +26,7 @@
                 <div >
                     <h1 class="text-2xl font-bold text-center text-neutral-800 dark:text-neutral-200 uppercase">
 
-                        {{$modalidad}}
+                        {{$slug_modalidad}}
                     </h1>
                 </div>
 
@@ -35,7 +35,7 @@
             </div>
         @switch($submodulo)
             @case('inscripcion')
-                <livewire:admin.licenciaturas.submodulo.inscripcion :slug="$slug" :modalidad="$modalidad" :submodulo="$submodulo" />
+                <livewire:admin.licenciaturas.submodulo.inscripcion :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
                 @break
 
             @case('ver-alumnos')

@@ -13,8 +13,8 @@ class ModalidadSeeder extends Seeder
     public function run(): void
     {
         $modalidades = [
-            ['nombre' => 'ESCOLARIZADA'],
-            ['nombre' => 'SEMIESCOLARIZADA'],
+            ['nombre' => 'ESCOLARIZADA', 'slug' => "escolarizada"],
+            ['nombre' => 'SEMIESCOLARIZADA', 'slug' => "semiescolarizada"],
         ];
 
         foreach ($modalidades as $modalidad) {

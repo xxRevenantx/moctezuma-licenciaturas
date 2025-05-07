@@ -28,6 +28,11 @@ class Generacion extends Model
         return $this->hasMany(Periodo::class);
     }
 
+    public function inscripcion()
+    {
+        return $this->hasMany(Inscripcion::class);
+    }
+
 
 
 }

@@ -14,7 +14,7 @@ class SeleccionarModalidadController extends Controller
     {
 
         return view('admin.seleccionar-modalidad.index', [
-            'slug' => $slug
+            'slug_licenciatura' => $slug
         ]);
 
     }

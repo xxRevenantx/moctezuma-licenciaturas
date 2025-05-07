@@ -38,7 +38,7 @@ class CrearUsuario extends Component
 
 
         $this->validate([
-            'username' => 'required|unique:users,username',
+            'username' => 'required|unique:users,username|max:15',
             'email' => 'required|email|unique:users,email',
             'rol' => 'required',
         ]);
