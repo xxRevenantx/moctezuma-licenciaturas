@@ -11,6 +11,8 @@ use App\Http\Controllers\Admin\PeriodoController;
 use App\Http\Controllers\Admin\SeleccionarModalidadController;
 use App\Http\Controllers\Admin\SubmoduloController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\CiudadController;
+use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\MesController;
 use App\Livewire\Admin\Licenciaturas\SeleccionarModalidad;
 use App\Livewire\Admin\Usuarios\MostrarUsuarios;
@@ -31,6 +33,12 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('usuarios', UserController::class)->middleware('can:admin.usuarios')->names('admin.usuarios');
 
     Route::resource('acciones', AccionController::class)->middleware('can:admin.administracion')->names('admin.acciones');
+
+
+    Route::resource('estados', EstadoController::class)->middleware('can:admin.administracion')->names('admin.estados');
+    Route::resource('ciudades', CiudadController::class)->middleware('can:admin.administracion')->names('admin.ciudades');
+
+
 
     Route::resource('asignacion-de-licenciaturas', LicenciaturaController::class)->middleware('can:admin.administracion')->names('admin.asignacion.licenciaturas');
 

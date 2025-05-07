@@ -83,9 +83,11 @@
 
                 </div>
 
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
+                <flux:button variant="primary" type="submit" >Importar</flux:button>
+
+                {{-- <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
                     Importar
-                </button>
+                </button> --}}
 
             </div>
             </form>

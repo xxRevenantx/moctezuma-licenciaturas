@@ -30,6 +30,7 @@
                 <flux:input type="text" readonly badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
                 <flux:input type="text" label="Folio" placeholder="Folio" wire:model="folio" />
                 <flux:input type="text" badge="Requerido" label="CURP" placeholder="CURP" wire:model="CURP" />
+                <flux:input type="text" badge="Requerido" label="Nombre" placeholder="Nombre" wire:model="nombre" />
                 <flux:input type="text" badge="Requerido" label="Apellido Paterno" placeholder="Apellido Paterno" wire:model="apellido_paterno" />
                 <flux:input type="text" badge="Requerido" label="Apellido Materno" placeholder="Apellido Materno" wire:model="apellido_materno" />
                 <flux:input type="date" badge="Requerido" label="Fecha de Nacimiento" placeholder="Fecha de Nacimiento" wire:model="fecha_nacimiento" />

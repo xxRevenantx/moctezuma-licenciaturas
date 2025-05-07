@@ -16,24 +16,16 @@
            <button @click="show = false" class="absolute text-2xl top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-500">
                &times;
            </button>
-           <form wire:submit.prevent="actualizarCuatrimestre">
+           <form wire:submit.prevent="actualizarEstado">
 
                <flux:field>
                 <div class="flex flex-col items-center justify-center gap-5 mb-4 ">
 
                     <div class="w-120 border-2 border-gray-50 bg-white  dark:bg-neutral-800 shadow-md rounded-3xl p-7 space-y-5">
-                        <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white text-center">Editar Cuatrimestre <flux:badge color="indigo">{{ $cuatrimestre }} </flux:badge></h2>
+                        <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white text-center">Editar Estado <flux:badge color="indigo">{{ $nombre }} </flux:badge></h2>
 
 
-                        <flux:input wire:model="cuatrimestre" :label="__('Cuatrimestre')" min="1"  type="number" placeholder="No. de cuatrimestre" autocomplete="cuatrimestre" />
-
-                        <flux:select  label="Selecciona los meses" wire:model.live="mes_id">
-                            <flux:select.option value="0">--Selecciona los meses--</flux:select.option>
-                            @foreach($meses as $mes)
-
-                                <flux:select.option value="{{ $mes->id }}">{{ $mes->meses }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
+                        <flux:input wire:model="nombre" :label="__('Estado')"   type="text" placeholder="Estado" autocomplete="nombre" />
 
 
 

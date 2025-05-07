@@ -21,19 +21,48 @@ class Inscripcion extends Component
     public $licenciatura;
 
     public $usuarios;
-    public $usuario_id;
-    public $generacion_id;
-    public $cuatrimestre_id;
-
-    public $matricula;
-    public $CURP;
-
-    public $foraneo;
-    public $status;
 
     public $generaciones ;
     public $cuatrimestres = [];
 
+
+    public $usuario_id;
+    public $matricula;
+    public $folio;
+    public $CURP;
+    public $nombre;
+    public $apellido_paterno;
+    public $apellido_materno;
+    public $fecha_nacimiento;
+    public $edad;
+    public $sexo;
+    public $pais;
+    public $estado_nacimiento;
+    public $ciudad_nacimiento;
+    public $calle;
+    public $numero_exterior;
+    public $numero_interior;
+    public $colonia;
+    public $codigo_postal;
+    public $municipio;
+    public $ciudad;
+    public $estado;
+    public $telefono;
+    public $celular;
+    public $tutor;
+    public $bachillerato_procedente;
+    public $licenciatura_id;
+    public $generacion_id;
+    public $cuatrimestre_id;
+    public $modalidad_id;
+    public $certificado;
+    public $acta_nacimiento;
+    public $certificado_medico;
+    public $fotos_infantiles;
+    public $foto;
+    public $otros;
+    public $foraneo;
+    public $status;
 
 
 

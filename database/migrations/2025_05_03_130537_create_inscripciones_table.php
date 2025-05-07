@@ -18,11 +18,13 @@ return new class extends Migration
             $table->string('folio', 15)->nullable();
 
             $table->string('CURP', 18)->unique();
+            $table->string('nombre', 50);
             $table->string('apellido_paterno', 50);
             $table->string('apellido_materno', 50);
             $table->date('fecha_nacimiento');
             $table->integer('edad');
             $table->enum('sexo', ['H', 'M']);
+            $table->string('pais', 100)->nullable();
             $table->string('estado_nacimiento', 100)->nullable();
             $table->string('ciudad_nacimiento', 100)->nullable();
 
@@ -31,8 +33,8 @@ return new class extends Migration
             $table->string('colonia')->nullable();
             $table->string('codigo_postal', 10)->nullable();
             $table->string('municipio')->nullable();
-            $table->string('ciudad')->nullable();
-            $table->string('estado', 255)->nullable();
+            $table->unsignedBigInteger('ciudad')->nullable();
+            $table->unsignedBigInteger('estado')->nullable();
             $table->string('telefono', 10)->nullable();
             $table->string('celular', 10)->nullable();
             $table->string('tutor', 255)->nullable();
@@ -47,6 +49,7 @@ return new class extends Migration
             $table->enum('acta_nacimiento', ["true", "false"])->nullable()->default("true");
             $table->enum('certificado_medico', ["true", "false"])->nullable()->default("true");
             $table->enum('fotos_infantiles', ["true", "false"])->nullable()->default("true");
+            $table->string('foto')->nullable();
 
             $table->string('otros')->nullable();
 
@@ -54,12 +57,14 @@ return new class extends Migration
 
             $table->enum('status', ['true', 'false'])->default('true');
 
+            $table->foreign('ciudad')->references('id')->on('ciudades')->onDelete('set null');
+            $table->foreign('estado')->references('id')->on('estados')->onDelete('set null');
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('licenciatura_id')->references('id')->on('licenciaturas')->onDelete('cascade');
-            $table->foreign('generacion_id')->references('id')->on('generaciones')->onDelete('cascade');
-            $table->foreign('cuatrimestre_id')->references('id')->on('cuatrimestres')->onDelete('cascade');
-            $table->foreign('modalidad_id')->references('id')->on('modalidades')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+            $table->foreign('licenciatura_id')->references('id')->on('licenciaturas')->onDelete('set null');
+            $table->foreign('generacion_id')->references('id')->on('generaciones')->onDelete('set null');
+            $table->foreign('cuatrimestre_id')->references('id')->on('cuatrimestres')->onDelete('set null');
+            $table->foreign('modalidad_id')->references('id')->on('modalidades')->onDelete('set null');
 
 
             $table->timestamps();

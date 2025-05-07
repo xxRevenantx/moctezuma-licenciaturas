@@ -32,12 +32,25 @@
 
             @can('admin.administracion')
             <flux:navlist >
-                <flux:navlist.group :heading="__('Administración')" expandable>
+                <flux:navlist.group :heading="__('Administración')" expandable >
                     <flux:navlist >
+
+                    <flux:navlist.group :heading="__('Ciudades')" expandable :expanded="false"  >
+                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.estados.index')"
+                        :current="request()->routeIs('admin.estados.index')"
+                        wire:navigate>{{ __('Estados') }}</flux:navlist.item>
+
+
+                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.ciudades.index')"
+                        :current="request()->routeIs('admin.ciudades.index')"
+                        wire:navigate>{{ __('Ciudad') }}</flux:navlist.item>
+                    </flux:navlist.group>
+
+
                         <flux:navlist.item icon="rectangle-stack" :href="route('admin.acciones.index')" :current="request()->routeIs('admin.acciones.index')" wire:navigate>{{ __('Acciones') }}</flux:navlist.item>
                         <flux:navlist.item icon="rectangle-stack" :href="route('admin.asignacion.licenciaturas.index')" :current="request()->routeIs('admin.asignacion.licenciaturas.index')" wire:navigate>{{ __('Licenciaturas') }}</flux:navlist.item>
 
-                        <flux:navlist.group :heading="__('Generaciones')" expandable >
+                        <flux:navlist.group :heading="__('Generaciones')" expandable :expanded="false"  >
                             <flux:navlist.item icon="rectangle-stack" :href="route('admin.generaciones.index')"
                             :current="request()->routeIs('admin.generaciones.index')"
                             wire:navigate>{{ __('Crear') }}</flux:navlist.item>

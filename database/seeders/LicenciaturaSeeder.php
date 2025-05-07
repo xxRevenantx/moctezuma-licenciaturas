@@ -51,7 +51,7 @@ class LicenciaturaSeeder extends Seeder
             [
                 'nombre' => 'Cultura Física y Deportes',
                 'RVOE' => 'SEG/101/2022',
-                'nombre_corto' => 'Cultura Física y Deportes',
+                'nombre_corto' => 'Física y Deportes',
                 'imagen' => NULL,
                 'slug' => 'cultura-fisica-y-deportes',
             ],
