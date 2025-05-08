@@ -9,7 +9,7 @@
 
 
     <form wire:submit.prevent="guardarEstudiante">
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-2 mt-5  justify-center  dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 mt-5  justify-center  dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5">
 
         <div class="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5">
             <h1 class="text-2xl font-bold text-center text-neutral-800 dark:text-neutral-200 uppercase pb-4">
@@ -19,7 +19,7 @@
 
             <flux:field>
 
-            <flux:select badge="Requerido" label="Usuario" wire:model.live="usuario_id">
+            <flux:select badge="Requerido" label="Usuario" wire:model.live="user_id">
                 <option value="0">--Seleccione un usuario--</option>
                 @foreach($usuarios as $usuario)
                     <option value="{{ $usuario->id }}">{{ $usuario->username }} => {{ $usuario->email }}</option>
@@ -29,12 +29,12 @@
 
                 <flux:input type="text" variant="filled"  readonly badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
                 <flux:input type="text" label="Folio" placeholder="Folio" wire:model="folio" />
-                <flux:input type="text" badge="Requerido" label="CURP" placeholder="CURP" wire:model="CURP" />
+                <flux:input type="text" badge="Requerido" label="CURP" placeholder="CURP" wire:model.live="CURP" />
                 <flux:input type="text" badge="Requerido" label="Nombre" placeholder="Nombre" wire:model="nombre" />
                 <flux:input type="text" badge="Requerido" label="Apellido Paterno" placeholder="Apellido Paterno" wire:model="apellido_paterno" />
                 <flux:input type="text" badge="Requerido" label="Apellido Materno" placeholder="Apellido Materno" wire:model="apellido_materno" />
-                <flux:input type="date" badge="Requerido" label="Fecha de Nacimiento" placeholder="Fecha de Nacimiento" wire:model="fecha_nacimiento" />
-                <flux:input type="number" badge="Requerido" label="Edad" placeholder="Edad" wire:model="edad" />
+                <flux:input type="date"  variant="filled"  readonly badge="Requerido" label="Fecha de Nacimiento" placeholder="Fecha de Nacimiento" wire:model="fecha_nacimiento" />
+                <flux:input type="number"  variant="filled"  readonly badge="Requerido" label="Edad" placeholder="Edad" wire:model="edad" />
 
                 <flux:radio.group badge="Requerido" wire:model="sexo" label="Género" >
                     <flux:radio   label="Hombre" value="H">Hombre</flux:radio>
@@ -45,18 +45,21 @@
 
 
 
-                <flux:select label="Pais" wire:model.live="pais">
-                    <option value="">Seleccione un país</option>
+                <flux:input type="text" label="Nacionalidad" placeholder="Nacionalidad" wire:model="pais" />
+
+                <flux:select label="Estado" wire:model="estado_nacimiento_id">
+                    <option value="">--Seleccione un estado--</option>
+                    @foreach($estados as $estado)
+                        <option value="{{ $estado->id }}">{{ $estado->nombre }}</option>
+                    @endforeach
+
                 </flux:select>
 
-                <flux:select label="Estado" wire:model="estado">
-                    <option value="">Seleccione un estado</option>
-
-                </flux:select>
-
-                <flux:select label="Ciudad" wire:model="ciudad">
-                    <option value="">Seleccione una ciudad</option>
-
+                <flux:select label="Ciudad" wire:model="ciudad_nacimiento_id">
+                    <option value="">--Seleccione una ciudad--</option>
+                    @foreach($ciudades as $ciudad)
+                        <option value="{{ $ciudad->id }}">{{ $ciudad->nombre }}</option>
+                    @endforeach
                 </flux:select>
 
 
@@ -112,8 +115,9 @@
 
 
                 <flux:select label="Cuatrimestre" wire:model="cuatrimestre_id">
+                    <option value="0">--Seleccione un cuatrimestre--</option>
                     @foreach($cuatrimestres as $cuatrimestre)
-                        <option value="{{ $cuatrimestre->id }}">{{ $cuatrimestre->cuatrimestre->cuatrimestre }}° Cuatrimestre</option>
+                        <option value="{{ $cuatrimestre->cuatrimestre_id }}">{{ $cuatrimestre->cuatrimestre->cuatrimestre }}° Cuatrimestre</option>
                     @endforeach
                 </flux:select>
 

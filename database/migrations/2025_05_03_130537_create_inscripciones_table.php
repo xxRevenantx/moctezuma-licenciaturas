@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('apellido_paterno', 50);
             $table->string('apellido_materno', 50);
             $table->date('fecha_nacimiento');
-            $table->integer('edad');
+            $table->integer('edad')->nullable();
             $table->enum('sexo', ['H', 'M']);
             $table->string('pais', 100)->nullable();
             $table->unsignedBigInteger('estado_nacimiento_id')->nullable();
@@ -57,6 +57,7 @@ return new class extends Migration
             $table->enum('foraneo', ['true', 'false'])->nullable()->default('false');
 
             $table->enum('status', ['true', 'false'])->default('true');
+            $table->integer('orden');
 
             $table->foreign('estado_nacimiento_id')->references('id')->on('estados')->onDelete('cascade');
             $table->foreign('ciudad_nacimiento_id')->references('id')->on('ciudades')->onDelete('cascade');

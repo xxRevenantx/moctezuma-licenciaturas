@@ -56,6 +56,10 @@ class MostrarUsuarios extends Component
     public function activarUsuarios()
     {
         $user = User::all();
+
+        dd($user->roles()); return;
+
+
         foreach ($user as $u) {
             if ($u->roles()->whereIn('name', ['Estudiante', 'Profesor', 'Invitado'])->exists()) {
                 $u->status = 'true';
@@ -96,6 +100,9 @@ class MostrarUsuarios extends Component
     {
         $usuarios = User::where('username', 'like', '%' . $this->search . '%')
             ->orWhere('email', 'like', '%' . $this->search . '%')
+            ->whereHas('roles', function ($query) {
+            $query->whereIn('name', ['Estudiante', 'Profesor', 'Invitado']);
+            })
             ->orderBy('id', 'desc')
             ->paginate(10);
         return view('livewire.admin.usuarios.mostrar-usuarios', compact('usuarios'));

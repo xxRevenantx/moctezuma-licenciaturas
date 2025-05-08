@@ -6,6 +6,8 @@ use App\Services\CurpService;
 
 use App\Models\Accion;
 use App\Models\AsignarGeneracion;
+use App\Models\Ciudad;
+use App\Models\Estado;
 use App\Models\Generacion;
 use App\Models\Inscripcion as ModelsInscripcion;
 use App\Models\Licenciatura;
@@ -25,10 +27,12 @@ class Inscripcion extends Component
     public $usuarios;
 
     public $generaciones ;
+
+
     public $cuatrimestres = [];
 
 
-    public $usuario_id;
+    public $user_id;
     public $matricula;
     public $folio;
     public $CURP;
@@ -53,10 +57,8 @@ class Inscripcion extends Component
     public $celular;
     public $tutor;
     public $bachillerato_procedente;
-    public $licenciatura_id;
     public $generacion_id;
     public $cuatrimestre_id;
-    public $modalidad_id;
     public $certificado;
     public $acta_nacimiento;
     public $certificado_medico;
@@ -81,6 +83,8 @@ class Inscripcion extends Component
             $query->where('activa', "true");
             })
             ->get();
+
+        $this->pais = 'MEXICANA';
         // $this->generaciones = Generacion::all();
     }
 
@@ -89,17 +93,53 @@ class Inscripcion extends Component
           // Validar solo si el campo tiene valor
         //   $this->validateOnly($propertyName);
 
-            if ($propertyName === 'usuario_id') {
+            if ($propertyName === 'user_id') {
                 $this->usuarios = User::role('Estudiante')->get();
             }
             if ($propertyName === 'generacion_id') {
                 $this->cuatrimestres = Periodo::where('generacion_id', $this->generacion_id)
                 ->limit(1)
                 ->orderBy('id', 'desc')
-                    ->get();
+                ->get();
 
-                // $generation = Generation::find($this->generation_id);
-                // $this->generacion_nombre = $generation->anio_inicio . ' - ' . $generation->anio_termino;
+            }
+            if ($propertyName === 'CURP') {
+                if (strlen($this->CURP) === 18) {
+                    $fecha = substr($this->CURP, 4, 6); // AAMMDD
+
+                    $anio = substr($fecha, 0, 2);
+                    $mes = substr($fecha, 2, 2);
+                    $dia = substr($fecha, 4, 2);
+
+                    $anio_completo = intval($anio) < 30 ? "20$anio" : "19$anio";
+
+                    $fecha_nacimiento = "$anio_completo-$mes-$dia";
+                    $this->fecha_nacimiento = $fecha_nacimiento;
+
+                      // Generar matrícula personalizada
+                        $prefijo = strtoupper(substr($this->CURP, 0, 4)); // Ej: PIXB
+
+                        // Obtener el siguiente valor de "order"
+                        $ultimoOrder = \App\Models\Inscripcion::max('orden') ?? 0;
+                        $siguienteOrder = $ultimoOrder + 1;
+
+                        $this->matricula = $prefijo . '20' . str_pad($siguienteOrder, 2, '0', STR_PAD_LEFT); // Ej: PIXB0201
+
+                    // Calcular edad
+                    try {
+                        $nacimiento = new \DateTime($fecha_nacimiento);
+                        $hoy = new \DateTime();
+                        $edad = $hoy->diff($nacimiento)->y;
+                        $this->edad = $edad;
+                    } catch (\Exception $e) {
+                        $this->edad = null; // Si hay error en fecha
+                    }
+                } else {
+                    // Resetear valores si el CURP está vacío o no tiene longitud válida
+                    $this->fecha_nacimiento = null;
+                    $this->edad = null;
+                    $this->matricula = null;
+                }
             }
 
     }
@@ -107,7 +147,7 @@ class Inscripcion extends Component
     public function guardarEstudiante()
     {
         $this->validate([
-            'usuario_id' => 'required|exists:users,id|unique:inscripciones,usuario_id',
+            'user_id' => 'required|exists:users,id|unique:inscripciones,user_id',
             'matricula' => 'required|max:8|unique:inscripciones,matricula',
             'folio' => 'nullable|max:10|unique:inscripciones,folio',
             'CURP' => 'required|max:18|unique:inscripciones,CURP',
@@ -115,7 +155,6 @@ class Inscripcion extends Component
             'apellido_paterno' => 'required|max:50',
             'apellido_materno' => 'required|max:50',
             'fecha_nacimiento' => 'required|date',
-            'edad' => 'required|integer',
             'sexo' => 'required|in:H,M',
             'pais' => 'nullable|max:100',
             'estado_nacimiento_id' => 'nullable|exists:estados,id',
@@ -132,17 +171,15 @@ class Inscripcion extends Component
             'celular' => 'nullable|max:10',
             'tutor' => 'nullable|max:255',
             'bachillerato_procedente' => 'nullable|max:255',
-            'licenciatura_id' => 'required|exists:licenciaturas,id',
             'generacion_id' => 'required|exists:asignar_generaciones,id',
-            'cuatrimestre_id' => 'required|exists:periodos,id',
-            'modalidad_id' => 'required|exists:modalidades,id',
+            'cuatrimestre_id' => 'required|exists:cuatrimestres,id',
             'status' => 'required',
 
 
         ],[
-            'usuario_id.required' => 'El usuario es obligatorio.',
-            'usuario_id.exists' => 'El usuario seleccionado no existe.',
-            'usuario_id.unique' => 'El usuario ya está en uso.',
+            'user_id.required' => 'El usuario es obligatorio.',
+            'user_id.exists' => 'El usuario seleccionado no existe.',
+            'user_id.unique' => 'El usuario ya está en uso.',
             'matricula.required' => 'La matrícula es obligatorio.',
             'matricula.unique' => 'La matrícula ya está en uso.',
             'matricula.max' => 'La matrícula no debe exceder 8 caracteres.',
@@ -159,8 +196,6 @@ class Inscripcion extends Component
             'apellido_materno.max' => 'El apellido materno no debe exceder 50 caracteres.',
             'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatorio.',
             'fecha_nacimiento.date' => 'La fecha de nacimiento debe ser una fecha válida.',
-            'edad.required' => 'La edad es obligatorio.',
-            'edad.integer' => 'La edad debe ser un número entero.',
             'sexo.required' => 'El género es obligatorio.',
             'sexo.in' => 'El género debe ser H o M.',
             'pais.max' => 'El país no debe exceder 100 caracteres.',
@@ -178,14 +213,10 @@ class Inscripcion extends Component
             'celular.max' => 'El celular no debe exceder 10 caracteres.',
             'tutor.max' => 'El tutor no debe exceder 255 caracteres.',
             'bachillerato_procedente.max' => 'El bachillerato procedente no debe exceder 255 caracteres.',
-            'licenciatura_id.required' => 'La licenciatura es obligatoria.',
-            'licenciatura_id.exists' => 'La licenciatura seleccionada no existe.',
             'generacion_id.required' => 'La generación es obligatoria.',
             'generacion_id.exists' => 'La generación seleccionada no existe.',
             'cuatrimestre_id.required' => 'El cuatrimestre es obligatorio.',
             'cuatrimestre_id.exists' => 'El cuatrimestre seleccionado no existe.',
-            'modalidad_id.required' => 'La modalidad es obligatoria.',
-            'modalidad_id.exists' => 'La modalidad seleccionada no existe.',
             'status.required' => 'El estado es obligatorio.',
 
 
@@ -195,8 +226,9 @@ class Inscripcion extends Component
         ]);
 
         // Aquí puedes guardar la información del estudiante en la base de datos
-       ModelsInscripcion::create([
-            'user_id' => $this->usuario_id,
+    try {
+        ModelsInscripcion::create([
+            'user_id' => $this->user_id,
             'matricula' => $this->matricula,
             'folio' => $this->folio,
             'CURP' => $this->CURP,
@@ -204,7 +236,6 @@ class Inscripcion extends Component
             'apellido_paterno' => $this->apellido_paterno,
             'apellido_materno' => $this->apellido_materno,
             'fecha_nacimiento' => $this->fecha_nacimiento,
-            'edad' => $this->edad,
             'sexo' => $this->sexo,
             'pais' => $this->pais,
             'estado_nacimiento_id' => $this->estado_nacimiento_id,
@@ -221,15 +252,23 @@ class Inscripcion extends Component
             'celular' => $this->celular,
             'tutor' => $this->tutor,
             'bachillerato_procedente' => $this->bachillerato_procedente,
-            'licenciatura_id' => $this->licenciatura_id,
+            'licenciatura_id' => $this->licenciatura->id,
             'generacion_id' => $this->generacion_id,
             'cuatrimestre_id' => $this->cuatrimestre_id,
-            'modalidad_id' => $this->modalidad_id,
+            'modalidad_id' => $this->modalidad->id,
+            'certificado' => $this->certificado,
+            'acta_nacimiento' => $this->acta_nacimiento,
+            'certificado_medico' => $this->certificado_medico,
+            'fotos_infantiles' => $this->fotos_infantiles,
+            'otros' => $this->otros,
+            'foraneo' => $this->foraneo,
+            'status' => $this->status,
+
         ]);
 
         // Limpiar los campos después de guardar
         $this->reset([
-            'usuario_id',
+            'user_id',
             'matricula',
             'folio',
             'CURP',
@@ -254,27 +293,41 @@ class Inscripcion extends Component
             'celular',
             'tutor',
             'bachillerato_procedente',
-            'licenciatura_id',
             'generacion_id',
             'cuatrimestre_id',
+            'certificado',
+            'acta_nacimiento',
+            'certificado_medico',
+            'fotos_infantiles',
+            'foto',
+            'otros',
+            'foraneo',
+            'status',
+
         ]);
+
         // Mostrar un mensaje de éxito
         $this->dispatch('swal', [
             'title' => '¡Nuevo alumno creado correctamente!',
             'icon' => 'success',
             'position' => 'top-end',
         ]);
-
-
-
-
+    } catch (\Exception $e) {
+        // Manejar errores y mostrar un mensaje de error
+        $this->dispatch('swal', [
+            'title' => 'Error al crear el alumno'.$e->getMessage(),
+            'icon' => 'error',
+            'position' => 'top-end',
+        ]);
     }
+}
 
     public function render()
     {
-
+        $estados =Estado::orderBy('nombre')->get();
+        $ciudades = Ciudad::orderBy('nombre')->get();
 
         $acciones = Accion::all();
-        return view('livewire.admin.licenciaturas.submodulo.inscripcion', compact('acciones'));
+        return view('livewire.admin.licenciaturas.submodulo.inscripcion', compact('estados', 'ciudades', 'acciones'));
     }
 }

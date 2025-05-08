@@ -2,9 +2,13 @@
 
 namespace App\Models;
 
+use App\Observers\InscripcionObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
+#[ObservedBy(InscripcionObserver::class)]
 class Inscripcion extends Model
 {
     protected $table = 'inscripciones';
@@ -16,10 +20,10 @@ class Inscripcion extends Model
         'matricula',
         'folio',
         'CURP',
+        'nombre',
         'apellido_paterno',
         'apellido_materno',
         'fecha_nacimiento',
-        'edad',
         'sexo',
         'pais',
         'estado_nacimiento_id',
@@ -48,8 +52,10 @@ class Inscripcion extends Model
         'otros',
         'foraneo',
         'status',
+        'orden'
 
     ];
+
 
 
     public function user(){
