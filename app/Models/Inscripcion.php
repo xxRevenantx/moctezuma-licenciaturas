@@ -21,18 +21,21 @@ class Inscripcion extends Model
         'fecha_nacimiento',
         'edad',
         'sexo',
-        'estado_nacimiento',
-        'ciudad_nacimiento',
+        'pais',
+        'estado_nacimiento_id',
+        'ciudad_nacimiento_id',
         'calle',
         'numero_exterior',
+        'numero_interior',
         'colonia',
         'codigo_postal',
         'municipio',
-        'ciudad',
-        'estado',
+        'ciudad_id',
+        'estado_id',
         'telefono',
         'celular',
         'tutor',
+
         'bachillerato_procedente',
         'licenciatura_id',
         'generacion_id',
@@ -65,6 +68,19 @@ class Inscripcion extends Model
     public function modalidad(){
         return $this->hasOne(Modalidad::class);
     }
+    public function estadoNacimiento(){
+        return $this->hasOne(Estado::class, 'id', 'estado_nacimiento_id');
+    }
+    public function ciudadNacimiento(){
+        return $this->hasOne(Ciudad::class, 'id', 'ciudad_nacimiento_id');
+    }
+    public function ciudad(){
+        return $this->hasOne(Ciudad::class, 'id', 'ciudad_id');
+    }
+    public function estado(){
+        return $this->hasOne(Estado::class, 'id', 'estado_id');
+    }
+
 
 
 

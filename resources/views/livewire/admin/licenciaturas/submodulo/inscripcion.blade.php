@@ -27,7 +27,7 @@
             </flux:select>
 
 
-                <flux:input type="text" readonly badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
+                <flux:input type="text" variant="filled"  readonly badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
                 <flux:input type="text" label="Folio" placeholder="Folio" wire:model="folio" />
                 <flux:input type="text" badge="Requerido" label="CURP" placeholder="CURP" wire:model="CURP" />
                 <flux:input type="text" badge="Requerido" label="Nombre" placeholder="Nombre" wire:model="nombre" />
@@ -36,9 +36,9 @@
                 <flux:input type="date" badge="Requerido" label="Fecha de Nacimiento" placeholder="Fecha de Nacimiento" wire:model="fecha_nacimiento" />
                 <flux:input type="number" badge="Requerido" label="Edad" placeholder="Edad" wire:model="edad" />
 
-                <flux:radio.group wire:model="sexo" label="Sexo" >
-                    <flux:radio   label="Hombre" value="Hombre">Masculino</flux:radio>
-                    <flux:radio   label="Mujer" value="Mujer">Femenino</flux:radio>
+                <flux:radio.group badge="Requerido" wire:model="sexo" label="Género" >
+                    <flux:radio   label="Hombre" value="H">Hombre</flux:radio>
+                    <flux:radio   label="Mujer" value="M">Mujer</flux:radio>
                 </flux:radio.group>
 
 
@@ -180,18 +180,7 @@
 
             </div>
 
-
-
-
-
-
-
-
-
-
     </div>
-
-
 
 
 
@@ -199,9 +188,10 @@
         <flux:button variant="primary" type="submit" class="w-full cursor-pointer">{{ __('Guardar') }}</flux:button>
     </div>
 
-
-
-
 </form>
+
+
+
+
 
 </div>

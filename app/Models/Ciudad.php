@@ -16,4 +16,12 @@ class Ciudad extends Model
         'nombre',
     ];
 
+    public function inscripcion()
+    {
+        return $this->hasMany(Inscripcion::class);
+    }
+
+
+
+
 }

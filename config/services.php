@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'curp_api' => [
+    'key' => env('CURP_API_KEY'),
+],
+
 ];

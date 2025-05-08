@@ -21,4 +21,12 @@ class Estado extends Model
 
 
 
+    public function inscripcion()
+    {
+        return $this->hasMany(Inscripcion::class);
+    }
+
+
+
+
 }
