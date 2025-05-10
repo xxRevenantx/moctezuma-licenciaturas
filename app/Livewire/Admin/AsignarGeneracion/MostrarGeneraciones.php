@@ -48,16 +48,19 @@ class MostrarGeneraciones extends Component
     if ($this->filtrar_licenciatura) {
         $query->where('licenciatura_id', $this->filtrar_licenciatura);
         $this->search= '';
+
     }
 
     if ($this->filtrar_generacion) {
         $query->where('generacion_id', $this->filtrar_generacion);
          $this->search= '';
+
     }
 
     if ($this->filtrar_modalidad) {
         $query->where('modalidad_id', $this->filtrar_modalidad);
          $this->search= '';
+
     }
 
     if ($this->filtrar_activa !== '') {
@@ -65,6 +68,7 @@ class MostrarGeneraciones extends Component
             $q->where('activa', $this->filtrar_activa === 'true' ? "true" : "false");
         });
          $this->search= '';
+
     }
 
     if ($this->search) {
@@ -87,6 +91,18 @@ class MostrarGeneraciones extends Component
         ->orderBy($this->sortField, $this->sortDirection)
         ->paginate(10);
 }
+
+
+
+      public function limpiarFiltros(){
+        $this->resetFilters();
+        $this->search = '';
+        $this->filtrar_generacion = '';
+        $this->resetPage();
+      }
+
+
+
 
         // Este método se ejecuta cuando se cambia el valor del campo de búsqueda
         public function updatedSearch()

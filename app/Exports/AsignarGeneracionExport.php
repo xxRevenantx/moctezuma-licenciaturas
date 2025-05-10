@@ -28,12 +28,13 @@ class AsignarGeneracionExport implements FromCollection, WithHeadings, WithStyle
             return [
                 'licenciatura_id' => $asig->licenciatura->nombre,
                 'generacion_id'   => $asig->generacion->generacion,
+                'Estatus'         => $asig->generacion->activa == 'true' ? 'Activa' : 'Inactiva',
                 'modalidad_id'    => $asig->modalidad->nombre,
 
             ];
         });
 
-        dd($this->asignaciones);
+
     }
 
     public function headings(): array
@@ -41,13 +42,15 @@ class AsignarGeneracionExport implements FromCollection, WithHeadings, WithStyle
         return [
             'Licenciatura',
             'Generación',
+            'Estatus',
             'Modalidad',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle('A1:C1')->applyFromArray([
+        // Style for the header row
+        $sheet->getStyle('A1:D1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
@@ -57,6 +60,8 @@ class AsignarGeneracionExport implements FromCollection, WithHeadings, WithStyle
                 'startColor' => ['rgb' => '4CAF50'],
             ],
         ]);
+
+
     }
 
 
@@ -65,8 +70,9 @@ class AsignarGeneracionExport implements FromCollection, WithHeadings, WithStyle
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $rowCount = count($this->asignaciones) + 1;
-                $range = "A1:C{$rowCount}";
+                $range = "A1:D{$rowCount}";
 
+                // Apply border styles
                 $event->sheet->getStyle($range)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
@@ -75,6 +81,19 @@ class AsignarGeneracionExport implements FromCollection, WithHeadings, WithStyle
                         ],
                     ],
                 ]);
+
+                // Apply conditional formatting for the "Estatus" column (C2:C$rowCount)
+                for ($row = 2; $row <= $rowCount; $row++) {
+                    $cellValue = $event->sheet->getCell("C{$row}")->getValue();
+                    $color = $cellValue === 'Activa' ? '00FF00' : 'FF0000'; // Green for "Activa", Red for "Inactiva"
+
+                    $event->sheet->getStyle("C{$row}")->applyFromArray([
+                        'fill' => [
+                            'fillType' => Fill::FILL_SOLID,
+                            'startColor' => ['rgb' => $color],
+                        ],
+                    ]);
+                }
             },
         ];
     }

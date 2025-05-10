@@ -10,12 +10,14 @@ class CrearCuatrimestre extends Component
 {
 
     public $cuatrimestre;
+    public $nombre_cuatrimestre;
     public $mes_id;
 
 
 
     protected $rules = [
         'cuatrimestre' => 'required|numeric|min:1|max:9',
+        'nombre_cuatrimestre' => 'required|string|max:15',
         'mes_id' => 'required|exists:meses,id',
     ];
 
@@ -24,6 +26,10 @@ class CrearCuatrimestre extends Component
         'cuatrimestre.numeric' => 'El campo cuatrimestre debe ser un número.',
         'cuatrimestre.min' => 'El cuatrimestre debe ser al menos 1.',
         'cuatrimestre.max' => 'El cuatrimestre no puede ser mayor a 10.',
+        'nombre_cuatrimestre.required' => 'El campo nombre del cuatrimestre es obligatorio.',
+        'nombre_cuatrimestre.string' => 'El campo nombre del cuatrimestre debe ser una cadena de texto.',
+        'nombre_cuatrimestre.max' => 'El campo nombre del cuatrimestre no puede tener más de 15 caracteres.',
+
         'mes_id.required' => 'El campo meses es obligatorio.',
         'mes_id.exists' => 'El mes seleccionado no es válido.',
     ];
@@ -48,10 +54,11 @@ class CrearCuatrimestre extends Component
 
         Cuatrimestre::create([
             'cuatrimestre' => $this->cuatrimestre,
+            'nombre_cuatrimestre' => strtoupper(trim($this->nombre_cuatrimestre)),
             'mes_id' => $this->mes_id,
         ]);
         // Luego, puedes restablecer los campos
-        $this->reset(['cuatrimestre', 'mes_id']);
+        $this->reset(['cuatrimestre', 'mes_id', 'nombre_cuatrimestre']);
         // O redirigir a otra página
 
         $this->dispatch('swal', [

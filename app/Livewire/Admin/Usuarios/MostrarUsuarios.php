@@ -57,9 +57,6 @@ class MostrarUsuarios extends Component
     {
         $user = User::all();
 
-        dd($user->roles()); return;
-
-
         foreach ($user as $u) {
             if ($u->roles()->whereIn('name', ['Estudiante', 'Profesor', 'Invitado'])->exists()) {
                 $u->status = 'true';
@@ -89,7 +86,7 @@ class MostrarUsuarios extends Component
     $usuariosFiltrados = User::where('username', 'like', '%' . $this->search . '%')
         ->orWhere('email', 'like', '%' . $this->search . '%')
         ->orderBy('id', 'desc')
-        ->get(['order','username', 'email', 'status']); // columnas deseadas
+        ->get(); // columnas deseadas
 
     return Excel::download(new UsersExport($usuariosFiltrados), 'usuarios_filtrados.xlsx');
 }

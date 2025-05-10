@@ -42,6 +42,7 @@
 
 
                     <flux:input wire:model="cuatrimestre" :label="__('Cuatrimestre')" min="1"  type="number" placeholder="No. de cuatrimestre" autocomplete="cuatrimestre" />
+                    <flux:input wire:model="nombre_cuatrimestre" :label="__('Nombre Cuatrimestre')" type="text" placeholder="Nombre de cuatrimestre" autocomplete="nombre_cuatrimestre" />
 
                     <flux:select  label="Selecciona los meses" wire:model="mes_id">
                         <flux:select.option value="0">--Selecciona los meses--</flux:select.option>

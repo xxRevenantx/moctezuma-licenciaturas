@@ -14,11 +14,13 @@ use App\Models\Licenciatura;
 use App\Models\Modalidad;
 use App\Models\Periodo;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Nnjeim\World\World;
 
 class Inscripcion extends Component
 {
+    use \Livewire\WithFileUploads;
 
     public $slug;
     public $modalidad;
@@ -68,6 +70,8 @@ class Inscripcion extends Component
     public $foraneo;
     public $status;
 
+    public $fotoUrl;
+
 
 
     public function mount($licenciatura, $modalidad)
@@ -75,7 +79,22 @@ class Inscripcion extends Component
         $this->licenciatura = Licenciatura::where('slug', $licenciatura)->firstOrFail();
         $this->modalidad = Modalidad::where('slug', $modalidad)->firstOrFail();
 
-        $this->usuarios = User::role('Estudiante')->get();
+    /**
+     * Obtiene una lista de usuarios con el rol de "Estudiante" que no están inscritos.
+     *
+     * - Filtra los usuarios que tienen el rol "Estudiante".
+     * - Excluye a los usuarios cuyos IDs ya están presentes en la tabla de inscripciones (ModelsInscripcion).
+     * - Ordena los resultados por el ID en orden descendente.
+     * - Recupera todos los resultados como una colección.
+     *
+     * @var \Illuminate\Support\Collection $usuarios Lista de usuarios filtrados y ordenados.
+     */
+       $this->usuarios = User::role('Estudiante')
+        ->whereNotIn('id', ModelsInscripcion::pluck('user_id'))
+        ->orderBy('id', 'desc')
+        ->get();
+
+
 
         $this->generaciones = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
             ->where('modalidad_id', $this->modalidad->id)
@@ -85,8 +104,13 @@ class Inscripcion extends Component
             ->get();
 
         $this->pais = 'MEXICANA';
+
+        $this->status = true;
         // $this->generaciones = Generacion::all();
     }
+
+
+
 
     public function updated($propertyName)
     {
@@ -94,7 +118,10 @@ class Inscripcion extends Component
         //   $this->validateOnly($propertyName);
 
             if ($propertyName === 'user_id') {
-                $this->usuarios = User::role('Estudiante')->get();
+              $this->usuarios = User::role('Estudiante')
+                ->whereNotIn('id', ModelsInscripcion::pluck('user_id'))
+                ->orderBy('id', 'desc')
+                ->get();
             }
             if ($propertyName === 'generacion_id') {
                 $this->cuatrimestres = Periodo::where('generacion_id', $this->generacion_id)
@@ -146,7 +173,10 @@ class Inscripcion extends Component
 
     public function guardarEstudiante()
     {
-        $this->validate([
+
+
+
+        $datos = $this->validate([
             'user_id' => 'required|exists:users,id|unique:inscripciones,user_id',
             'matricula' => 'required|max:8|unique:inscripciones,matricula',
             'folio' => 'nullable|max:10|unique:inscripciones,folio',
@@ -173,7 +203,8 @@ class Inscripcion extends Component
             'bachillerato_procedente' => 'nullable|max:255',
             'generacion_id' => 'required|exists:asignar_generaciones,id',
             'cuatrimestre_id' => 'required|exists:cuatrimestres,id',
-            'status' => 'required',
+
+            'foto' => 'nullable|image|max:2048|mimes:jpeg,jpg,png',
 
 
         ],[
@@ -217,13 +248,29 @@ class Inscripcion extends Component
             'generacion_id.exists' => 'La generación seleccionada no existe.',
             'cuatrimestre_id.required' => 'El cuatrimestre es obligatorio.',
             'cuatrimestre_id.exists' => 'El cuatrimestre seleccionado no existe.',
-            'status.required' => 'El estado es obligatorio.',
 
-
-
-
+            'foto.image' => 'La foto debe ser una imagen.',
+            'foto.max' => 'La foto no debe exceder 2 MB.',
+            'foto.mimes' => 'La foto debe ser de tipo jpeg, jpg o png.',
 
         ]);
+
+
+
+        //validar foto
+        if ($this->foto) {
+            $foto = $this->foto->store('estudiantes');
+            $datos["foto"] = str_replace('estudiantes/', '', $foto);
+        } else {
+            $datos["foto"] = NULL;
+        }
+
+        if($this->status == true){
+            $this->status = "true";
+        }else{
+            $this->status = "false";
+        }
+
 
         // Aquí puedes guardar la información del estudiante en la base de datos
     try {
@@ -231,27 +278,27 @@ class Inscripcion extends Component
             'user_id' => $this->user_id,
             'matricula' => $this->matricula,
             'folio' => $this->folio,
-            'CURP' => $this->CURP,
-            'nombre' => $this->nombre,
-            'apellido_paterno' => $this->apellido_paterno,
-            'apellido_materno' => $this->apellido_materno,
+            'CURP' => trim(strtoupper($this->CURP)),
+            'nombre' => trim(strtoupper($this->nombre)),
+            'apellido_paterno' => trim(strtoupper($this->apellido_paterno)),
+            'apellido_materno' => trim(strtoupper($this->apellido_materno)),
             'fecha_nacimiento' => $this->fecha_nacimiento,
             'sexo' => $this->sexo,
-            'pais' => $this->pais,
+            'pais' => trim(strtoupper($this->pais)),
             'estado_nacimiento_id' => $this->estado_nacimiento_id,
             'ciudad_nacimiento_id' => $this->ciudad_nacimiento_id,
-            'calle' => $this->calle,
-            'numero_exterior' => $this->numero_exterior,
-            'numero_interior' => $this->numero_interior,
-            'colonia' => $this->colonia,
-            'codigo_postal' => $this->codigo_postal,
-            'municipio' => $this->municipio,
+            'calle' => trim(strtoupper($this->calle)),
+            'numero_exterior' => trim(strtoupper($this->numero_exterior)),
+            'numero_interior' => trim(strtoupper($this->numero_interior)),
+            'colonia' => trim(strtoupper($this->colonia)),
+            'codigo_postal' => trim(strtoupper($this->codigo_postal)),
+            'municipio' => trim(strtoupper($this->municipio)),
             'ciudad_id' => $this->ciudad_id,
             'estado_id' => $this->estado_id,
-            'telefono' => $this->telefono,
-            'celular' => $this->celular,
-            'tutor' => $this->tutor,
-            'bachillerato_procedente' => $this->bachillerato_procedente,
+            'telefono' => trim(strtoupper($this->telefono)),
+            'celular' => trim(strtoupper($this->celular)),
+            'tutor' => trim(strtoupper($this->tutor)),
+            'bachillerato_procedente' => trim(strtoupper($this->bachillerato_procedente)),
             'licenciatura_id' => $this->licenciatura->id,
             'generacion_id' => $this->generacion_id,
             'cuatrimestre_id' => $this->cuatrimestre_id,
@@ -260,9 +307,10 @@ class Inscripcion extends Component
             'acta_nacimiento' => $this->acta_nacimiento,
             'certificado_medico' => $this->certificado_medico,
             'fotos_infantiles' => $this->fotos_infantiles,
-            'otros' => $this->otros,
+            'otros' => trim(strtoupper($this->otros)),
             'foraneo' => $this->foraneo,
             'status' => $this->status,
+            'foto' => $datos["foto"]
 
         ]);
 
@@ -303,6 +351,7 @@ class Inscripcion extends Component
             'otros',
             'foraneo',
             'status',
+            'foto',
 
         ]);
 

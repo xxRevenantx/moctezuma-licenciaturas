@@ -27,9 +27,12 @@ class UsersExport implements FromCollection, WithHeadings, WithStyles, ShouldAut
     {
         return $this->usuarios->map(function ($user) {
             return [
-                $user->username,
-                $user->email,
-                $user->status ? 'Activo' : 'Inactivo',
+                "Usuario" => $user->username,
+                "Correo electrónico" => $user->email,
+                "Status" => $user->status == 'true' ? 'Activo' : 'Inactivo',
+                "Rol" => $user->roles->pluck('name')->implode(', '),
+                "Fecha de creación" => $user->created_at->format('d-m-Y'),
+
             ];
         });
     }
@@ -39,14 +42,16 @@ class UsersExport implements FromCollection, WithHeadings, WithStyles, ShouldAut
         return [
             'Usuario',
             'Correo electrónico',
-            'Estado',
+            'Status',
+            'Rol',
+            'Fecha de creación',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
         // Estilo del encabezado
-        $sheet->getStyle('A1:D1')->applyFromArray([
+        $sheet->getStyle('A1:E1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
@@ -55,15 +60,15 @@ class UsersExport implements FromCollection, WithHeadings, WithStyles, ShouldAut
         ]);
     }
 
-    public function registerEvents(): array
+   public function registerEvents(): array
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                $rowCount = $this->usuarios->count();
-                $estadoCol = 'D';
+                $rowCount = count($this->usuarios) + 1;
+                $range = "A1:E{$rowCount}";
 
-                // Bordes generales
-                $event->sheet->getStyle("A1:D" . ($rowCount + 1))->applyFromArray([
+                // Apply border styles
+                $event->sheet->getStyle($range)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => Border::BORDER_THIN,
@@ -72,26 +77,17 @@ class UsersExport implements FromCollection, WithHeadings, WithStyles, ShouldAut
                     ],
                 ]);
 
-                // Estilos condicionales para estado (columna D)
-                for ($row = 2; $row <= $rowCount + 1; $row++) {
-                    $cell = $estadoCol . $row;
-                    $estado = $event->sheet->getDelegate()->getCell($cell)->getValue();
+                // Apply conditional formatting for the "Estatus" column (C2:C$rowCount)
+                for ($row = 2; $row <= $rowCount; $row++) {
+                    $cellValue = $event->sheet->getCell("C{$row}")->getValue();
+                    $color = $cellValue === 'Activo' ? '00FF00' : 'FF0000'; // Green for "Activa", Red for "Inactivo"
 
-                    if ($estado === 'Activo') {
-                        $event->sheet->getStyle($cell)->applyFromArray([
-                            'fill' => [
-                                'fillType' => Fill::FILL_SOLID,
-                                'startColor' => ['rgb' => 'C8E6C9'], // verde claro
-                            ],
-                        ]);
-                    } elseif ($estado === 'Inactivo') {
-                        $event->sheet->getStyle($cell)->applyFromArray([
-                            'fill' => [
-                                'fillType' => Fill::FILL_SOLID,
-                                'startColor' => ['rgb' => 'FFCDD2'], // rojo claro
-                            ],
-                        ]);
-                    }
+                    $event->sheet->getStyle("C{$row}")->applyFromArray([
+                        'fill' => [
+                            'fillType' => Fill::FILL_SOLID,
+                            'startColor' => ['rgb' => $color],
+                        ],
+                    ]);
                 }
             },
         ];

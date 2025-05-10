@@ -82,12 +82,15 @@ class MostrarCuatrimestres extends Component
     public function render()
     {
         $cuatrimestres = Cuatrimestre::where('cuatrimestre', 'like', '%' . $this->search . '%')
+            ->orWhere('nombre_cuatrimestre', 'like', '%' . $this->search . '%')
             ->orWhereHas('mes', function ($query) {
                  $query->where('meses', 'like', '%' . $this->search . '%');
             })
             ->orderBy('id')
             ->with('mes')
             ->paginate(10);
+
+
         return view('livewire.admin.cuatrimestre.mostrar-cuatrimestres', compact('cuatrimestres'));
     }
 }

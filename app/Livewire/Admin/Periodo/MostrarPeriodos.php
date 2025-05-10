@@ -152,9 +152,31 @@ class MostrarPeriodos extends Component
     public function exportarPeriodos()
     {
 
-        $periodosFiltrados = Periodo::where('generacion', 'like', '%' . $this->search . '%')
-            ->orWhere('activa', 'like', '%' . $this->search . '%')
-            ->orderBy('order', 'desc')
+        $periodosFiltrados = Periodo::with(['cuatrimestre', 'generacion', 'mes'])
+            ->where(function ($query) {
+                if ($this->filtrar_cuatrimestre) {
+                    $query->where('cuatrimestre_id', $this->filtrar_cuatrimestre);
+                }
+
+                if ($this->filtrar_generacion) {
+                    $query->where('generacion_id', $this->filtrar_generacion);
+                }
+
+                if ($this->filtrar_mes) {
+                    $query->where('mes_id', $this->filtrar_mes);
+                }
+
+                if ($this->filtar_inicio_periodo) {
+                    $query->where('inicio_periodo', 'like', '%' . $this->filtar_inicio_periodo . '%');
+                }
+
+                if ($this->filtar_termino_periodo) {
+                    $query->where('termino_periodo', 'like', '%' . $this->filtar_termino_periodo . '%');
+                }
+            })
+            ->whereHas('generacion', function ($query) {
+                $query->where('activa', "true");
+            })
             ->get();
 
     return Excel::download(new PeriodoExport($periodosFiltrados), 'periodos_filtrados.xlsx');

@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('cuatrimestres', function (Blueprint $table) {
             $table->id();
             $table->string('cuatrimestre');
+            $table->string('nombre_cuatrimestre');
             $table->unsignedBigInteger('mes_id')->nullable();
 
-            $table->foreign('mes_id')->references('id')->on('meses')->onDelete('set null');
+            $table->foreign('mes_id')->references('id')->on('meses')->onDelete('cascade');
             $table->timestamps();
         });
     }

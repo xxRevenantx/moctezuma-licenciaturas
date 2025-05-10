@@ -51,11 +51,13 @@
                         <tr>
                         <td class="border px-4 py-2">{{ $key+1}}</td>
                         <td class="border px-4 py-2">{{ $ciudad->nombre }}</td>
-
-
                         <td class="border px-4 py-2">
-                            <flux:button  @click="Livewire.dispatch('abrirCiudad', { id: {{ $ciudad->id }} })"
-                                class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
+                            <flux:button
+                            variant="primary"
+                             @click="Livewire.dispatch('abrirCiudad', { id: {{ $ciudad->id }} })"
+                                class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer
+                                hover:bg-yellow-600 transition duration-300 ease-in-out
+                                ">Editar</flux:button>
 
                                 <flux:button variant="danger"
                             @click="destroyCiudad({{ $ciudad->id }}, '{{ $ciudad->nombre }}')"

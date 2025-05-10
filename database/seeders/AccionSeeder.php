@@ -15,7 +15,7 @@ class AccionSeeder extends Seeder
         $acciones = [
             [
                 ['accion' => 'Inscripciones', 'icono' => 'inscripcion.png', 'slug' => 'inscripcion', 'order' => 1],
-                ['accion' => 'Ver alumnos', 'icono' => 'alumnos.png', 'slug' => 'ver-alumnos', 'order' => 2],
+                ['accion' => 'Matrícula', 'icono' => 'alumnos.png', 'slug' => 'matricula', 'order' => 2],
                 ['accion' => 'Asignación de materias', 'icono' => 'materias.png', 'slug' => 'asignacion-de-materias', 'order' => 3],
                 ['accion' => 'Horarios', 'icono' => 'horarios.png', 'slug' => 'horarios', 'order' => 4],
                 ['accion' => 'Calificaciones', 'icono' => 'calificaciones.png', 'slug' => 'calificaciones', 'order' => 5],

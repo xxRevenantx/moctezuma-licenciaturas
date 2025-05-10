@@ -13,6 +13,7 @@ class Cuatrimestre extends Model
 
     protected $fillable = [
         'cuatrimestre',
+        'nombre_cuatrimestre',
         'mes_id'
     ];
     public function mes()

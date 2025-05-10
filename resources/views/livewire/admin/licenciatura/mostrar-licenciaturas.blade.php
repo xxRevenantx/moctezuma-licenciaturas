@@ -23,31 +23,34 @@
 
     <flux:input type="text" wire:model.live="search" placeholder="Buscar Licenciatura..." class=" p-2 mb-4 w-full" />
         <div class="overflow-x-auto">
-            <div class="flex space-x-4 mb-4">
+            <div class="flex space-x-4 mb-4 p-1">
 
                 @if($licenciaturas->isNotEmpty())
-                <button wire:click="exportarLicenciaturas"  class="text-white bg-green-700 hover:bg-green-800 focus:ring-4
-                focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600
-                 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
-                 <div class="flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+
+
+
+                 <flux:button wire:click="exportarLicenciaturas" variant="primary"  class="bg-green-700 hover:bg-green-800 focus:ring-4 dark:text-white">
+                    <div class="flex items-center gap-1">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                       </svg>
-                     <span> Exportar</span>
-                </div>
-                </button>
+
+                        <span>Exportar</span>
+                        </div>
+                </flux:button>
+
 
                 @else
-                <button disabled class="text-white bg-green-700 hover:bg-green-800 focus:ring-4
-                focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600
-                 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800 opacity-50 cursor-not-allowed">
-                 <div class="flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                  <flux:button disabled variant="primary"  class="bg-gray-100 hover:bg-gray-200 focus:ring-4 text-black">
+                    <div class="flex items-center gap-1">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                       </svg>
-                     <span> Exportar</span>
-                </div>
-                </button>
+
+                        <span>Exportar</span>
+                        </div>
+                </flux:button>
+
                 @endif
 
             </div>
@@ -87,8 +90,9 @@
                         <flux:button
 
                         @click="Livewire.dispatch('abrirModal', { id: {{ $licenciatura->id }} })"
-
-                            class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
+                        variant="primary"
+                            class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600 transition duration-300 ease-in-out">
+                            Editar</flux:button>
                         <flux:button variant="danger"
                         @click="destroyLicenciatura({{ $licenciatura->id }}, '{{ $licenciatura->nombre }}')"
                         class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
@@ -109,6 +113,7 @@
 
     {{-- MODAL PARA EDITAR --}}
     <livewire:admin.licenciatura.editar-licenciatura />
+
 
 
 </div>

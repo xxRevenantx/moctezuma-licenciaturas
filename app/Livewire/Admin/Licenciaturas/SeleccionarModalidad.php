@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Licenciaturas;
 
+use App\Livewire\Admin\Licenciaturas\Submodulo\Inscripcion;
 use App\Models\Licenciatura;
 use App\Models\Modalidad;
 use Livewire\Component;
@@ -9,10 +10,16 @@ use Livewire\Component;
 class SeleccionarModalidad extends Component
 {
     public $licenciatura;
+    public $hombres;
+    public $mujeres;
 
     public function mount($slug)
     {
         $this->licenciatura = Licenciatura::where('slug', $slug)->firstOrFail();
+
+
+
+
     }
 
     public function irAModalidad($modalidad_slug)

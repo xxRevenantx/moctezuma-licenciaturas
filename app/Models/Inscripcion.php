@@ -49,6 +49,7 @@ class Inscripcion extends Model
         'acta_nacimiento',
         'certificado_medico',
         'fotos_infantiles',
+        'foto',
         'otros',
         'foraneo',
         'status',
@@ -59,32 +60,32 @@ class Inscripcion extends Model
 
 
     public function user(){
-        return $this->hasOne(User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function licenciatura(){
-        return $this->hasOne(Licenciatura::class);
+          return $this->belongsTo(Licenciatura::class);
     }
     public function generacion(){
-        return $this->hasOne(Generacion::class);
+        return $this->belongsTo(Generacion::class);
     }
     public function cuatrimestre(){
-        return $this->hasOne(Cuatrimestre::class);
+        return $this->belongsTo(Cuatrimestre::class);
     }
     public function modalidad(){
-        return $this->hasOne(Modalidad::class);
+        return $this->belongsTo(Modalidad::class);
     }
     public function estadoNacimiento(){
-        return $this->hasOne(Estado::class, 'id', 'estado_nacimiento_id');
+        return $this->belongsTo(Estado::class, 'estado_nacimiento_id');
     }
     public function ciudadNacimiento(){
-        return $this->hasOne(Ciudad::class, 'id', 'ciudad_nacimiento_id');
+        return $this->belongsTo(Ciudad::class, 'ciudad_nacimiento_id');
     }
     public function ciudad(){
-        return $this->hasOne(Ciudad::class, 'id', 'ciudad_id');
+        return $this->belongsTo(Ciudad::class);
     }
     public function estado(){
-        return $this->hasOne(Estado::class, 'id', 'estado_id');
+        return $this->belongsTo(Estado::class);
     }
 
 

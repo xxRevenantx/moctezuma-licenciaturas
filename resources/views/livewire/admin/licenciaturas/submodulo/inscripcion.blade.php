@@ -21,8 +21,8 @@
 
             <flux:select badge="Requerido" label="Usuario" wire:model.live="user_id">
                 <option value="0">--Seleccione un usuario--</option>
-                @foreach($usuarios as $usuario)
-                    <option value="{{ $usuario->id }}">{{ $usuario->username }} => {{ $usuario->email }}</option>
+                @foreach($usuarios as $key =>  $usuario)
+                    <option value="{{ $usuario->id }}">{{ $key+1 }}.- {{ $usuario->username }} => {{ $usuario->email }}</option>
                 @endforeach
             </flux:select>
 
@@ -148,14 +148,25 @@
                       <!-- Subir foto -->
                       <div class="flex flex-col items-center flex-1 text-center">
                         <h3 class="text-sm font-semibold text-gray-700 mb-2">SUBIR FOTO</h3>
-                        <input type="file" class="mb-3 text-sm" />
-                        <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                          <svg class="w-10 h-10 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                          </svg>
-                        </div>
-                        <p class="text-xs text-gray-500">Peso máximo 1mb en formato<br>PNG o JPG<br>Imagen de 837px * 1004px</p>
+                        <flux:input wire:model.live="foto" type="file" accept="image/jpeg,image/jpg,image/png" />
+
+
+
+                            @if ($foto)
+                            <div class="rounded-full flex flex-col items-center justify-center mb-2 mt-2">
+                                    <img src="{{ $foto->temporaryUrl() }}" alt="{{ __('Foto') }}" class="w-20 h-20 rounded-full">
+                                </div>
+                            @else
+                                    <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-2 mt-2">
+                                    <svg class="w-10 h-10 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                    </svg>
+                                    </div>
+                                @endif
+                        <p class="text-xs text-gray-500">Peso máximo 1mb en formato<br>PNG, JPG o JPGE<br>Imagen 2.5cm x 3cm  </p>
                       </div>
+
+
                     </div>
 
                     <!-- Otros -->
@@ -178,7 +189,7 @@
                     <flux:legend>Status</flux:legend>
 
 
-                        <flux:switch label="Status" wire:model="status"  align="left" />
+                        <flux:switch label="Status"  wire:model="status"  align="left" />
 
                 </flux:fieldset>
 

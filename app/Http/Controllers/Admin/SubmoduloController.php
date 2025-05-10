@@ -21,7 +21,7 @@ class SubmoduloController extends Controller
             'slug_licenciatura' => $slug_licenciatura,
             'slug_modalidad' => $slug_modalidad,
             'submodulo' => $submodulo,
-            'accion' => $accion->accion,
+            'accionn' => $accion->accion,
             'acciones' => $acciones,
             'licenciatura' => $licenciatura,
         ]);

@@ -48,6 +48,7 @@
                         </th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Cuatrimestre</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre Cuatrimestre</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Meses</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700"></th>
                     </tr>
@@ -59,8 +60,11 @@
                                 <input type="checkbox" wire:model.live="selected" value="{{ $cuatrimestre->id }}">
                             </td>
                             <td class="border px-4 py-2">{{ $cuatrimestre->id }}</td>
-                            <td class="border px-4 py-2">{{ $cuatrimestre->cuatrimestre }}° CUATRIMESTRE</td>
-                            <td class="border px-4 py-2">{{ $cuatrimestre->mes->meses }}</td>
+                            <td class="border px-4 py-2">{{ $cuatrimestre->cuatrimestre }}</td>
+                            <td class="border px-4 py-2">{{ $cuatrimestre->nombre_cuatrimestre }}</td>
+                            <td class="border px-4 py-2">
+                                {{ $cuatrimestre->mes ? $cuatrimestre->mes->meses : 'Sin asignar' }}
+                            </td>
                             <td class="border px-4 py-2">
                                 <flux:button @click="Livewire.dispatch('abrirCuatrimestre', { id: {{ $cuatrimestre->id }} })"
                                     class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
