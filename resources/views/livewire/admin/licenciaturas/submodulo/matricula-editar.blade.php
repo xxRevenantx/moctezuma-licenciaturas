@@ -30,7 +30,7 @@
 
 
                         <flux:select badge="Requerido" label="Usuario" wire:model.live="user_id">
-                            <option value="0">--Seleccione un usuario--</option>
+
                             @foreach($usuarios as $key =>  $usuario)
                                 <option value="{{ $usuario->id }}">{{ $key+1 }}.- {{ $usuario->username }} => {{ $usuario->email }}</option>
                             @endforeach
@@ -94,8 +94,23 @@
                         <flux:input type="text" label="Colonia" placeholder="Colonia" wire:model="colonia" />
                         <flux:input type="text" label="Código Postal" placeholder="Código Postal" wire:model="codigo_postal" />
                         <flux:input type="text" label="Municipio" placeholder="Municipio" wire:model="municipio" />
-                        <flux:input type="text" label="Ciudad/Localidad" placeholder="Ciudad/Localidad" wire:model="ciudad_localidad" />
-                        <flux:input type="text" label="Estado" placeholder="Estado" wire:model="estado_contacto" />
+
+                         <flux:select label="Estado" wire:model="ciudad_id">
+                                <option value="">--Seleccione una ciudad--</option>
+                                @foreach($ciudades as $ciudad)
+                                    <option value="{{ $ciudad->id }}">{{ $ciudad->nombre }}</option>
+                                @endforeach
+
+                            </flux:select>
+
+                             <flux:select label="Estado" wire:model="estado_id">
+                                <option value="">--Seleccione un estado--</option>
+                                @foreach($estados as $estado)
+                                    <option value="{{ $estado->id }}">{{ $estado->nombre }}</option>
+                                @endforeach
+
+                            </flux:select>
+
                         <flux:input type="text" label="Teléfono" placeholder="Teléfono" wire:model="telefono" />
                         <flux:input type="text" label="Celular" placeholder="Celular" wire:model="celular" />
                         <flux:input type="text" label="Tutor" placeholder="Tutor" wire:model="tutor" />
@@ -161,21 +176,30 @@
                                 <!-- Subir foto -->
                                 <div class="flex flex-col items-center flex-1 text-center">
                                     <h3 class="text-sm font-semibold text-gray-700 mb-2">SUBIR FOTO</h3>
-                                    <flux:input wire:model.live="foto" type="file" accept="image/jpeg,image/jpg,image/png" />
+                                    <flux:input wire:model.live="foto_nueva" type="file" accept="image/jpeg,image/jpg,image/png" />
 
-
-
-                                        @if ($foto)
-                                        <div class="rounded-full flex flex-col items-center justify-center mb-2 mt-2">
-                                                <img src="{{ $foto->temporaryUrl() }}" alt="{{ __('Foto') }}" class="w-20 h-20 rounded-full">
-                                            </div>
-                                        @else
-                                                <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-2 mt-2">
-                                                <svg class="w-10 h-10 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                                </svg>
-                                                </div>
+                                              @if ($foto)
+                                                    <div class="rounded-full flex flex-col items-center justify-center mb-2 mt-2">
+                                                        <img src="{{ asset('storage/estudiantes/' . $foto) }}" alt="{{ __('Foto') }}" class="w-20 h-20 rounded-full">
+                                                    </div>
+                                              @else
+                                                        <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-2 mt-2">
+                                                        <svg class="w-10 h-10 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                                        </svg>
+                                                        </div>
                                             @endif
+                                                <div wire:loading>
+                                                    <flux:badge color="indigo">Cargando foto...</flux:badge>
+                                                </div>
+                                               <div wire:loading.remove>
+                                                  @if ($foto_nueva)
+                                                        <p class="mt-4 font-semibold">Nueva foto</p>
+                                                        <img src="{{ $foto_nueva->temporaryUrl() }}" alt="Nueva del alumno" class="w-24 h-24  rounded-full">
+                                                        @endif
+                                                </div>
+
+
                                     <p class="text-xs text-gray-500">Peso máximo 1mb en formato<br>PNG, JPG o JPGE<br>Imagen 2.5cm x 3cm  </p>
                                 </div>
 

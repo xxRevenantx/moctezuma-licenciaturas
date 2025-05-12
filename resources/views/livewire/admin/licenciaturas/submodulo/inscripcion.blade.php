@@ -62,11 +62,8 @@
                     @endforeach
                 </flux:select>
 
-
-
-
-
             </flux:field>
+
 
 
         </div>
@@ -89,6 +86,7 @@
             <flux:input type="text" label="Teléfono" placeholder="Teléfono" wire:model="telefono" />
             <flux:input type="text" label="Celular" placeholder="Celular" wire:model="celular" />
             <flux:input type="text" label="Tutor" placeholder="Tutor" wire:model="tutor" />
+            <flux:input type="text" variant="filled" readonly label="Correo electrónico" placeholder="Correo Eletrónico" value="{{$usuario_email}}" />
 
             </flux:field>
 

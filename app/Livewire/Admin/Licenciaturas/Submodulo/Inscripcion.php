@@ -27,6 +27,7 @@ class Inscripcion extends Component
     public $licenciatura;
 
     public $usuarios;
+    public $usuario_email;
 
     public $generaciones ;
 
@@ -95,7 +96,6 @@ class Inscripcion extends Component
         ->get();
 
 
-
         $this->generaciones = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
             ->where('modalidad_id', $this->modalidad->id)
             ->whereHas('generacion', function ($query) {
@@ -122,8 +122,23 @@ class Inscripcion extends Component
                 ->whereNotIn('id', ModelsInscripcion::pluck('user_id'))
                 ->orderBy('id', 'desc')
                 ->get();
+
+                 $this->usuario_email = User::where('id', $this->user_id)->value('email');
+
             }
+
+
+
             if ($propertyName === 'generacion_id') {
+
+                $this->generaciones = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
+                ->where('modalidad_id', $this->modalidad->id)
+                ->whereHas('generacion', function ($query) {
+                $query->where('activa', "true");
+                })
+                ->get();
+
+
                 $this->cuatrimestres = Periodo::where('generacion_id', $this->generacion_id)
                 ->limit(1)
                 ->orderBy('id', 'desc')
@@ -308,8 +323,8 @@ class Inscripcion extends Component
             'certificado_medico' => $this->certificado_medico,
             'fotos_infantiles' => $this->fotos_infantiles,
             'otros' => trim(strtoupper($this->otros)),
-            'foraneo' => $this->foraneo,
-            'status' => $this->status,
+            'foraneo' => $this->foraneo == "true" ? "true" : "false",
+            'status' => $this->status == "true" ? "true" : "false",
             'foto' => $datos["foto"]
 
         ]);
@@ -350,10 +365,12 @@ class Inscripcion extends Component
             'foto',
             'otros',
             'foraneo',
-            'status',
             'foto',
 
         ]);
+
+        // Limpiar email
+        $this->usuario_email = null;
 
         // Mostrar un mensaje de éxito
         $this->dispatch('swal', [

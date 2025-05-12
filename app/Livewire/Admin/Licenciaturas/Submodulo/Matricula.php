@@ -30,16 +30,41 @@ class Matricula extends Component
 
 
     public $filtrar_generacion;
+    public $filtrar_foraneo;
 
 
     public function updatedSelectAll($value)
-    {
-        if ($value) {
-            $this->selected = Inscripcion::pluck('id')->toArray();
-        } else {
-            $this->selected = [];
+{
+    if ($value) {
+        $query = Inscripcion::query()
+            ->where('modalidad_id', $this->modalidad->id);
+
+        if ($this->filtrar_generacion) {
+            $query->where('generacion_id', $this->filtrar_generacion);
+
         }
+
+        if (($this->filtrar_foraneo)) {
+            $query->where('foraneo', $this->filtrar_foraneo);
+        }
+
+        if ($this->search) {
+            $query->where(function ($query) {
+                $query->where('nombre', 'like', '%' . $this->search . '%')
+                    ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
+                    ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
+                    ->orWhere('matricula', 'like', '%' . $this->search . '%')
+                    ->orWhere('CURP', 'like', '%' . $this->search . '%');
+                    // ->orWhereHas('cuatrimestre', fn($q) => $q->where('nombre_cuatrimestre', 'like', '%' . $this->search . '%'));
+            });
+        }
+
+        $this->selected = $query->pluck('id')->toArray();
+    } else {
+        $this->selected = [];
     }
+}
+
 
     public function cambiarEstudiantesSeleccionados()
     {
@@ -77,56 +102,55 @@ class Matricula extends Component
 
 
 
-     public function getMatriculaProperty()
+ public function getMatriculaProperty()
+{
+    if (!$this->filtrar_generacion) {
+        return collect(); // tabla vacía si no hay generación seleccionada
+    }
+
+    $query = Inscripcion::with(['generacion', 'cuatrimestre'])
+        ->where('modalidad_id', $this->modalidad->id)
+        ->where('generacion_id', $this->filtrar_generacion);
+
+    if ($this->filtrar_foraneo) {
+        $query->where('foraneo', $this->filtrar_foraneo);
+    }
+
+    if ($this->search) {
+        $query->where(function ($query) {
+            $query->where('nombre', 'like', '%' . $this->search . '%')
+                ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
+                ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
+                ->orWhere('matricula', 'like', '%' . $this->search . '%')
+                ->orWhere('CURP', 'like', '%' . $this->search . '%');
+                // ->orWhereHas('cuatrimestre', function ($q) {
+                //     $q->where('nombre_cuatrimestre', 'like', '%' . $this->search . '%');
+                // });
+        });
+    }
+
+    return $query
+        ->orderBy('apellido_paterno')
+        ->orderBy('apellido_materno')
+        ->orderBy('nombre')
+        ->get(); // usa get() en lugar de paginate() si no vas a paginar
+}
+
+
+        public function updatedFiltrarGeneracion()
+        {
+            $this->limpiarSeleccionados();
+           $this->resetPage();
+        }
+
+
+   // LIMPIAR FILTROS
+   public function limpiarFiltros()
     {
-        $query = Inscripcion::with(['generacion', 'cuatrimestre']);
-
-        if ($this->filtrar_generacion) {
-            $query->where('generacion_id', $this->filtrar_generacion);
-        }
-
-        if ($this->search) {
-            $query->where(function ($query) {
-                $query->where('nombre', 'like', '%' . $this->search . '%')
-                    ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
-                    ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
-                    ->orWhere('matricula', 'like', '%' . $this->search . '%')
-                    ->orWhere('CURP', 'like', '%' . $this->search . '%')
-                    ->orWhere(function ($query) {
-                        if (strtolower($this->search) === 'hombre') {
-                            $query->where('sexo', 'H');
-                        } elseif (strtolower($this->search) === 'mujer') {
-                            $query->where('sexo', 'M');
-                        } else {
-                            $query->where('sexo', 'like', '%' . $this->search . '%');
-                        }
-                    });
-                    $query->orWhereHas('cuatrimestre', function ($query) {
-                        $query->where('nombre_cuatrimestre', 'like', '%' . $this->search . '%');
-                    });
-
-                    $query->orWhere(function ($query) {
-                        if (strtolower($this->search) === 'activo') {
-                            $query->where('status', 'true');
-                        } elseif (strtolower($this->search) === 'Baja') {
-                            $query->where('status', 'false');
-                        } else {
-                            $query->where('status', 'like', '%' . $this->search . '%');
-                        }
-                    });
-
-
-            });
-        }
-
-
-
-        return $query
-             ->where('modalidad_id', $this->modalidad->id)
-            ->orderBy('apellido_paterno', 'asc')
-            ->orderBy('apellido_materno', 'asc')
-            ->orderBy('nombre', 'asc')
-            ->paginate(10);
+        $this->search = '';
+        $this->filtrar_generacion = null;
+        $this->filtrar_foraneo = null;
+       $this->limpiarSeleccionados();
     }
 
 
@@ -147,11 +171,16 @@ class Matricula extends Component
     }
 
 
+    public function limpiarSeleccionados(){
+         $this->selected = []; // Reset selected items
+         $this->selectAll = false; // Reset select all checkbox
+    }
+
+
     // ELIMINAR ESTUDIANTE
         public function eliminarEstudiante($id)
         {
-          $this->selected = []; // Reset selected items
-        $this->selectAll = false; // Reset select all checkbox
+          $this->limpiarSeleccionados();
 
         $alumno = Inscripcion::find($id);
 
