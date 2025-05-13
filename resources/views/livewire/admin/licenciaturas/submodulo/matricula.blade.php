@@ -74,15 +74,31 @@
 
                 @if($matricula->isNotEmpty())
 
-                <flux:dropdown>
-                <flux:button icon:trailing="chevron-down">Exportar a:</flux:button>
 
-                <flux:menu>
-                    <flux:menu.item wire:click="exportarMatricula" icon="sheet">Excel</flux:menu.item>
-                    <flux:menu.item wire:click="exportarMatriculaPDF" icon="file-text">PDF</flux:menu.item>
+                <form method="GET" action="{{ route('admin.pdf.matricula') }}" target="_blank">
 
-                </flux:menu>
-            </flux:dropdown>
+                    <input type="hidden" name="licenciatura_id" value="{{ $licenciatura->id }}">
+                    <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
+                    <input type="hidden" name="filtrar_generacion" value="{{ $filtrar_generacion }}">
+                    <input type="hidden" name="filtar_foraneo" value="{{ $filtrar_foraneo }}">
+
+
+                    <button type="submit" variant="primary" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                         <div class="flex items-center gap-1">
+                            <flux:icon.file-text/>
+                            <span>Lista PDF</span>
+                            </div>
+                    </button>
+                </form>
+
+
+
+            <flux:button wire:click="exportarMatricula" variant="primary" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    <div class="flex items-center gap-1">
+                        <flux:icon.sheet />
+                        <span>Exportar a Excel</span>
+                        </div>
+                </flux:button>
 
 
 

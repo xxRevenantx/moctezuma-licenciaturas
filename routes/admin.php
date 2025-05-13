@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CiudadController;
 use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\MesController;
+use App\Http\Controllers\PDFController;
 use App\Livewire\Admin\Licenciaturas\SeleccionarModalidad;
 use App\Livewire\Admin\Usuarios\MostrarUsuarios;
 use App\Models\Generacion;
@@ -51,8 +52,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('asignar-generacion', AsignarGeneracionController::class)->middleware('can:admin.asignar.generacion')->names('admin.asignar.generacion');
 
-    // Route::get('/admin/pdf/matricula', [MatriculaPDFController::class, 'generar'])
-    // ->name('admin.pdf.matricula');
+
+    // RUTAS PDF
+
+    Route::get('/matricula', [PDFController::class, 'matricula'])->name('admin.pdf.matricula');
 
 
     Route::prefix('licenciaturas')->group(function () {
