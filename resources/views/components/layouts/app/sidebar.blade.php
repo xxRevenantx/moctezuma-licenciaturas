@@ -48,7 +48,7 @@
 
 
                         <flux:navlist.item icon="rectangle-stack" :href="route('admin.acciones.index')" :current="request()->routeIs('admin.acciones.index')" wire:navigate>{{ __('Acciones') }}</flux:navlist.item>
-                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.asignacion.licenciaturas.index')" :current="request()->routeIs('admin.asignacion.licenciaturas.index')" wire:navigate>{{ __('Licenciaturas') }}</flux:navlist.item>
+                        <flux:navlist.item icon="academic-cap" :href="route('admin.asignacion.licenciaturas.index')" :current="request()->routeIs('admin.asignacion.licenciaturas.index')" wire:navigate>{{ __('Licenciaturas') }}</flux:navlist.item>
 
                         <flux:navlist.group :heading="__('Generaciones')" expandable :expanded="false"  >
                             <flux:navlist.item icon="rectangle-stack" :href="route('admin.generaciones.index')"
@@ -60,9 +60,9 @@
                         </flux:navlist.group>
                     </flux:navlist>
 
-                    <flux:navlist.item icon="rectangle-stack" :href="route('admin.cuatrimestres.index')" :current="request()->routeIs('admin.cuatrimestres.index')" wire:navigate>{{ __('Cuatrimestres') }}</flux:navlist.item>
-                    <flux:navlist.item icon="rectangle-stack" :href="route('admin.periodos.index')" :current="request()->routeIs('admin.periodos.index')" wire:navigate>{{ __('Periodos') }}</flux:navlist.item>
-                    <flux:navlist.item icon="rectangle-stack" :href="route('admin.directivos.index')" :current="request()->routeIs('admin.directivos.index')" wire:navigate>{{ __('Personal directivo') }}</flux:navlist.item>
+                    <flux:navlist.item icon="squares-2x2" :href="route('admin.cuatrimestres.index')" :current="request()->routeIs('admin.cuatrimestres.index')" wire:navigate>{{ __('Cuatrimestres') }}</flux:navlist.item>
+                    <flux:navlist.item icon="refresh-ccw" :href="route('admin.periodos.index')" :current="request()->routeIs('admin.periodos.index')" wire:navigate>{{ __('Periodos') }}</flux:navlist.item>
+                    <flux:navlist.item icon="square-user-round" :href="route('admin.directivos.index')" :current="request()->routeIs('admin.directivos.index')" wire:navigate>{{ __('Personal directivo') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
             @endcan

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Licenciaturas\Submodulo;
 
+use App\Exports\MatriculaExport;
 use App\Models\AsignarGeneracion;
 use App\Models\Cuatrimestre;
 use App\Models\Inscripcion;
@@ -13,6 +14,9 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+
+
 class Matricula extends Component
 {
     public $modalidad;
@@ -20,6 +24,7 @@ class Matricula extends Component
     public $submodulo;
 
     public $generaciones;
+    public $cuatrimestres;
 
     use WithPagination;
 
@@ -28,9 +33,11 @@ class Matricula extends Component
     public $selected = [];
     public $selectAll = false;
 
-
     public $filtrar_generacion;
     public $filtrar_foraneo;
+
+    public $contar_mujeres;
+    public $contar_hombres;
 
 
     public function updatedSelectAll($value)
@@ -102,7 +109,7 @@ class Matricula extends Component
 
 
 
- public function getMatriculaProperty()
+public function getMatriculaProperty()
 {
     if (!$this->filtrar_generacion) {
         return collect(); // tabla vacía si no hay generación seleccionada
@@ -114,7 +121,10 @@ class Matricula extends Component
 
     if ($this->filtrar_foraneo) {
         $query->where('foraneo', $this->filtrar_foraneo);
+
+
     }
+
 
     if ($this->search) {
         $query->where(function ($query) {
@@ -137,12 +147,69 @@ class Matricula extends Component
 }
 
 
-        public function updatedFiltrarGeneracion()
-        {
-            $this->limpiarSeleccionados();
-           $this->resetPage();
-        }
+// CONTAR HOMBRES Y MUJERES
+public function contarHombreMujeres(){
+ $this->contar_mujeres = Inscripcion::where('generacion_id', $this->filtrar_generacion)
+        ->where('modalidad_id', $this->modalidad->id)
+        ->where('licenciatura_id', $this->licenciatura->id)
+        ->where('sexo', 'M')
+        ->count();
 
+    $this->contar_hombres = Inscripcion::where('generacion_id', $this->filtrar_generacion)
+
+        ->where('modalidad_id', $this->modalidad->id)
+        ->where('licenciatura_id', $this->licenciatura->id)
+        ->where('sexo', 'H')
+        ->count();
+}
+
+
+
+public function updatedFiltrarGeneracion()
+{
+    $this->limpiarSeleccionados();
+    $this->resetPage();
+
+    $this->contarHombreMujeres();
+
+      $this->cuatrimestres = Periodo::where('generacion_id', $this->filtrar_generacion)
+            ->get();
+}
+
+
+
+// CAMBIAR DE CUATRIMESTRE
+
+public function cambiarCuatrimestreSeleccionados($id){
+
+
+
+    if (count($this->selected) > 0) {
+        Inscripcion::whereIn('id', $this->selected)
+            ->update([
+                'cuatrimestre_id' => $id,
+            ]);
+
+        $this->dispatch('swal', [
+            'title' => '¡Estudiantes cambiados correctamente!',
+            'icon' => 'success',
+            'position' => 'top-end',
+        ]);
+
+        $this->selected = []; // Reset selected items
+        $this->selectAll = false; // Reset select all checkbox
+    } else {
+        $this->dispatch('swal', [
+            'title' => '¡No se han seleccionado estudiantes!',
+            'icon' => 'warning',
+            'position' => 'top-end',
+        ]);
+    }
+
+    $this->dispatch('refreshMatricula');
+
+
+}
 
    // LIMPIAR FILTROS
    public function limpiarFiltros()
@@ -167,6 +234,10 @@ class Matricula extends Component
             $query->where('activa', "true");
             })
             ->get();
+
+
+
+
 
     }
 
@@ -200,46 +271,91 @@ class Matricula extends Component
 
 
     // exportar alumnos excel
-     public function exportarAlumnos()
+    public function exportarMatricula()
     {
-
-        $alumnosFiltrados = Inscripcion::with(['user', 'licenciatura', 'generacion', 'cuatrimestre', 'modalidad'])
+        $query = Inscripcion::with(['user', 'licenciatura', 'generacion', 'cuatrimestre', 'modalidad'])
             ->where('licenciatura_id', $this->licenciatura->id)
             ->where('modalidad_id', $this->modalidad->id)
-            ->where(function ($query) {
+            ->where('generacion_id', $this->filtrar_generacion);
+
+        if (!empty($this->selected)) {
+            // Filtrar solo los seleccionados si hay seleccionados
+            $query->whereIn('id', $this->selected);
+        } else {
+            // Aplicar filtros generales si no hay seleccionados
+            $query->where(function ($query) {
                 $query->where('nombre', 'like', '%' . $this->search . '%')
                     ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
                     ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
                     ->orWhere('matricula', 'like', '%' . $this->search . '%')
                     ->orWhere('CURP', 'like', '%' . $this->search . '%');
-            })
+            });
+        }
+
+        $alumnosFiltrados = $query
             ->orderBy('apellido_paterno', 'asc')
             ->orderBy('apellido_materno', 'asc')
             ->orderBy('nombre', 'asc')
             ->get();
 
-    // return Excel::download(new MatriculaExport($alumnosFiltrados), 'alumnos_filtrado.xlsx');
+        return Excel::download(new MatriculaExport($alumnosFiltrados), 'matricula.xlsx');
     }
+
+
+    // exportar alumnos pdf
+   public function exportarMatriculaPDF()
+    {
+        $query = Inscripcion::with(['user', 'licenciatura', 'generacion', 'cuatrimestre', 'modalidad'])
+            ->where('licenciatura_id', $this->licenciatura->id)
+            ->where('modalidad_id', $this->modalidad->id)
+            ->where('generacion_id', $this->filtrar_generacion);
+
+        if (!empty($this->selected)) {
+            $query->whereIn('id', $this->selected);
+        } else {
+            $query->where(function ($query) {
+                $query->where('nombre', 'like', '%' . $this->search . '%')
+                    ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
+                    ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
+                    ->orWhere('matricula', 'like', '%' . $this->search . '%')
+                    ->orWhere('CURP', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        $alumnosFiltrados = $query
+            ->orderBy('apellido_paterno', 'asc')
+            ->orderBy('apellido_materno', 'asc')
+            ->orderBy('nombre', 'asc')
+            ->get();
+
+        $alumnosSanitizados = $alumnosFiltrados->map(function ($alumno) {
+            $array = $alumno->toArray();
+
+            array_walk_recursive($array, function (&$value) {
+                if (is_string($value)) {
+                    $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+                }
+            });
+
+            return $array;
+        });
+
+        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculaPDF', [
+            'alumnos' => $alumnosSanitizados,
+        ])->setPaper('letter', 'portrait');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'Matrícula.pdf');
+    }
+
+
 
 
     #[On('refreshMatricula')]
     public function render()
     {
 
-        // $matricula = Inscripcion::with(['user', 'licenciatura', 'generacion', 'cuatrimestre', 'modalidad'])
-        //     ->where('licenciatura_id', $this->licenciatura->id)
-        //     ->where('modalidad_id', $this->modalidad->id)
-        //     ->where(function ($query) {
-        //         $query->where('nombre', 'like', '%' . $this->search . '%')
-        //             ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
-        //             ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
-        //             ->orWhere('matricula', 'like', '%' . $this->search . '%')
-        //             ->orWhere('CURP', 'like', '%' . $this->search . '%');
-        //     })
-        //     ->orderBy('apellido_paterno', 'asc')
-        //     ->orderBy('apellido_materno', 'asc')
-        //     ->orderBy('nombre', 'asc')
-        //     ->paginate(10);
 
 
         return view('livewire.admin.licenciaturas.submodulo.matricula', [

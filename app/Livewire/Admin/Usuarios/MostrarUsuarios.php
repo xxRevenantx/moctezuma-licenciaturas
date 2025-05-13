@@ -8,12 +8,115 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Permission\Models\Role;
 
 class MostrarUsuarios extends Component
 {
     use WithPagination;
 
     public $search = '';
+
+    public $rol;
+    public $roles;
+    public $filtrar_status;
+    public $filtrar_roles;
+
+    public $selected = [];
+    public $selectAll = false;
+
+
+
+       public function updatedSelectAll($value)
+    {
+    if ($value) {
+
+
+        $query = User::query();
+
+        if ($this->filtrar_status) {
+            $query->where('status', $this->filtrar_status == 'Activo' ? 'true' : 'false');
+        }
+        if ($this->filtrar_roles) {
+            $query->whereHas('roles', function ($query) {
+                $query->where('name', $this->filtrar_roles);
+            });
+        }
+        if ($this->search) {
+            $query->where(function ($query) {
+                $query->where('email', 'like', '%' . $this->search . '%')
+                    ->orWhere('username', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('roles', function ($query) {
+                        $query->where('name', 'like', '%' . $this->search . '%');
+                    });
+            });
+        }
+        // Agregar la condición para filtrar por rol
+
+        $this->selected = $query->pluck('id')->toArray();
+    } else {
+        $this->selected = [];
+    }
+}
+
+
+    // CAMBIO DE ROL
+    public function cambioRolUsuariosSeleccionados($id){
+
+        $usuarios = User::whereIn('id', $this->selected)->get();
+
+        foreach ($usuarios as $usuario) {
+            $usuario->roles()->sync($id);
+        }
+
+        $this->dispatch('swal', [
+            'title' => '¡Rol cambiado correctamente!',
+            'icon' => 'success',
+            'position' => 'top-end',
+        ]);
+        $this->selected = [];
+        $this->selectAll = false;
+        $this->limpiarFiltros();
+
+
+    }
+
+
+
+    public function mount(){
+        $this->roles = Role::all();
+    }
+
+     public function getUsuariosProperty()
+    {
+
+        $query = User::orderBy('id', 'desc');
+
+          if ($this->filtrar_status) {
+                $query->where('status', $this->filtrar_status == 'Activo' ? 'true' : 'false');
+            }
+
+         if($this->filtrar_roles){
+            $query->whereHas('roles', function ($query) {
+                $query->where('name', $this->filtrar_roles);
+            });
+         }
+
+         if ($this->search) {
+            $query->where(function ($query) {
+                $query->where('email', 'like', '%' . $this->search . '%')
+                ->orWhere('username', 'like', '%' . $this->search . '%')
+                ->orWhereHas('roles', function ($query) {
+                    $query->where('name', 'like', '%' . $this->search . '%');
+                });
+
+            });
+
+         }
+
+
+
+         return $query->paginate(15);
+    }
 
 
     public function eliminarUsuario($id)
@@ -70,6 +173,14 @@ class MostrarUsuarios extends Component
         ]);
     }
 
+    public function limpiarFiltros()
+    {
+        $this->search = '';
+        $this->filtrar_status = null;
+        $this->filtrar_roles = null;
+
+    }
+
 
     public static function placeholder(){
         return view('placeholder');
@@ -83,25 +194,38 @@ class MostrarUsuarios extends Component
 
     public function exportarUsuarios()
 {
-    $usuariosFiltrados = User::where('username', 'like', '%' . $this->search . '%')
-        ->orWhere('email', 'like', '%' . $this->search . '%')
+    $usuariosFiltrados = User::query()
+        ->when($this->filtrar_status, function ($query) {
+            $query->where('status', $this->filtrar_status == 'Activo' ? 'true' : 'false');
+        })
+        ->when($this->filtrar_roles, function ($query) {
+            $query->whereHas('roles', function ($query) {
+                $query->where('name', $this->filtrar_roles);
+            });
+        })
+        ->where(function ($query) {
+            $query->where('username', 'like', '%' . $this->search . '%')
+                ->orWhere('email', 'like', '%' . $this->search . '%')
+                ->orWhereHas('roles', function ($query) {
+                    $query->where('name', 'like', '%' . $this->search . '%');
+                });
+        })
         ->orderBy('id', 'desc')
-        ->get(); // columnas deseadas
+        ->get();
 
     return Excel::download(new UsersExport($usuariosFiltrados), 'usuarios_filtrados.xlsx');
 }
 
 
+
+
+
     #[On('refreshUsuarios')]
     public function render()
     {
-        $usuarios = User::where('username', 'like', '%' . $this->search . '%')
-            ->orWhere('email', 'like', '%' . $this->search . '%')
-            ->whereHas('roles', function ($query) {
-            $query->whereIn('name', ['Estudiante', 'Profesor', 'Invitado']);
-            })
-            ->orderBy('id', 'desc')
-            ->paginate(10);
-        return view('livewire.admin.usuarios.mostrar-usuarios', compact('usuarios'));
+
+        return view('livewire.admin.usuarios.mostrar-usuarios', [
+            'usuarios' => $this->usuarios,
+        ]);
     }
 }

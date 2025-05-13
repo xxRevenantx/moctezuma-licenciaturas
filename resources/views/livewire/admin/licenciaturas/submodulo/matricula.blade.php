@@ -17,10 +17,10 @@
             });
         },
 
-        confirmarCambioSeleccionados(selected) {
+        confirmarCambioSeleccionados(selected, id) {
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: `Se cambiaran ${selected} estudiantes de forma permanente`,
+                text: `Se cambiaran ${selected} estudiantes al ${id}° Cuatrimestre`,
                 icon: 'info',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -29,7 +29,7 @@
                 confirmButtonText: 'Sí, cambiar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    @this.call('cambiarEstudiantesSeleccionados');
+                    @this.call('cambiarCuatrimestreSeleccionados', id);
                 }
             });
         }
@@ -70,19 +70,21 @@
         <h3 class="mt-5">Buscar Estudiante:</h3>
         <flux:input type="text" wire:model.live="search" placeholder="Buscar Estudiante (Nombre, Apellido Paterno, Apellido Materno, CURP)" class="p-2 mb-4 w-full" />
 
-        <div class="flex justify-start items-center mb-4">
-             <div>
+        <div class="flex justify-start items-center mb-4 gap-3">
+
                 @if($matricula->isNotEmpty())
 
-                <flux:button wire:click="exportarAsignacion" variant="primary"  class="bg-green-700 hover:bg-green-800 focus:ring-4 dark:text-white">
-                    <div class="flex items-center gap-1">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                      </svg>
+                <flux:dropdown>
+                <flux:button icon:trailing="chevron-down">Exportar a:</flux:button>
 
-                        <span>Exportar</span>
-                        </div>
-                </flux:button>
+                <flux:menu>
+                    <flux:menu.item wire:click="exportarMatricula" icon="sheet">Excel</flux:menu.item>
+                    <flux:menu.item wire:click="exportarMatriculaPDF" icon="file-text">PDF</flux:menu.item>
+
+                </flux:menu>
+            </flux:dropdown>
+
+
 
 
                 <flux:button wire:click="limpiarFiltros" variant="primary">
@@ -95,16 +97,22 @@
                         </div>
                 </flux:button>
 
-                @else
-                     <flux:button disabled variant="primary"  class="bg-gray-100 hover:bg-gray-200 focus:ring-4 text-black">
-                    <div class="flex items-center gap-1">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                      </svg>
+                    @if ($contar_mujeres > 0)
+                        <flux:badge color="pink">Mujeres: <flux:icon.venus /> {{ $contar_mujeres }} </flux:badge>
+                        @else
+                        <flux:badge color="pink">Mujeres: <flux:icon.venus /> 0 </flux:badge>
+                    @endif
+                    @if ($contar_hombres > 0)
+                        <flux:badge color="blue">Hombres: <flux:icon.mars /> {{ $contar_hombres }}</flux:badge>
+                        @else
+                        <flux:badge color="blue">Hombres: <flux:icon.mars /> 0 </flux:badge>
+                    @endif
 
-                        <span>Exportar</span>
-                        </div>
-                </flux:button>
+
+
+                @else
+
+
 
 
                        <flux:button wire:click="limpiarFiltros" variant="primary">
@@ -117,10 +125,21 @@
                         </div>
                 </flux:button>
 
+                    @if ($contar_mujeres > 0)
+                    <flux:badge color="pink">Mujeres: <flux:icon.venus /> {{ $contar_mujeres }} </flux:badge>
+                    @else
+                    <flux:badge color="pink">Mujeres: <flux:icon.venus /> 0 </flux:badge>
+                @endif
+                @if ($contar_hombres > 0)
+                    <flux:badge color="blue">Hombres: <flux:icon.mars /> {{ $contar_hombres }}</flux:badge>
+                    @else
+                    <flux:badge color="blue">Hombres: <flux:icon.mars /> 0 </flux:badge>
+                @endif
+
 
                 @endif
 
-            </div>
+
 
 
 
@@ -235,25 +254,31 @@
         <div class="mt-2 text-sm text-gray-600 flex justify-between items-center">
 
             <div class="mt-4">
+
                 @if(count($selected) > 0)
-                    <flux:button
-                        variant="primary"
-                        class="bg-indigo-600 text-white px-4 py-2 rounded"
-                        @click="confirmarCambioSeleccionados({{ count($selected) }})">
-                        Cambiar de cuatrimestre ({{ count($selected) }})
-                    </flux:button>
+
+
+
+                <flux:dropdown>
+                        <flux:button  variant="primary"
+
+                        class="bg-indigo-600 text-white px-4 py-2 rounded" icon:trailing="chevron-down">Cambio de cuatrimestre ({{ count($selected) }})</flux:button>
+                        <flux:menu>
+                            @foreach($cuatrimestres as $cuatrimestre)
+                                <flux:menu.item @click="confirmarCambioSeleccionados({{ count($selected) }}, {{ $cuatrimestre->cuatrimestre_id }})">
+                                    {{ $cuatrimestre->cuatrimestre->nombre_cuatrimestre}}
+                                </flux:menu.item>
+                            @endforeach
+                        </flux:menu>
+                </flux:dropdown>
+
+
                 @endif
+
+
+
             </div>
-            <div class="mt-4">
-                @if(count($selected) > 0)
-                    <flux:button
-                        variant="primary"
-                        class="bg-indigo-600 text-white px-4 py-2 rounded"
-                        @click="confirmarCambioSeleccionados({{ count($selected) }})">
-                        Cambiar de cuatrimestre ({{ count($selected) }})
-                    </flux:button>
-                @endif
-            </div>
+
 
         </div>
 

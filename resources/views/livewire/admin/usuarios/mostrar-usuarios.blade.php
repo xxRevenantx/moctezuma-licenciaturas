@@ -1,5 +1,5 @@
 <div>
-    <h3>Buscar Usuario:</h3>
+
     <div x-data="{
         destroyUsuario(id, username) {
             Swal.fire({
@@ -50,9 +50,50 @@
                 }
             });
         },
+         confirmarAccionMasiva(cantidad, id) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: `Cambio de rol y se aplicará a ${cantidad} usuario(s).`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, continuar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                @this.call('cambioRolUsuariosSeleccionados', id);
+            }
+        });
+    }
     }">
 
 
+    <div class="flex flex-col md:flex-row gap-4 mb-4">
+         <flux:field>
+        <flux:label>Roles</flux:label>
+        <flux:select wire:model.live="filtrar_roles">
+            <flux:select.option value="">--Selecciona el rol---</flux:select.option>
+            @foreach ($roles as $role)
+                <flux:select.option value="{{ $role->name }}">{{ $role->name }}</flux:select.option>
+            @endforeach
+
+
+        </flux:select>
+      </flux:field>
+         <flux:field>
+        <flux:label>Status</flux:label>
+        <flux:select wire:model.live="filtrar_status">
+            <flux:select.option value="">--Selecciona una opción---</flux:select.option>
+            <flux:select.option value="Activo">Activo</flux:select.option>
+            <flux:select.option value="Inactivo">Inactivo</flux:select.option>
+        </flux:select>
+      </flux:field>
+    </div>
+
+
+
+    <h3>Buscar Usuario:</h3>
     <flux:input type="text" wire:model.live="search" placeholder="Buscar Usuarios..." class=" p-2 mb-4 w-full" />
         <div class="overflow-x-auto">
             <div class="flex space-x-4 mb-4 p-1">
@@ -78,6 +119,8 @@
                 </div>
                 </flux:button>
 
+
+
                 <flux:button @click="activarUsuarios" variant="primary"  class="bg-indigo-700 hover:bg-indigo-800 focus:ring-4 dark:text-white">
                  <div class="flex items-center gap-1">
                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -86,6 +129,41 @@
                      <span> Activar</span>
                 </div>
                 </flux:button>
+
+                 <flux:button wire:click="limpiarFiltros" variant="primary">
+                    <div class="flex items-center gap-1">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+                        </svg>
+
+                        <span>Limpiar Filtros</span>
+                        </div>
+                </flux:button>
+
+
+            @if (count($selected) > 0)
+                <div>
+
+                    <flux:dropdown>
+                    <flux:button variant="primary" class="bg-indigo-600 text-white px-4 py-2 rounded" icon:trailing="chevron-down"> Cambiar de rol ({{ count($selected) }})</flux:button>
+                    <flux:menu>
+
+                        @foreach ($roles as $role)
+                            <flux:menu.item
+                            @click="confirmarAccionMasiva({{ count($selected) }}, '{{ $role->id }}')" icon="user-group">
+                                {{ $role->name }}
+                            </flux:menu.item>
+                        @endforeach
+
+                    </flux:menu>
+                </flux:dropdown>
+
+
+
+                </div>
+
+            @endif
+
 
 
                 @else
@@ -119,112 +197,90 @@
                 </div>
                 </flux:button>
 
+                <flux:button wire:click="limpiarFiltros" variant="primary">
+                    <div class="flex items-center gap-1">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+                        </svg>
+
+                        <span>Limpiar Filtros</span>
+                        </div>
+                </flux:button>
+
                 @endif
-
-
-
-
-
             </div>
-            <table class="min-w-full border-collapse border border-gray-200 table-striped">
-            <thead>
-                <tr>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foto</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Username</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Email</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Status</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Roles</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Creado</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if($usuarios->isEmpty())
-                <tr>
-                    <td colspan="7" class="border px-4 py-2 text-center">No hay Usuarios disponibles.</td>
-                </tr>
-                @else
-                @foreach($usuarios as $key => $usuario)
+
+
+          @if ($usuarios->count())
+            <table class="min-w-full border border-gray-200 table-striped ">
+                <thead>
                     <tr>
-                    <td class="border px-4 py-2">{{ $key+1 }}</td>
-                    <td class="border px-4 py-2">
-                        @if ($usuario->photo)
-                            <img src="{{ asset('storage/profile-photos/' . $usuario->photo) }}" alt="{{ $usuario->username }}" class="w-10 h-10 block m-auto">
-                        @else
-                           --------
-                        @endif
-
-                    </td>
-                    <td class="border px-4 py-2">{{ $usuario->username }}</td>
-                    <td class="border px-4 py-2">{{ $usuario->email }}</td>
-                    <td class="border px-4 py-2">
-                        @if ($usuario->status == "true")
-                            <flux:badge color="green">Activo</flux:badge>
-                        @else
-                        <flux:badge color="red">Inactivo</flux:badge>
-                        @endif
-                    </td>
-
-
-                        <td class="border px-4 py-2 space-y-4">
-                            @foreach ($usuario->roles as $role)
-                                @php
-                                    $roleColors = [
-                                        'SuperAdmin' => 'red',
-                                        'Admin' => 'blue',
-                                        'Profesor' => 'green',
-                                        'Estudiante' => 'yellow',
-                                        'Invitado' => 'purple',
-                                    ];
-                                    $color = $roleColors[$role->name] ?? 'gray';
-                                @endphp
-
-                                @if ($role->name !== 'SuperAdmin' || auth()->user()->hasRole('SuperAdmin'))
-                                    <flux:badge color="{{ $color }}">{{ $role->name }}</flux:badge>
-                                @endif
-                            @endforeach
-                        </td>
-
-
-
-                    <td class="border px-4 py-2">
-                        {{ \Carbon\Carbon::parse($usuario->created_at)->format('d/m/Y H:i') }}
-                    </td>
-
-
-                    <td class="border px-4 py-2">
-
-                        <flux:button
-                        variant="primary"
-                        class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600"
-                        @click="Livewire.dispatch('abrirModal', { id: {{ $usuario->id }} })"
-                        >Editar
-                    </flux:button>
-
-
-                        @can('admin.usuarios.acciones')
-                        <flux:button variant="danger"
-                        @click="destroyUsuario({{ $usuario->id }}, '{{ $usuario->username }}')"
-                        class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
-                        Eliminar
-                        </flux:button>
-                        @endcan
-                    </td>
-
-
-
-
-
+                        <th class="px-4 py-2 bg-gray-100 text-center"><input type="checkbox" wire:model.live="selectAll"></th>
+                        <th class="px-4 py-2 bg-gray-100">#</th>
+                        <th class="px-4 py-2 bg-gray-100">Username</th>
+                        <th class="px-4 py-2 bg-gray-100">Email</th>
+                        <th class="px-4 py-2 bg-gray-100">Status</th>
+                        <th class="px-4 py-2 bg-gray-100">Roles</th>
+                        <th class="px-4 py-2 bg-gray-100">Acciones</th>
                     </tr>
-                @endforeach
-                @endif
-            </tbody>
+                </thead>
+                <tbody>
+                    @foreach ($usuarios as $key => $usuario)
+                        <tr class="{{ in_array($usuario->id, $selected) ? 'bg-blue-100' : '' }}">
+                            <td class="px-4 py-2"><input type="checkbox" wire:model.live="selected" value="{{ $usuario->id }}"></td>
+                            <td class="px-4 py-2">{{ $key + 1 }}</td>
+                            <td class="px-4 py-2">{{ $usuario->username }}</td>
+                            <td class="px-4 py-2">{{ $usuario->email }}</td>
+                            <td class="px-4 py-2">
+                                @if ($usuario->status == 'true')
+                                    <flux:badge color="green">Activo</flux:badge>
+                                @else
+                                    <flux:badge color="red">Inactivo</flux:badge>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2">
+                              @foreach ($usuario->roles as $role)
+                                    @php
+                                        $roleColors = [
+                                            'SuperAdmin' => 'red',
+                                            'Admin' => 'blue',
+                                            'Profesor' => 'green',
+                                            'Estudiante' => 'yellow',
+                                            'Invitado' => 'purple',
+                                        ];
+                                        $color = $roleColors[$role->name] ?? 'gray';
+                                    @endphp
+
+                                    @if ($role->name !== 'SuperAdmin' || auth()->user()->hasRole('SuperAdmin'))
+                                        <flux:badge color="{{ $color }}">{{ $role->name }}</flux:badge>
+                                    @endif
+                                @endforeach
+                            </td>
+                            <td class="px-4 py-2">
+                                <flux:button class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
+                                 @click="Livewire.dispatch('abrirModal', { id: {{ $usuario->id }} })">
+                                    Editar
+                                </flux:button>
+
+                                <flux:button variant="primary" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                                 @click="destroyUsuario({{ $usuario->id }}, '{{ $usuario->username }}')">
+                                    Eliminar
+                                </flux:button>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
             </table>
+
+
+            <div class="mt-4">
+                {{ $usuarios->links() }}
+            </div>
+        @else
+            <p class="text-gray-600">No se encontraron usuarios.</p>
+        @endif
         </div>
-        <div class="mt-4">
-            {{ $usuarios->links() }}
-        </div>
+
     </div>
 
 

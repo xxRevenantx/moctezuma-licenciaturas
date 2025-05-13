@@ -51,6 +51,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('asignar-generacion', AsignarGeneracionController::class)->middleware('can:admin.asignar.generacion')->names('admin.asignar.generacion');
 
+    // Route::get('/admin/pdf/matricula', [MatriculaPDFController::class, 'generar'])
+    // ->name('admin.pdf.matricula');
 
 
     Route::prefix('licenciaturas')->group(function () {
