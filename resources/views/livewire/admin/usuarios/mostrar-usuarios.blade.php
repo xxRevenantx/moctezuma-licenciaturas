@@ -99,6 +99,7 @@
             <div class="flex space-x-4 mb-4 p-1">
 
                 @if($usuarios->isNotEmpty())
+
                      <flux:button wire:click="exportarUsuarios" variant="primary"  class="bg-green-700 hover:bg-green-800 focus:ring-4 dark:text-white">
                     <div class="flex items-center gap-1">
                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -158,11 +159,59 @@
                     </flux:menu>
                 </flux:dropdown>
 
-
-
                 </div>
 
             @endif
+
+
+            <flux:modal.trigger name="super-admin">
+                   <flux:button> <flux:icon.user />  SuperAdmin  <flux:badge color="indigo">{{ $contar_super }}</flux:badge> </flux:button>
+                </flux:modal.trigger>
+                <flux:modal name="super-admin" variant="flyout">
+                    <div class="space-y-6">
+                        <div>
+                            <flux:heading size="lg">Roles del SuperAdmin</flux:heading>
+                            <flux:text class="mt-2">El SuperAdmin tiene acceso total a todas las funcionalidades del sistema.</flux:text>
+                        </div>
+
+
+
+                    <table class="min-w-full border border-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 bg-gray-100">#</th>
+                                <th class="px-4 py-2 bg-gray-100">Username</th>
+                                <th class="px-4 py-2 bg-gray-100">CURP</th>
+                                <th class="px-4 py-2 bg-gray-100">Rol</th>
+                                <th class="px-4 py-2 bg-gray-100"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($obtener_super as $key => $role)
+                                <tr>
+                                    <td class="px-4 py-2">{{ $key + 1 }}</td>
+                                    <td class="px-4 py-2">{{ $role->username }}</td>
+                                    <td class="px-4 py-2">{{ $role->CURP }}</td>
+                                    <td class="px-4 py-2">{{ $role->email }}</td>
+                                    <td class="px-4 py-2">
+                                        <flux:button
+                                        variant="primary" class="bg-red-500"
+                                         @click="Livewire.dispatch('abrirModal', { id: {{ $role->id }} })">
+                                            Editar
+                                        </flux:button>
+
+                                    </td>
+
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    </div>
+                </flux:modal>
+
+
+
 
 
 
@@ -218,6 +267,7 @@
                         <th class="px-4 py-2 bg-gray-100 text-center"><input type="checkbox" wire:model.live="selectAll"></th>
                         <th class="px-4 py-2 bg-gray-100">#</th>
                         <th class="px-4 py-2 bg-gray-100">Username</th>
+                        <th class="px-4 py-2 bg-gray-100">CURP</th>
                         <th class="px-4 py-2 bg-gray-100">Email</th>
                         <th class="px-4 py-2 bg-gray-100">Status</th>
                         <th class="px-4 py-2 bg-gray-100">Roles</th>
@@ -227,18 +277,19 @@
                 <tbody>
                     @foreach ($usuarios as $key => $usuario)
                         <tr class="{{ in_array($usuario->id, $selected) ? 'bg-blue-100' : '' }}">
-                            <td class="px-4 py-2"><input type="checkbox" wire:model.live="selected" value="{{ $usuario->id }}"></td>
-                            <td class="px-4 py-2">{{ $key + 1 }}</td>
-                            <td class="px-4 py-2">{{ $usuario->username }}</td>
-                            <td class="px-4 py-2">{{ $usuario->email }}</td>
-                            <td class="px-4 py-2">
+                            <td class="px-4 py-2 text-center"><input type="checkbox" wire:model.live="selected" value="{{ $usuario->id }}"></td>
+                            <td class="px-4 py-2 text-center">{{ $key + 1 }}</td>
+                            <td class="px-4 py-2 text-center">{{ $usuario->username }}</td>
+                            <td class="px-4 py-2 text-center">{{ $usuario->CURP }}</td>
+                            <td class="px-4 py-2 text-center">{{ $usuario->email }}</td>
+                            <td class="px-4 py-2 text-center">
                                 @if ($usuario->status == 'true')
                                     <flux:badge color="green">Activo</flux:badge>
                                 @else
                                     <flux:badge color="red">Inactivo</flux:badge>
                                 @endif
                             </td>
-                            <td class="px-4 py-2">
+                            <td class="px-4 py-2 text-center">
                               @foreach ($usuario->roles as $role)
                                     @php
                                         $roleColors = [
@@ -256,16 +307,13 @@
                                     @endif
                                 @endforeach
                             </td>
-                            <td class="px-4 py-2">
+                            <td class="px-4 py-2 text-center">
                                 <flux:button class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
                                  @click="Livewire.dispatch('abrirModal', { id: {{ $usuario->id }} })">
                                     Editar
                                 </flux:button>
 
-                                <flux:button variant="primary" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                                 @click="destroyUsuario({{ $usuario->id }}, '{{ $usuario->username }}')">
-                                    Eliminar
-                                </flux:button>
+
                             </td>
                         </tr>
                     @endforeach

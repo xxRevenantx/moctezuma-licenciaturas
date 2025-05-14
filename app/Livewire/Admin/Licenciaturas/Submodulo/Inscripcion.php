@@ -73,6 +73,13 @@ class Inscripcion extends Component
 
     public $fotoUrl;
 
+    public $datosCurp = [];
+
+
+
+
+
+
 
 
     public function mount($licenciatura, $modalidad)
@@ -92,8 +99,10 @@ class Inscripcion extends Component
      */
        $this->usuarios = User::role('Estudiante')
         ->whereNotIn('id', ModelsInscripcion::pluck('user_id'))
+        ->where('status', "true")
         ->orderBy('id', 'desc')
         ->get();
+
 
 
         $this->generaciones = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
@@ -118,35 +127,62 @@ class Inscripcion extends Component
         //   $this->validateOnly($propertyName);
 
             if ($propertyName === 'user_id') {
-              $this->usuarios = User::role('Estudiante')
+
+                if ($this->user_id == 0) {
+                       // Reiniciar campos si no hay usuario seleccionado
+                $this->reset([
+                    'usuario_email',
+                    'CURP',
+                    'datosCurp',
+                    'nombre',
+                    'apellido_paterno',
+                    'apellido_materno',
+                    'sexo',
+                    'fecha_nacimiento',
+                    'edad',
+                    'matricula',
+                ]);
+                return;
+            }
+
+
+
+
+
+                $this->usuarios = User::role('Estudiante')
                 ->whereNotIn('id', ModelsInscripcion::pluck('user_id'))
+                ->where('status', "true")
                 ->orderBy('id', 'desc')
                 ->get();
 
-                 $this->usuario_email = User::where('id', $this->user_id)->value('email');
 
+                $this->usuario_email = User::where('id', $this->user_id)->value('email');
+
+                $this->CURP = User::where('id', $this->user_id)->value('CURP');
+
+                $servicio = new CurpService();
+                $this->datosCurp = $servicio->obtenerDatosPorCurp($this->CURP);
+
+
+               // Validar que la respuesta sea válida y no haya error
+            if (!$this->datosCurp['error'] && isset($this->datosCurp['response'])) {
+                $info = $this->datosCurp['response']['Solicitante'];
+
+                $this->nombre = $info['Nombres'] ?? '';
+                $this->apellido_paterno = $info['ApellidoPaterno'] ?? '';
+                $this->apellido_materno = $info['ApellidoMaterno'] ?? '';
+                $this->sexo = $info['ClaveSexo'] ?? '';
+            } else {
+                // Enviar un mensaje de error si hay un problema con los datos de la CURP
+                $this->dispatch('swal', [
+                    'title' => 'Este CURP no se encuentra en RENAPO.',
+                    'icon' => 'error',
+                    'position' => 'top-end',
+                ]);
             }
 
 
-
-            if ($propertyName === 'generacion_id') {
-
-                $this->generaciones = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
-                ->where('modalidad_id', $this->modalidad->id)
-                ->whereHas('generacion', function ($query) {
-                $query->where('activa', "true");
-                })
-                ->get();
-
-
-                $this->cuatrimestres = Periodo::where('generacion_id', $this->generacion_id)
-                ->limit(1)
-                ->orderBy('id', 'desc')
-                ->get();
-
-            }
-            if ($propertyName === 'CURP') {
-                if (strlen($this->CURP) === 18) {
+                 if (strlen($this->CURP) === 18) {
                     $fecha = substr($this->CURP, 4, 6); // AAMMDD
 
                     $anio = substr($fecha, 0, 2);
@@ -182,7 +218,28 @@ class Inscripcion extends Component
                     $this->edad = null;
                     $this->matricula = null;
                 }
+
             }
+
+
+
+            if ($propertyName === 'generacion_id') {
+
+                $this->generaciones = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
+                ->where('modalidad_id', $this->modalidad->id)
+                ->whereHas('generacion', function ($query) {
+                $query->where('activa', "true");
+                })
+                ->get();
+
+
+                $this->cuatrimestres = Periodo::where('generacion_id', $this->generacion_id)
+                ->limit(1)
+                ->orderBy('id', 'desc')
+                ->get();
+
+            }
+
 
     }
 
@@ -331,6 +388,7 @@ class Inscripcion extends Component
 
         // Limpiar los campos después de guardar
         $this->reset([
+
             'user_id',
             'matricula',
             'folio',
@@ -371,6 +429,13 @@ class Inscripcion extends Component
 
         // Limpiar email
         $this->usuario_email = null;
+
+        // cargar nuevamente los usuarios
+        $this->usuarios = User::role('Estudiante')
+        ->whereNotIn('id', ModelsInscripcion::pluck('user_id'))
+        ->where('status', "true")
+        ->orderBy('id', 'desc')
+        ->get();
 
         // Mostrar un mensaje de éxito
         $this->dispatch('swal', [

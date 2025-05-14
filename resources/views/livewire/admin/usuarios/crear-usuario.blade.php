@@ -40,6 +40,7 @@
                     <div class="flex flex-col items-center justify-center gap-5 mb-4">
                         <div class="w-120 border-2 border-gray-100 bg-white dark:bg-neutral-800 shadow-md rounded-3xl p-7 space-y-5">
                             <flux:input wire:model.live="username" :label="__('Nombre de usuario')" type="text" placeholder="Nombre de usuario" autofocus autocomplete="username" />
+                            <flux:input wire:model.live="CURP" :label="__('CURP')" type="text" placeholder="CURP" autofocus autocomplete="CURP" />
                             <flux:input wire:model.live="email" :label="__('Email')" type="email" placeholder="Email" autofocus autocomplete="email" />
 
                             <flux:checkbox.group wire:model.live="rol" label="Listado de roles">

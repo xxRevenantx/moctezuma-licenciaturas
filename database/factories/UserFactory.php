@@ -28,6 +28,7 @@ class UserFactory extends Factory
         return [
             'username' => fake()->unique()->userName(),
             'email' => fake()->unique()->safeEmail(),
+            'CURP' => fake()->unique()->regexify('[A-Z]{4}[0-9]{6}[A-Z]{6}[0-9]{2}'),
             'email_verified_at' => now(),
             'password' => Hash::make($password),  // El hash de la contraseña
             'remember_token' => Str::random(10),

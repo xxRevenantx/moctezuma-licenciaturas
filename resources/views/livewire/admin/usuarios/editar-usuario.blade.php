@@ -26,10 +26,26 @@
 
 
 
+
                        <flux:input wire:model.live="username" :label="__('Nombre de usuario')" type="text" placeholder="Nombre de usuario"  autofocus autocomplete="Nombre de usuario" />
+                          <flux:input wire:model.live="CURP" :label="__('CURP')" type="text" placeholder="CURP"  autocomplete="CURP" />
                        <flux:input wire:model.live="email" :label="__('Email')" type="email" placeholder="Email"  autocomplete="Email" />
-                       <flux:label>Status</flux:label>
-                       <flux:switch wire:model.live="status" />
+
+
+                              @if($rol_name == "SuperAdmin")
+                                    <flux:label>Status</flux:label>
+                                @if($toggle === true)
+                                    <flux:switch wire:model.live="status" />
+                                @else
+                                    <flux:switch variant="filled" disabled wire:model.live="status" />
+                                @endif
+                                  <flux:button wire:click="toggleStatus" variant="primary">Activar status</flux:button>
+                                @else
+                                  <flux:label>Status</flux:label>
+                                  <flux:switch wire:model.live="status" />
+                            @endif
+
+
 
 
                         <flux:checkbox.group wire:model.live="rol" label="Listado de roles">
@@ -37,11 +53,13 @@
 
 
                             @foreach ($roles as $rol )
-                                <flux:checkbox
+                                    <flux:checkbox
                                     label="{{ $rol->name }}"
                                     value="{{ $rol->id }}"
-
                                 />
+
+
+
                             @endforeach
 
 

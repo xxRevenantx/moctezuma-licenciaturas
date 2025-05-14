@@ -17,10 +17,11 @@ class UserSeeder extends Seeder
         User::factory()->create([
             'username' => 'Revenant',
             'email' => 'ingcanp@gmail.com',
+            'CURP' => 'REVE123456HDFNVR00',
             'password' => bcrypt('12345678'),
         ])->assignRole('SuperAdmin');
 
-        User::factory(5)->create()->each(function ($user) {
+        User::factory(1)->create()->each(function ($user) {
             $user->assignRole('Estudiante');
         });
     }

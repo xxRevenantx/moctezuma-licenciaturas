@@ -17,8 +17,13 @@ class EditarUsuario extends Component
     public $userId;
     public $username;
     public $email;
+    public $CURP;
     public $status;
     public $rol;
+
+    public $rol_name;
+
+    public $toggle = false;
 
 
       // Método para abrir el modal con datos
@@ -31,12 +36,20 @@ class EditarUsuario extends Component
             $this->userId = $user->id;
             $this->username = $user->username;
             $this->email = $user->email;
+            $this->CURP = $user->CURP;
             $this->status = $user->status == "true" ? true : false;
             $this->rol = $user->roles->pluck('id')->toArray();
+
+            $this->rol_name = $user->roles->pluck('name')->implode(', ');
 
           $this->open = true;
       }
 
+
+      // TOGGLE STATUS
+      public function toggleStatus(){
+            $this->toggle = true;
+      }
 
 
       public function actualizarUsuario()
@@ -46,8 +59,18 @@ class EditarUsuario extends Component
           $this->validate([
                 'username' => 'required|string|max:15|unique:users,username,' . $this->userId,
                 'email' => 'required|email|max:50|unique:users,email,' . $this->userId,
+                'CURP' => 'required|max:18|unique:users,CURP,' . $this->userId,
                 'status' => 'required|boolean',
                 'rol' => 'required'
+          ],[
+                'username.required' => 'El nombre de usuario es obligatorio.',
+                'username.unique' => 'El nombre de usuario ya está en uso.',
+                'email.required' => 'El correo electrónico es obligatorio.',
+                'email.email' => 'El correo electrónico no es válido.',
+                'email.unique' => 'El correo electrónico ya está en uso.',
+                'CURP.required' => 'El CURP es obligatorio.',
+                'CURP.unique' => 'El CURP ya está en uso.',
+                'rol.required' => 'Debes seleccionar al menos un rol.',
           ]);
 
           // ❗ Validación de seguridad para evitar que alguien asigne el rol SuperAdmin sin tenerlo
@@ -70,7 +93,8 @@ class EditarUsuario extends Component
 
           $this->usuario->update([
               'username' => $this->username,
-              'email' => $this->email,
+              'email' => trim($this->email),
+              'CURP' => strtoupper(trim($this->CURP)),
               'status' => $this->status,
           ]);
 
@@ -89,7 +113,8 @@ class EditarUsuario extends Component
 
       public function cerrarModal()
       {
-          $this->reset(['open', 'userId', 'username', 'email', 'status', 'rol']);
+          $this->reset(['open', 'userId', 'username', 'email', 'CURP', 'status', 'rol']);
+          $this->toggle = false;
           $this->resetValidation();
       }
 

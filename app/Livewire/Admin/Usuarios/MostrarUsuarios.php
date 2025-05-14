@@ -21,6 +21,9 @@ class MostrarUsuarios extends Component
     public $filtrar_status;
     public $filtrar_roles;
 
+    public $contar_super;
+    public $obtener_super;
+
     public $selected = [];
     public $selectAll = false;
 
@@ -28,35 +31,38 @@ class MostrarUsuarios extends Component
 
        public function updatedSelectAll($value)
     {
-    if ($value) {
+        if ($value) {
+            $query = User::query();
 
+            if ($this->filtrar_status) {
+                $query->where('status', $this->filtrar_status == 'Activo' ? 'true' : 'false');
+            }
+            if ($this->filtrar_roles) {
+                $query->whereHas('roles', function ($query) {
+                    $query->where('name', $this->filtrar_roles);
+                });
+            }
+            if ($this->search) {
+                $query->where(function ($query) {
+                    $query->where('email', 'like', '%' . $this->search . '%')
+                        ->orWhere('username', 'like', '%' . $this->search . '%')
+                        ->orWhere('CURP', 'like', '%' . $this->search . '%')
+                        ->orWhereHas('roles', function ($query) {
+                            $query->where('name', 'like', '%' . $this->search . '%');
+                        });
+                });
+            }
 
-        $query = User::query();
-
-        if ($this->filtrar_status) {
-            $query->where('status', $this->filtrar_status == 'Activo' ? 'true' : 'false');
-        }
-        if ($this->filtrar_roles) {
-            $query->whereHas('roles', function ($query) {
-                $query->where('name', $this->filtrar_roles);
+            // Exclude users with the "SuperAdmin" role
+            $query->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'SuperAdmin');
             });
-        }
-        if ($this->search) {
-            $query->where(function ($query) {
-                $query->where('email', 'like', '%' . $this->search . '%')
-                    ->orWhere('username', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('roles', function ($query) {
-                        $query->where('name', 'like', '%' . $this->search . '%');
-                    });
-            });
-        }
-        // Agregar la condición para filtrar por rol
 
-        $this->selected = $query->pluck('id')->toArray();
-    } else {
-        $this->selected = [];
+            $this->selected = $query->pluck('id')->toArray();
+        } else {
+            $this->selected = [];
+        }
     }
-}
 
 
     // CAMBIO DE ROL
@@ -84,6 +90,10 @@ class MostrarUsuarios extends Component
 
     public function mount(){
         $this->roles = Role::all();
+
+        $this->contar_super = User::role('SuperAdmin')->count();
+
+        $this->obtener_super = User::role('SuperAdmin')->get();
     }
 
      public function getUsuariosProperty()
@@ -91,33 +101,34 @@ class MostrarUsuarios extends Component
 
         $query = User::orderBy('id', 'desc');
 
-          if ($this->filtrar_status) {
-                $query->where('status', $this->filtrar_status == 'Activo' ? 'true' : 'false');
-            }
+        if ($this->filtrar_status) {
+            $query->where('status', $this->filtrar_status == 'Activo' ? 'true' : 'false');
+        }
 
-         if($this->filtrar_roles){
+        if ($this->filtrar_roles) {
             $query->whereHas('roles', function ($query) {
-                $query->where('name', $this->filtrar_roles);
+            $query->where('name', $this->filtrar_roles);
             });
-         }
+        }
 
-         if ($this->search) {
+        if ($this->search) {
             $query->where(function ($query) {
-                $query->where('email', 'like', '%' . $this->search . '%')
+            $query->where('email', 'like', '%' . $this->search . '%')
+                ->orWhere('CURP', 'like', '%' . $this->search . '%')
                 ->orWhere('username', 'like', '%' . $this->search . '%')
                 ->orWhereHas('roles', function ($query) {
-                    $query->where('name', 'like', '%' . $this->search . '%');
+                $query->where('name', 'like', '%' . $this->search . '%');
                 });
-
             });
+        }
 
-         }
+        // Exclude users with the "SuperAdmin" role
+        $query->whereDoesntHave('roles', function ($query) {
+            $query->where('name', 'SuperAdmin');
+        });
 
-
-
-         return $query->paginate(15);
+        return $query->paginate(15);
     }
-
 
     public function eliminarUsuario($id)
     {

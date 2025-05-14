@@ -6,28 +6,25 @@ use Illuminate\Support\Facades\Http;
 
 class CurpService
 {
-    protected $apiUrl = 'https://api.valida-curp.com.mx/curp/obtener_datos/';
+    protected $baseUrl = 'https://api.valida-curp.com.mx/curp/obtener_datos/';
+    // protected $token = 'pruebas';
+    protected $token = '8d51c37a-87b1-40c9-8ae6-7b5651406d1f';
 
-    protected $token;
-
-    public function __construct()
+    public function obtenerDatosPorCurp(string $curp)
     {
-        $this->token = config('services.curp_api.key');
-    }
-
-    public function consultar(string $curp)
-    {
-        $response = Http::withHeaders([
-            'Authorization' => "Bearer {$this->token}",
-            'Accept' => 'application/json',
-        ])->post($this->apiUrl, [
+        $response = Http::get($this->baseUrl, [
+            'token' => $this->token,
             'curp' => $curp,
         ]);
 
         if ($response->successful()) {
-            return $response->json();
+            return $response->json(); // Devuelve los datos del CURP
         }
 
-        return null;
+        return [
+            'error' => true,
+            'message' => 'CURP inválido o error de conexión',
+            'status' => $response->status(),
+        ];
     }
 }

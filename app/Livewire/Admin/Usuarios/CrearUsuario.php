@@ -12,6 +12,7 @@ class CrearUsuario extends Component
 
     public $username;
     public $email;
+    public $CURP;
     public $rol;
 
 
@@ -40,7 +41,15 @@ class CrearUsuario extends Component
         $this->validate([
             'username' => 'required|unique:users,username|max:15',
             'email' => 'required|email|unique:users,email',
+            'CURP' => 'required|max:18|unique:users,CURP',
             'rol' => 'required',
+        ],[
+            'username.unique' => 'El nombre de usuario ya está en uso.',
+            'email.unique' => 'El correo electrónico ya está en uso.',
+            'email.email' => 'El correo electrónico no es válido.',
+            'CURP.unique' => 'El CURP ya está en uso.',
+            'CURP.required' => 'El CURP es obligatorio.',
+            'rol.required' => 'Debes seleccionar al menos un rol.',
         ]);
 
 
@@ -50,6 +59,7 @@ class CrearUsuario extends Component
         $user = User::create([
             'username' => trim($this->username),
             'email' => trim($this->email),
+            'CURP' => trim($this->CURP),
             'password' => bcrypt('12345678'), // Cambia esto según tus necesidades
             'status' => 'true',
             'photo' => null,

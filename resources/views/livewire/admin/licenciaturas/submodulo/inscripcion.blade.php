@@ -1,11 +1,6 @@
 <div>
-    {{-- <div>
-        <flux:button wire:navigate href="" variant="primary" class="mb-2">
-            Regresar
-        </flux:button>
-    </div> --}}
 
-
+<fieldset wire:loading.attr="disabled" wire:target="user_id" class="transition-opacity duration-300" :class="{ 'opacity-50': $wire.__instance.cargando_curp }">
 
 
     <form wire:submit.prevent="guardarEstudiante">
@@ -18,27 +13,33 @@
             <hr class="mb-4">
 
             <flux:field>
-
             <flux:select badge="Requerido" label="Usuario" wire:model.live="user_id">
                 <option value="0">--Seleccione un usuario--</option>
                 @foreach($usuarios as $key =>  $usuario)
-                    <option value="{{ $usuario->id }}">{{ $key+1 }}.- {{ $usuario->username }} => {{ $usuario->email }}</option>
+                    <option value="{{ $usuario->id }}">{{ $key+1 }}.- {{ $usuario->username }} => {{ $usuario->CURP }}</option>
                 @endforeach
             </flux:select>
 
 
                 <flux:input type="text" variant="filled"  readonly badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
                 <flux:input type="text" label="Folio" placeholder="Folio" wire:model="folio" />
-                <flux:input type="text" badge="Requerido" label="CURP" placeholder="CURP" wire:model.live="CURP" />
+                <flux:input type="text" badge="Requerido" variant="filled" readonly label="CURP" placeholder="CURP"  value="{{$CURP}}" />
+                <div wire:loading wire:target="user_id" class="flex items-center gap-2 text-blue-600 p-2">
+                    <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Cargando datos del CURP...</span>
+                </div>
                 <flux:input type="text" badge="Requerido" label="Nombre" placeholder="Nombre" wire:model="nombre" />
                 <flux:input type="text" badge="Requerido" label="Apellido Paterno" placeholder="Apellido Paterno" wire:model="apellido_paterno" />
                 <flux:input type="text" badge="Requerido" label="Apellido Materno" placeholder="Apellido Materno" wire:model="apellido_materno" />
                 <flux:input type="date"  variant="filled"  readonly badge="Requerido" label="Fecha de Nacimiento" placeholder="Fecha de Nacimiento" wire:model="fecha_nacimiento" />
                 <flux:input type="number"  variant="filled"  readonly badge="Requerido" label="Edad" placeholder="Edad" wire:model="edad" />
 
-                <flux:radio.group badge="Requerido" wire:model="sexo" label="Género" >
-                    <flux:radio   label="Hombre" value="H">Hombre</flux:radio>
-                    <flux:radio   label="Mujer" value="M">Mujer</flux:radio>
+                <flux:radio.group badge="Requerido" wire:model="sexo" label="Género">
+                    <flux:radio label="Hombre" value="H">Hombre</flux:radio>
+                    <flux:radio label="Mujer" value="M">Mujer</flux:radio>
                 </flux:radio.group>
 
 
@@ -203,7 +204,7 @@
 
 </form>
 
-
+</div>
 
 
 

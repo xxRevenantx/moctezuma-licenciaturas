@@ -15,9 +15,8 @@
 
             <flux:navlist >
                 <flux:navlist.group :heading="__('Platform')" class="grid ">
-
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-
+                    <flux:navlist.item icon="school" :href="route('admin.escuela.index')" :current="request()->routeIs('admin.escuela.index')" wire:navigate>{{ __('Escuela') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
@@ -32,10 +31,10 @@
 
             @can('admin.administracion')
             <flux:navlist >
-                <flux:navlist.group :heading="__('Administración')" expandable >
+                <flux:navlist.group :heading="__('Administración')" expandable  >
                     <flux:navlist >
 
-                    <flux:navlist.group :heading="__('Ciudades')" expandable :expanded="false"  >
+                    <flux:navlist.group  :heading="__('Ciudades')" expandable :expanded="false"  >
                         <flux:navlist.item icon="rectangle-stack" :href="route('admin.estados.index')"
                         :current="request()->routeIs('admin.estados.index')"
                         wire:navigate>{{ __('Estados') }}</flux:navlist.item>
