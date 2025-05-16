@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('CURP', 18)->unique();
             $table->string('nombre', 50);
             $table->string('apellido_paterno', 50);
-            $table->string('apellido_materno', 50);
+            $table->string('apellido_materno', 50)->nullable();
             $table->date('fecha_nacimiento');
             $table->integer('edad')->nullable();
             $table->enum('sexo', ['H', 'M']);
@@ -57,6 +57,11 @@ return new class extends Migration
             $table->enum('foraneo', ['true', 'false'])->nullable()->default('false');
 
             $table->enum('status', ['true', 'false'])->default('true');
+
+            $table->dateTime('fecha_baja')->nullable();
+
+            $table->enum('egresado', ['true', 'false'])->default('false');
+
             $table->integer('orden');
 
             $table->foreign('estado_nacimiento_id')->references('id')->on('estados')->onDelete('cascade');

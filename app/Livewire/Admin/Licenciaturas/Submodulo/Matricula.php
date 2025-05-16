@@ -44,7 +44,9 @@ class Matricula extends Component
 {
     if ($value) {
         $query = Inscripcion::query()
-            ->where('modalidad_id', $this->modalidad->id);
+            ->where('modalidad_id', $this->modalidad->id)
+            ->where('licenciatura_id', $this->licenciatura->id)
+            ->where('generacion_id', $this->filtrar_generacion);
 
         if ($this->filtrar_generacion) {
             $query->where('generacion_id', $this->filtrar_generacion);
@@ -115,8 +117,9 @@ public function getMatriculaProperty()
         return collect(); // tabla vacía si no hay generación seleccionada
     }
 
-    $query = Inscripcion::with(['generacion', 'cuatrimestre'])
+    $query = Inscripcion::with(['generacion', 'cuatrimestre', 'licenciatura', 'modalidad'])
         ->where('modalidad_id', $this->modalidad->id)
+        ->where('licenciatura_id', $this->licenciatura->id)
         ->where('generacion_id', $this->filtrar_generacion);
 
     if ($this->filtrar_foraneo) {
@@ -162,6 +165,7 @@ public function contarHombreMujeres(){
         ->where('sexo', 'H')
         ->count();
 }
+
 
 
 

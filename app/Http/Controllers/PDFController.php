@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Escuela;
 use App\Models\Generacion;
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
@@ -35,6 +36,7 @@ class PDFController extends Controller
         $generacion = Generacion::where('id', $filtrar_generacion)->first();
         $licenciatura_nombre = Licenciatura::where('id', $licenciatura)->first();
 
+        $escuela = Escuela::all()->first();
         // Aquí puedes agregar la lógica para generar el PDF con los datos recibidos
         // Por ejemplo, puedes usar una librería como Dompdf o Snappy para generar el PDF
 
@@ -42,6 +44,7 @@ class PDFController extends Controller
             'matricula' => $matricula,
             'generacion' => $generacion,
             'licenciatura_nombre' => $licenciatura_nombre,
+            'escuela' => $escuela,
         ];
 
 

@@ -201,7 +201,8 @@ class Inscripcion extends Component
                         $ultimoOrder = \App\Models\Inscripcion::max('orden') ?? 0;
                         $siguienteOrder = $ultimoOrder + 1;
 
-                        $this->matricula = $prefijo . '20' . str_pad($siguienteOrder, 2, '0', STR_PAD_LEFT); // Ej: PIXB0201
+                       $this->matricula = $prefijo . (2000 + $siguienteOrder);
+
 
                     // Calcular edad
                     try {
@@ -255,7 +256,7 @@ class Inscripcion extends Component
             'CURP' => 'required|max:18|unique:inscripciones,CURP',
             'nombre' => 'required|max:50',
             'apellido_paterno' => 'required|max:50',
-            'apellido_materno' => 'required|max:50',
+            'apellido_materno' => 'nullable|max:50',
             'fecha_nacimiento' => 'required|date',
             'sexo' => 'required|in:H,M',
             'pais' => 'nullable|max:100',
@@ -295,7 +296,7 @@ class Inscripcion extends Component
             'nombre.max' => 'El nombre no debe exceder 50 caracteres.',
             'apellido_paterno.required' => 'El apellido paterno es obligatorio.',
             'apellido_paterno.max' => 'El apellido paterno no debe exceder 50 caracteres.',
-            'apellido_materno.required' => 'El apellido materno es obligatorio.',
+
             'apellido_materno.max' => 'El apellido materno no debe exceder 50 caracteres.',
             'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatorio.',
             'fecha_nacimiento.date' => 'La fecha de nacimiento debe ser una fecha válida.',
@@ -429,6 +430,7 @@ class Inscripcion extends Component
 
         // Limpiar email
         $this->usuario_email = null;
+        $this->cuatrimestres = [];
 
         // cargar nuevamente los usuarios
         $this->usuarios = User::role('Estudiante')

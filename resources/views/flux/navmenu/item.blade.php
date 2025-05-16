@@ -38,7 +38,7 @@ $classes = Flux::classes()
             '**:data-navmenu-icon:text-zinc-400 dark:**:data-navmenu-icon:text-white/60 [&:hover_[data-navmenu-icon]]:text-current',
         ],
         'default' => [
-            'text-zinc-800 hover:bg-zinc-50 dark:text-white dark:hover:bg-zinc-600',
+            'text-zinc-800 hover:bg-zinc-800 dark:text-white dark:hover:bg-zinc-600',
             '**:data-navmenu-icon:text-zinc-400 dark:**:data-navmenu-icon:text-white/60 [&:hover_[data-navmenu-icon]]:text-current',
         ]
     })

@@ -37,7 +37,7 @@
                         </flux:select>
 
 
-                            <flux:input type="text" variant="filled"  readonly badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
+                            <flux:input type="text"  badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
                             <flux:input type="text" label="Folio" placeholder="Folio" wire:model="folio" />
                             <flux:input type="text" badge="Requerido" label="CURP" placeholder="CURP" wire:model.live="CURP" />
                             <flux:input type="text" badge="Requerido" label="Nombre" placeholder="Nombre" wire:model="nombre" />
@@ -224,11 +224,15 @@
 
                             <flux:fieldset class="mt-4">
                                 <flux:legend>Status</flux:legend>
-
-
                                     <flux:switch label="Status"  wire:model="status"  align="left" />
 
                             </flux:fieldset>
+
+                            @if(!$status)
+                                <p class="text-sm text-red-600 mt-2">
+                                    Fecha de baja: {{ \Carbon\Carbon::parse($fecha_baja)->format('d/m/Y H:i') }}
+                                </p>
+                           @endif
 
                         </div>
 

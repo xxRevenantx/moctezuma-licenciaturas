@@ -171,9 +171,9 @@
 
 
     <footer>
-        <p>Centro Universitario Moctezuma</p>
-        <p>C. Francisco I. Madero Ote. No. 800, Col. Esquipula, C.P. 40665, Cd. Altamirano, Guerrero.</p>
-        <p>Tel. 767 688 0774</p>
+        <p>{{$escuela->nombre}} C.C.T. {{$escuela->CCT}}</p>
+        <p>C. {{$escuela->calle}} No. {{$escuela->no_exterior}}, Col. {{$escuela->colonia}}, C.P. {{$escuela->codigo_postal}}, Cd. {{$escuela->ciudad}}, {{$escuela->estado}}.</p>
+        <p>Tel. {{$escuela->telefono}}</p>
     </footer>
 
 </body>

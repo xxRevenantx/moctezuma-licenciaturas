@@ -26,4 +26,9 @@ class Modalidad extends Model
     {
         return $this->hasMany(Inscripcion::class);
     }
+
+
+
+
+
 }

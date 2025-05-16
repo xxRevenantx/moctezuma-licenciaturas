@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin\Licenciaturas;
 
-use App\Livewire\Admin\Licenciaturas\Submodulo\Inscripcion;
+use App\Models\Inscripcion;
 use App\Models\Licenciatura;
 use App\Models\Modalidad;
 use Livewire\Component;
@@ -13,9 +13,12 @@ class SeleccionarModalidad extends Component
     public $hombres;
     public $mujeres;
 
+    public $modalidades;
+
     public function mount($slug)
     {
         $this->licenciatura = Licenciatura::where('slug', $slug)->firstOrFail();
+        $this->modalidades = Modalidad::all();
 
 
 
@@ -31,11 +34,28 @@ class SeleccionarModalidad extends Component
         ]);
     }
 
+    public function obtenerEstadisticasPorModalidad($modalidad)
+{
+    // Cargar las inscripciones de esta modalidad y licenciatura con la generación relacionada
+    $inscripciones = $modalidad->inscripcion()
+        ->with('generacion') // para usar generacion->activa sin N+1
+        ->where('licenciatura_id', $this->licenciatura->id)
+        ->get()
+        ->filter(function ($inscripcion) {
+            return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
+        });
+
+    $total = $inscripciones->count();
+    $hombres = $inscripciones->where('sexo', 'H')->where('status', 'true')->count();
+    $mujeres = $inscripciones->where('sexo', 'M')->where('status', 'true')->count();
+
+    return compact('total', 'hombres', 'mujeres');
+}
+
 
     public function render()
     {
-        $modalidades = Modalidad::all();
-        return view('livewire.admin.licenciaturas.seleccionar-modalidad', compact('modalidades'));
+        return view('livewire.admin.licenciaturas.seleccionar-modalidad');
 
     }
 }

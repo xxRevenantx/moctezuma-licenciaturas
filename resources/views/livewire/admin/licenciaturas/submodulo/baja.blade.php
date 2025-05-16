@@ -1,26 +1,10 @@
 <div>
     <div x-data="{
-        destroyEstudiante(id, CURP) {
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: `El estudiante con CURP ${CURP} se eliminará de forma permanente`,
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                cancelButtonText: 'Cancelar',
-                confirmButtonText: 'Sí, eliminar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    @this.call('eliminarEstudiante', id);
-                }
-            });
-        },
 
-        confirmarCambioSeleccionados(selected, id) {
+        switchStatus(id) {
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: `Se cambiaran ${selected} estudiantes al ${id}° Cuatrimestre`,
+                text: `Este alumno se activará nuevamente.`,
                 icon: 'info',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -29,7 +13,7 @@
                 confirmButtonText: 'Sí, cambiar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    @this.call('cambiarCuatrimestreSeleccionados', id);
+                    @this.call('switchStatus', id);
                 }
             });
         }
@@ -55,6 +39,8 @@
         </flux:select>
       </flux:field>
       <flux:field>
+
+
         <flux:label>Foráneo</flux:label>
         <flux:select wire:model.live="filtrar_foraneo">
             <flux:select.option value="">--Selecciona una opción---</flux:select.option>
@@ -83,35 +69,16 @@
                  wire:target="search, filtrar_generacion, filtrar_foraneo">
                  <div class="flex justify-start items-center mb-4 gap-3">
 
-                @if($matricula->isNotEmpty())
-
-
-                <form method="GET" action="{{ route('admin.pdf.matricula') }}" target="_blank">
-
-                    <input type="hidden" name="licenciatura_id" value="{{ $licenciatura->id }}">
-                    <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
-                    <input type="hidden" name="filtrar_generacion" value="{{ $filtrar_generacion }}">
-                    <input type="hidden" name="filtar_foraneo" value="{{ $filtrar_foraneo }}">
-
-
-                    <button type="submit" variant="primary" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                         <div class="flex items-center gap-1">
-                            <flux:icon.file-text/>
-                            <span>Lista PDF</span>
-                            </div>
-                    </button>
-                </form>
+                @if($baja->isNotEmpty())
 
 
 
-            <flux:button wire:click="exportarMatricula" variant="primary" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+            <flux:button wire:click="exportarbaja" variant="primary" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
                     <div class="flex items-center gap-1">
                         <flux:icon.sheet />
                         <span>Exportar a Excel</span>
                         </div>
-                </flux:button>
-
-
+            </flux:button>
 
 
                 <flux:button wire:click="limpiarFiltros" variant="primary">
@@ -178,7 +145,7 @@
                     </th>
                     @endif
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">L o F</th>
+                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foraneo</th>
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foto</th>
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Matrícula</th>
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">CURP</th>
@@ -199,14 +166,14 @@
                     Selecciona una generación para mostrar los estudiantes.
                 </td>
             </tr>
-        @elseif ($matricula->isEmpty())
+        @elseif ($baja->isEmpty())
             <tr>
                 <td colspan="12" class="border px-4 py-2 text-center text-gray-600">
                     No hay estudiantes registrados en la generación seleccionada.
                 </td>
             </tr>
         @else
-            @foreach($matricula as $key => $estudiante)
+            @foreach($baja as $key => $estudiante)
             <tr class="{{ in_array($estudiante->id, $selected) ? 'bg-blue-100' : '' }}">
             @if ($filtrar_generacion)
             <td class="border px-4 py-2">
@@ -234,7 +201,7 @@
                     </div>
                 @endif
             </td>
-            <td class="border px-4 py-2">{{ $estudiante->matricula }}</td>
+            <td class="border px-4 py-2">{{ $estudiante->baja }}</td>
             <td class="border px-4 py-2">{{ $estudiante->CURP }}</td>
             <td class="border px-4 py-2">{{ $estudiante->apellido_paterno }} {{ $estudiante->apellido_materno }} {{ $estudiante->nombre }}</td>
             <td class="border px-4 py-2 text-center">
@@ -274,7 +241,7 @@
 
 
         <div class="mt-4">
-            {{-- {{ $matricula->links() }} --}}
+            {{-- {{ $baja->links() }} --}}
         </div>
    @if ($filtrar_generacion)
         <div class="mt-2 text-sm text-gray-600 flex justify-between items-center">
@@ -315,6 +282,5 @@
     </div>
 </div>
 
-    <livewire:admin.licenciaturas.submodulo.matricula-editar>
 
 </div>

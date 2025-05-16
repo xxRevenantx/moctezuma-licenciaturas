@@ -61,6 +61,7 @@ class MatriculaEditar extends Component
     public $otros;
     public $foraneo;
     public $status;
+    public $fecha_baja;
 
     public $fotoUrl;
 
@@ -131,6 +132,8 @@ class MatriculaEditar extends Component
             $this->foraneo = $estudiante->foraneo == "true" ? true : false;
             $this->pais = $estudiante->pais;
             $this->status = $estudiante->status == "true" ? true : false;
+            $this->fecha_baja = $estudiante->fecha_baja;
+
             $this->open = true;
 
 
@@ -203,6 +206,26 @@ class MatriculaEditar extends Component
           $this->resetValidation();
       }
 
+      public function updatedStatus($value)
+        {
+            if ($value === false) {
+                $this->fecha_baja = now();
+            } else {
+                $this->fecha_baja = null;
+                // Dispatch al navbar (cuando se reactive un estudiante)
+                  $this->dispatch('refreshNavbar');
+            }
+
+            if ($this->estudianteId) {
+                Inscripcion::find($this->estudianteId)->update([
+                    'status' => $this->status ? "true" : "false",
+                    'fecha_baja' => $this->fecha_baja,
+                ]);
+            }
+
+            $this->dispatch('refreshNavbar');
+        }
+
 
       public function actualizarEstudiante(){
         $this->validate([
@@ -212,7 +235,7 @@ class MatriculaEditar extends Component
             'CURP' => 'required|max:18|unique:inscripciones,CURP,'.$this->estudianteId,
             'nombre' => 'required|max:50',
             'apellido_paterno' => 'required|max:50',
-            'apellido_materno' => 'required|max:50',
+            'apellido_materno' => 'nullable|max:50',
             'fecha_nacimiento' => 'required|date',
             'sexo' => 'required|in:H,M',
             'pais' => 'nullable|max:100',
@@ -244,7 +267,7 @@ class MatriculaEditar extends Component
             'CURP.unique' => 'El CURP ya está registrado.',
             'nombre.required' => 'El campo nombre es obligatorio.',
             'apellido_paterno.required' => 'El campo apellido paterno es obligatorio.',
-            'apellido_materno.required' => 'El campo apellido materno es obligatorio.',
+
             'fecha_nacimiento.required' => 'El campo fecha de nacimiento es obligatorio.',
             'sexo.required' => 'El campo sexo es obligatorio.',
             'sexo.in' => 'El campo sexo debe ser H o M.',
@@ -327,14 +350,16 @@ class MatriculaEditar extends Component
                  'foto' => $this->foto_nueva ? $datos['foto'] : $this->foto,
                 'otros' => strtoupper(trim($this->otros)),
                 'foraneo' => $this->foraneo ? "true" : "false",
-                'status' => $this->status ? "true" : "false",
+                'estatus' => $this->status ? "true" : "false",
+                'fecha_baja' => $this->fecha_baja,
 
 
             ]);
         }
 
+          $this->dispatch('refreshNavbar');
 
-        $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente','licenciatura_id','generacion_id','cuatrimestre_id','modalidad_id','certificado','acta_nacimiento','certificado_medico','fotos_infantiles','foto_nueva','otros','foraneo','status']);
+        $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente','licenciatura_id','generacion_id','cuatrimestre_id','modalidad_id','certificado','acta_nacimiento','certificado_medico','fotos_infantiles','foto_nueva','otros','foraneo','status', 'fecha_baja']);
 
          $this->dispatch('swal', [
               'title' => 'Estudiante actualizado correctamente!',

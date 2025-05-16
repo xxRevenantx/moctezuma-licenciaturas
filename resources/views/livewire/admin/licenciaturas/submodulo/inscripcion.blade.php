@@ -21,7 +21,7 @@
             </flux:select>
 
 
-                <flux:input type="text" variant="filled"  readonly badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
+                <flux:input type="text"  badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
                 <flux:input type="text" label="Folio" placeholder="Folio" wire:model="folio" />
                 <flux:input type="text" badge="Requerido" variant="filled" readonly label="CURP" placeholder="CURP"  value="{{$CURP}}" />
                 <div wire:loading wire:target="user_id" class="flex items-center gap-2 text-blue-600 p-2">

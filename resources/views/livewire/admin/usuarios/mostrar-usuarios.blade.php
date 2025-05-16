@@ -192,7 +192,7 @@
                                     <td class="px-4 py-2">{{ $key + 1 }}</td>
                                     <td class="px-4 py-2">{{ $role->username }}</td>
                                     <td class="px-4 py-2">{{ $role->CURP }}</td>
-                                    <td class="px-4 py-2">{{ $role->email }}</td>
+                                    <td class="px-4 py-2">SuperAdmin</td>
                                     <td class="px-4 py-2">
                                         <flux:button
                                         variant="primary" class="bg-red-500"

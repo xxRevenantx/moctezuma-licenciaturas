@@ -11,6 +11,9 @@
 
                     <div class="flex flex-col xl:flex-row items-center">
                     @foreach ($modalidades as $modalidad)
+                          @php
+                            $estadisticas = $this->obtenerEstadisticasPorModalidad($modalidad);
+                        @endphp
                                 <div class="mx-4 sm:max-w-sm md:max-w-sm lg:max-w-sm xl:max-w-sm sm:mx-auto md:mx-auto lg:mx-auto xl:mx-auto mt-16 bg-white shadow-xl rounded-lg text-gray-900 dark:bg-gray-800 dark:text-white">
                             <div class="rounded-t-lg h-32 overflow-hidden">
                                 <img class="object-cover object-top w-full" src='{{asset('storage/banner.png')}}'>
@@ -25,16 +28,19 @@
                                 <li class="flex flex-col items-center justify-around">
 
                                    <flux:badge color="amber"> HOMBRES</flux:badge>
-                                    <div>{{ $modalidad->inscripcion->where('licenciatura_id', $licenciatura->id)->where('status', "true")->where('sexo', 'H')->count() }}</div>
+                                    <div>{{ $estadisticas['hombres'] }}</div>
+
+                                     {{-- <div>{{ $modalidad->inscripcion->where('licenciatura_id', $licenciatura->id)->where('status', "true")->where('sexo', 'H')->count() }}</div> --}}
                                 </li>
                                 <li class="flex flex-col items-center justify-between">
                                     <flux:badge color="zinc">TOTAL</flux:badge>
-                                    <div>{{ $modalidad->inscripcion->where('licenciatura_id', $licenciatura->id)->where('status', "true")->count() }}</div>
+                                    <div>{{ $estadisticas['total'] }}</div>
+
                                 </li>
                                 <li class="flex flex-col items-center justify-around">
                                     <flux:badge color="violet">MUJERES</flux:badge>
 
-                                    <div>{{ $modalidad->inscripcion->where('licenciatura_id', $licenciatura->id)->where('status', "true")->where('sexo', 'M')->count() }}</div>
+                                    <div>{{ $estadisticas['mujeres'] }}</div>
                                 </li>
                             </ul>
                             <div class="p-4 border-t mx-8 mt-2">

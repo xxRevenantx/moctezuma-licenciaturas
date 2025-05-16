@@ -53,6 +53,8 @@ class Inscripcion extends Model
         'otros',
         'foraneo',
         'status',
+        'fecha_baja',
+        'egresado',
         'orden'
 
     ];

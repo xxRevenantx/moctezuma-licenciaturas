@@ -32,6 +32,16 @@ class CrearUsuario extends Component
     }
 
 
+    public function updated($propertyName)
+    {
+
+
+        if($propertyName === 'CURP'){
+            $this->email = strtolower(substr($this->CURP, 0, 10)) . '@gmail.com';
+
+        }
+    }
+
 
 
     public function guardarUsuario(){
@@ -79,6 +89,7 @@ class CrearUsuario extends Component
         // Limpiar los campos después de guardar
         $this->username = $this->generarUsernameUnico();
         $this->email = '';
+        $this->CURP = '';
         $this->rol = [];
 
         $this->dispatch('refreshUsuarios');
