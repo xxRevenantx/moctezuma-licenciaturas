@@ -29,27 +29,27 @@
             <table class="min-w-full border-collapse border border-gray-200 table-striped">
                 <thead>
                     <tr>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Acción</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">URL</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Ícono</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700"></th>
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">ID</th>
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Acción</th>
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">URL</th>
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Ícono</th>
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if($acciones->isEmpty())
                     <tr>
-                        <td colspan="6" class="border px-4 py-2 text-center">No hay acciones disponibles.</td>
+                        <td colspan="6" class="border px-4 py-2  text-center">No hay acciones disponibles.</td>
                     </tr>
                     @else
 
                     @foreach($acciones as $key => $accion)
 
                         <tr>
-                        <td class="border px-4 py-2">{{ $key+1}}</td>
-                        <td class="border px-4 py-2">{{ $accion->accion }}</td>
-                        <td class="border px-4 py-2">{{ $accion->slug }}</td>
-                        <td class="border px-4 py-2 text-center">
+                        <td class="border px-4 py-2 text-center">{{ $key+1}}</td>
+                        <td class="border px-4 py-2 text-center">{{ $accion->accion }}</td>
+                        <td class="border px-4 py-2 text-center">{{ $accion->slug }}</td>
+                        <td class="border px-4 py-2 text-center ">
                             @if($accion->icono)
                                 <img class="w-10 block m-auto" src="{{asset('storage/acciones/'.$accion->icono)}}" alt="">
                             @else

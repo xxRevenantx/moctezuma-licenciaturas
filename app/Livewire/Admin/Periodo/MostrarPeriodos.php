@@ -29,6 +29,8 @@ class MostrarPeriodos extends Component
     public $filtar_inicio_periodo;
     public $filtar_termino_periodo;
 
+
+
     public function getPeriodosProperty()
     {
         $query = Periodo::with(['cuatrimestre', 'generacion', 'mes']);
@@ -53,6 +55,9 @@ class MostrarPeriodos extends Component
             $query->where('termino_periodo', 'like', '%' . $this->filtar_termino_periodo . '%');
         }
 
+
+
+
         if ($this->search) {
             $query->where('ciclo_escolar', 'like', '%' . $this->search . '%')
                 ->orWhereHas('cuatrimestre', function ($query) {
@@ -74,7 +79,7 @@ class MostrarPeriodos extends Component
         return $query
             ->orderBy('order', 'asc')
             ->orderBy('cuatrimestre_id', 'asc')
-            ->paginate(50);
+            ->paginate(20);
     }
 
 
@@ -121,6 +126,17 @@ class MostrarPeriodos extends Component
         $this->resetPage();
       }
 
+      // ORDENAR POR ID
+
+      public function ordenarId()
+      {
+        $this->resetPage();
+        $this->filtrar_cuatrimestre = null;
+        $this->filtrar_generacion = null;
+        $this->filtrar_mes = null;
+        $this->filtar_inicio_periodo = null;
+        $this->filtar_termino_periodo = null;
+      }
 
 
       // Este método se ejecuta cuando se cambia el valor de un filtro

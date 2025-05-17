@@ -43,31 +43,31 @@
             <table class="min-w-full border-collapse border border-gray-200 table-striped">
                 <thead>
                     <tr>
-                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">
+                        <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">
                             <input type="checkbox" wire:model.live="selectAll">
                         </th>
-                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
-                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Cuatrimestre</th>
-                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre Cuatrimestre</th>
-                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Meses</th>
-                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700"></th>
+                        <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">ID</th>
+                        <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Cuatrimestre</th>
+                        <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Nombre Cuatrimestre</th>
+                        <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Meses</th>
+                        <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($cuatrimestres as $cuatrimestre)
-                        <tr :class="{'bg-blue-100': @js(in_array($cuatrimestre->id, $selected))}">
-                            <td class="border px-4 py-2">
+                        <tr :class="{'bg-blue-100 dark:bg-[#00659e]': @js(in_array($cuatrimestre->id, $selected))}">
+                            <td class="border px-4 py-2 text-center">
                                 <input type="checkbox" wire:model.live="selected" value="{{ $cuatrimestre->id }}">
                             </td>
-                            <td class="border px-4 py-2">{{ $cuatrimestre->id }}</td>
-                            <td class="border px-4 py-2">{{ $cuatrimestre->cuatrimestre }}</td>
-                            <td class="border px-4 py-2">{{ $cuatrimestre->nombre_cuatrimestre }}</td>
-                            <td class="border px-4 py-2">
+                            <td class="border px-4 py-2 text-center">{{ $cuatrimestre->id }}</td>
+                            <td class="border px-4 py-2 text-center">{{ $cuatrimestre->cuatrimestre }}</td>
+                            <td class="border px-4 py-2 text-center">{{ $cuatrimestre->nombre_cuatrimestre }}</td>
+                            <td class="border px-4 py-2 text-center">
                                 {{ $cuatrimestre->mes ? $cuatrimestre->mes->meses : 'Sin asignar' }}
                             </td>
-                            <td class="border px-4 py-2">
-                                <flux:button @click="Livewire.dispatch('abrirCuatrimestre', { id: {{ $cuatrimestre->id }} })"
-                                    class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
+                            <td class="border px-4 py-2 text-center">
+                                <flux:button variant="primary" @click="Livewire.dispatch('abrirCuatrimestre', { id: {{ $cuatrimestre->id }} })"
+                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
 
                                 <flux:button variant="danger"
                                     @click="destroyCuatrimestre({{ $cuatrimestre->id }}, '{{ $cuatrimestre->cuatrimestre }}')"

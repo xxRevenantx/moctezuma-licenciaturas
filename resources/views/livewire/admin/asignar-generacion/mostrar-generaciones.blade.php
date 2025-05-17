@@ -142,10 +142,10 @@
             <div wire:loading.remove
                  wire:target="search, filtrar_licenciatura, filtrar_generacion, filtrar_modalidad, filtrar_activa">
 
-                        <table class="min-w-full border-collapse border border-gray-200 table-striped">
+                        <table class="min-w-full border-collapse border text-center border-gray-200 table-striped">
                             <thead>
                                 <tr>
-                                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
+                                    <th class="border px-4 py-2  text-center bg-gray-100 dark:bg-neutral-700 cursor-pointer"
                                         @click="$wire.sortBy('order')">
                                         <div class="flex items-center justify-between">
                                             <span>ID</span>
@@ -163,7 +163,7 @@
                                         </div>
                                 </th>
 
-                                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
+                                <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700 cursor-pointer"
                                     @click="$wire.sortBy('generacion_id')">
                                     <div class="flex items-center justify-between">
                                         <span>Generación</span>
@@ -180,7 +180,7 @@
                                         @endif
                                     </div>
                                 </th>
-                                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
+                                <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700 cursor-pointer"
                                     @click="$wire.sortBy('modalidad_id')">
                                     <div class="flex items-center justify-between">
                                         <span>Modalidad</span>
@@ -198,8 +198,8 @@
                                     </div>
                                 </th>
 
-                                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">STATUS</th>
-                                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700"></th>
+                                <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">STATUS</th>
+                                <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -221,8 +221,8 @@
 
                                 @foreach($grupo as $asignacion)
                                     <tr>
-                                        <td class="border px-4 py-2">{{ $asignacion->order }}</td>
-                                        <td class="border px-4 py-2">
+                                        <td class="border px-4 py-2 text-center">{{ $asignacion->order }}</td>
+                                        <td class="border px-4 py-2 text-center">
                                             @if($asignacion->generacion)
                                                 <flux:badge color="{{ $asignacion->generacion->activa == 'true' ? 'green' : 'red' }}">
                                                     {{ $asignacion->generacion->generacion }}
@@ -231,8 +231,8 @@
                                                 <flux:badge color="red">N/A</flux:badge>
                                             @endif
                                         </td>
-                                        <td class="border px-4 py-2">{{ $asignacion->modalidad->nombre }}</td>
-                                        <td class="border px-4 py-2">
+                                        <td class="border px-4 py-2 text-center">{{ $asignacion->modalidad->nombre }}</td>
+                                        <td class="border px-4 py-2 text-center">
                                             @if($asignacion->generacion)
                                                 <flux:badge color="{{ $asignacion->generacion->activa == 'true' ? 'green' : 'red' }}">
                                                     {{ $asignacion->generacion->activa == 'true' ? '✔ ACTIVA' : '✘ INACTIVA' }}
@@ -241,9 +241,9 @@
                                                 <flux:badge color="red">N/A</flux:badge>
                                             @endif
                                         </td>
-                                        <td class="border px-4 py-2">
-                                            <flux:button @click="Livewire.dispatch('abrirAsignacion', { id: {{ $asignacion->id }} })"
-                                                class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
+                                        <td class="border px-4 py-2 text-center">
+                                            <flux:button variant="primary" @click="Livewire.dispatch('abrirAsignacion', { id: {{ $asignacion->id }} })"
+                                                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
                                             <flux:button variant="danger" @click="destroyAsignacion({{ $asignacion->id }})"
                                                 class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">Eliminar</flux:button>
                                         </td>
@@ -251,7 +251,7 @@
                                 @endforeach
                             @empty
                                 <tr>
-                                    <td colspan="6" class="border px-4 py-2 text-center">No hay asignaciones disponibles.</td>
+                                    <td colspan="6" class="border px-4 py-2  text-center">No hay asignaciones disponibles.</td>
                                 </tr>
                             @endforelse
 

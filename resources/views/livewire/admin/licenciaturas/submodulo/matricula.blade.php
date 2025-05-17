@@ -41,9 +41,7 @@
         </svg>
        <span>Filtrar por:</span>
     </h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2  p-2">
-
-
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  p-2">
 
       <flux:field>
         <flux:label>Generación</flux:label>
@@ -63,8 +61,22 @@
         </flux:select>
       </flux:field>
 
+        <flux:field>
+              <flux:label>Filtros</flux:label>
+                    <flux:button wire:click="limpiarFiltros" variant="primary">
+                    <div class="flex items-center ">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+                        </svg>
 
+                        <span>Limpiar Filtros</span>
+                        </div>
+                </flux:button>
+        </flux:field>
     </div>
+
+
+
 
     <div class="overflow-x-auto">
         <h3 class="mt-5">Buscar Estudiante:</h3>
@@ -113,17 +125,6 @@
 
 
 
-
-                <flux:button wire:click="limpiarFiltros" variant="primary">
-                    <div class="flex items-center gap-1">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
-                        </svg>
-
-                        <span>Limpiar Filtros</span>
-                        </div>
-                </flux:button>
-
                     @if ($contar_mujeres > 0)
                         <flux:badge color="pink">Mujeres: <flux:icon.venus /> {{ $contar_mujeres }} </flux:badge>
                         @else
@@ -137,31 +138,7 @@
 
 
 
-                @else
 
-
-
-
-                       <flux:button wire:click="limpiarFiltros" variant="primary">
-                    <div class="flex items-center gap-1">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
-                        </svg>
-
-                        <span>Limpiar Filtros</span>
-                        </div>
-                </flux:button>
-
-                    @if ($contar_mujeres > 0)
-                    <flux:badge color="pink">Mujeres: <flux:icon.venus /> {{ $contar_mujeres }} </flux:badge>
-                    @else
-                    <flux:badge color="pink">Mujeres: <flux:icon.venus /> 0 </flux:badge>
-                @endif
-                @if ($contar_hombres > 0)
-                    <flux:badge color="blue">Hombres: <flux:icon.mars /> {{ $contar_hombres }}</flux:badge>
-                    @else
-                    <flux:badge color="blue">Hombres: <flux:icon.mars /> 0 </flux:badge>
-                @endif
 
 
                 @endif
@@ -195,19 +172,19 @@
 
                 @if (!$filtrar_generacion)
             <tr>
-                <td colspan="12" class="border px-4 py-2 text-center text-gray-600">
+                <td colspan="12" class="border px-4 py-2 text-center text-gray-600 dark:bg-gray-500 dark:text-white">
                     Selecciona una generación para mostrar los estudiantes.
                 </td>
             </tr>
         @elseif ($matricula->isEmpty())
             <tr>
-                <td colspan="12" class="border px-4 py-2 text-center text-gray-600">
+                <td colspan="12" class="border px-4 py-2 text-center text-gray-600 dark:bg-gray-500 dark:text-white">
                     No hay estudiantes registrados en la generación seleccionada.
                 </td>
             </tr>
         @else
             @foreach($matricula as $key => $estudiante)
-            <tr class="{{ in_array($estudiante->id, $selected) ? 'bg-blue-100' : '' }}">
+            <tr class="{{ in_array($estudiante->id, $selected) ? 'bg-blue-100 dark:bg-blue-500' : '' }}">
             @if ($filtrar_generacion)
             <td class="border px-4 py-2">
                 <input type="checkbox" wire:model.live="selected" value="{{ $estudiante->id }}">
@@ -226,7 +203,7 @@
                     <img src="{{ asset('storage/estudiantes/' . $estudiante->foto) }}" alt="Foto" class="w-10 h-10 rounded-full">
                 @else
                     <div class="flex items-center justify-center">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 mt-2">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 mt-2 ">
                             <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                             </svg>
@@ -254,7 +231,7 @@
                 @endif
             </td>
             <td class="border px-4 py-2">
-                <flux:button square @click="Livewire.dispatch('abrirEstudiante', { id: {{ $estudiante->id }} })"
+                <flux:button variant="primary" square @click="Livewire.dispatch('abrirEstudiante', { id: {{ $estudiante->id }} })"
                     class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600">
                     <flux:icon.pencil-square />
                 </flux:button>

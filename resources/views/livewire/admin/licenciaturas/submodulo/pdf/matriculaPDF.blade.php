@@ -156,7 +156,7 @@
                 @foreach($matricula as $key =>  $student)
                     <tr>
                         <td>{{ $key+1 }}</td>
-                        <td style="width: 200px">{{ $student->nombre }}</td>
+                        <td>{{ $student->nombre }}</td>
                         <td>{{ $student->apellido_paterno }}</td>
                         <td>{{ $student->apellido_materno }}</td>
                         <td>{{ $student->CURP }}</td>

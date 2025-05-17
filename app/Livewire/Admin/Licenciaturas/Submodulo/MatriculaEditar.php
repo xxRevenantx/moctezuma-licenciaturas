@@ -47,6 +47,7 @@ class MatriculaEditar extends Component
     public $telefono;
     public $celular;
     public $tutor;
+    public $email;
     public $bachillerato_procedente;
     public $licenciatura_id;
     public $generacion_id;
@@ -118,6 +119,7 @@ class MatriculaEditar extends Component
             $this->telefono = $estudiante->telefono;
             $this->celular = $estudiante->celular;
             $this->tutor = $estudiante->tutor;
+            $this->email = $estudiante->user->email;
             $this->bachillerato_procedente = $estudiante->bachillerato_procedente;
             $this->licenciatura_id = $estudiante->licenciatura_id;
             $this->generacion_id = $estudiante->generacion_id;
@@ -370,8 +372,6 @@ class MatriculaEditar extends Component
           $this->dispatch('refreshMatricula');
 
           $this->cerrarModal();
-
-
 
       }
 

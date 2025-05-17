@@ -146,7 +146,7 @@
                 <div>
 
                     <flux:dropdown>
-                    <flux:button variant="primary" class="bg-indigo-600 text-white px-4 py-2 rounded" icon:trailing="chevron-down"> Cambiar de rol ({{ count($selected) }})</flux:button>
+                    <flux:button variant="primary" class="bg-indigo-700 hover:bg-indigo-800 text-white px-4 py-2 rounded" icon:trailing="chevron-down"> Cambiar de rol ({{ count($selected) }})</flux:button>
                     <flux:menu>
 
                         @foreach ($roles as $role)
@@ -176,14 +176,14 @@
 
 
 
-                    <table class="min-w-full border border-gray-200">
+                  <table class="min-w-full border-collapse border border-gray-200 table-striped">
                         <thead>
                             <tr>
-                                <th class="px-4 py-2 bg-gray-100">#</th>
-                                <th class="px-4 py-2 bg-gray-100">Username</th>
-                                <th class="px-4 py-2 bg-gray-100">CURP</th>
-                                <th class="px-4 py-2 bg-gray-100">Rol</th>
-                                <th class="px-4 py-2 bg-gray-100"></th>
+                                <th class="px-4 py-2 bg-gray-100 dark:bg-neutral-700">#</th>
+                                <th class="px-4 py-2 bg-gray-100 dark:bg-neutral-700">Username</th>
+                                <th class="px-4 py-2 bg-gray-100 dark:bg-neutral-700">CURP</th>
+                                <th class="px-4 py-2 bg-gray-100 dark:bg-neutral-700">Rol</th>
+                                <th class="px-4 py-2 bg-gray-100 dark:bg-neutral-700"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -195,7 +195,7 @@
                                     <td class="px-4 py-2">SuperAdmin</td>
                                     <td class="px-4 py-2">
                                         <flux:button
-                                        variant="primary" class="bg-red-500"
+                                        variant="primary" class="bg-yellow-500 hover:bg-yellow-600"
                                          @click="Livewire.dispatch('abrirModal', { id: {{ $role->id }} })">
                                             Editar
                                         </flux:button>
@@ -261,35 +261,35 @@
 
 
           @if ($usuarios->count())
-            <table class="min-w-full border border-gray-200 table-striped ">
+           <table class="min-w-full border-collapse border border-gray-200 table-striped">
                 <thead>
                     <tr>
-                        <th class="px-4 py-2 bg-gray-100 text-center"><input type="checkbox" wire:model.live="selectAll"></th>
-                        <th class="px-4 py-2 bg-gray-100">#</th>
-                        <th class="px-4 py-2 bg-gray-100">Username</th>
-                        <th class="px-4 py-2 bg-gray-100">CURP</th>
-                        <th class="px-4 py-2 bg-gray-100">Email</th>
-                        <th class="px-4 py-2 bg-gray-100">Status</th>
-                        <th class="px-4 py-2 bg-gray-100">Roles</th>
-                        <th class="px-4 py-2 bg-gray-100">Acciones</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700  text-center"><input type="checkbox" wire:model.live="selectAll"></th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">#</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Nombre de usuario</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">CURP</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Email</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Status</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Roles</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($usuarios as $key => $usuario)
-                        <tr class="{{ in_array($usuario->id, $selected) ? 'bg-blue-100' : '' }}">
-                            <td class="px-4 py-2 text-center"><input type="checkbox" wire:model.live="selected" value="{{ $usuario->id }}"></td>
-                            <td class="px-4 py-2 text-center">{{ $key + 1 }}</td>
-                            <td class="px-4 py-2 text-center">{{ $usuario->username }}</td>
-                            <td class="px-4 py-2 text-center">{{ $usuario->CURP }}</td>
-                            <td class="px-4 py-2 text-center">{{ $usuario->email }}</td>
-                            <td class="px-4 py-2 text-center">
+                        <tr class="{{ in_array($usuario->id, $selected) ? 'bg-blue-100 dark:bg-[#00659e]' : '' }}">
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white"><input type="checkbox" wire:model.live="selected" value="{{ $usuario->id }}"></td>
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $key + 1 }}</td>
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $usuario->username }}</td>
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $usuario->CURP }}</td>
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $usuario->email }}</td>
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">
                                 @if ($usuario->status == 'true')
                                     <flux:badge color="green">Activo</flux:badge>
                                 @else
                                     <flux:badge color="red">Inactivo</flux:badge>
                                 @endif
                             </td>
-                            <td class="px-4 py-2 text-center">
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">
                               @foreach ($usuario->roles as $role)
                                     @php
                                         $roleColors = [
@@ -307,8 +307,8 @@
                                     @endif
                                 @endforeach
                             </td>
-                            <td class="px-4 py-2 text-center">
-                                <flux:button class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">
+                                <flux:button variant="primary" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
                                  @click="Livewire.dispatch('abrirModal', { id: {{ $usuario->id }} })">
                                     Editar
                                 </flux:button>

@@ -46,6 +46,7 @@ class Matricula extends Component
         $query = Inscripcion::query()
             ->where('modalidad_id', $this->modalidad->id)
             ->where('licenciatura_id', $this->licenciatura->id)
+            ->where('status', 'true')
             ->where('generacion_id', $this->filtrar_generacion);
 
         if ($this->filtrar_generacion) {
@@ -120,7 +121,9 @@ public function getMatriculaProperty()
     $query = Inscripcion::with(['generacion', 'cuatrimestre', 'licenciatura', 'modalidad'])
         ->where('modalidad_id', $this->modalidad->id)
         ->where('licenciatura_id', $this->licenciatura->id)
-        ->where('generacion_id', $this->filtrar_generacion);
+        ->where('generacion_id', $this->filtrar_generacion)
+        ->where('status', 'true');
+        ;
 
     if ($this->filtrar_foraneo) {
         $query->where('foraneo', $this->filtrar_foraneo);

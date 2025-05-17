@@ -1,16 +1,16 @@
 <div>
     <div x-data="{
 
-        switchStatus(id) {
+        switchStatus(id, CURP) {
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: `Este alumno se activará nuevamente.`,
+                text: `El alumno con CURP: ${CURP} se activará nuevamente.`,
                 icon: 'info',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
                 cancelButtonText: 'Cancelar',
-                confirmButtonText: 'Sí, cambiar'
+                confirmButtonText: 'Sí, activar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     @this.call('switchStatus', id);
@@ -71,8 +71,6 @@
 
                 @if($baja->isNotEmpty())
 
-
-
             <flux:button wire:click="exportarbaja" variant="primary" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
                     <div class="flex items-center gap-1">
                         <flux:icon.sheet />
@@ -102,12 +100,7 @@
                         <flux:badge color="blue">Hombres: <flux:icon.mars /> 0 </flux:badge>
                     @endif
 
-
-
                 @else
-
-
-
 
                        <flux:button wire:click="limpiarFiltros" variant="primary">
                     <div class="flex items-center gap-1">
@@ -119,164 +112,107 @@
                         </div>
                 </flux:button>
 
-                    @if ($contar_mujeres > 0)
-                    <flux:badge color="pink">Mujeres: <flux:icon.venus /> {{ $contar_mujeres }} </flux:badge>
-                    @else
-                    <flux:badge color="pink">Mujeres: <flux:icon.venus /> 0 </flux:badge>
-                @endif
-                @if ($contar_hombres > 0)
-                    <flux:badge color="blue">Hombres: <flux:icon.mars /> {{ $contar_hombres }}</flux:badge>
-                    @else
-                    <flux:badge color="blue">Hombres: <flux:icon.mars /> 0 </flux:badge>
-                @endif
-
 
                 @endif
         </div>
 
 
-
-        <table class="min-w-full border-collapse border border-gray-200 table-striped">
-            <thead>
-                <tr>
-                     @if ($filtrar_generacion)
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">
-                        <input type="checkbox" wire:model.live="selectAll">
-                    </th>
-                    @endif
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foraneo</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foto</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Matrícula</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">CURP</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Género</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Cuatrimestre</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Generación</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Status</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700"></th>
-                </tr>
-            </thead>
-            <tbody>
-
-
-                @if (!$filtrar_generacion)
-            <tr>
-                <td colspan="12" class="border px-4 py-2 text-center text-gray-600">
-                    Selecciona una generación para mostrar los estudiantes.
-                </td>
-            </tr>
-        @elseif ($baja->isEmpty())
-            <tr>
-                <td colspan="12" class="border px-4 py-2 text-center text-gray-600">
-                    No hay estudiantes registrados en la generación seleccionada.
-                </td>
-            </tr>
-        @else
-            @foreach($baja as $key => $estudiante)
-            <tr class="{{ in_array($estudiante->id, $selected) ? 'bg-blue-100' : '' }}">
-            @if ($filtrar_generacion)
-            <td class="border px-4 py-2">
-                <input type="checkbox" wire:model.live="selected" value="{{ $estudiante->id }}">
-            </td>
-            @endif
-            <td class="border px-4 py-2">{{ $key + 1 }}</td>
-            <td class="border px-4 py-2">
-                @if($estudiante->foraneo === "true")
-                    <flux:badge color="orange">Foraneo</flux:badge>
-                @else
-                    <flux:badge color="indigo">Local</flux:badge>
-                @endif
-            </td>
-            <td class="border px-4 py-2 text-center m-auto">
-                @if($estudiante->foto)
-                    <img src="{{ asset('storage/estudiantes/' . $estudiante->foto) }}" alt="Foto" class="w-10 h-10 rounded-full">
-                @else
-                    <div class="flex items-center justify-center">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 mt-2">
-                            <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                            </svg>
-                        </div>
-                    </div>
-                @endif
-            </td>
-            <td class="border px-4 py-2">{{ $estudiante->baja }}</td>
-            <td class="border px-4 py-2">{{ $estudiante->CURP }}</td>
-            <td class="border px-4 py-2">{{ $estudiante->apellido_paterno }} {{ $estudiante->apellido_materno }} {{ $estudiante->nombre }}</td>
-            <td class="border px-4 py-2 text-center">
-                @if($estudiante->sexo === "H")
-                    <flux:badge color="blue">Hombre</flux:badge>
-                @else
-                    <flux:badge color="pink">Mujer</flux:badge>
-                @endif
-            </td>
-            <td class="border px-4 py-2">{{ $estudiante->cuatrimestre->nombre_cuatrimestre }}</td>
-            <td class="border px-4 py-2">{{ $estudiante->generacion->generacion }}</td>
-            <td class="border px-4 py-2">
-                @if($estudiante->status === "true")
-                    <flux:badge color="green">Activo</flux:badge>
-                @else
-                    <flux:badge color="red">Baja</flux:badge>
-                @endif
-            </td>
-            <td class="border px-4 py-2">
-                <flux:button square @click="Livewire.dispatch('abrirEstudiante', { id: {{ $estudiante->id }} })"
-                    class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600">
-                    <flux:icon.pencil-square />
-                </flux:button>
-
-                <flux:button square variant="danger"
-                    @click="destroyEstudiante({{ $estudiante->id }}, '{{ $estudiante->CURP }}')"
-                    class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
-                    <flux:icon.trash />
-                </flux:button>
-            </td>
+<table class="min-w-full border-collapse border border-gray-200 table-striped">
+    <thead>
+        <tr>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foráneo</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foto</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Matrícula</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">CURP</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Género</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Cuatrimestre</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Generación</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Status</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Fecha de baja</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700"></th>
         </tr>
-    @endforeach
-@endif
+    </thead>
+    <tbody>
+                    @php
+                        $grouped = $baja->groupBy(fn($item) => $item->generacion->generacion );
+                 @endphp
+        @forelse ($grouped as $nombreGeneracion => $estudiantes)
+            <tr>
+                <td colspan="12" class="bg-gray-200 text-left font-bold px-4 py-2 dark:bg-gray-500">
+                    Generación: {{ $nombreGeneracion }}
 
-            </tbody>
-        </table>
+                </td>
+            </tr>
 
+            @foreach($estudiantes as $key => $estudiante)
+                <tr class="{{ in_array($estudiante->id, $selected) ? 'bg-blue-100 dark:bg-blue-500' : '' }}">
+                    <td class="border px-4 py-2">{{ $key + 1 }}</td>
+                    <td class="border px-4 py-2">
+                        @if($estudiante->foraneo === "true")
+                            <flux:badge color="orange">Foráneo</flux:badge>
+                        @else
+                            <flux:badge color="indigo">Local</flux:badge>
+                        @endif
+                    </td>
+                    <td class="border px-4 py-2 text-center m-auto">
+                        @if($estudiante->foto)
+                            <img src="{{ asset('storage/estudiantes/' . $estudiante->foto) }}" alt="Foto" class="w-10 h-10 rounded-full">
+                        @else
+                            <div class="flex items-center justify-center">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 mt-2">
+                                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        @endif
+                    </td>
+                    <td class="border px-4 py-2">{{ $estudiante->matricula }}</td>
+                    <td class="border px-4 py-2">{{ $estudiante->CURP }}</td>
+                    <td class="border px-4 py-2">{{ $estudiante->apellido_paterno }} {{ $estudiante->apellido_materno }} {{ $estudiante->nombre }}</td>
+                    <td class="border px-4 py-2 text-center">
+                        @if($estudiante->sexo === "H")
+                            <flux:badge color="blue">Hombre</flux:badge>
+                        @else
+                            <flux:badge color="pink">Mujer</flux:badge>
+                        @endif
+                    </td>
+                    <td class="border px-4 py-2">{{ $estudiante->cuatrimestre->nombre_cuatrimestre }}</td>
+                    <td class="border px-4 py-2">{{ $estudiante->generacion->generacion }}</td>
+                    <td class="border px-4 py-2">
+                        @if($estudiante->status === "true")
+                            <flux:badge color="green">Activo</flux:badge>
+                        @else
+                            <flux:badge color="red">Baja</flux:badge>
+                        @endif
+                    </td>
+                    <td class="border px-4 py-2">
+                            {{ \Carbon\Carbon::parse($estudiante->fecha_baja)->format('d-m-y') }}
+                    </td>
+                    <td class="border px-4 py-2">
+
+                        <flux:button square variant="primary"
+                            @click="switchStatus({{ $estudiante->id }}, '{{ $estudiante->CURP }}')"
+                            class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer">
+                          <flux:icon.pencil-square />
+                        </flux:button>
+                    </td>
+                </tr>
+            @endforeach
+        @empty
+            <tr>
+                <td colspan="11" class="text-center text-gray-600">No hay registros de estudiantes dados de baja.</td>
+            </tr>
+        @endforelse
+    </tbody>
+</table>
 
         <div class="mt-4">
-            {{-- {{ $baja->links() }} --}}
-        </div>
-   @if ($filtrar_generacion)
-        <div class="mt-2 text-sm text-gray-600 flex justify-between items-center">
-
-            <div class="mt-4">
-
-                @if(count($selected) > 0)
-
-
-
-                <flux:dropdown>
-                        <flux:button  variant="primary"
-
-                        class="bg-indigo-600 text-white px-4 py-2 rounded" icon:trailing="chevron-down">Cambio de cuatrimestre ({{ count($selected) }})</flux:button>
-                        <flux:menu>
-                            @foreach($cuatrimestres as $cuatrimestre)
-                                <flux:menu.item @click="confirmarCambioSeleccionados({{ count($selected) }}, {{ $cuatrimestre->cuatrimestre_id }})">
-                                    {{ $cuatrimestre->cuatrimestre->nombre_cuatrimestre}}
-                                </flux:menu.item>
-                            @endforeach
-                        </flux:menu>
-                </flux:dropdown>
-
-
-                @endif
-
-
-
-            </div>
-
-
+            {{ $baja->links() }}
         </div>
 
-          Estudiantes seleccionados: {{ count($selected) }}
-          @endif
 
            </div>
     </div>

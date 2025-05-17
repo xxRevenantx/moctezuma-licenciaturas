@@ -99,7 +99,7 @@
             <table class="min-w-full border-collapse border border-gray-200 table-striped">
                 <thead>
                     <tr>
-                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
+                        <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700 cursor-pointer"
                             @click="$wire.sortBy('id')">
                             <div class="flex items-center justify-between">
                                 <span>ID</span>
@@ -116,7 +116,7 @@
                                 @endif
                             </div>
                     </th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer"
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700 cursor-pointer"
                         @click="$wire.sortBy('generacion')">
                         <div class="flex items-center justify-between">
                             <span>Generación</span>
@@ -133,8 +133,8 @@
                             @endif
                         </div>
                     </th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Status</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Acciones</th>
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Status</th>
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -145,8 +145,8 @@
                     @else
                     @foreach($generaciones as $key => $generacion)
                         <tr>
-                        <td class="border px-4 py-2">{{ $generacion->id}}</td>
-                        <td class="border px-4 py-2">{{ $generacion->generacion }}</td>
+                        <td class="border px-4 py-2 text-center">{{ $generacion->id}}</td>
+                        <td class="border px-4 py-2 text-center">{{ $generacion->generacion }}</td>
                         <td class="border px-4 py-2 text-center">
                             @if($generacion->activa == "true")
                                 <flux:badge color="green">✔ ACTIVA</flux:badge>
@@ -158,9 +158,9 @@
 
                         </td>
 
-                        <td class="border px-4 py-2">
-                            <flux:button  @click="Livewire.dispatch('abrirGeneracion', { id: {{ $generacion->id }} })"
-                                class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
+                        <td class="border px-4 py-2 text-center">
+                            <flux:button variant="primary"  @click="Livewire.dispatch('abrirGeneracion', { id: {{ $generacion->id }} })"
+                                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
 
                                 <flux:button variant="danger"
                             @click="destroyGeneracion({{ $generacion->id }}, '{{ $generacion->generacion }}')"

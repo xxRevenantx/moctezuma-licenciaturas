@@ -34,26 +34,26 @@
             <table class="min-w-full border-collapse border border-gray-200 table-striped">
                 <thead>
                     <tr>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Estado</th>
-                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700"></th>
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">ID</th>
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Estado</th>
+                    <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if($estados->isEmpty())
                     <tr>
-                        <td colspan="6" class="border px-4 py-2 text-center">No hay estados disponibles.</td>
+                        <td colspan="6" class="border px-4 py-2 text-center ">No hay estados disponibles.</td>
                     </tr>
                     @else
 
                     @foreach($estados as $key => $estado)
 
                         <tr>
-                        <td class="border px-4 py-2">{{ $key+1}}</td>
-                        <td class="border px-4 py-2">{{ $estado->nombre }}</td>
+                        <td class="border px-4 py-2 text-center">{{ $key+1}}</td>
+                        <td class="border px-4 py-2 text-center">{{ $estado->nombre }}</td>
 
 
-                        <td class="border px-4 py-2">
+                        <td class="border px-4 py-2 text-center">
                             <flux:button variant="primary"
 
                             @click="Livewire.dispatch('abrirEstado', { id: {{ $estado->id }} })"

@@ -16,6 +16,7 @@ use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\MesController;
 use App\Http\Controllers\PDFController;
+use App\Http\Controllers\ProfesorController;
 use App\Livewire\Admin\Licenciaturas\SeleccionarModalidad;
 use App\Livewire\Admin\Usuarios\MostrarUsuarios;
 use App\Models\Generacion;
@@ -56,6 +57,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('crear-generacion', GeneracionController::class)->middleware('can:admin.generaciones')->names('admin.generaciones');
 
     Route::resource('asignar-generacion', AsignarGeneracionController::class)->middleware('can:admin.asignar.generacion')->names('admin.asignar.generacion');
+
+    Route::resource('profesores', ProfesorController::class)->middleware('can:admin.administracion')->names('admin.profesor');
+
 
 
     // RUTAS PDF

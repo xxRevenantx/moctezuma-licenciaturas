@@ -126,8 +126,8 @@
                     <td class="border px-4 py-2">{{ $directivo->correo }}</td>
 
                     <td class="border px-4 py-2">
-                        <flux:button  @click="Livewire.dispatch('abrirDirectivo', { id: {{ $directivo->id }} })"
-                             class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
+                        <flux:button variant="primary"  @click="Livewire.dispatch('abrirDirectivo', { id: {{ $directivo->id }} })"
+                             class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
 
                              <flux:button variant="danger"
                         @click="destroyDirectivo({{ $directivo->id }}, '{{ $directivo->nombre }}')"

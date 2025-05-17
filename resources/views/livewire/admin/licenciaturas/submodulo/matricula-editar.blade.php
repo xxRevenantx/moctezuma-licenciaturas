@@ -115,6 +115,9 @@
                         <flux:input type="text" label="Celular" placeholder="Celular" wire:model="celular" />
                         <flux:input type="text" label="Tutor" placeholder="Tutor" wire:model="tutor" />
 
+                        <flux:input type="text" variant="filled" readonly label="Correo electrónico" placeholder="Correo Eletrónico" wire:model="email" />
+
+
                         </flux:field>
 
                     </div>

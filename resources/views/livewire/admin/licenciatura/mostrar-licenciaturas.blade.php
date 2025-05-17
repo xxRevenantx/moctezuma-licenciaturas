@@ -57,24 +57,24 @@
             <table class="min-w-full border-collapse border border-gray-200 table-striped">
             <thead>
                 <tr>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Imagen</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Licenciatura</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre corto</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">RVOE</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Acciones</th>
+                <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">ID</th>
+                <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Imagen</th>
+                <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Licenciatura</th>
+                <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Nombre corto</th>
+                <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">RVOE</th>
+                <th class="border px-4 py-2 text-center bg-gray-100 dark:bg-neutral-700">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @if($licenciaturas->isEmpty())
                 <tr>
-                    <td colspan="6" class="border px-4 py-2 text-center">No hay licenciaturas disponibles.</td>
+                    <td colspan="6" class="border px-4 py-2  text-center">No hay licenciaturas disponibles.</td>
                 </tr>
                 @else
                 @foreach($licenciaturas as $key => $licenciatura)
                     <tr>
-                    <td class="border px-4 py-2">{{ $key+1 }}</td>
-                    <td class="border px-4 py-2">
+                    <td class="border px-4 py-2 text-center">{{ $key+1 }}</td>
+                    <td class="border px-4 py-2 text-center">
                         @if ($licenciatura->imagen)
                             <img src="{{ asset('storage/licenciaturas/' . $licenciatura->imagen) }}" alt="{{ $licenciatura->nombre }}" class="w-10 h-10 block m-auto">
                         @else
@@ -83,10 +83,10 @@
                         @endif
 
                     </td>
-                    <td class="border px-4 py-2">{{ $licenciatura->nombre }}</td>
-                    <td class="border px-4 py-2">{{ $licenciatura->nombre_corto }}</td>
-                    <td class="border px-4 py-2">{{ $licenciatura->RVOE }}</td>
-                    <td class="border px-4 py-2">
+                    <td class="border px-4 py-2 text-center">{{ $licenciatura->nombre }}</td>
+                    <td class="border px-4 py-2 text-center">{{ $licenciatura->nombre_corto }}</td>
+                    <td class="border px-4 py-2 text-center">{{ $licenciatura->RVOE }}</td>
+                    <td class="border px-4 py-2 text-center">
                         <flux:button
 
                         @click="Livewire.dispatch('abrirModal', { id: {{ $licenciatura->id }} })"
