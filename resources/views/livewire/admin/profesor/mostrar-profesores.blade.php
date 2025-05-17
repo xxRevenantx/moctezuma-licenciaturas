@@ -1,23 +1,6 @@
 <div>
 
-    <div x-data="{
-        destroyprofesor(id, username) {
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: `El profesor '${username}' se eliminará de forma permanente`,
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                cancelButtonText: 'Cancelar',
-                confirmButtonText: 'Sí, eliminar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    @this.call('eliminarprofesor', id);
-                }
-            });
-        },
-
+    <div x-data="
 
          confirmarAccionMasiva(cantidad, id) {
         Swal.fire({
@@ -133,11 +116,13 @@
                     <tr>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700  text-center"><input type="checkbox" wire:model.live="selectAll"></th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">#</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Foto</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Nombre del profesor</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">CURP</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Email</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Perfil</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Teléfono</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Status</th>
-                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Roles</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Acciones</th>
                     </tr>
                 </thead>
@@ -146,11 +131,26 @@
                         <tr class="{{ in_array($profesor->id, $selected) ? 'bg-blue-100 dark:bg-[#00659e]' : '' }}">
                             <td class="border px-4 py-2 text-center text-gray-600  dark:text-white"><input type="checkbox" wire:model.live="selected" value="{{ $profesor->id }}"></td>
                             <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $key + 1 }}</td>
-                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $profesor->username }}</td>
-                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $profesor->CURP }}</td>
-                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $profesor->email }}</td>
+                            <td class="border px-4 py-2 text-gray-600  dark:text-white">
+                                @if ($profesor->foto)
+                                    <img src="{{ asset('storage/profesores/' . $profesor->foto) }}" alt="Foto de {{ $profesor->nombre }}" class="w-16 h-16 rounded-full">
+                                @else
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 mt-2">
+                                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                    </svg>
+                                    </div>
+                                @endif
+
+                            </td>
+                            <td class="border px-4 py-2 text-gray-600  dark:text-white">{{ $profesor->apellido_paterno }} {{$profesor->apellido_materno}}  {{$profesor->nombre}}</td>
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $profesor->user->CURP }}</td>
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $profesor->user->email }}</td>
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $profesor->perfil }}</td>
+                            <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $profesor->telefono }}</td>
+
                             <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">
-                                @if ($profesor->status == 'true')
+                                @if ($profesor->user->status == 'true')
                                     <flux:badge color="green">Activo</flux:badge>
                                 @else
                                     <flux:badge color="red">Inactivo</flux:badge>
@@ -158,7 +158,7 @@
                             </td>
                             <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">
                                 <flux:button variant="primary" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
-                                 @click="Livewire.dispatch('abrirModal', { id: {{ $profesor->id }} })">
+                                 @click="Livewire.dispatch('abrirProfesor', { id: {{ $profesor->id }} })">
                                     Editar
                                 </flux:button>
 
@@ -174,7 +174,7 @@
                 {{ $profesores->links() }}
             </div>
         @else
-            <p class="text-gray-600">No se encontraron profesors.</p>
+            <p class="text-gray-600">No se encontraron profesores.</p>
         @endif
         </div>
 
