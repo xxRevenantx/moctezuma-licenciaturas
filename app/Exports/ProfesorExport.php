@@ -30,10 +30,12 @@ class ProfesorExport implements FromCollection, WithHeadings, WithStyles, Should
                'apellido_paterno' => $profesor->apellido_paterno,
               'apellido_materno' => $profesor->apellido_materno,
               'nombre' => $profesor->nombre,
+              'CURP'=> $profesor->user->CURP,
+              'email' => $profesor->user->email,
               'telefono' => $profesor->telefono,
               'perfil' => $profesor->perfil,
               'color' => $profesor->color,
-
+              'status' => $profesor->user->status,
 
             ];
         });
@@ -45,16 +47,19 @@ class ProfesorExport implements FromCollection, WithHeadings, WithStyles, Should
             'Apellido Paterno',
             'Apellido Materno',
             'Nombre',
+            'CURP',
+            'Email',
             'Teléfono',
             'Perfil',
             'Color',
+            'Status',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
         // Estilo del encabezado
-        $sheet->getStyle('A1:F1')->applyFromArray([
+        $sheet->getStyle('A1:I1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
@@ -83,15 +88,34 @@ class ProfesorExport implements FromCollection, WithHeadings, WithStyles, Should
                 ]);
 
                 // Colorear la columna "Color" según el valor de la propiedad color
-                // La columna "Color" es la F (índice 6)
+                // La columna "Color" es la H (índice 6)
                 for ($row = 2; $row <= $highestRow; $row++) {
-                    $colorValue = $sheet->getCell('F' . $row)->getValue();
+                    $colorValue = $sheet->getCell('H' . $row)->getValue();
                     // Limpiar el valor y asegurarse que sea un color hexadecimal válido
                     $hexColor = ltrim($colorValue, '#');
                     if (preg_match('/^[A-Fa-f0-9]{6}$/', $hexColor)) {
-                        $sheet->getStyle('F' . $row)->getFill()->setFillType(Fill::FILL_SOLID)
+                        $sheet->getStyle('H' . $row)->getFill()->setFillType(Fill::FILL_SOLID)
                             ->getStartColor()->setRGB($hexColor);
                     }
+                }
+
+
+                for ($row = 2; $row <= $highestRow; $row++) {
+                    $cellValue = $event->sheet->getCell("I{$row}")->getValue();
+                    if ($cellValue === 'true') {
+                        $event->sheet->setCellValue("I{$row}", 'Activo');
+                        $color = '00FF00';
+                    } else {
+                         $event->sheet->setCellValue("I{$row}", 'Inactivo');
+                        $color = 'ff6464';
+                    }
+
+                    $event->sheet->getStyle("I{$row}")->applyFromArray([
+                        'fill' => [
+                            'fillType' => Fill::FILL_SOLID,
+                            'startColor' => ['rgb' => $color],
+                        ],
+                    ]);
                 }
             },
         ];

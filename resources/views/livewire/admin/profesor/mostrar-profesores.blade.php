@@ -1,23 +1,54 @@
 <div>
 
-    <div x-data="
-
-         confirmarAccionMasiva(cantidad, id) {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: `Cambio de rol y se aplicará a ${cantidad} profesor(s).`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, continuar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                @this.call('cambioRolprofesorsSeleccionados', id);
-            }
-        });
-    }
+    <div x-data="{
+        confirmarAccionMasiva(cantidad, id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Cambio de rol y se aplicará a ${cantidad} profesor(s).`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $wire.cambioRolprofesorsSeleccionados(id);
+                }
+            });
+        },
+        activar(cantidad) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Activar ${cantidad} profesor(es).`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $wire.activarprofesoresSeleccionados();
+                }
+            });
+        },
+        inactivar(cantidad) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Inactivar ${cantidad} profesor(es).`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $wire.inactivarprofesoresSeleccionados();
+                }
+            });
+        }
     }">
 
 
@@ -177,6 +208,42 @@
             <p class="text-gray-600">No se encontraron profesores.</p>
         @endif
         </div>
+
+          <div class="mt-2 text-sm text-gray-600 flex justify-between items-center">
+
+            <div class="mt-4">
+
+                @if(count($selected) > 0)
+
+
+
+                <flux:dropdown>
+                        <flux:button  variant="primary"
+
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded" icon:trailing="chevron-down">Activar/Inactivar ({{ count($selected) }})</flux:button>
+                        <flux:menu>
+
+                                <flux:menu.item @click="activar({{ count($selected) }})">
+                                    Activar
+                                </flux:menu.item>
+                                <flux:menu.item @click="inactivar({{ count($selected) }})">
+                                    Inactivar
+                                </flux:menu.item>
+
+                        </flux:menu>
+                </flux:dropdown>
+
+
+                @endif
+
+
+
+            </div>
+
+
+        </div>
+
+          Profesores seleccionados: {{ count($selected) }}
 
     </div>
 
