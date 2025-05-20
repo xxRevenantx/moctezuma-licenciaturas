@@ -79,7 +79,7 @@
 
 
     <div class="overflow-x-auto">
-        <h3 class="mt-5">Buscar Estudiante:</h3>
+        <h3 class="mt-5 px-2">Buscar Estudiante:</h3>
         <flux:input type="text" wire:model.live="search" placeholder="Buscar Estudiante (Nombre, Apellido Paterno, Apellido Materno, CURP)" class="p-2 mb-4 w-full" />
 
                 <div wire:loading.delay

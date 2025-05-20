@@ -131,36 +131,52 @@ class MostrarProfesores extends Component
 
     public function exportarProfesores()
     {
-        $profesores_filtrados = Profesor::where('nombre', 'like', '%' . $this->search . '%')
-            ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
-            ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
-            ->orWhere('telefono', 'like', '%' . $this->search . '%')
-            ->orWhere('perfil', 'like', '%' . $this->search . '%')
-            ->orWhereHas('user', function ($query) {
+        $query = Profesor::query();
+
+        // Aplicar filtros de búsqueda
+        if ($this->search) {
+            $query->where(function ($query) {
+            $query
+                ->where('nombre', 'like', '%' . $this->search . '%')
+                ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
+                ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
+                ->orWhere('telefono', 'like', '%' . $this->search . '%')
+                ->orWhere('perfil', 'like', '%' . $this->search . '%')
+                ->orWhereHas('user', function ($query) {
                 $query->where('email', 'like', '%' . $this->search . '%');
-            })
-            ->orWhereHas('user', function ($query) {
+                })
+                ->orWhereHas('user', function ($query) {
                 $query->where('CURP', 'like', '%' . $this->search . '%');
-            })
-            ->orWhereHas('user', function ($query) {
+                })
+                ->orWhereHas('user', function ($query) {
                 $query->where('status', "true")->whereRaw('? like ?', ['Activo',  $this->search]);
-            })
-            ->orWhereHas('user', function ($query) {
+                })
+                ->orWhereHas('user', function ($query) {
                 $query->where('status', "false")->whereRaw('? like ?', ['Inactivo', $this->search]);
-            })
-            ->when($this->filtrar_status, function ($query) {
-                if ($this->filtrar_status == "Activo") {
-                    $query->whereHas('user', function ($query) {
-                        $query->where('status', "true");
-                    });
-                } else {
-                    $query->whereHas('user', function ($query) {
-                        $query->where('status', "false");
-                    });
-                }
-            })
-            ->orderBy('apellido_paterno', 'asc')
-            ->get();
+                });
+            });
+        }
+
+        // Aplicar filtro de status
+        if ($this->filtrar_status) {
+            if ($this->filtrar_status == "Activo") {
+            $query->whereHas('user', function ($query) {
+                $query->where('status', "true");
+            });
+            } else {
+            $query->whereHas('user', function ($query) {
+                $query->where('status', "false");
+            });
+            }
+        }
+
+        // Si hay seleccionados, filtrar por ellos
+        if (!empty($this->selected)) {
+            $query->whereIn('id', $this->selected);
+        }
+
+        $profesores_filtrados = $query->orderBy('apellido_paterno', 'asc')->get();
+
         return Excel::download(new ProfesorExport($profesores_filtrados), 'profesores_filtrados.xlsx');
 
     }

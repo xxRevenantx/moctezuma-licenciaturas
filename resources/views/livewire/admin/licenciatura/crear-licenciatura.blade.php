@@ -38,7 +38,7 @@
                 <flux:field>
                     <div class="flex flex-col items-center justify-center gap-5 mb-4">
                         <div class="w-120 border-2 border-gray-100 bg-white dark:bg-neutral-800 shadow-md rounded-3xl p-7 space-y-5">
-                            <flux:input wire:model.live="imagen" :label="__('Imagen de la licenciatura')" type="file" accept="image/jpeg,image/jpg,image/png" />
+                            <flux:input wire:model.live="imagen" badge="Opcional" :label="__('Imagen de la licenciatura')" type="file" accept="image/jpeg,image/jpg,image/png" />
 
                             @if ($imagen)
                                 <div class="mt-4 flex flex-col items-center justify-center">
@@ -46,10 +46,10 @@
                                 </div>
                             @endif
 
-                            <flux:input wire:model.live="nombre" :label="__('Licenciatura')" type="text" placeholder="Nombre de la licenciatura" autofocus autocomplete="nombre" />
-                            <flux:input wire:model="slug" readonly :label="__('Url')" type="text" placeholder="Url" autofocus autocomplete="slug" />
-                            <flux:input wire:model="nombre_corto" :label="__('Nombre corto')" type="text" placeholder="Nombre corto" autofocus autocomplete="nombre_corto" />
-                            <flux:input wire:model="RVOE" :label="__('RVOE')" type="text" placeholder="RVOE" autofocus autocomplete="RVOE" />
+                            <flux:input badge="Requerido" wire:model.live="nombre" :label="__('Licenciatura')" type="text" placeholder="Nombre de la licenciatura" autofocus autocomplete="nombre" />
+                            <flux:input badge="Requerido" wire:model="slug" readonly :label="__('Url')" type="text" placeholder="Url" autofocus autocomplete="slug" />
+                            <flux:input badge="Requerido" wire:model="nombre_corto" :label="__('Nombre corto')" type="text" placeholder="Nombre corto" autofocus autocomplete="nombre_corto" />
+                            <flux:input badge="Opcional" wire:model="RVOE" :label="__('RVOE')" type="text" placeholder="RVOE" autofocus autocomplete="RVOE" />
 
                             <div class="flex items-center gap-4 mt-3">
                                 <div class="flex items-center">

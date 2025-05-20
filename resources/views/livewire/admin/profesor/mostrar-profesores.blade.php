@@ -1,23 +1,8 @@
 <div>
 
     <div x-data="{
-        confirmarAccionMasiva(cantidad, id) {
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: `Cambio de rol y se aplicará a ${cantidad} profesor(s).`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, continuar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $wire.cambioRolprofesorsSeleccionados(id);
-                }
-            });
-        },
-        activar(cantidad) {
+
+        activarProfesor(cantidad) {
             Swal.fire({
                 title: '¿Estás seguro?',
                 text: `Activar ${cantidad} profesor(es).`,
@@ -33,7 +18,7 @@
                 }
             });
         },
-        inactivar(cantidad) {
+        inactivarProfesor(cantidad) {
             Swal.fire({
                 title: '¿Estás seguro?',
                 text: `Inactivar ${cantidad} profesor(es).`,
@@ -69,6 +54,20 @@
 
     <h3>Buscar profesor:</h3>
     <flux:input type="text" wire:model.live="search" placeholder="Buscar Profesores..." class=" p-2 mb-4 w-full" />
+
+     <div wire:loading.delay
+                wire:target="search, filtrar_status"
+                       class="flex justify-center">
+                    <svg class="animate-spin h-20 w-20 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                 </div>
+
+
+        <div wire:loading.remove
+                 wire:target="search, filtrar_status">
+
         <div class="overflow-x-auto">
             <div class="flex space-x-4 mb-4 p-1">
 
@@ -109,23 +108,7 @@
                 </flux:button>
 
 
-                <flux:button disabled variant="primary"  class="bg-gray-100 hover:bg-gray-200 focus:ring-4 text-black">
-                 <div class="flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                      </svg>
-                     <span> Inactivar</span>
-                </div>
-                </flux:button>
 
-                 <flux:button disabled variant="primary"  class="bg-gray-100 hover:bg-gray-200 focus:ring-4 text-black">
-                 <div class="flex items-center gap-1">
-                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                      </svg>
-                     <span> Activar</span>
-                </div>
-                </flux:button>
 
                 <flux:button wire:click="limpiarFiltros" variant="primary">
                     <div class="flex items-center gap-1">
@@ -166,10 +149,12 @@
                                 @if ($profesor->foto)
                                     <img src="{{ asset('storage/profesores/' . $profesor->foto) }}" alt="Foto de {{ $profesor->nombre }}" class="w-16 h-16 rounded-full">
                                 @else
-                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 mt-2">
-                                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                    </svg>
+                                    <div class="flex items-center justify-center">
+                                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2 mt-2">
+                                        <svg class="w-7 h-7 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                        </svg>
+                                        </div>
                                     </div>
                                 @endif
 
@@ -205,8 +190,30 @@
                 {{ $profesores->links() }}
             </div>
         @else
-            <p class="text-gray-600">No se encontraron profesores.</p>
+            <table class="min-w-full border-collapse border border-gray-200">
+                <thead>
+                    <tr>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 text-center">#</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foto</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre del profesor</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">CURP</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Email</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Perfil</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Teléfono</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Status</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="9" class="text-center py-2 text-gray-500 dark:text-gray-300">
+                            No se encontraron profesores con los filtros actuales.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         @endif
+        </div>
         </div>
 
           <div class="mt-2 text-sm text-gray-600 flex justify-between items-center">
@@ -214,26 +221,7 @@
             <div class="mt-4">
 
                 @if(count($selected) > 0)
-
-
-
-                <flux:dropdown>
-                        <flux:button  variant="primary"
-
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded" icon:trailing="chevron-down">Activar/Inactivar ({{ count($selected) }})</flux:button>
-                        <flux:menu>
-
-                                <flux:menu.item @click="activar({{ count($selected) }})">
-                                    Activar
-                                </flux:menu.item>
-                                <flux:menu.item @click="inactivar({{ count($selected) }})">
-                                    Inactivar
-                                </flux:menu.item>
-
-                        </flux:menu>
-                </flux:dropdown>
-
-
+            Profesores seleccionados: {{ count($selected) }}
                 @endif
 
 
@@ -243,7 +231,7 @@
 
         </div>
 
-          Profesores seleccionados: {{ count($selected) }}
+
 
     </div>
 

@@ -158,6 +158,8 @@ class CrearProfesor extends Component
             'status'
         ]);
 
+        $this->dispatch('refreshProfesor');
+
         $this->dispatch('swal', [
             'title' => 'Profesor creado correctamente.',
             'icon' => 'success',

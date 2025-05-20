@@ -27,15 +27,15 @@
 
 
 
-                       <flux:input wire:model.live="username" :label="__('Nombre de usuario')" type="text" placeholder="Nombre de usuario"  autofocus autocomplete="Nombre de usuario" />
-                          <flux:input wire:model.live="CURP" :label="__('CURP')" type="text" placeholder="CURP"  autocomplete="CURP" />
-                       <flux:input wire:model.live="email" :label="__('Email')" type="email" placeholder="Email"  autocomplete="Email" />
+                       <flux:input wire:model.live="username"  badge="Requerido" :label="__('Nombre de usuario')" type="text" placeholder="Nombre de usuario"  autofocus autocomplete="Nombre de usuario" />
+                          <flux:input wire:model.live="CURP"  badge="Requerido" :label="__('CURP')" type="text" placeholder="CURP"  autocomplete="CURP" />
+                       <flux:input wire:model.live="email"  badge="Requerido" :label="__('Email')" type="email" placeholder="Email"  autocomplete="Email" />
 
 
                               @if($rol_name == "SuperAdmin")
                                     <flux:label>Status</flux:label>
                                 @if($toggle === true)
-                                    <flux:switch wire:model.live="status" />
+                                    <flux:switch wire:model.live="status"  badge="Requerido" />
                                 @else
                                     <flux:switch variant="filled" disabled wire:model.live="status" />
                                 @endif
@@ -48,7 +48,7 @@
 
 
 
-                        <flux:checkbox.group wire:model.live="rol" label="Listado de roles">
+                        <flux:checkbox.group wire:model.live="rol"  badge="Requerido" label="Listado de roles">
 
 
 

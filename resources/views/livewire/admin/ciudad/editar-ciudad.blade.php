@@ -25,7 +25,7 @@
                         <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white text-center">Editar Estado <flux:badge color="indigo">{{ $nombre }} </flux:badge></h2>
 
 
-                        <flux:input wire:model="nombre" :label="__('Ciudad')"   type="text" placeholder="Ciudad" autocomplete="nombre" />
+                        <flux:input wire:model="nombre"  badge="Requerido" :label="__('Ciudad')"   type="text" placeholder="Ciudad" autocomplete="nombre" />
 
 
 

@@ -69,7 +69,7 @@ class CrearUsuario extends Component
         $user = User::create([
             'username' => trim($this->username),
             'email' => trim($this->email),
-            'CURP' => trim($this->CURP),
+            'CURP' => strtoupper(trim($this->CURP)),
             'password' => bcrypt('12345678'), // Cambia esto según tus necesidades
             'status' => 'true',
             'photo' => null,

@@ -41,7 +41,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
 
 
-                    <flux:input wire:model="nombre" :label="__('Estado')" type="text" placeholder="Estado" autocomplete="estado" />
+                    <flux:input wire:model="nombre"  badge="Requerido" :label="__('Estado')" type="text" placeholder="Estado" autocomplete="estado" />
 
 
 
