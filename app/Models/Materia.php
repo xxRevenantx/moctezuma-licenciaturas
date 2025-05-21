@@ -21,6 +21,7 @@ class Materia extends Model
         'creditos',
         'cuatrimestre_id',
         'licenciatura_id',
-        'orden'
+        'orden',
+        'calificable',
     ];
 }
