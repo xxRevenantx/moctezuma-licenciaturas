@@ -23,7 +23,7 @@
 
                     <div class="w-120 border-2 border-gray-50 bg-white  dark:bg-neutral-800 shadow-md rounded-3xl p-7 space-y-5">
                         <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white text-center">Editar Generación <flux:badge color="indigo">{{ $generacion }} </flux:badge></h2>
-                       <flux:input wire:model.live="generacion" :label="__('Generacion')" type="text" placeholder="2020-2023"  autofocus autocomplete="generacion" />
+                       <flux:input badge="Requerido" wire:model.live="generacion" :label="__('Generacion')" type="text" placeholder="2020-2023"  autofocus autocomplete="generacion" />
 
                        <flux:label>¿Activa?</flux:label>
                        <flux:switch wire:model.live="activa" />

@@ -41,10 +41,10 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
 
 
-                    <flux:input wire:model="cuatrimestre" :label="__('Cuatrimestre')" min="1"  type="number" placeholder="No. de cuatrimestre" autocomplete="cuatrimestre" />
-                    <flux:input wire:model="nombre_cuatrimestre" :label="__('Nombre Cuatrimestre')" type="text" placeholder="Nombre de cuatrimestre" autocomplete="nombre_cuatrimestre" />
+                    <flux:input  badge="Requerido" wire:model="cuatrimestre" :label="__('Cuatrimestre')" min="1"  type="number" placeholder="No. de cuatrimestre" autocomplete="cuatrimestre" />
+                    <flux:input  badge="Requerido" wire:model="nombre_cuatrimestre" :label="__('Nombre Cuatrimestre')" type="text" placeholder="Nombre de cuatrimestre" autocomplete="nombre_cuatrimestre" />
 
-                    <flux:select  label="Selecciona los meses" wire:model="mes_id">
+                    <flux:select  badge="Requerido"  label="Selecciona los meses" wire:model="mes_id">
                         <flux:select.option value="0">--Selecciona los meses--</flux:select.option>
                         @foreach($meses as $mes)
 

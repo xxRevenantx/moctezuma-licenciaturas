@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CiudadController;
 use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
+use App\Http\Controllers\MateriaController;
 use App\Http\Controllers\MesController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\ProfesorController;
@@ -59,6 +60,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('asignar-generacion', AsignarGeneracionController::class)->middleware('can:admin.asignar.generacion')->names('admin.asignar.generacion');
 
     Route::resource('profesores', ProfesorController::class)->middleware('can:admin.administracion')->names('admin.profesor');
+
+
+    Route::resource('materias', MateriaController::class)->middleware('can:admin.administracion')->names('admin.materia');
 
 
 

@@ -25,28 +25,24 @@
                     <div class="w-120 border-2 border-gray-50 bg-white  dark:bg-neutral-800 shadow-md rounded-3xl p-7 space-y-5">
                         <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white text-center">Editar Periodo</h2>
 
-                        <flux:input wire:model="ciclo_escolar" :label="__('Ciclo escolar')" type="text" placeholder="2020-2023"   autocomplete="ciclo_escolar" />
+                        <flux:input  badge="Requerido" wire:model="ciclo_escolar" :label="__('Ciclo escolar')" type="text" placeholder="2020-2023"   autocomplete="ciclo_escolar" />
 
-                        <flux:select wire:model="cuatrimestre_id" :label="__('Cuatrimestre')">
+                        <flux:select  badge="Requerido" wire:model.live="cuatrimestre_id" :label="__('Cuatrimestre')">
                             <flux:select.option value="0" >--Selecciona un cuatrimestre--</flux:select.option>
                             @foreach ($cuatrimestres as $cuatrimestre)
                             <flux:select.option value="{{ $cuatrimestre->id }}" >{{ $cuatrimestre->cuatrimestre }} ° CUATRIMESTRE</flux:select.option>
                             @endforeach
                         </flux:select>
 
-                        <flux:select wire:model="generacion_id" :label="__('Generación')">
+                          <flux:input  badge="Requerido* Selecciona un cuatrimestre" variant="filled" readonly type="text" wire:model="mesesPeriodo" :label="__('Meses')"  value="{{$mesesPeriodo}}" />
+
+                        <flux:select  badge="Requerido" wire:model="generacion_id" :label="__('Generación')">
                             <flux:select.option value="0" >--Selecciona una generación--</flux:select.option>
                             @foreach ($generaciones as $generacion)
                             <flux:select.option value="{{ $generacion->id }}" >{{ $generacion->generacion }}</flux:select.option>
                             @endforeach
                         </flux:select>
 
-                        <flux:select wire:model="mes_id" :label="__('Mes')">
-                            <flux:select.option value="0" >--Selecciona un mes--</flux:select.option>
-                            @foreach ($meses as $mes)
-                            <flux:select.option value="{{ $mes->id }}" >{{ $mes->meses }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
 
                         <flux:input wire:model="inicio_periodo" :label="__('Inicio del periodo')" type="date"   autocomplete="fecha_inicio" />
 

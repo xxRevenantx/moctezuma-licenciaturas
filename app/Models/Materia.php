@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Models;
+
+use App\Observers\MateriaObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+
+#[ObservedBy(MateriaObserver::class)]
+class Materia extends Model
+{
+    /** @use HasFactory<\Database\Factories\MateriaFactory> */
+    use HasFactory;
+
+    protected $fillable = [
+        'nombre',
+        'slug',
+        'clave',
+        'creditos',
+        'cuatrimestre_id',
+        'licenciatura_id',
+        'orden'
+    ];
+}

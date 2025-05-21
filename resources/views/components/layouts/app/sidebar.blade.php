@@ -70,6 +70,12 @@
                         wire:navigate>{{ __('Crear Profesor') }}</flux:navlist.item>
 
                     </flux:navlist.group>
+                   <flux:navlist.group  :heading="__('Materias')"   >
+                        <flux:navlist.item icon="book-check" :href="route('admin.materia.index')"
+                        :current="request()->routeIs('admin.materia.index')"
+                        wire:navigate>{{ __('Materias') }}</flux:navlist.item>
+
+                    </flux:navlist.group>
 
                 </flux:navlist.group>
 

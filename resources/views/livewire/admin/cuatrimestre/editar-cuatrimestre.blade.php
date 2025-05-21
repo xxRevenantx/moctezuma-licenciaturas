@@ -22,15 +22,15 @@
                 <div class="flex flex-col items-center justify-center gap-5 mb-4 ">
 
                     <div class="w-120 border-2 border-gray-50 bg-white  dark:bg-neutral-800 shadow-md rounded-3xl p-7 space-y-5">
-                        <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white text-center">Editar Cuatrimestre <flux:badge color="indigo">{{ $cuatrimestre }} </flux:badge></h2>
+                        <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white text-center">Editar <flux:badge color="indigo">{{ $nombre_cuatrimestre }} </flux:badge></h2>
 
 
-                        <flux:input wire:model="cuatrimestre" :label="__('Cuatrimestre')" min="1"  type="number" placeholder="No. de cuatrimestre" autocomplete="cuatrimestre" />
+                        <flux:input  badge="Requerido" wire:model="cuatrimestre" :label="__('Cuatrimestre')" min="1"  type="number" placeholder="No. de cuatrimestre" autocomplete="cuatrimestre" />
 
-                         <flux:input wire:model="nombre_cuatrimestre" :label="__('Nombre Cuatrimestre')" type="text" placeholder="Nombre de cuatrimestre" autocomplete="nombre_cuatrimestre" />
+                         <flux:input  badge="Requerido" wire:model.live="nombre_cuatrimestre" :label="__('Nombre Cuatrimestre')" type="text" placeholder="Nombre de cuatrimestre" autocomplete="nombre_cuatrimestre" />
 
 
-                        <flux:select  label="Selecciona los meses" wire:model.live="mes_id">
+                        <flux:select  badge="Requerido"  label="Selecciona los meses" wire:model.live="mes_id">
                             <flux:select.option value="0">--Selecciona los meses--</flux:select.option>
                             @foreach($meses as $mes)
 

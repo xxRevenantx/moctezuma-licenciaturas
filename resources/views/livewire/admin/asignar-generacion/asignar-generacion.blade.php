@@ -40,7 +40,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
 
 
-                    <flux:select  label="Selecciona una licenciatura" wire:model="licenciatura_id">
+                    <flux:select  badge="Requerido" label="Selecciona una licenciatura" wire:model="licenciatura_id">
                         <flux:select.option value="0">--Selecciona una licenciatura--</flux:select.option>
                         @foreach($licenciaturas as $licenciatura)
 
@@ -49,14 +49,14 @@
                     </flux:select>
 
 
-                    <flux:select label="Selecciona una generación" wire:model="generacion_id">
+                    <flux:select  badge="Requerido" label="Selecciona una generación" wire:model="generacion_id">
                         <flux:select.option value="0">--Selecciona una generación--</flux:select.option>
                         @foreach($generaciones as $generacion)
                             <flux:select.option value="{{ $generacion->id }}">{{ $generacion->generacion }}</flux:select.option>
                         @endforeach
                     </flux:select>
 
-                    <flux:select   label="Selecciona una modalidad" wire:model="modalidad_id">
+                    <flux:select  badge="Requerido"   label="Selecciona una modalidad" wire:model="modalidad_id">
                         <flux:select.option value="0">--Selecciona una modalidad--</flux:select.option>
                         @foreach($modalidades as $modalidad)
                             <flux:select.option value="{{ $modalidad->id }}">{{ $modalidad->nombre }}</flux:select.option>

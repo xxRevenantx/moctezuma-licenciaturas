@@ -38,7 +38,7 @@
         <form wire:submit.prevent="crearGeneracion" class="space-y-4 mt-4  p-2">
             <flux:field>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                    <flux:input wire:model="generacion" :label="__('Generación')" type="text" placeholder="2020-2023" autofocus autocomplete="titulo" />
+                    <flux:input  badge="Requerido" wire:model="generacion" :label="__('Generación')" type="text" placeholder="2020-2023" autofocus autocomplete="titulo" />
                     <div class="flex items-center gap-4 md:mt-7">
                         <div class="flex items-center">
                             <flux:button variant="primary" type="submit" class="w-full cursor-pointer">{{ __('Guardar') }}</flux:button>

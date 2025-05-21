@@ -18,7 +18,30 @@ class CrearPeriodo extends Component
     public $inicio_periodo;
     public $termino_periodo;
 
+    public $mesesPeriodo;
 
+
+
+
+
+     public function updated($propertyName)
+    {
+
+            if ($propertyName === 'cuatrimestre_id') {
+                $cuatrimestre = Cuatrimestre::find($this->cuatrimestre_id);
+                if ($cuatrimestre && $cuatrimestre->mes && $cuatrimestre->mes->meses) {
+                    $this->mesesPeriodo = $cuatrimestre->mes->meses;
+                    $this->mes_id = $cuatrimestre->mes->id;
+                } else {
+                    $this->mesesPeriodo = "";
+                    $this->mes_id = null;
+                }
+            }
+
+            // dd($this->mesesPeriodo);
+
+
+    }
 
 
     public function crearPeriodo(){
@@ -26,6 +49,7 @@ class CrearPeriodo extends Component
             'ciclo_escolar' => 'required|string|max:9',
             'cuatrimestre_id' => 'required|exists:cuatrimestres,id',
             'generacion_id' => 'required|exists:generaciones,id',
+            'mesesPeriodo' => 'required|exists:meses,meses',
             'mes_id' => 'required|exists:meses,id',
             'inicio_periodo' => 'nullable|date',
             'termino_periodo' => 'nullable|date|after_or_equal:inicio_periodo',
@@ -37,6 +61,8 @@ class CrearPeriodo extends Component
             'cuatrimestre_id.exists' => 'El cuatrimestre seleccionado no es válido.',
             'generacion_id.required' => 'La generación es obligatoria.',
             'generacion_id.exists' => 'La generación seleccionada no es válida.',
+            'mesesPeriodo.required' => 'El mes es obligatorio.',
+            'mesesPeriodo.exists' => 'El mes seleccionado no es válido.',
             'mes_id.required' => 'El mes es obligatorio.',
             'mes_id.exists' => 'El mes seleccionado no es válido.',
             'inicio_periodo.required' => 'La fecha de inicio es obligatoria.',
@@ -63,9 +89,6 @@ class CrearPeriodo extends Component
         }
 
 
-
-
-
         Periodo::create([
             'ciclo_escolar' => trim($this->ciclo_escolar),
             'cuatrimestre_id' => $this->cuatrimestre_id,
@@ -79,6 +102,7 @@ class CrearPeriodo extends Component
             'ciclo_escolar',
             'cuatrimestre_id',
             'generacion_id',
+            'mesesPeriodo',
             'mes_id',
             'inicio_periodo',
             'termino_periodo',
@@ -92,17 +116,13 @@ class CrearPeriodo extends Component
             'position' => 'top-end',
         ]);
 
-
-
-
     }
 
     public function render()
     {
+        $generaciones = Generacion::where('activa', 'true')->get();
         $cuatrimestres = Cuatrimestre::all();
-        $generaciones = Generacion::all();
-        $meses = Mes::all();
 
-        return view('livewire.admin.periodo.crear-periodo', compact('cuatrimestres', 'generaciones', 'meses'));
+        return view('livewire.admin.periodo.crear-periodo', compact('generaciones', 'cuatrimestres'));
     }
 }
