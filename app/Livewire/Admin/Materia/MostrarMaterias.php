@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Materia;
 
+use App\Exports\MateriaExport;
 use App\Imports\MateriaImport;
 use App\Models\Cuatrimestre;
 use App\Models\Licenciatura;
@@ -150,6 +151,34 @@ class MostrarMaterias extends Component
         $this->dispatch('refreshMaterias');
 
     }
+
+    //Exportar materias
+    public function exportarMaterias()
+    {
+    $materias_filtrada = Materia::with(['cuatrimestre', 'licenciatura'])
+        ->when($this->filtrar_licenciatura, function ($query) {
+            $query->where('licenciatura_id', $this->filtrar_licenciatura);
+        })
+        ->when($this->filtrar_cuatrimestre, function ($query) {
+            $query->where('cuatrimestre_id', $this->filtrar_cuatrimestre);
+        })
+        ->when($this->filtrar_calificable, function ($query) {
+            $query->where('calificable', $this->filtrar_calificable);
+        })
+        ->when($this->search, function ($query) {
+            $query->where(function ($q) {
+                $q->where('nombre', 'like', '%' . trim($this->search) . '%')
+                    ->orWhere('slug', 'like', '%' . trim($this->search) . '%')
+                    ->orWhere('clave', 'like', '%' . trim($this->search) . '%');
+            });
+        })
+        ->orderBy('licenciatura_id', 'asc')
+        ->orderBy('cuatrimestre_id', 'asc')
+        ->orderBy('clave', 'asc')
+        ->get();
+        return Excel::download(new MateriaExport($materias_filtrada), 'materias.xlsx');
+    }
+
 
      #[On('refreshMaterias')]
     public function render()

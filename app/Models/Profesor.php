@@ -30,6 +30,9 @@ class Profesor extends Model
     {
         return $this->belongsTo(User::class);
     }
-
+    public function asignacionMaterias()
+    {
+        return $this->hasMany(AsignacionMateria::class);
+    }
 
 }

@@ -68,9 +68,9 @@ class EditarMateria extends Component
 
         $materia = Materia::findOrFail($this->materiaId);
         $materia->update([
-            "nombre" => $this->nombre,
-            "slug" => $this->slug,
-            "clave" => $this->clave,
+            "nombre" => trim($this->nombre),
+            "slug" => trim($this->slug),
+            "clave" => trim($this->clave),
             "creditos" => $this->creditos,
             "licenciatura_id" => $this->licenciatura_id,
             "cuatrimestre_id" => $this->cuatrimestre_id,

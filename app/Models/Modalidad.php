@@ -28,6 +28,12 @@ class Modalidad extends Model
     }
 
 
+    // Asignacion Materias
+    public function asignacionMaterias()
+    {
+        return $this->hasMany(AsignacionMateria::class);
+    }
+
 
 
 

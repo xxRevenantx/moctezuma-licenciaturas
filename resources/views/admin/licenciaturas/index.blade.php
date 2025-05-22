@@ -19,10 +19,14 @@
             @case('inscripcion')
                 <livewire:admin.licenciaturas.submodulo.inscripcion :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
                 @break;
-
             @case('matricula')
                 <livewire:admin.licenciaturas.submodulo.matricula :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
                 @break;
+
+            @case('asignacion-de-materias')
+                <livewire:admin.licenciaturas.submodulo.asignar-materia :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
+                @break;
+
             @case('bajas')
                 <livewire:admin.licenciaturas.submodulo.baja :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
                 @break;

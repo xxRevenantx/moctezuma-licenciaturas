@@ -65,9 +65,9 @@ class CrearMateria extends Component
 
          // CREAR MATERIA
         Materia::create([
-            'nombre' => $this->nombre,
-            'slug' => $this->slug,
-            'clave' => $this->clave,
+            'nombre' => trim($this->nombre),
+            'slug' => trim($this->slug),
+            'clave' => trim($this->clave),
             'creditos' => $this->creditos,
             'cuatrimestre_id' => $this->cuatrimestre_id,
             'licenciatura_id' => $this->licenciatura_id,
