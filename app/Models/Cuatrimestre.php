@@ -29,4 +29,13 @@ class Cuatrimestre extends Model
     {
         return $this->hasMany(Inscripcion::class);
     }
+
+    public function materias()
+    {
+        return $this->hasMany(Materia::class);
+    }
+
+
+
+
 }

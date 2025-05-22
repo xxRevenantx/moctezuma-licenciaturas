@@ -24,4 +24,18 @@ class Materia extends Model
         'orden',
         'calificable',
     ];
+
+
+    public function cuatrimestre()
+    {
+        return $this->belongsTo(Cuatrimestre::class);
+    }
+
+    public function licenciatura()
+    {
+        return $this->belongsTo(Licenciatura::class);
+    }
+
+
+
 }

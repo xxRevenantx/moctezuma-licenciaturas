@@ -15,6 +15,7 @@ class CrearMateria extends Component
     public $slug;
     public $clave;
     public $creditos;
+    public $calificable;
     public $cuatrimestre_id;
     public $licenciatura_id;
 
@@ -41,18 +42,24 @@ class CrearMateria extends Component
         $this->validate([
             'nombre' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:materias,slug',
-            'clave' => 'nullable|string|max:255|unique:materias,clave',
-            'creditos' => 'nullable|integer',
-            'cuatrimestre_id' => 'nullable|exists:cuatrimestres,id',
-            'licenciatura_id' => 'nullable|exists:licenciaturas,id',
+            'clave' => 'required|string|max:255|unique:materias,clave',
+            'calificable' => 'required|in:true,false',
+            'creditos' => 'required|integer',
+            'cuatrimestre_id' => 'required|exists:cuatrimestres,id',
+            'licenciatura_id' => 'required|exists:licenciaturas,id',
+
         ],[
-            'nombre.required' => 'El nombre de la materia es obligatorio',
-            'slug.required' => 'La url es obligatoria',
-            'slug.unique' => 'La url ya existe',
-            'clave.unique' => 'La clave ya existe',
-            'creditos.integer' => 'Los creditos deben ser un número entero',
-            'cuatrimestre_id.exists' => 'El cuatrimestre no existe',
-            'licenciatura_id.exists' => 'La licenciatura no existe',
+            'nombre.required' => 'El nombre de la materia es requerido',
+            'slug.required' => 'El slug de la materia es requerido',
+            'slug.unique' => 'El slug de la materia ya existe',
+            'clave.required' => 'La clave de la materia es requerida',
+            'clave.unique' => 'La clave de la materia ya existe',
+            'creditos.required' => 'Los creditos son requeridos',
+            'cuatrimestre_id.required' => 'El cuatrimestre es requerido',
+            'licenciatura_id.required' => 'La licenciatura es requerida',
+            'calificable.required' => 'El campo calificable es requerido',
+            'calificable.in' => 'El campo calificable debe ser true o false',
+            'creditos.integer' => 'Los creditos deben ser un numero entero',
         ]);
 
 

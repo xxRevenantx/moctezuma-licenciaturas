@@ -67,6 +67,12 @@
                         <flux:input type="number" badge="Requerido" label="Créditos" placeholder="Créditos" wire:model="creditos" />
 
 
+                        <flux:select badge="Requerido" label="Calificable" wire:model="calificable">
+                            <option value="">--Selecciona una opción--</option>
+                             <option value="true">Sí</option>
+                             <option value="false">No</option>
+                        </flux:select>
+
 
                         <div class="flex items-center gap-4 mt-3">
                             <div class="flex items-center">

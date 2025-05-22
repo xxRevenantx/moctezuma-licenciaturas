@@ -94,6 +94,8 @@
 
             </div>
             </form>
+
+
             </div>
 
             <table class="min-w-full border-collapse border border-gray-200 table-striped">
