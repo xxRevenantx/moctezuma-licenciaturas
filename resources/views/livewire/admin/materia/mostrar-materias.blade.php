@@ -1,10 +1,10 @@
 <div>
 
     <div x-data ="{
-        destroyPeriodo(id) {
+        destroyMateria(id) {
                 Swal.fire({
                     title: '¿Estás seguro?',
-                    text: `Este periodo se eliminará de forma permanente`,
+                    text: `Esta materia se eliminará de forma permanente`,
                     icon: 'info',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
@@ -13,7 +13,7 @@
                     confirmButtonText: 'Sí, eliminar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        @this.call('eliminarPeriodo', id);
+                        @this.call('eliminarMateria', id);
 
                     }
                 })
@@ -29,6 +29,35 @@
                <span>Filtrar por:</span>
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2  p-2">
+
+                  <flux:field>
+                    <flux:label>Licenciatura</flux:label>
+                    <flux:select wire:model.live="filtrar_licenciatura" >
+                        <flux:select.option value="">--Selecciona una licenciatura---</flux:select.option>
+                        @foreach($licenciaturas as $licenciatura)
+                            <flux:select.option value="{{ $licenciatura->id }}">{{ $licenciatura->nombre }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>Cuatrimestre</flux:label>
+                    <flux:select wire:model.live="filtrar_cuatrimestre" >
+                        <flux:select.option value="">--Selecciona un cuatrimestre---</flux:select.option>
+                        @foreach($cuatrimestres as $cuatrimestre)
+                            <flux:select.option value="{{ $cuatrimestre->id }}">{{ $cuatrimestre->nombre_cuatrimestre }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>Calificable</flux:label>
+                    <flux:select wire:model.live="filtrar_calificable" >
+                        <flux:select.option value="">--Selecciona una opción---</flux:select.option>
+                        <flux:select.option value="true">Sí</flux:select.option>
+                        <flux:select.option value="false">No</flux:select.option>
+                    </flux:select>
+                </flux:field>
 
 
             </div>
@@ -94,10 +123,10 @@
 
 
             </div>
-
+{{--
             <form wire:submit.prevent="importarMaterias" >
 
-               <input type="file" wire:model="archivo" accept=".xlsx,.xls,.csv" class="mb-2">
+
                 @error('archivo')
                     <div class="text-red-500 text-sm mb-2">{{ $message }}</div>
                 @enderror
@@ -106,7 +135,7 @@
 
                 <div class="flex gap-3">
 
-                {{-- <div class="relative">
+                <div class="relative">
                     <label title="Click para importar" for="button2" class="cursor-pointer flex items-center gap-4 px-5 py-2.5 before:border-gray-400/60 hover:before:border-gray-300 group before:bg-gray-100 before:absolute before:inset-0 before:rounded-lg before:border before:border-dashed before:transition-transform before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95">
                       <div class="w-max relative">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -123,19 +152,22 @@
                      </label>
                     <input hidden="" accept=".xlsx,.xls,.csv"  wire:model="archivo" type="file" id="button2">
 
-                </div> --}}
+                </div>
 
                 <flux:button variant="primary" type="submit" >Importar</flux:button>
 
             </div>
-            </form>
-
+            </form> --}}
+           <div class="my-3">
+             {{ $materias->links() }}
+           </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full border-collapse border border-gray-200 table-striped">
                     <thead>
                         <tr>
                             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 cursor-pointer">#</th>
                             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Materia</th>
+                            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Url</th>
                             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Clave</th>
                             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Créditos</th>
                             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Cuatrimestre</th>
@@ -144,13 +176,15 @@
                         </tr>
                     </thead>
                     <tbody>
+
+
                         @if($materias->isEmpty())
                         <tr>
                             <td colspan="8" class="border px-4 py-2 text-center">No hay materias disponibles.</td>
                         </tr>
                         @else
                         @php
-                        $grouped = $materias->groupBy(fn($item) => $item->licenciatura);
+                        $grouped = $materias->groupBy(fn($item) => $item->licenciatura->nombre);
                         @endphp
 
                         @foreach($grouped as $licenciaturaNombre => $items)
@@ -162,11 +196,18 @@
                         @foreach($items as $key=>  $materia)
                         <tr>
                             <td class="border px-4 py-2 text-center">{{ $key+1}}</td>
-                            <td class="border px-4 py-2 text-center">{{ $materia->nombre }}</td>
+                            <td class="border px-4 py-2 ">{{ $materia->nombre }}</td>
+                            <td class="border px-4 py-2 ">{{ $materia->slug }}</td>
                             <td class="border px-4 py-2 text-center">{{ $materia->clave}}</td>
                             <td class="border px-4 py-2 text-center">{{ $materia->creditos}}</td>
-                            <td class="border px-4 py-2 text-center">{{ $materia->cuatrimestre}}</td>
-                            <td class="border px-4 py-2 text-center">{{ $materia->Calificable}}</td>
+                            <td class="border px-4 py-2 text-center">{{ $materia->cuatrimestre->nombre_cuatrimestre}}</td>
+                            <td class="border px-4 py-2 text-center">
+                                @if($materia->calificable == "true")
+                                <flux:badge color="green">Sí</flux:badge>
+                                @else
+                                <flux:badge color="red">No</flux:badge>
+                                @endif
+                            </td>
 
 
                             <td class="border px-4 py-2">

@@ -44,7 +44,7 @@
 
 
                         <flux:input type="text" badge="Requerido" label="Materia" placeholder="Materia" wire:model.live="nombre" />
-                        <flux:input type="text" variant="filled" readonly badge="Requerido" label="url" placeholder="url" wire:model="slug" />
+                        <flux:input type="text" variant="filled"  badge="Requerido" label="url" placeholder="url" wire:model="slug" />
 
 
                         <flux:select badge="Requerido" label="Licenciatura" placeholder="Selecciona una licenciatura" wire:model="licenciatura_id">

@@ -83,6 +83,7 @@ class EditarGeneracion extends Component
     public function cerrarModal()
     {
         $this->reset(['open', 'asignacionId', 'licenciatura_id', 'modalidad_id', 'generacion_id']);
+          $this->resetValidation();
     }
 
 

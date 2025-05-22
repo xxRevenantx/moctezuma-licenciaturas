@@ -60,6 +60,7 @@ class EditarGeneracion extends Component
 
             $this->reset(['open', 'generacionId', 'generacion', 'activa']);
             $this->dispatch('refreshGeneracion');
+
         }
     }
     public function cerrarModal()

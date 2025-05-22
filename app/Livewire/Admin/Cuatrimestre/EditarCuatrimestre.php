@@ -75,6 +75,7 @@ class EditarCuatrimestre extends Component
     public function cerrarModal()
     {
         $this->reset(['open', 'cuatrimestreId', 'cuatrimestre', 'mes_id']);
+          $this->resetValidation();
     }
 
 

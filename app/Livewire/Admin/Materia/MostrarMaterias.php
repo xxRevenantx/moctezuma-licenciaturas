@@ -3,72 +3,95 @@
 namespace App\Livewire\Admin\Materia;
 
 use App\Imports\MateriaImport;
+use App\Models\Cuatrimestre;
+use App\Models\Licenciatura;
 use App\Models\Materia;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MostrarMaterias extends Component
 {
     use WithFileUploads;
+    use WithPagination;
 
     public $search = '';
     public $erroresImportacion;
 
     public $archivo;
 
+    public $filtrar_licenciatura;
+    public $filtrar_cuatrimestre;
+    public $filtrar_calificable;
+
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
      public function getMateriasProperty()
     {
         $query = Materia::with(['cuatrimestre', 'licenciatura']);
 
-        // if ($this->filtrar_cuatrimestre) {
-        //     $query->where('cuatrimestre_id', $this->filtrar_cuatrimestre);
-        // }
+
+        if ($this->filtrar_licenciatura) {
+            $query->where('licenciatura_id', $this->filtrar_licenciatura);
+        }
 
 
+        if ($this->filtrar_cuatrimestre) {
+            $query->where('cuatrimestre_id', $this->filtrar_cuatrimestre);
+        }
 
-        if ($this->search) {
-            $query->where('ciclo_escolar', 'like', '%' . $this->search . '%')
-                ->orWhereHas('cuatrimestre', function ($query) {
-                    $query->where('cuatrimestre', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('generacion', function ($query) {
-                    $query->where('generacion', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('mes', function ($query) {
-                    $query->where('meses', 'like', '%' . $this->search . '%');
-                });
+
+        if ($this->filtrar_calificable == 'true') {
+            $query->where('calificable', "true");
+        } elseif ($this->filtrar_calificable == 'false') {
+            $query->where('calificable', "false");
         }
 
 
 
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('nombre', 'like', '%' . trim($this->search) . '%')
+                    ->orWhere('slug', 'like', '%' . trim($this->search) . '%')
+                    ->orWhere('clave', 'like', '%' . trim($this->search) . '%');
+            });
+
+        }
+
         return $query
-            ->orderBy('order', 'asc')
+            ->orderBy('licenciatura_id', 'asc')
+            ->orderBy('cuatrimestre_id', 'asc')
+            ->orderBy('clave', 'asc')
             ->paginate(20);
     }
 
 
     public function importarMaterias()
     {
-        dd($this->archivo);
+
         $this->validate([
             'archivo' => 'required|file|mimes:xlsx,xls,csv',
         ]);
-
-
 
         $import = new MateriaImport;
 
         try {
 
-
        Excel::import($import, $this->archivo->getRealPath());
-
 
 
             if ($import->failures()->isNotEmpty()) {
 
                 $this->erroresImportacion = $import->failures()->toArray();
+
+                dd($this->erroresImportacion);
 
                 $this->dispatch('swal', [
                     'title' => 'Errores en la importación. Verifica el archivo.',
@@ -95,10 +118,46 @@ class MostrarMaterias extends Component
 
     }
 
+    public function limpiarFiltros()
+    {
+        $this->reset([
+            'search',
+            'filtrar_licenciatura',
+            'filtrar_cuatrimestre',
+            'filtrar_calificable',
+        ]);
+    }
+
+    // Eliminar materia
+    public function eliminarMateria($id){
+
+        $materia = Materia::findOrFail($id);
+        if ($materia) {
+            $materia->delete();
+            $this->dispatch('swal', [
+                'title' => '¡Materia eliminada correctamente!',
+                'icon' => 'success',
+                'position' => 'top-end',
+            ]);
+        } else {
+            $this->dispatch('swal', [
+                'title' => '¡Error al eliminar la materia!',
+                'icon' => 'error',
+                'position' => 'top-end',
+            ]);
+        }
+
+        $this->dispatch('refreshMaterias');
+
+    }
+
+     #[On('refreshMaterias')]
     public function render()
     {
         return view('livewire.admin.materia.mostrar-materias', [
-            'materias' => $this->materias
+            'materias' => $this->materias,
+            'licenciaturas' => Licenciatura::all(),
+            'cuatrimestres' => Cuatrimestre::all(),
         ]);
     }
 }

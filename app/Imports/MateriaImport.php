@@ -57,8 +57,8 @@ use Importable;
     {
         return [
             '*.nombre' => ['required', 'string', 'max:255'],
-            '*.slug' => ['required', 'string', 'max:255', 'unique:materias,slug'],
-            '*.clave' => ['required', 'string', 'max:255', 'unique:materias,clave'],
+            '*.slug' => ['required', 'string', 'max:255'],
+            '*.clave' => ['required', 'string', 'max:255'],
             '*.creditos' => ['required', 'integer'],
             '*.cuatrimestre_id' => ['required', 'exists:cuatrimestres,id'],
             '*.licenciatura_id' => ['required', 'exists:licenciaturas,id'],
@@ -67,19 +67,6 @@ use Importable;
         ];
     }
 
-    public function customValidationMessages(): array
-    {
-        return [
-            '*.nombre.required' => 'El campo nombre es obligatorio.',
-            '*.slug.required'     => 'El campo slug es obligatorio.',
-            '*.clave.required'       => 'El campo clave es obligatorio.',
-            '*.creditos.required'       => 'El campo creditos es obligatorio.',
-            '*.cuatrimestre_id.required'       => 'El campo cuatrimestre_id es obligatorio.',
-            '*.licenciatura_id.required'       => 'El campo licenciatura_id es obligatorio.',
-            '*.orden.required'       => 'El campo orden es obligatorio.',
-            '*.calificable.required'       => 'El campo calificable es obligatorio.',
-        ];
-    }
 
     public static function beforeImport(BeforeImport $event)
     {
