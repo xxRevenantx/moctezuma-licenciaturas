@@ -64,30 +64,48 @@ class AsignarMateria extends Component
 
 
     // ASIGNAR PROFESOR A MATERIA
-    public function updatedProfesorSeleccionado($profesor_id, $materia_id)
-    {
-        $materia = Materia::findOrFail($materia_id);
-        $cuatrimestre_id = $materia ? $materia->cuatrimestre_id : null;
 
-            AsignacionMateria::updateOrCreate(
-                [
-                    'materia_id' => $materia_id,
+    public function asignarProfesor($materia_id, $profesor_id)
+{
+    // Valida que el id del profesor sea numérico o nulo (por si selecciona 'vacío')
+    $profesor_id = is_numeric($profesor_id) ? $profesor_id : null;
+
+    // Busca la materia para obtener el cuatrimestre
+    $materia = Materia::findOrFail($materia_id);
+
+    // Crea o actualiza la asignación en la tabla asignacion_materias
+    AsignacionMateria::updateOrCreate(
+        [
+            'materia_id' => $materia_id,
+            'licenciatura_id' => $this->licenciatura->id,
+            'modalidad_id' => $this->modalidad->id,
+            'cuatrimestre_id' => $materia->cuatrimestre_id,
+        ],
+        [
+            'profesor_id' => $profesor_id,
+        ]
+    );
+
+    // Actualiza el arreglo local para mantener el select seleccionado al recargar el componente
+    $this->profesor_seleccionado[$materia_id] = $profesor_id;
+}
+
+        public function cargarProfesoresAsignados($materias)
+        {
+            foreach ($materias as $materia) {
+                $asignacion = AsignacionMateria::where([
+                    'materia_id' => $materia->id,
                     'licenciatura_id' => $this->licenciatura->id,
                     'modalidad_id' => $this->modalidad->id,
-                    'cuatrimestre_id' => $cuatrimestre_id,
-                ],
-                [
-                    'profesor_id' => $profesor_id,
-                ]
-            );
+                    'cuatrimestre_id' => $materia->cuatrimestre_id,
+                ])->first();
 
-             $this->dispatch('swal', [
-            'title' => '¡Materia asignada correctamente!',
-            'icon' => 'success',
-            'position' => 'top-end',
-         ]);
-
+                $this->profesor_seleccionado[$materia->id] = $asignacion ? $asignacion->profesor_id : '';
+            }
         }
+
+
+
 
 
 
@@ -106,32 +124,17 @@ class AsignarMateria extends Component
 
     }
 
-    public function cargarProfesoresAsignados($materias)
-    {
-        foreach ($materias as $materia) {
-            $asignacion = \App\Models\AsignacionMateria::where([
-                'materia_id' => $materia->id,
-                'licenciatura_id' => $this->licenciatura->id,
-                'modalidad_id' => $this->modalidad->id,
-                'cuatrimestre_id' => $materia->cuatrimestre_id,
-            ])->first();
-
-            $this->profesor_seleccionado[$materia->id] = $asignacion ? $asignacion->profesor_id : '';
-        }
-    }
 
 
+public function render()
+{
+    $materias = $this->materias;
+    $this->cargarProfesoresAsignados($materias); // <--- siempre cargar en cada render
 
-    public function render()
-    {
+    return view('livewire.admin.licenciaturas.submodulo.asignar-materia', [
+        'materias' => $materias,
+    ]);
+}
 
-           $materias = $this->materias; // Así tienes la colección de materias de la página actual
 
-         $this->cargarProfesoresAsignados($materias);
-
-        return view('livewire.admin.licenciaturas.submodulo.asignar-materia', [
-             'materias' => $materias,
-
-        ]);
-    }
 }

@@ -101,7 +101,7 @@ function isColorLight($hexColor) {
                     }
                 @endphp
 
-                <flux:select
+                {{-- <flux:select
                     wire:model.live="profesor_seleccionado.{{ $materia->id }}"
                     style='{{ $color ? "background-color: $color; color: $textColor;" : "" }}'
                 >
@@ -111,7 +111,25 @@ function isColorLight($hexColor) {
                             {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }} {{ $profesor->nombre }}
                         </flux:select.option>
                     @endforeach
-                </flux:select>
+                </flux:select> --}}
+
+                    <select
+                        class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2 text-sm transition-colors bg-white dark:bg-neutral-800 dark:text-white"
+                        wire:change="asignarProfesor({{ $materia->id }}, $event.target.value)"
+                        style="{{ $color ? "background-color: $color; color: $textColor;" : "" }}"
+                    >
+                        <option value="">--Seleccionar profesor--</option>
+                        @foreach ($profesores as $profesor)
+                            <option value="{{ $profesor->id }}"
+                                @if(($profesor_seleccionado[$materia->id] ?? '') == $profesor->id) selected @endif>
+                                {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }} {{ $profesor->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+
+
+
+
 
 
                 </td>
@@ -121,6 +139,10 @@ function isColorLight($hexColor) {
 
             </tbody>
         </table>
+
+         <div class="my-3">
+          {{ $materias->links() }}
+      </div>
         </div>
         </div>
 </div>
