@@ -1,4 +1,27 @@
-<div>
+<div
+    x-data="{ loader: false }"
+    x-init="
+        window.addEventListener('recargar-pagina', () => {
+            loader = true;
+            setTimeout(() => window.location.reload(), 300);
+        });
+    "
+>
+
+   <!-- Loader Alpine/Livewire -->
+    <div
+        x-show="loader || $wire.__instance && $wire.__instance.__isLoading && $wire.__instance.__lastAction === 'asignarProfesor'"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 bg-opacity-30"
+        style="display: none;"
+    >
+        <div class="bg-white rounded-xl p-6 shadow-lg flex flex-col items-center">
+            <svg class="animate-spin h-10 w-10 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <span class="text-blue-700 font-semibold text-lg">Asignando profesor...</span>
+        </div>
+    </div>
 
     @php
 function isColorLight($hexColor) {
@@ -47,20 +70,21 @@ function isColorLight($hexColor) {
         <h3 class="mt-5">Buscar Materia:</h3>
         <flux:input type="text" wire:model.live="search" placeholder="Buscar Materia" class="p-2 mb-4 w-full" />
 
-                <div wire:loading.delay
-                wire:target="search, filtrar_generacion, filtrar_foraneo"
-                       class="flex justify-center">
-                    <svg class="animate-spin h-20 w-20 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                    </svg>
-                 </div>
-
     <div wire:loading.remove
                  wire:target="search">
     <div class="my-3">
           {{ $materias->links() }}
     </div>
+
+    <div wire:loading.flex wire:target="asignarProfesor" class="justify-center items-center fixed top-0 left-0 w-full h-full bg-black bg-opacity-30 z-50">
+    <div class="bg-white rounded-xl p-6 shadow-lg flex flex-col items-center">
+        <svg class="animate-spin h-10 w-10 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <span class="text-blue-700 font-semibold text-lg">Asignando profesor...</span>
+    </div>
+</div>
      <table class="min-w-full border-collapse border border-gray-200 table-striped">
             <thead>
                 <tr>

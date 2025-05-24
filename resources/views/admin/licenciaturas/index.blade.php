@@ -27,6 +27,15 @@
                 <livewire:admin.licenciaturas.submodulo.asignar-materia :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
                 @break;
 
+            @case('horarios')
+                    @if ($slug_modalidad == 'escolarizada')
+                        <livewire:admin.licenciaturas.submodulo.horario-escolarizada :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
+                    @else
+                        <livewire:admin.licenciaturas.submodulo.horario-semiescolarizada :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
+                    @endif
+                @break;
+
+
             @case('bajas')
                 <livewire:admin.licenciaturas.submodulo.baja :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
                 @break;

@@ -35,4 +35,10 @@ class Profesor extends Model
         return $this->hasMany(AsignacionMateria::class);
     }
 
+    // Horarios
+    public function horarios()
+    {
+        return $this->hasMany(Horario::class);
+    }
+
 }

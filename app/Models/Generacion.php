@@ -34,5 +34,10 @@ class Generacion extends Model
     }
 
 
+    // Horarios
+    public function horarios()
+    {
+        return $this->hasMany(Horario::class);
+    }
 
 }
