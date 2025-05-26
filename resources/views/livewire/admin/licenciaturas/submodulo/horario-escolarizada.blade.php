@@ -1,67 +1,91 @@
 <div>
 
 
-    <div class="my-3">
-        <form wire:submit.prevent="guardarHora" class="grid grid-cols-5 gap-4 mt-5">
-            <div class="col-span-2">
-                <flux:label>Agregar Hora</flux:label>
-                <flux:select wire:model.live="hora">
-                   <flux:select.option value="">--Selecciona una hora--</flux:select.option>
-                    @foreach($horasDisponibles as $hora)
-                        <option value="{{ $hora }}">{{ $hora }}</option>
+        <h3 class="mt-5 flex items-center gap-1 text-2xl font-bold text-gray-800 dark:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+        </svg>
+       <span>Filtrar por:</span>
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  p-2 mb-4">
 
-                    @endforeach
-                </flux:select>
-            </div>
-            <div class="flex items-end">
-                <flux:button variant="primary" class="mt-2" type="submit">Agregar</flux:button>
-            </div>
-        </form>
+      <flux:field>
+        <flux:label>Generación</flux:label>
+        <flux:select wire:model.live="filtrar_generacion">
+            <flux:select.option value="">--Selecciona una generación---</flux:select.option>
+            @foreach($generaciones as $generacion)
+                <flux:select.option value="{{ $generacion->generacion_id }}">{{ $generacion->generacion->generacion }}</flux:select.option>
+            @endforeach
+        </flux:select>
+      </flux:field>
+
+
+      <flux:field>
+        <flux:label>Cuatrimestre</flux:label>
+        <flux:select wire:model.live="filtrar_cuatrimestre">
+            <flux:select.option value="">--Selecciona una cuatrimestre---</flux:select.option>
+            @foreach($cuatrimestres as $cuatrimestre)
+                <flux:select.option value="{{ $cuatrimestre->cuatrimestre_id }}">{{ $cuatrimestre->cuatrimestre->nombre_cuatrimestre}}</flux:select.option>
+            @endforeach
+        </flux:select>
+      </flux:field>
+
+
+
+        <flux:field>
+              <flux:label>Filtros</flux:label>
+                    <flux:button wire:click="limpiarFiltros" variant="primary">
+                    <div class="flex items-center ">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+                        </svg>
+
+                        <span>Limpiar Filtros</span>
+                        </div>
+                </flux:button>
+        </flux:field>
+
+
     </div>
-
-
 
     <div>
-        <div>
-            <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
-                {{-- DESCARGAR HORARIO --}}
-                {{--
-                <a target="_blank" href="{{route('admin.horario', ["level" => $level_id, "grade" => $grade_id, "group" => $grupo->id] )}}" class="inline-block px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Descargar horario
-                </a>
-                --}}
 
-                <table class="table-auto w-full border-collapse border border-gray-300 mt-4">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="border border-gray-300 px-4 py-2">Hora</th>
-                            <th class="border border-gray-300 px-4 py-2">Lunes</th>
-                            <th class="border border-gray-300 px-4 py-2">Martes</th>
-                            <th class="border border-gray-300 px-4 py-2">Miércoles</th>
-                            <th class="border border-gray-300 px-4 py-2">Jueves</th>
-                            <th class="border border-gray-300 px-4 py-2">Viernes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{-- @foreach($horario as $hora)
-                            <tr>
-                                <td class="border border-gray-300 px-4 py-2">{{ $hora['hora'] }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $hora['lunes'] }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $hora['martes'] }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $hora['miercoles'] }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $hora['jueves'] }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $hora['viernes'] }}</td>
-                            </tr>
-                        @endforeach --}}
+     <table class="min-w-full border-collapse border border-gray-200 table-striped">
+        <thead class="bg-gray-100 dark:bg-gray-700">
+            <tr>
+                <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Hora</th>
+                @foreach ($dias as $dia)
+                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">{{ $dia->dia }}</th>
+                @endforeach
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
 
-                    </tbody>
-                </table>
+            @foreach ($horas as $hora)
+                <tr>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-b">{{ $hora }}</td>
+                    @foreach ($dias as $dia)
+                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 border-b">
 
+                    <select
+                        wire:model="horario.{{ $dia->id }}.{{ $hora }}"
+                        wire:change="actualizarHorario('{{ $dia->id }}', '{{ $hora }}', $event.target.value)"
+                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-2 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    >
+                     <option value="0" class="text-gray-400">--Selecciona una opción--</option>
 
-            </div>
-        </div>
-    </div>
+                        @foreach ($materias as $materia)
+                            <option value="{{ $materia->id }}">
+                                {{ $materia->materia->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                    </td>
+                    @endforeach
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+
 </div>

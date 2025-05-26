@@ -23,7 +23,7 @@ return new class extends Migration
             $table->unsignedBigInteger('modalidad_id')->nullable();
             $table->unsignedBigInteger('generacion_id')->nullable();
             $table->unsignedBigInteger('asignacion_materia_id')->nullable();
-            $table->unsignedBigInteger('profesor_id')->nullable();
+
 
 
             $table->foreign('dia_id')->references('id')->on('dias')->onDelete('cascade');
@@ -32,13 +32,8 @@ return new class extends Migration
             $table->foreign('modalidad_id')->references('id')->on('modalidades')->onDelete('cascade');
             $table->foreign('generacion_id')->references('id')->on('generaciones')->onDelete('cascade');
             $table->foreign('asignacion_materia_id')->references('id')->on('asignacion_materias')->onDelete('cascade');
-            $table->foreign('profesor_id')->references('id')->on('profesores')->onDelete('cascade');
 
             $table->timestamps();
-
-
-
-
         });
     }
 
