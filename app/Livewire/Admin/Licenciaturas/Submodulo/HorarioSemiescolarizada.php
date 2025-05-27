@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Licenciaturas\Submodulo;
 use App\Models\AsignacionMateria;
 use App\Models\AsignarGeneracion;
 use App\Models\Dia;
+use App\Models\Generacion;
 use App\Models\Horario;
 use App\Models\Licenciatura;
 use App\Models\Modalidad;
@@ -22,6 +23,7 @@ class HorarioSemiescolarizada extends Component
     public $horario = [];
 
     public $filtrar_generacion = null;
+    public $generacion_filtrada;
     public $filtrar_cuatrimestre = null;
     public $generaciones = [];
     public $cuatrimestres = [];
@@ -134,6 +136,11 @@ class HorarioSemiescolarizada extends Component
                 ->orderBy('id', 'desc')
                 ->limit(1)
                 ->get();
+
+            $this->generacion_filtrada = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
+                ->where('modalidad_id', $this->modalidad->id)
+                ->where('generacion_id', $this->filtrar_generacion)
+                ->first();
 
             $this->filtrar_cuatrimestre = null;
             $this->materias = [];

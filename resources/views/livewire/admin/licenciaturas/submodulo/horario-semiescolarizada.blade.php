@@ -70,19 +70,46 @@ function isColorLight($hexColor) {
 
         <div class="overflow-x-auto">
 
+       @if($filtrar_generacion && $filtrar_cuatrimestre)
+            <div class="flex justify-between items-center p-4 mb-4 text-sm text-gray-800 bg-gray-100 dark:bg-gray-700 dark:text-gray-200 rounded-lg" role="alert">
+              <div>
+                <strong>Filtros aplicados:</strong>
+                @if($filtrar_generacion)
+                    Generación: {{ $generacion_filtrada->generacion->generacion }} |
+                @endif
+                @if($filtrar_cuatrimestre)
+                    Cuatrimestre: {{ $filtrar_cuatrimestre }}
+                @endif
+            </div>
+                 <div>
 
-    <div class="mb-4 flex justify-end">
-        <form method="POST" action="#" target="_blank">
-            @csrf
-            <button type="submit"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded shadow transition-colors duration-150">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
-                </svg>
-                Descargar horario
-            </button>
-        </form>
-    </div>
+                    <form method="GET" action="{{ route('admin.pdf.horario-semiescolarizada') }}" target="_blank">
+
+                    <input type="hidden" name="licenciatura_id" value="{{ $licenciatura->id }}">
+                    <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
+                    <input type="hidden" name="filtrar_generacion" value="{{ $filtrar_generacion }}">
+                    <input type="hidden" name="filtrar_cuatrimestre" value="{{ $filtrar_cuatrimestre }}">
+
+
+                    <button type="submit" variant="primary" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                         <div class="flex items-center gap-1">
+                            <flux:icon.file-text/>
+                            <span>Horario PDF</span>
+                            </div>
+                    </button>
+                </form>
+
+
+                </div>
+
+
+            </div>
+
+
+        @endif
+
+
+
 
     <table class="min-w-full border-collapse border border-gray-200 table-striped">
     <thead class="bg-gray-100 dark:bg-gray-700">
