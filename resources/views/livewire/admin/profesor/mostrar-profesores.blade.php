@@ -131,6 +131,7 @@
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700  text-center"><input type="checkbox" wire:model.live="selectAll"></th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">#</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Foto</th>
+                        <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Color</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Nombre del profesor</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">CURP</th>
                         <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700 ">Email</th>
@@ -158,6 +159,9 @@
                                     </div>
                                 @endif
 
+                            </td>
+                            <td class="border px-4 py-2 text-gray-600  dark:text-white">
+                                <div class="w-6 h-6 rounded-full border border-gray-300 mx-auto" style="background-color: {{ $profesor->color ?? '#e5e7eb' }};"></div>
                             </td>
                             <td class="border px-4 py-2 text-gray-600  dark:text-white">{{ $profesor->apellido_paterno }} {{$profesor->apellido_materno}}  {{$profesor->nombre}}</td>
                             <td class="border px-4 py-2 text-center text-gray-600  dark:text-white">{{ $profesor->user->CURP }}</td>

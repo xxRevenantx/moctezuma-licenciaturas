@@ -20,6 +20,9 @@ class Horario extends Model
     public function cuatrimestre() { return $this->belongsTo(Cuatrimestre::class); }
     public function modalidad() { return $this->belongsTo(Modalidad::class); }
     public function generacion() { return $this->belongsTo(Generacion::class); }
+    public function materia() {
+    return $this->belongsTo(Materia::class, 'materia_id');
+    }
     public function asignacionMateria() { return $this->belongsTo(AsignacionMateria::class); }
     public function profesor() { return $this->belongsTo(Profesor::class); }
 

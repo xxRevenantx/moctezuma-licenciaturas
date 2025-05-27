@@ -1,5 +1,26 @@
 <div>
 
+       @php
+function isColorLight($hexColor) {
+    $hexColor = str_replace('#', '', $hexColor);
+
+    // Si es de 3 caracteres (#abc) conviértelo a 6 caracteres (#aabbcc)
+    if (strlen($hexColor) == 3) {
+        $r = hexdec(str_repeat(substr($hexColor,0,1),2));
+        $g = hexdec(str_repeat(substr($hexColor,1,1),2));
+        $b = hexdec(str_repeat(substr($hexColor,2,1),2));
+    } else {
+        $r = hexdec(substr($hexColor,0,2));
+        $g = hexdec(substr($hexColor,2,2));
+        $b = hexdec(substr($hexColor,4,2));
+    }
+
+    // Luminosidad (algoritmo estándar)
+    $luminance = (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255;
+    return $luminance > 0.6; // > 0.6 es claro, < 0.6 es oscuro (ajusta el umbral si lo necesitas)
+}
+@endphp
+
 
         <h3 class="mt-5 flex items-center gap-1 text-2xl font-bold text-gray-800 dark:text-white">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -44,48 +65,174 @@
                         </div>
                 </flux:button>
         </flux:field>
-
-
     </div>
-
     <div>
 
-     <table class="min-w-full border-collapse border border-gray-200 table-striped">
-        <thead class="bg-gray-100 dark:bg-gray-700">
+        <div class="overflow-x-auto">
+
+
+    <table class="min-w-full border-collapse border border-gray-200 table-striped">
+    <thead class="bg-gray-100 dark:bg-gray-700">
+        <tr>
+            <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Hora</th>
+            @foreach ($dias as $dia)
+                <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">{{ $dia->dia }}</th>
+            @endforeach
+        </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+        @foreach ($horas as $hora)
             <tr>
-                <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Hora</th>
+                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-b">{{ $hora }}</td>
                 @foreach ($dias as $dia)
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">{{ $dia->dia }}</th>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 border-b">
+
+                <select
+                    wire:key="select-{{ $dia->id }}-{{ $hora }}"
+                    wire:model="horario.{{ $dia->id }}.{{ $hora }}"
+                    wire:change="actualizarHorario('{{ $dia->id }}', '{{ $hora }}', $event.target.value)"
+                    class="w-full px-2  py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 transition duration-150 ease-in-out"
+                >
+
+                    <option value="0" {{ empty($horario[$dia->id][$hora]) || $horario[$dia->id][$hora] == 0 ? 'selected' : '' }}>--Selecciona una opción--</option>
+                    @foreach ($materias as $mat)
+                        <option value="{{ (string)$mat->id }}" {{ (isset($horario[$dia->id][$hora]) && $horario[$dia->id][$hora] == (string)$mat->id) ? 'selected' : '' }}>
+                            {{ $mat->materia->nombre }} ({{ $mat->materia->clave }})
+                        </option>
+                    @endforeach
+                </select>
+
+                    {{-- Profesor --}}
+                    @if(isset($horario[$dia->id][$hora]) && $horario[$dia->id][$hora] && $horario[$dia->id][$hora] != 0)
+                        @php
+                            $materiaSeleccionada = $materias->firstWhere('id', $horario[$dia->id][$hora]);
+                            $profesor = $materiaSeleccionada && isset($materiaSeleccionada->profesor) ? $materiaSeleccionada->profesor : null;
+                            $profesorColor = $profesor->color ?? '#f3f4f6';
+                            $isLight = isColorLight($profesorColor);
+                            $textColor = $isLight ? '#222222' : '#ffffff';
+                        @endphp
+                        @if($profesor)
+                            <div class="mt-1 text-xs" style="background-color: {{ $profesorColor }}; color: {{ $textColor }}; padding: 0.25rem; border-radius: 0.375rem;">
+                                Profesor: {{ $profesor->nombre ?? 'Sin asignar' }} {{ $profesor->apellido_paterno ?? '' }} {{ $profesor->apellido_materno ?? '' }}
+                            </div>
+                        @else
+                            <div class="mt-1 text-xs text-gray-400 italic">Sin profesor asignado</div>
+                        @endif
+                    @endif
+
+                </td>
                 @endforeach
             </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+        @endforeach
+    </tbody>
+</table>
+       </div>
 
-            @foreach ($horas as $hora)
-                <tr>
-                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-b">{{ $hora }}</td>
-                    @foreach ($dias as $dia)
-                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 border-b">
+       {{-- MATERIAS DEL PROFESOR Y HORAS TOTALES --}}
+        <div class="mt-8">
+            <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Materias del Profesor y Horas Totales</h4>
+            <div class="overflow-x-auto">
+                <table class="min-w-full border border-gray-200 rounded-lg shadow-sm bg-white dark:bg-gray-800 table-striped">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">#</th>
+                            <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Profesor</th>
+                            <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Materias</th>
+                            <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Total de Horas</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                       @php
+                    $profesoresMaterias = [];
+                    $profesoresMateriasEnHorario = [];
+                    $profesoresHorasEnHorario = [];
 
-                    <select
-                        wire:model="horario.{{ $dia->id }}.{{ $hora }}"
-                        wire:change="actualizarHorario('{{ $dia->id }}', '{{ $hora }}', $event.target.value)"
-                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-2 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                    >
-                     <option value="0" class="text-gray-400">--Selecciona una opción--</option>
+                    // Recorre el horario para contar materias y horas por profesor en el horario
+                    foreach ($horario as $diaId => $horasDia) {
+                        foreach ($horasDia as $hora => $materiaId) {
+                            if ($materiaId && $materiaId != 0) {
+                                $materia = $materias->firstWhere('id', $materiaId);
+                                if ($materia && isset($materia->profesor) && $materia->profesor) {
+                                    $profId = $materia->profesor->id;
+                                    if (!isset($profesoresMateriasEnHorario[$profId])) {
+                                        $profesoresMateriasEnHorario[$profId] = [];
+                                    }
+                                    // Solo cuenta una vez cada materia por profesor (materias distintas)
+                                    $profesoresMateriasEnHorario[$profId][$materiaId] = $materia;
 
-                        @foreach ($materias as $materia)
-                            <option value="{{ $materia->id }}">
-                                {{ $materia->materia->nombre }}
-                            </option>
+                                    // Cuenta el total de horas (todas las repeticiones)
+                                    if (!isset($profesoresHorasEnHorario[$profId])) {
+                                        $profesoresHorasEnHorario[$profId] = 0;
+                                    }
+                                    $profesoresHorasEnHorario[$profId]++;
+                                }
+                            }
+                        }
+                    }
+                    // Agrupa materias por profesor (todas las materias asignadas)
+                    foreach ($materias as $materia) {
+                        if (isset($materia->profesor) && $materia->profesor) {
+                            $profId = $materia->profesor->id;
+                            if (!isset($profesoresMaterias[$profId])) {
+                                $profesoresMaterias[$profId] = [
+                                    'profesor' => $materia->profesor,
+                                    'materias' => [],
+                                ];
+                            }
+                            $profesoresMaterias[$profId]['materias'][] = $materia;
+                        }
+                    }
+                @endphp
+
+                        @foreach ($profesoresMaterias as $profesorData)
+                            @php
+                                $profesor = $profesorData['profesor'];
+                                $materiasDelProfesor = $profesorData['materias'];
+                                $profesorColor = $profesor->color ?? '#f3f4f6';
+                                $isLight = isColorLight($profesorColor);
+                                $textColor = $isLight ? '#222222' : '#ffffff';
+                                $materiasEnHorario = isset($profesoresMateriasEnHorario[$profesor->id]) ? $profesoresMateriasEnHorario[$profesor->id] : [];
+                            @endphp
+                           <tr>
+                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 border-b text-center">
+                                {{ $loop->iteration }}
+                            </td>
+                            <td class="px-4 py-2 text-sm border-b text-center">
+                                <span class="inline-block px-2 py-1 rounded" style="background-color: {{ $profesorColor }}; color: {{ $textColor }};">
+                                    {{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2 text-sm text-center border-b text-gray-900 dark:text-gray-100">
+                                <ul class="list-disc pl-4">
+                                    @foreach ($materiasDelProfesor as $mat)
+                                        <li>
+                                            {{ $mat->materia->nombre }} <span class="text-xs text-gray-500">({{ $mat->materia->clave }})</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </td>
+                            <td class="px-4 py-2 text-sm text-center border-b text-gray-700 dark:text-gray-200">
+                                {{ $profesoresHorasEnHorario[$profesor->id] ?? 0 }}
+                                <div class="text-xs text-gray-500">Total de horas</div>
+                            </td>
+
+                        </tr>
+
                         @endforeach
-                    </select>
-                    </td>
-                    @endforeach
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+                        @php
+                            $totalHoras = array_sum($profesoresHorasEnHorario);
+                        @endphp
+                        <tr>
+                            <td colspan="5" class="px-4 py-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-300 border-b">
+                                Total global de horas: {{ $totalHoras }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
 </div>
 
 </div>

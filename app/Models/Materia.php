@@ -36,6 +36,12 @@ class Materia extends Model
         return $this->belongsTo(Licenciatura::class);
     }
 
+    // Materias
+    public function materias()
+    {
+        return $this->hasMany(Materia::class);
+    }
+
     public function asignacionMaterias()
     {
         return $this->hasMany(AsignacionMateria::class);
