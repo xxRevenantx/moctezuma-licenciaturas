@@ -70,7 +70,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/matricula', [PDFController::class, 'matricula'])->name('admin.pdf.matricula');
     Route::get('/horario-semiescolarizada', [PDFController::class, 'horario_semiescolarizada'])->name('admin.pdf.horario-semiescolarizada');
-    Route::get('/horario-escolarizada', [PDFController::class, 'horario-escolarizada'])->name('admin.pdf.horario-escolarizada');
+    Route::get('/horario-escolarizada', [PDFController::class, 'horario_escolarizada'])->name('admin.pdf.horario-escolarizada');
 
 
 

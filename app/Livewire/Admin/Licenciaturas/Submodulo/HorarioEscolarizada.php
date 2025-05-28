@@ -23,6 +23,7 @@ class HorarioEscolarizada extends Component
     public $horario = [];
 
     public $filtrar_generacion = null;
+    public $generacion_filtrada;
     public $filtrar_cuatrimestre = null;
     public $generaciones = [];
     public $cuatrimestres = [];
@@ -50,7 +51,7 @@ class HorarioEscolarizada extends Component
             "1:30pm-2:30pm",
             "2:30pm-3:30pm",
         ];
-        $this->dias = Dia::where('nombre', '!=', 'Sábado')->get();
+        $this->dias = Dia::where('dia', '!=', 'Sábado')->get();
         $this->materias = [];
         $this->llenarHorarioEnBlanco();
     }
@@ -135,6 +136,11 @@ class HorarioEscolarizada extends Component
                 ->orderBy('id', 'desc')
                 ->limit(1)
                 ->get();
+
+            $this->generacion_filtrada = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
+                ->where('modalidad_id', $this->modalidad->id)
+                ->where('generacion_id', $this->filtrar_generacion)
+                ->first();
 
             $this->filtrar_cuatrimestre = null;
             $this->materias = [];

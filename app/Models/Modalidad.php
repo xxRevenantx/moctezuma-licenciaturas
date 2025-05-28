@@ -42,4 +42,10 @@ class Modalidad extends Model
         return $this->hasMany(Horario::class);
     }
 
+    //Modalidad
+    public function calificaciones()
+    {
+        return $this->hasMany(Calificacion::class);
+    }
+
 }

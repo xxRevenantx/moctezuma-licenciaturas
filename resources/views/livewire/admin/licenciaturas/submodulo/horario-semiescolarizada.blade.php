@@ -107,10 +107,18 @@ function isColorLight($hexColor) {
 
 
         @endif
+                <div wire:loading.delay
+                wire:target="filtrar_generacion, filtrar_cuatrimestre"
+                       class="flex justify-center">
+                    <svg class="animate-spin h-20 w-20 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                 </div>
 
 
-
-
+ <div wire:loading.remove
+                 wire:target="filtrar_generacion, filtrar_cuatrimestre">
     <table class="min-w-full border-collapse border border-gray-200 table-striped">
     <thead class="bg-gray-100 dark:bg-gray-700">
         <tr>
@@ -166,6 +174,7 @@ function isColorLight($hexColor) {
         @endforeach
     </tbody>
 </table>
+       </div>
        </div>
 
        {{-- MATERIAS DEL PROFESOR Y HORAS TOTALES --}}

@@ -90,6 +90,10 @@ class Inscripcion extends Model
         return $this->belongsTo(Estado::class);
     }
 
+    public function calificaciones()
+    {
+        return $this->hasMany(Calificacion::class, 'alumno_id');
+    }
 
 
 

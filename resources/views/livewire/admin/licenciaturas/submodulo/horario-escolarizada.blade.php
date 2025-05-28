@@ -69,63 +69,111 @@ function isColorLight($hexColor) {
     <div>
 
         <div class="overflow-x-auto">
+    @if($filtrar_generacion && $filtrar_cuatrimestre)
+            <div class="flex justify-between items-center p-4 mb-4 text-sm text-gray-800 bg-gray-100 dark:bg-gray-700 dark:text-gray-200 rounded-lg" role="alert">
+              <div>
+                <strong>Filtros aplicados:</strong>
+                @if($filtrar_generacion)
+                    Generación: {{ $generacion_filtrada->generacion->generacion }} |
+                @endif
+                @if($filtrar_cuatrimestre)
+                    Cuatrimestre: {{ $filtrar_cuatrimestre }}
+                @endif
+            </div>
+                 <div>
+
+                    <form method="GET" action="{{ route('admin.pdf.horario-escolarizada') }}" target="_blank">
+
+                    <input type="hidden" name="licenciatura_id" value="{{ $licenciatura->id }}">
+                    <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
+                    <input type="hidden" name="filtrar_generacion" value="{{ $filtrar_generacion }}">
+                    <input type="hidden" name="filtrar_cuatrimestre" value="{{ $filtrar_cuatrimestre }}">
 
 
-    <table class="min-w-full border-collapse border border-gray-200 table-striped">
-    <thead class="bg-gray-100 dark:bg-gray-700">
-        <tr>
-            <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Hora</th>
-            @foreach ($dias as $dia)
-                <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">{{ $dia->dia }}</th>
-            @endforeach
-        </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-        @foreach ($horas as $hora)
-            <tr>
-                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-b">{{ $hora }}</td>
-                @foreach ($dias as $dia)
-                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 border-b">
-
-                <select
-                    wire:key="select-{{ $dia->id }}-{{ $hora }}"
-                    wire:model="horario.{{ $dia->id }}.{{ $hora }}"
-                    wire:change="actualizarHorario('{{ $dia->id }}', '{{ $hora }}', $event.target.value)"
-                    class="w-full px-2  py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 transition duration-150 ease-in-out"
-                >
-
-                    <option value="0" {{ empty($horario[$dia->id][$hora]) || $horario[$dia->id][$hora] == 0 ? 'selected' : '' }}>--Selecciona una opción--</option>
-                    @foreach ($materias as $mat)
-                        <option value="{{ (string)$mat->id }}" {{ (isset($horario[$dia->id][$hora]) && $horario[$dia->id][$hora] == (string)$mat->id) ? 'selected' : '' }}>
-                            {{ $mat->materia->nombre }} ({{ $mat->materia->clave }})
-                        </option>
-                    @endforeach
-                </select>
-
-                    {{-- Profesor --}}
-                    @if(isset($horario[$dia->id][$hora]) && $horario[$dia->id][$hora] && $horario[$dia->id][$hora] != 0)
-                        @php
-                            $materiaSeleccionada = $materias->firstWhere('id', $horario[$dia->id][$hora]);
-                            $profesor = $materiaSeleccionada && isset($materiaSeleccionada->profesor) ? $materiaSeleccionada->profesor : null;
-                            $profesorColor = $profesor->color ?? '#f3f4f6';
-                            $isLight = isColorLight($profesorColor);
-                            $textColor = $isLight ? '#222222' : '#ffffff';
-                        @endphp
-                        @if($profesor)
-                            <div class="mt-1 text-xs" style="background-color: {{ $profesorColor }}; color: {{ $textColor }}; padding: 0.25rem; border-radius: 0.375rem;">
-                                Profesor: {{ $profesor->nombre ?? 'Sin asignar' }} {{ $profesor->apellido_paterno ?? '' }} {{ $profesor->apellido_materno ?? '' }}
+                    <button type="submit" variant="primary" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                         <div class="flex items-center gap-1">
+                            <flux:icon.file-text/>
+                            <span>Horario PDF</span>
                             </div>
-                        @else
-                            <div class="mt-1 text-xs text-gray-400 italic">Sin profesor asignado</div>
-                        @endif
-                    @endif
+                    </button>
+                </form>
 
-                </td>
-                @endforeach
-            </tr>
-        @endforeach
-    </tbody>
-</table>
+
+                </div>
+
+
+            </div>
+
+
+        @endif
+
+             <div wire:loading.delay
+                wire:target="filtrar_generacion, filtrar_cuatrimestre"
+                       class="flex justify-center">
+                    <svg class="animate-spin h-20 w-20 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                 </div>
+
+                 <div wire:loading.remove
+                 wire:target="filtrar_generacion, filtrar_cuatrimestre">
+                    <table class="min-w-full border-collapse border border-gray-200 table-striped">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Hora</th>
+                            @foreach ($dias as $dia)
+                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">{{ $dia->dia }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                        @foreach ($horas as $hora)
+                            <tr>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-b">{{ $hora }}</td>
+                                @foreach ($dias as $dia)
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 border-b">
+
+                                <select
+                                    wire:key="select-{{ $dia->id }}-{{ $hora }}"
+                                    wire:model="horario.{{ $dia->id }}.{{ $hora }}"
+                                    wire:change="actualizarHorario('{{ $dia->id }}', '{{ $hora }}', $event.target.value)"
+                                    class="w-full px-2  py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 transition duration-150 ease-in-out"
+                                >
+
+                                    <option value="0" {{ empty($horario[$dia->id][$hora]) || $horario[$dia->id][$hora] == 0 ? 'selected' : '' }}>--Selecciona una opción--</option>
+                                    @foreach ($materias as $mat)
+                                        <option value="{{ (string)$mat->id }}" {{ (isset($horario[$dia->id][$hora]) && $horario[$dia->id][$hora] == (string)$mat->id) ? 'selected' : '' }}>
+                                            {{ $mat->materia->nombre }} ({{ $mat->materia->clave }})
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                    {{-- Profesor --}}
+                                    @if(isset($horario[$dia->id][$hora]) && $horario[$dia->id][$hora] && $horario[$dia->id][$hora] != 0)
+                                        @php
+                                            $materiaSeleccionada = $materias->firstWhere('id', $horario[$dia->id][$hora]);
+                                            $profesor = $materiaSeleccionada && isset($materiaSeleccionada->profesor) ? $materiaSeleccionada->profesor : null;
+                                            $profesorColor = $profesor->color ?? '#f3f4f6';
+                                            $isLight = isColorLight($profesorColor);
+                                            $textColor = $isLight ? '#222222' : '#ffffff';
+                                        @endphp
+                                        @if($profesor)
+                                            <div class="mt-1 text-xs" style="background-color: {{ $profesorColor }}; color: {{ $textColor }}; padding: 0.25rem; border-radius: 0.375rem;">
+                                                Profesor: {{ $profesor->nombre ?? 'Sin asignar' }} {{ $profesor->apellido_paterno ?? '' }} {{ $profesor->apellido_materno ?? '' }}
+                                            </div>
+                                        @else
+                                            <div class="mt-1 text-xs text-gray-400 italic">Sin profesor asignado</div>
+                                        @endif
+                                    @endif
+
+                                </td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                </div>
        </div>
 
        {{-- MATERIAS DEL PROFESOR Y HORAS TOTALES --}}

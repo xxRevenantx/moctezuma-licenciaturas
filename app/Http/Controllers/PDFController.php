@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Dia;
 use App\Models\Escuela;
 use App\Models\Generacion;
 use App\Models\Horario;
@@ -44,7 +45,7 @@ class PDFController extends Controller
     }
 
 
-    // HORARIO
+    // HORARIO SEMIESCOLARIZADA
     public function horario_semiescolarizada(Request $request)
     {
         $licenciatura = $request->licenciatura_id;
@@ -75,4 +76,58 @@ class PDFController extends Controller
              return $pdf->stream("HORARIO_DE_CLASES_GEN_".$generacion->generacion."_".$filtrar_cuatrimestre."°CUATRIMESTRE.pdf");
     }
 
+    // HORARIO ESCOLARIZADA
+    public function horario_escolarizada(Request $request)
+    {
+        $licenciatura = $request->licenciatura_id;
+        $modalidad = $request->modalidad_id;
+        $filtrar_generacion = $request->filtrar_generacion;
+        $filtrar_cuatrimestre = $request->filtrar_cuatrimestre;
+
+        // dd($licenciatura, $modalidad, $filtrar_generacion, $filtrar_cuatrimestre);
+
+        $horario = Horario::where('licenciatura_id', $licenciatura)
+        ->where('modalidad_id', $modalidad)
+        ->where('generacion_id', $filtrar_generacion)
+        ->where('cuatrimestre_id', $filtrar_cuatrimestre)
+        ->get();
+
+           $escuela = Escuela::all()->first();
+           $generacion = Generacion::where('id', $filtrar_generacion)->first();
+           $licenciatura_nombre = Licenciatura::where('id', $licenciatura)->first();
+           $dias = Dia::where('dia', '!=', 'Sábado')->get();
+
+           // Ejemplo en tu componente o controlador
+           $materias = \App\Models\Horario::with([
+                'asignacionMateria.materia',
+                'asignacionMateria.profesor'
+            ])
+            ->where('licenciatura_id', $licenciatura)
+            ->where('modalidad_id', $modalidad)
+            ->where('generacion_id', $filtrar_generacion)
+            ->get()
+            ->map(function ($h) {
+                return (object)[
+                    'clave'    => $h->asignacionMateria->materia->clave ?? '',
+                    'nombre'   => $h->asignacionMateria->materia->nombre ?? '',
+                    'profesor' => $h->asignacionMateria->profesor->nombre ?? '',
+                    'apellido_paterno' => $h->asignacionMateria->profesor->apellido_paterno ?? '',
+                    'apellido_materno' => $h->asignacionMateria->profesor->apellido_materno ?? '',
+                ];
+            })
+            ->unique(fn($item) => $item->clave . $item->nombre . $item->profesor) // ← Esto evita repetidos
+            ->values();
+
+        $data = [
+            'horario' => $horario,
+            'escuela' => $escuela,
+            'generacion' => $generacion,
+            'licenciatura_nombre' => $licenciatura_nombre,
+            'cuatrimestre' => $filtrar_cuatrimestre,
+            'dias' => $dias,
+            'materias' => $materias,
+        ];
+              $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.horarioEscolarizadaPDF', $data)->setPaper('letter', 'portrait');
+             return $pdf->stream("HORARIO_DE_CLASES_GEN_".$generacion->generacion."_".$filtrar_cuatrimestre."°CUATRIMESTRE.pdf");
+    }
 }

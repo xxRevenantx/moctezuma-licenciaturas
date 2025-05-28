@@ -41,4 +41,10 @@ class Profesor extends Model
         return $this->hasMany(Horario::class);
     }
 
+    // Calificaciones
+    public function calificaciones()
+    {
+        return $this->hasMany(Calificacion::class, 'profesor_id');
+    }
+
 }

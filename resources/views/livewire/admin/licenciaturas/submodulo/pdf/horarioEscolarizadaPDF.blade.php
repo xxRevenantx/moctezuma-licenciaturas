@@ -7,7 +7,7 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <title>Horario SemiEscolarizado</title>
+    <title>Horario Escolarizado</title>
 </head>
 <style>
 
@@ -35,7 +35,6 @@
     }
 
     th, td {
-
         padding: 8px;
         text-align: left;
         text-transform: uppercase
@@ -43,6 +42,7 @@
     td{
          border: 1px solid #8a8a8a;
         text-align: left;
+        font-size: 12px
     }
 
     th {
@@ -149,38 +149,55 @@
         <p class="subtitulo">GENERACIÓN: {{$generacion->generacion}}</p>
 
         <div style="background: #88AC2E; color: white; text-align: center; padding: 5px; font-weight: bold; font-size: 16px; margin-top: 10px;">
-            {{$cuatrimestre}}° CUATRIMESTRE | SEMIESCOLARIZADA
+            {{$cuatrimestre}}° CUATRIMESTRE | ESCOLARIZADA
         </div>
 
-      <table class="min-w-full text-xs text-left">
+     @php
+    // 1. Obtener todas las horas únicas ordenadas
+    $horasUnicas = collect($horario)->pluck('hora')->unique();
+@endphp
+
+<table class="min-w-full text-xs text-left">
     <thead class="bg-gray-200 dark:bg-gray-700">
         <tr>
             <th class="px-2 py-1" style="width:150px">Hora</th>
-            <th class="px-2 py-1">Materia</th>
-            <th class="px-2 py-1">Clave</th>
+            @foreach ($dias as $dia)
+                <th class="px-2 py-1">{{ $dia->dia }}</th>
+            @endforeach
         </tr>
     </thead>
     <tbody>
-        @php
-            $inserted = false;
-        @endphp
-        @foreach ($horario as $h)
+        @foreach ($horasUnicas as $hora)
+            {{-- Mostrar la fila de la hora actual --}}
             <tr class="border-b dark:border-gray-600">
-                <td class="px-2 py-1">{{ $h->hora }}</td>
-                <td class="px-2 py-1">{{ $h->asignacionMateria->materia->nombre }}</td>
-                <td class="px-2 py-1">{{ $h->asignacionMateria->materia->clave }}</td>
+            <td class="px-2 py-1">{{ $hora }}</td>
+            @foreach ($dias as $dia)
+                @php
+                // Buscar el registro de esa hora y día
+                $registro = collect($horario)->first(function($item) use ($hora, $dia) {
+                    return $item->hora === $hora && $item->dia_id == $dia->id;
+                });
+                @endphp
+                <td class="px-2 py-1">
+                @if ($registro)
+                    {{ $registro->asignacionMateria->materia->nombre ?? '' }}
+                @endif
+                </td>
+            @endforeach
             </tr>
-            @if (!$inserted && $h->hora == '9:00am-10:00am')
-                <tr class="border-b dark:border-gray-600">
-                    <td class="px-2 py-1" style="background: #d4d4d4">10:00am-10:30am</td>
-                    <td class="px-2 py-1" style="background: #d4d4d4; text-align:center; letter-spacing: 60px">RECESO</td>
-                    <td class="px-2 py-1" style="background: #d4d4d4">-----</td>
-                </tr>
-                @php $inserted = true; @endphp
+
+            {{-- Insertar la fila de RECESO y la hora 10:00AM-10:30AM después de 9:00AM-10:00AM --}}
+            @if ($hora === '9:00am-10:00am')
+            <tr>
+                <td colspan="1" class="px-2 py-1" style="font-weight:bold; text-align:center; background:#f2f2f2;">10:00AM-10:30AM</td>
+                <td colspan="5" style="letter-spacing: 60px; font-weight:bold; text-align:center; background:#f2f2f2; color:#638acd;">RECESO</td>
+            </tr>
             @endif
+
         @endforeach
     </tbody>
 </table>
+
 
 {{-- PROFESORES --}}
 
@@ -189,33 +206,28 @@
 
 <hr>
 
-<table class="min-w-full text-xs text-left mb-4" style="margin-top: 20px; text-transform: uppercase; font-size:14px">
-    <thead >
+
+<table class="min-w-full text-xs text-left border">
+    <thead class="bg-gray-200 dark:bg-gray-700">
         <tr>
-            <th class="px-2 py-1" style="background: #d4d4d4; color: black">#</th>
-            <th class="px-2 py-1" style="background: #d4d4d4; color: black">Clave</th>
-            <th class="px-2 py-1" style="background: #d4d4d4; color: black">Materia</th>
-            <th class="px-2 py-1" style="background: #d4d4d4; color: black">Profesor</th>
+            <th class="px-2 py-1 border">#</th>
+            <th class="px-2 py-1 border">CLAVE</th>
+            <th class="px-2 py-1 border">MATERIA</th>
+            <th class="px-2 py-1 border">PROFESOR</th>
         </tr>
     </thead>
     <tbody>
-        @foreach ($horario as $h)
-
-            <tr class="border-b dark:border-gray-600">
-                <td class="px-2 py-1">
-                    {{ $loop->iteration }}
-                </td>
-                <td class="px-2 py-1">{{$h->asignacionMateria->materia->clave}}</td>
-                <td class="px-2 py-1">
-                    {{ $h->asignacionMateria->materia->nombre }}
-                </td>
-                <td class="px-2 py-1">
-                    {{  $h->asignacionMateria->profesor->nombre }} {{  $h->asignacionMateria->profesor->apellido_paterno }} {{  $h->asignacionMateria->profesor->apellido_materno }}
-                </td>
+        @foreach ($materias as $i => $m)
+            <tr>
+                <td class="px-2 py-1 border">{{ $i + 1 }}</td>
+                <td class="px-2 py-1 border">{{ $m->clave }}</td>
+                <td class="px-2 py-1 border">{{ $m->nombre }}</td>
+                <td class="px-2 py-1 border">{{ $m->profesor }} {{ $m->apellido_paterno }} {{ $m->apellido_materno }} </td>
             </tr>
         @endforeach
     </tbody>
 </table>
+
 
 
 

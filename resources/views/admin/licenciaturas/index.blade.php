@@ -35,6 +35,9 @@
                     @endif
                 @break;
 
+            @case('calificaciones')
+                <livewire:admin.licenciaturas.submodulo.calificacion :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
+                @break;
 
             @case('bajas')
                 <livewire:admin.licenciaturas.submodulo.baja :licenciatura="$slug_licenciatura" :modalidad="$slug_modalidad" :submodulo="$submodulo" />
