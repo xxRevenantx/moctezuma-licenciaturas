@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\SeleccionarModalidadController;
 use App\Http\Controllers\Admin\SubmoduloController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CiudadController;
+use App\Http\Controllers\DocumentacionController;
 use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\MateriaController;
@@ -36,6 +37,10 @@ Route::middleware(['auth'])->group(function () {
     Route::view('dashboard', 'dashboard')->middleware(['auth', 'verified'])->name('dashboard');
 
     Route::resource('escuela', EscuelaController::class)->middleware('can:admin.administracion')->names('admin.escuela');
+
+
+    // DOCUMENTACIÓN
+    Route::resource('documentacion', DocumentacionController::class)->middleware('can:admin.administracion')->names('admin.documentacion');
 
 
     Route::resource('usuarios', UserController::class)->middleware('can:admin.usuarios')->names('admin.usuarios');

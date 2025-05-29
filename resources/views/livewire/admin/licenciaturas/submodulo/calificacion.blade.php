@@ -116,7 +116,7 @@
 
 
                                  <h3 class="mt-5 px-2">Buscar Estudiante:</h3>
-                        <flux:input type="text" wire:model.live="search" placeholder="Buscar Estudiante (Nombre, Apellido Paterno, Apellido Materno, CURP)" class="p-2 mb-4 w-full" />
+                        <flux:input type="text" wire:model.live="search" placeholder="Buscar Estudiante (Nombre, Apellido Paterno, Apellido Materno, Matrícula)" class="p-2 mb-4 w-full" />
 
 
                         @endif
@@ -129,6 +129,7 @@
                         <thead class="bg-gray-100 dark:bg-gray-700">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">#</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Matrícula</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Alumno</th>
                                 @foreach ($materias as $materia)
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
@@ -161,14 +162,18 @@
                                     @endphp
                                     <tr>
                                         <td class="px-4 py-3 border">{{ $index + 1 }}</td>
+                                        <td class="px-4 py-3 border">{{ $alumno->matricula }}</td>
                                         <td class="px-4 py-3 border">{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</td>
                                         @foreach ($materias as $colIndex => $materia)
                                             @php
                                                 $valor = $calificaciones[$alumno->id][$materia->id] ?? '';
-                                                $es_valido = (is_numeric($valor) && $valor !== '') || (strtoupper(trim($valor)) === 'NP');
-                                                if($es_valido) {
+                                                if (
+                                                    (is_numeric($valor) && $valor > 0) ||
+                                                    (strtoupper(trim($valor)) === 'NP')
+                                                ) {
                                                     $calificaciones_introducidas++;
                                                 }
+
                                                 if(is_numeric($valor) && $valor !== '') {
                                                     $sum += $valor;
                                                     $count++;
@@ -178,10 +183,7 @@
                                             @endphp
                                             <td class="px-4 py-3 border">
                                                 <input
-                                                id="cell-{{ $index }}-{{ $colIndex }}"
                                                     type="text"
-                                                    min="0"
-                                                    max="100"
                                                     class="border rounded px-2 py-2 text-center w-full"
                                                     wire:model="calificaciones.{{ $alumno->id }}.{{ $materia->id }}"
                                                     placeholder="Calificación"
@@ -220,7 +222,7 @@
 
 
                          @if($filtrar_generacion && $filtrar_cuatrimestre)
-                    @php
+                          @php
                         $porcentaje = $calificaciones_total > 0 ? ($calificaciones_introducidas / $calificaciones_total) * 100 : 0;
 
                         // Color según avance
