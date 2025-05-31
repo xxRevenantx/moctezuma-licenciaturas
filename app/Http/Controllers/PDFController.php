@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Dia;
+use App\Models\Directivo;
 use App\Models\Escuela;
 use App\Models\Generacion;
 use App\Models\Horario;
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
+use App\Models\Materia;
+use App\Models\Periodo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
@@ -130,4 +133,104 @@ class PDFController extends Controller
               $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.horarioEscolarizadaPDF', $data)->setPaper('letter', 'portrait');
              return $pdf->stream("HORARIO_DE_CLASES_GEN_".$generacion->generacion."_".$filtrar_cuatrimestre."°CUATRIMESTRE.pdf");
     }
+
+
+    // Expedicion de registros de escolaridad y actas de resultados
+
+   public function documento_expedicion(Request $request){
+       $generacion_id = $request->generacion;
+       $documento = $request->documento;
+       $licenciatura_id = $request->licenciatura;
+
+    $materias = Materia::where('licenciatura_id', $licenciatura_id)
+         ->where('nombre', '!=', 'Práctica')
+         ->orderBy('clave', 'asc')
+         ->get();
+
+         // Validación básica
+    if (!$generacion_id || !$documento || !$licenciatura_id) {
+        abort(404, 'Faltan parámetros');
+    }
+
+    $generacion = Generacion::find($generacion_id);
+    $licenciatura = Licenciatura::find($licenciatura_id);
+    $escuela = Escuela::all()->first();
+    $rector = Directivo::where('cargo', 'Rector')->first();
+    $directora = Directivo::where('cargo', 'Directora General')->first();
+
+    // PERIODOS ESDOLARES
+
+    $periodos = Periodo::where('generacion_id', $generacion_id)
+        ->get();
+
+    // Alumnos por generación y licenciatura
+    $alumnos = Inscripcion::with('calificaciones')
+        ->where('generacion_id', $generacion_id)
+        ->where('licenciatura_id', $licenciatura_id)
+        ->orderBy('apellido_paterno', 'asc')
+        ->orderBy('apellido_materno', 'asc')
+        ->orderBy('nombre', 'asc')
+        // ->limit(1)
+        ->get();
+
+    if($documento == 'acta-resultados'){
+        $data = [
+            'generacion' => $generacion,
+            'escuela' => $escuela,
+            'licenciatura' => $licenciatura,
+            'materias' => $materias,
+            'rector' => $rector,
+            'directora' => $directora,
+            'alumnos' => $alumnos,
+        ];
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.actaResultadosPDF', $data)->setPaper('letter', 'portrait');
+             return $pdf->stream("ACTA_DE_RESULTADOS_GEN_".$generacion->generacion.".pdf");
+    }elseif($documento == 'registro-escolaridad'){
+       $data = [
+            'generacion' => $generacion,
+            'escuela' => $escuela,
+            'materias' => $materias,
+            'licenciatura' => $licenciatura,
+            'alumnos' => $alumnos,
+            'periodos' => $periodos,
+        ];
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.registroEscolaridadPDF', $data)->setPaper('legal', 'landscape');
+             return $pdf->stream("REGISTRO_DE_ESCOLARIDAD_GEN_".$generacion->generacion.".pdf");
+    }
+
+   }
+
+   // DOCUMENTO PERSONAL
+
+  public function documento_personal(Request $request){
+       $matricula = $request->alumno_id;
+       $documento = $request->tipo_documento;
+       $fecha = $request->fecha_expedicion;
+
+       $escuela = Escuela::all()->first();
+       $alumno = Inscripcion::where('matricula', $matricula)->first();
+       if (!$alumno) {
+           abort(404, 'Alumno no encontrado');
+       }
+
+
+    //    $calificaciones =
+
+       $licenciatura = Licenciatura::find($alumno->licenciatura_id);
+
+        $periodo = Periodo::where('generacion_id', $alumno->generacion_id)->get();
+
+    if($documento == 'kardex'){
+        $data = [
+            'alumno' => $alumno,
+            'escuela'=> $escuela,
+            'licenciatura'=> $licenciatura,
+            'periodo' => $periodo
+        ];
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexPDF', $data)->setPaper('legal', 'portrait');
+             return $pdf->stream("KARDEX".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+    }
+
+   }
+
 }

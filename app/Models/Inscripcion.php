@@ -96,8 +96,4 @@ class Inscripcion extends Model
     }
 
 
-
-
-
-
 }

@@ -72,10 +72,14 @@ Route::middleware(['auth'])->group(function () {
 
 
     // RUTAS PDF
+                                            //  NO OLVIDAR LOS MIDDLEWAREA
+    Route::get('/matricula', [PDFController::class, 'matricula'])->middleware('can:admin.administracion')->name('admin.pdf.matricula');
+    Route::get('/horario-semiescolarizada', [PDFController::class, 'horario_semiescolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.horario-semiescolarizada');
+    Route::get('/horario-escolarizada', [PDFController::class, 'horario_escolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.horario-escolarizada');
 
-    Route::get('/matricula', [PDFController::class, 'matricula'])->name('admin.pdf.matricula');
-    Route::get('/horario-semiescolarizada', [PDFController::class, 'horario_semiescolarizada'])->name('admin.pdf.horario-semiescolarizada');
-    Route::get('/horario-escolarizada', [PDFController::class, 'horario_escolarizada'])->name('admin.pdf.horario-escolarizada');
+    Route::get('/documentacion/{generacion}/{documento}', [PDFController::class, 'documento_expedicion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_expedicion');
+    Route::get('/expedicion-documentacion', [PDFController::class, 'documento_expedicion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_expedicion');
+    Route::get('/documento-personal', [PDFController::class, 'documento_personal'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_personal');
 
 
 
