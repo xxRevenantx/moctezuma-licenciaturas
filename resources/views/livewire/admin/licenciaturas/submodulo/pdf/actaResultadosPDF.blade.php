@@ -265,7 +265,7 @@
             </td>
             <td style="width:10%; border:none;"></td>
             <td style="width:45%; text-align: center; border: none;  text-transform: uppercase;">
-                {{ $profesor }}
+                {{ $profesor ?? "----" }}
                 <div style="border-top:2px solid #000; width:80%; margin: 0 auto 2px auto;"></div>
                 <span style="font-weight:bold;">NOMBRE Y FIRMA DEL PROFESOR(A)</span>
             </td>

@@ -89,6 +89,57 @@
         border:1px solid #000
     }
 
+   .tabla-contenedor {
+            width: 100%;
+            border: 1px solid black;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin-top: 50px;
+        }
+
+        .celda {
+            width: 50%;
+            height: 140px;
+            border-collapse: collapse;
+            vertical-align: top;
+        }
+
+        .firma-rector {
+            text-align: center;
+            padding-top: 120px;
+        }
+
+        .firma-rector .linea {
+            border-top: 1px solid black;
+            width: 60%;
+            margin: 0 auto;
+            padding-top: 5px;
+        }
+
+        .promedio {
+            padding: 30px 0 0 20px;
+        }
+
+        .prom-label {
+            line-height: 1.5;
+            display: inline-block;
+            margin-top: 90px;
+        }
+
+        .prom-box {
+            display: inline-block;
+            width: 70px;
+            height: 20px;
+            border: 1px solid black;
+            vertical-align: middle;
+            margin-left: 10px;
+            margin-top: 90px;
+            text-align: center;
+            padding-bottom: 20px;
+            font-size: 20px;
+            font-weight: bold
+        }
+
     </style>
 <body>
 
@@ -336,7 +387,7 @@
 
     $suma = $calificaciones->sum();
     $cuenta = $calificaciones->count();
-    $promedio = $cuenta > 0 ? round($suma / $cuenta, 2) : '';
+    $promedio = $cuenta > 0 ? round($suma / $cuenta, 1) : '';
 @endphp
 
                 @endforeach
@@ -344,17 +395,19 @@
     </table>
     @endforeach
 
-    <div style="margin-top: 20px;">
-    <table style="width: 300px; float: right; border: 1px solid #000;">
+     <table class="tabla-contenedor">
         <tr>
-            <td style="font-weight:bold;">PROMEDIO FINAL:</td>
-            <td style="text-align:center; font-size:18px; font-weight:bold;">
-                {{ $promedio }}
+            <td class="celda firma-rector" style="border: 1px solid #000">
+                <div class="linea">RECTOR(A)</div>
+            </td>
+            <td class="celda">
+                <div class="promedio">
+                    <span class="prom-label" style="line-height: 13px">PROMEDIO<br>GENERAL DE<br>APROVECHAMIENTO:</span>
+                    <span class="prom-box">{{ $promedio }}</span>
+                </div>
             </td>
         </tr>
     </table>
-</div>
-
 
 
 
