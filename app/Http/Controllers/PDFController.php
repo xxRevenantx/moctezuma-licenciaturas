@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cuatrimestre;
 use App\Models\Dia;
 use App\Models\Directivo;
 use App\Models\Escuela;
@@ -214,11 +215,10 @@ class PDFController extends Controller
        }
 
 
-    //    $calificaciones =
+    $licenciatura = Licenciatura::find($alumno->licenciatura_id);
+    $periodo = Periodo::where('generacion_id', $alumno->generacion_id)->get();
 
-       $licenciatura = Licenciatura::find($alumno->licenciatura_id);
-
-        $periodo = Periodo::where('generacion_id', $alumno->generacion_id)->get();
+    $cuatrimestres = Cuatrimestre::all();
 
     if($documento == 'kardex'){
         $data = [
@@ -229,6 +229,20 @@ class PDFController extends Controller
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexPDF', $data)->setPaper('legal', 'portrait');
              return $pdf->stream("KARDEX".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+    }
+    else if($documento == 'certificado-de-estudios'){
+        $data = [
+            'alumno' => $alumno,
+            'escuela'=> $escuela,
+            'licenciatura'=> $licenciatura,
+            'fecha' => $fecha,
+            'cuatrimestres' => $cuatrimestres,
+        ];
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.certificadoPDF', $data)->setPaper('legal', 'portrait');
+             return $pdf->stream("CERTIFICADO_DE_ESTUDIOS_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+    }
+    else{
+        abort(404, 'Tipo de documento no válido');
     }
 
    }
