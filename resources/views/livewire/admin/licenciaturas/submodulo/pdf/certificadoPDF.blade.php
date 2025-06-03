@@ -54,6 +54,12 @@
         margin-bottom: 5px;
     }
 
+    table{
+         border-collapse: collapse;
+        padding: 0;
+        margin: 0
+    }
+
     table.datos {
         margin-top: -40px;
         width: 100%;
@@ -128,20 +134,20 @@
           <tr>
               <!-- Tabla 1 -->
               <td width="50%" height="50%" valign="top" >
-            <table width="100%" class="tbl1">
+            <table width="100%" class="tbl1"  cellspacing="0">
                 <thead>
                     <tr>
-                        <th style="border-top:1px transparent; border-left:1px transparent;background:#C5C5C5"><b>ASIGNATURAS</b></th>
-                        <th style="border-top:1px transparent; border-left:1px transparent;background:#C5C5C5"><b>CAL.<br>FINAL</b></th>';
+                        <th style="border-top:1px;  font-size:12px; transparent; border-left:1px transparent;background:#C5C5C5"><b>ASIGNATURAS</b></th>
+                        <th style="border-top:1px;  font-size:12px; transparent; border-left:1px transparent;background:#C5C5C5; border-left:1px solid #000"><b>CAL.<br>FINAL</b></th>';
 
                         @if($alumno->licenciatura_id == 6)
-                               <th style="border-top:1px transparent; border-left:1px transparent;background:#C5C5C5; border-right:1px transparent; font-size:10px"><b>OBSERVA<br>CIONES</b></th>
+                               <th style="border-top:1px transparent; font-size:12px; border-left:1px transparent;background:#C5C5C5;  font-size:10px; border-left:1px solid #000"><b>OBSERVA<br>CIONES</b></th>
                         @else
-                            <th style="border-top:1px transparent; border-left:1px transparent;background:#C5C5C5; border-right:1px transparent;"><b>OBSERVACIONES</b></th>
+                            <th style="border-top:1px transparent; font-size:12px; border-left:1px transparent;background:#C5C5C5;   border-left:1px solid #000"><b>OBSERVACIONES</b></th>
                         @endif
 
                         </tr>
-                        </thead>
+                </thead>
                         <tbody>
                         @foreach ($cuatrimestres as $key => $cuatrimestre)
 
@@ -182,59 +188,69 @@
                                  }
 
 
-                                    // $nombreMeses = '';
-                                    //     switch ($dato->mes->meses) {
-                                    //         case 'SEPTIEMBRE/DICIEMBRE':
-                                    //                 $nombreMeses = "SEPTIEMBRE - DICIEMBRE";
-                                    //             break;
-                                    //         case 'ENERO/ABRIL':
-                                    //                 $nombreMeses = "ENERO - ABRIL";
-                                    //             break;
-                                    //         case 'MAYO/AGOSTO':
-                                    //                 $nombreMeses = "MAYO - AGOSTO";
-                                    //             break;
-                                    //         default:
-                                    //             $nombreMeses = "---";
-                                    //             break;
-                                    //     }
-
-
 
                                 @endphp
 
                                  @php
-                                        $periodo = \App\Models\Periodo::where('generacion_id', $alumno->generacion_id)
-                                            ->first();
-
-                                        //   $materias = MateriasCtr::consultarMateriasLicenciaturaCuatrimestreCtr($cedula["Id_licenciatura"], $cuatrimestre["Id"], $cedula["Modalidad"]);
-                                            $materias = \App\Models\AsignacionMateria::where('licenciatura_id', $alumno->licenciatura_id)
-                                                ->where('modalidad_id', $alumno->modalidad_id)
-                                                ->where('cuatrimestre_id', $cuatrimestre->id)
-                                                ->get();
 
 
+                                            $materias = \DB::table('asignacion_materias')
+                                                    ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
+                                                    ->where('asignacion_materias.licenciatura_id', $alumno->licenciatura_id)
+                                                    ->where('asignacion_materias.modalidad_id', $alumno->modalidad_id)
+                                                    ->where('asignacion_materias.cuatrimestre_id', $cuatrimestre->id)
+                                                    ->where('materias.calificable', '!=', 'false')
+                                                    ->orderBy('materias.clave', 'asc')
+                                                    ->select('materias.*', 'asignacion_materias.id as asignacion_materia_id')
+                                                    ->get();
 
-                                    @endphp
+
+
+
+                                 @endphp
 
                             @if($cuatrimestre->id < 5)
 
+                                    @php
+                                        $periodo = \App\Models\Periodo::where('generacion_id', $alumno->generacion_id)
+                                            ->where('cuatrimestre_id', $cuatrimestre->id)
+                                            ->first();
+                                    @endphp
 
 
 
                                     <tr class="cuatrimestres">
                                         <td style="padding-top:10px; padding-left:10px; text-align:center; border-right:1px solid #000">
                                             <strong>{{$nombreCuatrimestre}}</strong><br>
-                                            <strong>CICLO ESCOLAR: {{$periodo->ciclo_escolar}}</strong>
+                                            <strong>CICLO ESCOLAR: {{ $periodo ? $periodo->ciclo_escolar : '' }}</strong>
                                         </td>
                                         <td style="padding-top:10px; padding-left:10px; text-align:center; border-right:1px solid #000"></td>
+                                        <td style="padding-top:10px; padding-left:10px; text-align:center;"></td>
                                     </tr>
 
 
                                     @foreach ($materias as $key => $materia)
+
+                                            @php
+                                              $calificacion = \DB::table('calificaciones')
+                                                    ->where('alumno_id', $alumno->id)
+                                                    ->where('asignacion_materia_id', $materia->asignacion_materia_id)
+                                                    ->first();
+                                            @endphp
+
                                             <tr>
-                                                <td style="text-align:left; font-size:11px; line- text-transform:uppercase; padding-left:10px; border-left:1px solid #000; border-right:1px solid #000">{{$materia->materia->nombre}}</td>
-                                                <td style="text-align:center; border-right:1px solid #000"></td>
+                                                <td style="text-align:left; font-size:11px; line-height:12px; text-transform:uppercase;
+                                                 padding-left:10px; padding-top:0; padding-bottom:0; margin:0;  ">
+                                                 {{$materia->nombre}}</td>
+                                              <td style="text-align:center; font-size:11px; line-height:10px; text-transform:uppercase;
+                                                 padding-top:0; padding-bottom:0; margin:0; border-left:1px solid #000;  border-right:1px solid #000">
+                                                    {{ $calificacion->calificacion }}
+                                                </td>
+                                              <td  style="text-align:center; font-size:11px; line-height:10px; text-transform:uppercase;
+                                                 padding-top:0; padding-bottom:0; margin:0; border-left:1px solid #000;"></td>
+
                                             </tr>
+
 
                                   @endforeach
 
@@ -243,13 +259,25 @@
 
                         @endforeach
 
-                      <tr>
-                          <td style="padding-top:10px; padding-left:10px; text-align:center; border-right:1px solid #000">
-                              <strong></strong><br>
-                              <strong></strong>
-                          </td>
-                          <td style="padding-top:10px; padding-left:10px; text-align:center; border-right:1px solid #000"></td>
-                        </tr>
+
+
+                        @php
+                            // Definir el número de filas vacías necesarias para cada licenciatura_id
+                            $filas = 0;
+                            if ($alumno->licenciatura_id == 5) { // EDUCACIÓN
+                                $filas = 3;
+                            } elseif ($alumno->licenciatura_id == 1) {
+                                $filas = 4;
+                            }
+                        @endphp
+
+                        @for ($i = 0; $i < $filas; $i++)
+                            <tr>
+                                <td>&nbsp;</td>
+                                <td style="padding-left:10px; text-align:center; border-right:1px solid #000; border-left:1px solid #000">&nbsp;</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                        @endfor
 
 
               </tbody>
@@ -258,24 +286,24 @@
 
         <!-- Tabla 2 -->
         <td width="50%" valign="top">
-            <table width="100%" class="tbl2">
+            <table width="100%" class="tbl2" cellspacing="0">
                 <thead>
                     <tr>
-                     <th style="border-top:1px transparent; border-right:1px solid #000;background:#C5C5C5 "><b>ASIGNATURAS</b></th>
-                        <th style="border-top:1px transparent; border-left:1px transparent;background:#C5C5C5"><b>CAL.<br>FINAL</b></th>';
+                        <th style="border-top:1px;  font-size:12px; border-left:1px solid #000;background:#C5C5C5"><b>ASIGNATURAS</b></th>
+                        <th style="border-top:1px;  font-size:12px; border-left:1px transparent;background:#C5C5C5; border-left:1px solid #000"><b>CAL.<br>FINAL</b></th>';
 
-                        @if ($alumno->licenciatura_id == 6)
-                            <th style="border-top:1px transparent; border-left:1px transparent;background:#C5C5C5; border-right:1px transparent; font-size:10px"><b>OBSERVA<br>CIONES</b></th>
-                            @else
-                            <th style="border-top:1px transparent; border-left:1px transparent;background:#C5C5C5; border-right:1px transparent;"><b>OBSERVACIONES</b></th>
+                        @if($alumno->licenciatura_id == 6)
+                               <th style="border-top:1px transparent; font-size:12px; border-left:1px transparent;background:#C5C5C5; border-right:1px transparent; font-size:10px; border-left:1px solid #000"><b>OBSERVA<br>CIONES</b></th>
+                        @else
+                            <th style="border-top:1px transparent; font-size:12px; border-left:1px transparent;background:#C5C5C5;   border-left:1px solid #000"><b>OBSERVACIONES</b></th>
                         @endif
 
-                  </tr>
+                        </tr>
                 </thead>
                       <tbody>
                        @foreach ($cuatrimestres as $key => $cuatrimestre)
 
-                                @php
+                              @php
                                     $nombreCuatrimestre = '';
                                    switch ($cuatrimestre->id) {
                                     case '1':
@@ -311,35 +339,66 @@
                                         break;
                                  }
 
-
-                                    // $nombreMeses = '';
-                                    //     switch ($dato->mes->meses) {
-                                    //         case 'SEPTIEMBRE/DICIEMBRE':
-                                    //                 $nombreMeses = "SEPTIEMBRE - DICIEMBRE";
-                                    //             break;
-                                    //         case 'ENERO/ABRIL':
-                                    //                 $nombreMeses = "ENERO - ABRIL";
-                                    //             break;
-                                    //         case 'MAYO/AGOSTO':
-                                    //                 $nombreMeses = "MAYO - AGOSTO";
-                                    //             break;
-                                    //         default:
-                                    //             $nombreMeses = "---";
-                                    //             break;
-                                    //     }
-
-
-
                                 @endphp
 
+
                             @if($cuatrimestre->id > 4)
-                                   <tr class="cuatrimestres">
-                                        <td style="padding-top:10px; padding-left:10px; text-align:center; border-right:1px solid #000">
+
+                             @php
+
+
+                                      $periodo = \App\Models\Periodo::where('generacion_id', $alumno->generacion_id)
+                                            ->where('cuatrimestre_id', $cuatrimestre->id)
+                                            ->first();
+
+
+                                            $materias = \DB::table('asignacion_materias')
+                                                    ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
+                                                    ->where('asignacion_materias.licenciatura_id', $alumno->licenciatura_id)
+                                                    ->where('asignacion_materias.modalidad_id', $alumno->modalidad_id)
+                                                    ->where('asignacion_materias.cuatrimestre_id', $cuatrimestre->id)
+                                                    ->where('materias.calificable', '!=', 'false')
+                                                    ->orderBy('materias.clave', 'asc')
+                                                    ->select('materias.*', 'asignacion_materias.id as asignacion_materia_id')
+                                                    ->get();
+                                 @endphp
+
+
+
+                                     <tr class="cuatrimestres">
+                                        <td style="padding-top:10px; padding-left:10px; text-align:center; border-left:1px solid #000;  border-right:1px solid #000">
                                             <strong>{{$nombreCuatrimestre}}</strong><br>
-                                            <strong>CICLO ESCOLAR: {{$periodo->ciclo_escolar}}</strong>
+                                              <strong>CICLO ESCOLAR: {{ $periodo ? $periodo->ciclo_escolar : '' }}</strong>
                                         </td>
-                                        <td style="padding-top:10px; padding-left:10px; text-align:center; border-right:1px solid #000"></td>
+                                        <td style="padding-top:10px; padding-left:10px; text-align:center; border-left:1px solid #000; border-right:1px solid #000"></td>
+                                        <td style="padding-top:10px; padding-left:10px; text-align:center; border-left:1px solid #000; border-right:1px solid #000"></td>
                                     </tr>
+
+
+                                    @foreach ($materias as $key => $materia)
+
+                                            @php
+                                              $calificacion = \DB::table('calificaciones')
+                                                    ->where('alumno_id', $alumno->id)
+                                                    ->where('asignacion_materia_id', $materia->asignacion_materia_id)
+                                                    ->first();
+                                            @endphp
+
+                                            <tr>
+                                                <td style="text-align:left; font-size:11px; border-left:1px solid #000;line-height:12px; text-transform:uppercase;
+                                                 padding-left:10px; padding-top:0; padding-bottom:0; margin:0;  ">
+                                                 {{$materia->nombre}}</td>
+                                              <td style="text-align:center; font-size:11px; line-height:12px; text-transform:uppercase;
+                                                 padding-top:0; padding-bottom:0; margin:0; border-left:1px solid #000;  border-right:1px solid #000">
+                                                    {{ $calificacion->calificacion }}
+                                                </td>
+                                              <td  style="text-align:center; font-size:11px; line-height:12px|; text-transform:uppercase;
+                                                 padding-top:0; padding-bottom:0; margin:0; border-left:1px solid #000;  border-right:1px solid #000"></td>
+
+                                            </tr>
+
+
+                                  @endforeach
                            @endif
 
                         @endforeach
@@ -350,11 +409,93 @@
     </tr>
 </table>
 
-<p style="font-align:justify; font-size:13px; margin:0; text-transform:uppercase">EL PRESENTE CERTIFICADO DE AMPARA <u><b></b></u> ASIGNATURAS, LAS CUALES CUBREN ÍNTEGRAMENTE EL PLAN DE ESTUDIOS DE LA LICENCIATURA <b>{{$licenciatura->nombre}}</b>
-        CON UN TOTAL DE <b></b> CRÉDITOS Y UN PROMEDIO GENERAL DE APROVECHAMIENTO DE <b></b> LA ESCALA DE CALIFICACIONES ES DE (5 A 10) Y LA MÍNIMA APROBATORIA ES DE 6 (SEIS).
+@php
+    // Obtener los IDs de materias calificables (no prácticas)
+    $materiasCalificables = \App\Models\Materia::where('licenciatura_id', $alumno->licenciatura_id)
+        ->where('calificable', 'true')
+        ->pluck('id')
+        ->toArray();
+
+
+    // Obtener los creditos de materias calificables (no prácticas)
+    $creditosMateriasCalificables = \App\Models\Materia::where('licenciatura_id', $alumno->licenciatura_id)
+        ->where('calificable', 'true')
+        ->sum('creditos');
+
+    // Función para convertir número a letras en español
+    function numeroALetras($numero) {
+        $formatter = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
+        return mb_strtoupper($formatter->format($numero), 'UTF-8');
+    }
+    $materiasCalificablesEnLetras = numeroALetras(count($materiasCalificables));
+
+
+      // Obtener los IDs de las asignaciones de materias calificables para el alumno
+    $asignacionesCalificables = \DB::table('asignacion_materias')
+        ->where('licenciatura_id', $alumno->licenciatura_id)
+        ->where('modalidad_id', $alumno->modalidad_id)
+        ->whereIn('materia_id', $materiasCalificables)
+        ->pluck('id')
+        ->toArray();
+
+    // Obtener las calificaciones del alumno (solo las válidas y no nulas, mayores que cero)
+    $calificaciones = \DB::table('calificaciones')
+        ->where('alumno_id', $alumno->id)
+        ->whereIn('asignacion_materia_id', $asignacionesCalificables)
+        ->whereNotNull('calificacion')
+        ->where('calificacion', '!=', '')
+        ->where('calificacion', '!=', '0')
+        ->pluck('calificacion')
+        ->map(function($value) {
+            return floatval($value);
+        });
+
+    $suma = $calificaciones->sum();
+    $cuenta = $calificaciones->count();
+    $promedio = $cuenta > 0 ? round($suma / $cuenta, 1) : '';
+@endphp
+
+<p style="font-align:justify; font-size:13px; margin:0; text-transform:uppercase">EL PRESENTE CERTIFICADO DE AMPARA <u><b>{{ $materiasCalificablesEnLetras }}</b></u> ASIGNATURAS, LAS CUALES CUBREN ÍNTEGRAMENTE EL PLAN DE ESTUDIOS DE LA LICENCIATURA <b>{{$licenciatura->nombre}}</b>
+        CON UN TOTAL DE <b>{{ $creditosMateriasCalificables }}</b> CRÉDITOS Y UN PROMEDIO GENERAL DE APROVECHAMIENTO DE <b>{{ $promedio }}</b> LA ESCALA DE CALIFICACIONES ES DE (5 A 10) Y LA MÍNIMA APROBATORIA ES DE 6 (SEIS).
         </p>
 
-        <p style="font-align:justify; font-size:13px">EXPEDIDO EN </p>
+        @php
+            // Procesar la fecha dinámica
+            $fechaObj = \Carbon\Carbon::parse($fecha);
+
+            // Día en número, con cero a la izquierda si es menor a 10
+            $dia = str_pad($fechaObj->day, 2, '0', STR_PAD_LEFT);
+
+            // Mes en español, en minúsculas
+            $meses = [
+            1 => 'enero',
+            2 => 'febrero',
+            3 => 'marzo',
+            4 => 'abril',
+            5 => 'mayo',
+            6 => 'junio',
+            7 => 'julio',
+            8 => 'agosto',
+            9 => 'septiembre',
+            10 => 'octubre',
+            11 => 'noviembre',
+            12 => 'diciembre',
+            ];
+            $mes = $meses[intval($fechaObj->month)];
+
+            // Año en letras dinámico
+            function anioALetras($anio) {
+            $formatter = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
+            return mb_strtolower($formatter->format($anio), 'UTF-8');
+            }
+            $anio = anioALetras($fechaObj->year);
+
+
+        @endphp
+
+        <p style="font-align:justify; font-size:13px; text-transform:uppercase">
+            EXPEDIDO EN CD. ALTAMIRANO, GUERRERO A <u>{{ $dia }}</u> DE <u>{{ $mes }}</u> del año <u>{{ $anio }}</u>.
+        </p>
 
 
 

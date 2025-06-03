@@ -276,7 +276,7 @@
                         ->orderBy('materias.clave', 'asc')
                         ->select('materias.*', 'asignacion_materias.id as asignacion_materia_id')
                         ->get();
-                @endphp
+                   @endphp
 
 
 

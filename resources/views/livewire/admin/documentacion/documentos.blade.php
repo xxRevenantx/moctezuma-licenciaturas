@@ -6,7 +6,7 @@
 
 
          <form action="{{ route('admin.pdf.documentacion.documento_personal') }}" method="GET" target="_blank" class="mb-4">
-             <div class="grid grid-cols-4 gap-4 " >
+             <div class="grid  md:grid-cols-4 gap-4 " >
                 <flux:input required
                 label="Buscar alumno"
                 wire:model.live.debounce.500ms="query"
@@ -41,8 +41,7 @@
                     placeholder="Selecciona una fecha"
                     class="w-full"
                 />
-
-                <flux:button type="submit" variant="primary">Descargar</flux:button>
+                <flux:button type="submit" class="mt-6" variant="primary">Descargar</flux:button>
                 </div>
         </form>
 
@@ -124,7 +123,7 @@
 
 
                     <form action="{{ route('admin.pdf.documentacion.documento_expedicion') }}" method="GET" target="_blank" class="mb-4">
-                        <div class="grid grid-cols-4 gap-4">
+                        <div class="grid md:grid-cols-4 gap-4">
 
                             <flux:select name="licenciatura" label="Selecciona la licenciatura" class="w-full mb-4" required>
                                 <flux:select.option value="">Selecciona una licenciatura</flux:select.option>
