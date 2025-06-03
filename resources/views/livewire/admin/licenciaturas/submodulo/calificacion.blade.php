@@ -125,6 +125,14 @@
 
                    <div class="min-w-full divide-y divide-gray-200 bg-white dark:bg-gray-800">
                     <form wire:submit.prevent="guardarCalificaciones">
+                        <!-- Capa de carga encima de la tabla -->
+                    <div wire:loading.delay wire:target="filtrar_generacion, filtrar_cuatrimestre" class="absolute inset-0 bg-white bg-opacity-75 z-50 flex justify-center items-center rounded-lg">
+                        <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                        </svg>
+                    </div>
+
                     <table class="min-w-full divide-y divide-gray-200 bg-white dark:bg-gray-800 border">
                         <thead class="bg-gray-100 dark:bg-gray-700">
                             <tr>
@@ -181,15 +189,31 @@
                                                     $global_count++;
                                                 }
                                             @endphp
-                                            <td class="px-4 py-3 border">
-                                                <input
+                                           <td class="px-4 py-3 border">
+                                    <div x-data="{ calificacion: '{{ $calificaciones[$alumno->id][$materia->id] ?? '' }}' }" class="relative">
+                                        <input
                                                     type="text"
-                                                    class="border rounded px-2 py-2 text-center w-full"
-                                                    wire:model="calificaciones.{{ $alumno->id }}.{{ $materia->id }}"
+                                                    x-model="calificacion"
+                                                    @keydown.enter.prevent="guardarYAvanzar($event)"
+                                                    @keydown.tab.prevent="guardarYAvanzar($event)"
+                                                    @blur="guardarYAvanzar($event)"
+                                                    class="border rounded px-2 py-2 text-center w-full focus:ring focus:ring-blue-300"
                                                     placeholder="Calificación"
-                                                    value="{{ $valor }}"
-                                                >
-                                            </td>
+                                                    wire:loading.attr="disabled"
+                                                    wire:target="filtrar_generacion, filtrar_cuatrimestre"
+                                                />
+
+
+                                        <div wire:loading.delay wire:target="guardarCalificacionDirecta" class="absolute top-2 right-2">
+                                            <svg class="w-4 h-4 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </td>
+
+
                                         @endforeach
                                         <td class="px-4 py-3 border font-bold bg-gray-50">
                                             @if($count)
@@ -258,12 +282,7 @@
 
 
 
-                    <div class="mt-4 flex justify-end p-3">
-                     <x-button variant="primary" type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                            Guardar calificaciones
-                        </x-button>
-                    </div>
+
                     @endif
 
 

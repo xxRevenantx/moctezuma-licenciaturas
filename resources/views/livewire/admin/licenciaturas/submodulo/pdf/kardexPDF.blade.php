@@ -11,8 +11,8 @@
 
       @page { margin:5px 45px 0px 45px; }
 
-      .page-break {
-    page-break-after: always;
+    .page-break {
+        page-break-after: always;
     }
 
      @font-face {

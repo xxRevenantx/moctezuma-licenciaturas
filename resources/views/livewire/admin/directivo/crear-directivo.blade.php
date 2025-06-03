@@ -47,7 +47,7 @@
                         <flux:input wire:model="cargo" :label="__('Cargo')" type="text" placeholder="Cargo" autocomplete="cargo" />
                         <flux:input wire:model="telefono" :label="__('Teléfono')" type="text" placeholder="Teléfono" autocomplete="telefono" />
                         <flux:input wire:model="correo" :label="__('Correo Electrónico')" type="email" placeholder="Correo electrónico" autocomplete="correo" />
-                        <div class="flex items-center gap-4 mt-3">
+                        <div class="flex items-center gap-4 mt-5">
                             <div class="flex items-center">
                                 <flux:button variant="primary" type="submit" class="w-full cursor-pointer">{{ __('Guardar') }}</flux:button>
                             </div>
