@@ -244,7 +244,11 @@
                                                  {{$materia->nombre}}</td>
                                               <td style="text-align:center; font-size:11px; line-height:10px; text-transform:uppercase;
                                                  padding-top:0; padding-bottom:0; margin:0; border-left:1px solid #000;  border-right:1px solid #000">
-                                                    {{ $calificacion->calificacion }}
+                                                    @if(isset($calificacion) && $calificacion->calificacion !== null && $calificacion->calificacion !== '' && $calificacion->calificacion != 0)
+                                                        {{ $calificacion->calificacion }}
+                                                    @else
+                                                      ---
+                                                    @endif
                                                 </td>
                                               <td  style="text-align:center; font-size:11px; line-height:10px; text-transform:uppercase;
                                                  padding-top:0; padding-bottom:0; margin:0; border-left:1px solid #000;"></td>
@@ -266,7 +270,7 @@
                             $filas = 0;
                             if ($alumno->licenciatura_id == 5) { // EDUCACIÓN
                                 $filas = 3;
-                            } elseif ($alumno->licenciatura_id == 1) {
+                            } elseif ($alumno->licenciatura_id == 1) { // NUTRICIÓN
                                 $filas = 4;
                             }
                         @endphp
@@ -371,7 +375,7 @@
                                               <strong>CICLO ESCOLAR: {{ $periodo ? $periodo->ciclo_escolar : '' }}</strong>
                                         </td>
                                         <td style="padding-top:10px; padding-left:10px; text-align:center; border-left:1px solid #000; border-right:1px solid #000"></td>
-                                        <td style="padding-top:10px; padding-left:10px; text-align:center; border-left:1px solid #000; border-right:1px solid #000"></td>
+                                        <td style="padding-top:10px; padding-left:10px; text-align:center; border-left:1px solid #000;"></td>
                                     </tr>
 
 
@@ -389,11 +393,15 @@
                                                  padding-left:10px; padding-top:0; padding-bottom:0; margin:0;  ">
                                                  {{$materia->nombre}}</td>
                                               <td style="text-align:center; font-size:11px; line-height:12px; text-transform:uppercase;
-                                                 padding-top:0; padding-bottom:0; margin:0; border-left:1px solid #000;  border-right:1px solid #000">
-                                                    {{ $calificacion->calificacion }}
+                                                 padding-top:0; padding-bottom:0; margin:0; border-left:1px solid #000; ">
+                                                   @if(isset($calificacion) && $calificacion->calificacion !== null && $calificacion->calificacion !== '' && $calificacion->calificacion != 0)
+                                                        {{ $calificacion->calificacion }}
+                                                    @else
+                                                       ---
+                                                    @endif
                                                 </td>
-                                              <td  style="text-align:center; font-size:11px; line-height:12px|; text-transform:uppercase;
-                                                 padding-top:0; padding-bottom:0; margin:0; border-left:1px solid #000;  border-right:1px solid #000"></td>
+                                              <td  style="text-align:center; font-size:11px; line-height:12px; text-transform:uppercase;
+                                                 padding-top:0; padding-bottom:0; margin:0; border-left:1px solid #000;"></td>
 
                                             </tr>
 
@@ -402,6 +410,7 @@
                            @endif
 
                         @endforeach
+
 
                      </tbody>
             </table>
@@ -524,8 +533,7 @@
             </table>
 
         @endif
-   <div class="page-break"></div>
-
+   <div class="page-break">
 
 
    {{-- PAGINA 2 --}}
@@ -571,6 +579,14 @@
                 <td style="border:1px solid #000; text-align:left; padding:0 5px; font-size:10.4px; border:1px transparent">ESTE CERTIFICADO REQUIERE DE TRAMITES ADICIONALES DE LEGALIZACIÓN. NO ES VÁLIDO SI PRESENTA BORRADURAS O ENMENDADURAS</td>
             </tr>
          </table>
+
+
+
+
+
+   </div>
+
+
 
 
 </body>
