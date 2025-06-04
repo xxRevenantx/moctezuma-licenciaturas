@@ -18,12 +18,17 @@ class Calificacion extends Component
     public $licenciatura;
     public $generaciones = [];
     public $cuatrimestres = [];
-    public $calificaciones = [];
+    public $calificaciones = []; // [alumno_id][materia_id] => valor
     public $generacion_filtrada;
     public $filtrar_generacion = null;
     public $filtrar_cuatrimestre = null;
     public $periodo = [];
     public $search = '';
+
+    public $todas_calificaciones_guardadas = false;
+    public $hayCambios = false;
+
+
 
     public function mount($modalidad, $licenciatura)
     {
@@ -40,37 +45,37 @@ class Calificacion extends Component
         $this->cuatrimestres = [];
     }
 
-    public function updated($propertyName)
-    {
-        if ($propertyName === 'filtrar_generacion') {
-            $this->filtrar_cuatrimestre = null;
-            $this->cuatrimestres = Periodo::where('generacion_id', $this->filtrar_generacion)
-                ->orderBy('id', 'asc')
-                ->get();
+ public function updated($propertyName)
+{
+    if ($propertyName === 'filtrar_generacion') {
+        $this->filtrar_cuatrimestre = null;
+        $this->cuatrimestres = Periodo::where('generacion_id', $this->filtrar_generacion)
+            ->orderBy('id', 'asc')->get();
 
-            $this->generacion_filtrada = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
-                ->where('modalidad_id', $this->modalidad->id)
-                ->where('generacion_id', $this->filtrar_generacion)
-                ->first();
+        $this->generacion_filtrada = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
+            ->where('modalidad_id', $this->modalidad->id)
+            ->where('generacion_id', $this->filtrar_generacion)
+            ->first();
 
-            $this->periodo = Periodo::where('generacion_id', $this->filtrar_generacion)
-                ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
-                ->first();
+        $this->periodo = Periodo::where('generacion_id', $this->filtrar_generacion)
+            ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
+            ->first();
 
-             $this->reset('calificaciones');
-            $this->dispatch('refreshComponente'); // <-- Esto recarga el componente
-
-        }
-
-        if ($propertyName === 'filtrar_cuatrimestre') {
-            $this->periodo = Periodo::where('generacion_id', $this->filtrar_generacion)
-                ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
-                ->first();
-            $this->reset('calificaciones');
-            $this->dispatch('refreshComponente'); // <-- Esto recarga el componente
-
-        }
+        $this->calificaciones = [];
+        $this->dispatch('refreshComponente');
     }
+    if ($propertyName === 'filtrar_cuatrimestre') {
+        $this->periodo = Periodo::where('generacion_id', $this->filtrar_generacion)
+            ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
+            ->first();
+        $this->calificaciones = [];
+        $this->dispatch('refreshComponente');
+    }
+}
+
+
+
+
 
     public function limpiarFiltros()
     {
@@ -78,68 +83,139 @@ class Calificacion extends Component
         $this->filtrar_cuatrimestre = null;
         $this->cuatrimestres = [];
         $this->search = '';
+        $this->calificaciones = [];
     }
 
-public function guardarCalificacionDirecta($alumno_id, $materia_id, $valor)
+    // GUARDAR CALIFICACION INDIVIDUAL (blur)
+public function guardarTodasLasCalificaciones()
 {
-    $valor_valido = false;
+    $alumnos = Inscripcion::where('licenciatura_id', $this->licenciatura->id)
+        ->where('modalidad_id', $this->modalidad->id)
+        ->where('generacion_id', $this->filtrar_generacion)
+        ->pluck('id')
+        ->toArray();
 
-    if ($valor === '' || $valor === null) {
-        $valor_valido = true;
-    } elseif (is_numeric($valor)) {
-        $valor_num = floatval($valor);
-        if ($valor_num == 0 || ($valor_num >= 5 && $valor_num <= 10)) {
-            $valor_valido = true;
+    $materias = AsignacionMateria::where('licenciatura_id', $this->licenciatura->id)
+        ->where('modalidad_id', $this->modalidad->id)
+        ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
+        ->pluck('id')
+        ->toArray();
+
+    $valores_invalidos = [];
+
+    foreach ($alumnos as $alumno_id) {
+        foreach ($materias as $materia_id) {
+            $valor = $this->calificaciones[$alumno_id][$materia_id] ?? null;
+
+            // Si el valor es null, vacío, o 0 (numérico o string "0"), solo eliminar y continuar
+            if (
+                $valor === null ||
+                $valor === '' ||
+                (is_numeric($valor) && (int)$valor === 0) ||
+                (is_string($valor) && trim($valor) === '0')
+            ) {
+                ModelsCalificacion::where([
+                    'alumno_id' => $alumno_id,
+                    'asignacion_materia_id' => $materia_id,
+                    'modalidad_id' => $this->modalidad->id,
+                    'licenciatura_id' => $this->licenciatura->id,
+                    'generacion_id' => $this->filtrar_generacion,
+                    'cuatrimestre_id' => $this->filtrar_cuatrimestre,
+                ])->delete();
+
+                unset($this->calificaciones[$alumno_id][$materia_id]);
+                continue;
+            }
+
+            // Solo números 5-10 o NP, si no, es inválido
+            if (!is_numeric($valor) && strtoupper(trim($valor)) !== 'NP') {
+                $valores_invalidos[] = $valor;
+                continue;
+            }
+            if (is_numeric($valor) && ($valor < 5 || $valor > 10)) {
+                $valores_invalidos[] = $valor;
+                continue;
+            }
         }
-    } elseif (strtoupper(trim($valor)) === 'NP') {
-        $valor_valido = true;
     }
 
-    if (!$valor_valido) return;
+    // Si hay valores inválidos, muestra swal de error y no guarda nada
+    if (!empty($valores_invalidos)) {
+        $this->dispatch('swal', [
+            'icon' => 'error',
+            'title' => 'Existen calificaciones no válidas',
+            'text' => 'Solo puedes ingresar valores entre 5 y 10 o "NP". Corrige los valores e intenta guardar de nuevo.',
+            'position' => 'top-end',
+        ]);
+        return;
+    }
 
-    $materia_asignada = AsignacionMateria::find($materia_id);
-    if (!$materia_asignada) return;
+    // Si no hay inválidos, ahora sí guarda
+    foreach ($alumnos as $alumno_id) {
+        foreach ($materias as $materia_id) {
+            $valor = $this->calificaciones[$alumno_id][$materia_id] ?? null;
 
-    $yaExiste = \App\Models\Calificacion::where('alumno_id', $alumno_id)
-        ->where('modalidad_id', $this->modalidad->id)
-        ->where('licenciatura_id', $this->licenciatura->id)
-        ->where('generacion_id', $this->filtrar_generacion)
-        ->where('cuatrimestre_id', '!=', $this->filtrar_cuatrimestre)
-        ->whereHas('asignacionMateria', function ($query) use ($materia_asignada) {
-            $query->where('materia_id', $materia_asignada->materia_id);
-        })
-        ->exists();
+            if (
+                $valor === null ||
+                $valor === '' ||
+                (is_numeric($valor) && (int)$valor === 0) ||
+                (is_string($valor) && trim($valor) === '0')
+            ) {
+                ModelsCalificacion::where([
+                    'alumno_id' => $alumno_id,
+                    'asignacion_materia_id' => $materia_id,
+                    'modalidad_id' => $this->modalidad->id,
+                    'licenciatura_id' => $this->licenciatura->id,
+                    'generacion_id' => $this->filtrar_generacion,
+                    'cuatrimestre_id' => $this->filtrar_cuatrimestre,
+                ])->delete();
 
-    if ($yaExiste) return;
+                unset($this->calificaciones[$alumno_id][$materia_id]);
+                continue;
+            }
 
-    \App\Models\Calificacion::updateOrCreate(
-        [
-            'alumno_id' => $alumno_id,
-            'asignacion_materia_id' => $materia_id,
-            'modalidad_id' => $this->modalidad->id,
-            'licenciatura_id' => $this->licenciatura->id,
-            'generacion_id' => $this->filtrar_generacion,
-            'cuatrimestre_id' => $this->filtrar_cuatrimestre,
-        ],
-        [
-            'calificacion' => $valor,
-            'profesor_id' => $materia_asignada->profesor_id,
-        ]
-    );
+            // Solo guarda valores válidos (ya validado antes)
+            $materia_asignada = AsignacionMateria::find($materia_id);
+            if (!$materia_asignada) continue;
+
+            ModelsCalificacion::updateOrCreate(
+                [
+                    'alumno_id' => $alumno_id,
+                    'asignacion_materia_id' => $materia_id,
+                    'modalidad_id' => $this->modalidad->id,
+                    'licenciatura_id' => $this->licenciatura->id,
+                    'generacion_id' => $this->filtrar_generacion,
+                    'cuatrimestre_id' => $this->filtrar_cuatrimestre,
+                ],
+                [
+                    'calificacion' => $valor,
+                    'profesor_id' => $materia_asignada->profesor_id,
+                ]
+            );
+        }
+    }
+
+    $this->dispatch('swal', [
+        'icon' => 'success',
+        'title' => 'Calificaciones guardadas correctamente',
+        'position' => 'top-end',
+    ]);
 }
 
 
 
 
+
+
+
+
+
 #[On('refreshComponente')]
- public function render()
+public function render()
 {
     $alumnos = collect();
     $materias = collect();
-    $calificaciones_guardadas = collect();
-
-    // Resetea calificaciones ANTES de poblar, para evitar "mezclar"
-    // $this->calificaciones = [];
+    $this->hayCambios = false; // Inicializa aquí para no arrastrar valor viejo
 
     if ($this->filtrar_generacion && $this->filtrar_cuatrimestre) {
         $alumnos = Inscripcion::where('licenciatura_id', $this->licenciatura->id)
@@ -149,8 +225,7 @@ public function guardarCalificacionDirecta($alumno_id, $materia_id, $valor)
                 $query->where('nombre', 'like', '%' . $this->search . '%')
                     ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
                     ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
-                    ->orWhere('matricula', 'like', '%' . $this->search . '%')
-                    ;
+                    ->orWhere('matricula', 'like', '%' . $this->search . '%');
             })
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
@@ -161,32 +236,66 @@ public function guardarCalificacionDirecta($alumno_id, $materia_id, $valor)
             ->where('licenciatura_id', $this->licenciatura->id)
             ->where('modalidad_id', $this->modalidad->id)
             ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
-            ->whereHas('materia') // Asegura que tenga relación con materia
+            ->whereHas('materia')
             ->get()
-            ->sortBy(function ($asignacion) {
-            return optional($asignacion->materia)->clave;
-            })
+            ->sortBy(fn($asignacion) => optional($asignacion->materia)->clave)
             ->values();
 
-        // Carga calificaciones guardadas para los alumnos y materias mostrados
         $alumno_ids = $alumnos->pluck('id')->toArray();
-        $materia_ids = $materias->pluck('id')->toArray(); // id de AsignacionMateria
+        $materia_ids = $materias->pluck('id')->toArray();
 
-        $calificaciones_guardadas = \App\Models\Calificacion::whereIn('alumno_id', $alumno_ids)
+        // NO REINICIES $this->calificaciones
+        $calificaciones_guardadas = ModelsCalificacion::whereIn('alumno_id', $alumno_ids)
             ->whereIn('asignacion_materia_id', $materia_ids)
             ->where('modalidad_id', $this->modalidad->id)
             ->where('licenciatura_id', $this->licenciatura->id)
             ->where('generacion_id', $this->filtrar_generacion)
             ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
-            ->get();
+            ->get()
+            ->groupBy('alumno_id');
 
-        // Llena $this->calificaciones con lo que hay en la base SOLO para ese cuatrimestre
-        if (empty($this->calificaciones)) {
-            foreach ($calificaciones_guardadas as $cali) {
-                $this->calificaciones[$cali->alumno_id][$cali->asignacion_materia_id] = $cali->calificacion;
+        // Actualiza array de calificaciones con lo de la BD
+       foreach ($alumnos as $alumno) {
+                foreach ($materias as $materia) {
+                    $cali_guardada = isset($calificaciones_guardadas[$alumno->id])
+                        ? $calificaciones_guardadas[$alumno->id]->firstWhere('asignacion_materia_id', $materia->id)
+                        : null;
+                    $this->calificaciones[$alumno->id][$materia->id] = $this->calificaciones[$alumno->id][$materia->id] ?? ($cali_guardada ? $cali_guardada->calificacion : null);
+                }
+            }
+
+
+        // Determina si ya todas las calificaciones han sido guardadas
+        $todas = true;
+        foreach ($alumnos as $alumno) {
+            foreach ($materias as $materia) {
+                $valor = $this->calificaciones[$alumno->id][$materia->id] ?? null;
+                if ($valor === null || $valor === '' || (is_numeric($valor) && ($valor < 5 || $valor > 10)) || (!is_numeric($valor) && strtoupper(trim($valor)) !== 'NP')) {
+                    $todas = false;
+                    break 2;
+                }
             }
         }
+        $this->todas_calificaciones_guardadas = $todas;
 
+        // Detección de cambios (habilita/deshabilita botón)
+        $hayCambios = false;
+        foreach ($alumnos as $alumno) {
+            foreach ($materias as $materia) {
+                $valor_pantalla = $this->calificaciones[$alumno->id][$materia->id] ?? null;
+                $cali_guardada = isset($calificaciones_guardadas[$alumno->id])
+                    ? $calificaciones_guardadas[$alumno->id]->firstWhere('asignacion_materia_id', $materia->id)
+                    : null;
+$valor_bd = $cali_guardada ? $cali_guardada->calificacion : null;
+
+                // Si difiere (incluyendo nulos/vacíos), hay cambios
+                if ($valor_pantalla !== $valor_bd) {
+                    $hayCambios = true;
+                    break 2;
+                }
+            }
+        }
+        $this->hayCambios = $hayCambios;
     }
 
     return view('livewire.admin.licenciaturas.submodulo.calificacion', [
@@ -194,8 +303,12 @@ public function guardarCalificacionDirecta($alumno_id, $materia_id, $valor)
         'cuatrimestres' => $this->cuatrimestres,
         'alumnos' => $alumnos,
         'materias' => $materias,
+        'todas_calificaciones_guardadas' => $this->todas_calificaciones_guardadas,
+        'hayCambios' => $this->hayCambios,
     ]);
 }
+
+
 
 
 }
