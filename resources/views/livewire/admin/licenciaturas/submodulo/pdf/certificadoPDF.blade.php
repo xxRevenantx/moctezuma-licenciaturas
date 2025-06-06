@@ -9,7 +9,7 @@
 </head>
 <style>
 
-      @page { margin:5px 45px 0px 45px; }
+      @page { margin:0px 45px 0px 45px; }
 
     .page-break {
      page-break-after: always;
@@ -119,7 +119,7 @@
                     </tr>
 
            </table>
-            <p  style="text-align:right; font-size:13.5px; margin-top:-5px">MATRÍCULA: <b><u>{{$alumno->matricula}}</u><b></p>
+            <p  style="text-align:right; font-size:13.5px; margin-top:-5px">MATRÍCULA: <b><u>{{$alumno->matricula}}</u></b></p>
 
 
             @if ($alumno->licenciatura_id == 6)
@@ -137,8 +137,8 @@
             <table width="100%" class="tbl1"  cellspacing="0">
                 <thead>
                     <tr>
-                        <th style="border-top:1px;  font-size:12px; transparent; border-left:1px transparent;background:#C5C5C5"><b>ASIGNATURAS</b></th>
-                        <th style="border-top:1px;  font-size:12px; transparent; border-left:1px transparent;background:#C5C5C5; border-left:1px solid #000"><b>CAL.<br>FINAL</b></th>';
+                        <th style="border-top:1px;  font-size:12px; border-left:1px transparent;background:#C5C5C5"><b>ASIGNATURAS</b></th>
+                        <th style="border-top:1px;  font-size:12px; border-left:1px solid #000;background:#C5C5C5;"><b>CAL.<br>FINAL</b></th>
 
                         @if($alumno->licenciatura_id == 6)
                                <th style="border-top:1px transparent; font-size:12px; border-left:1px transparent;background:#C5C5C5;  font-size:10px; border-left:1px solid #000"><b>OBSERVA<br>CIONES</b></th>
@@ -294,7 +294,7 @@
                 <thead>
                     <tr>
                         <th style="border-top:1px;  font-size:12px; border-left:1px solid #000;background:#C5C5C5"><b>ASIGNATURAS</b></th>
-                        <th style="border-top:1px;  font-size:12px; border-left:1px transparent;background:#C5C5C5; border-left:1px solid #000"><b>CAL.<br>FINAL</b></th>';
+                        <th style="border-top:1px;  font-size:12px; border-left:1px solid #000;background:#C5C5C5;"><b>CAL.<br>FINAL</b></th>
 
                         @if($alumno->licenciatura_id == 6)
                                <th style="border-top:1px transparent; font-size:12px; border-left:1px transparent;background:#C5C5C5; border-right:1px transparent; font-size:10px; border-left:1px solid #000"><b>OBSERVA<br>CIONES</b></th>
@@ -464,7 +464,7 @@
     $promedio = $cuenta > 0 ? round($suma / $cuenta, 1) : '';
 @endphp
 
-<p style="font-align:justify; font-size:13px; margin:0; text-transform:uppercase">EL PRESENTE CERTIFICADO DE AMPARA <u><b>{{ $materiasCalificablesEnLetras }}</b></u> ASIGNATURAS, LAS CUALES CUBREN ÍNTEGRAMENTE EL PLAN DE ESTUDIOS DE LA LICENCIATURA <b>{{$licenciatura->nombre}}</b>
+<p style="text-align:justify; font-size:13px; margin:0; text-transform:uppercase">EL PRESENTE CERTIFICADO DE AMPARA <u><b>{{ $materiasCalificablesEnLetras }}</b></u> ASIGNATURAS, LAS CUALES CUBREN ÍNTEGRAMENTE EL PLAN DE ESTUDIOS DE LA LICENCIATURA <b>{{$licenciatura->nombre}}</b>
         CON UN TOTAL DE <b>{{ $creditosMateriasCalificables }}</b> CRÉDITOS Y UN PROMEDIO GENERAL DE APROVECHAMIENTO DE <b>{{ $promedio }}</b> LA ESCALA DE CALIFICACIONES ES DE (5 A 10) Y LA MÍNIMA APROBATORIA ES DE 6 (SEIS).
  </p>
 
@@ -502,47 +502,45 @@
 
         @endphp
 
-        <p style="font-align:justify; font-size:13px; text-transform:uppercase">
+        <p style="text-align:justify; font-size:13px; text-transform:uppercase">
             EXPEDIDO EN CD. ALTAMIRANO, GUERRERO A <u>{{ $dia }}</u> DE <u>{{ $mes }}</u> del año <u>{{ $anio }}</u>.
         </p>
 
-
-         @if($alumno->licenciatura_id == 6)
-            <table style="margin:25px auto 0; text-align:center; font-size:14px; width:100%">
-            <tr>
-            <td  colspan="5">_______________________________</td>
-            </tr>
-            <tr>
-            <td colspan="5"><b>JOSÉ RUBÉN SOLÓRZANO CARBAJA</b>L</td>
-            </tr>
-            <tr>
-            <td  colspan="5"><b>RECTOR</b></td>
-            </tr>
+        @if($alumno->licenciatura_id == 6)
+            <table style="margin:25px auto 0; text-align:center; font-size:14px; width:100%; text-transform:uppercase; line-height:12px">
+                <tr>
+                <td  colspan="5">_______________________________</td>
+                </tr>
+                <tr>
+                <td colspan="5"><b>{{ $rector->nombre }} {{ $rector->apellido_paterno }} {{ $rector->apellido_materno }}</b></td>
+                </tr>
+                <tr>
+                <td  colspan="5"><b>RECTOR</b></td>
+                </tr>
             </table>
         @else
-            <table style="margin:75px auto 0; text-align:center; font-size:13px; width:100%">
-            <tr>
-            <td  colspan="5">_______________________________</td>
-            </tr>
-            <tr>
-            <td colspan="5"><b>JOSÉ RUBÉN SOLÓRZANO CARBAJA</b>L</td>
-            </tr>
-            <tr>
-            <td  colspan="5"><b>RECTOR</b></td>
-            </tr>
+            <table style="margin:60px auto 0; text-align:center; font-size:13px; width:100%; text-transform:uppercase; line-height:12px">
+                <tr>
+                <td  colspan="5">_______________________________</td>
+                </tr>
+                <tr>
+                <td colspan="5"><b>{{ $rector->nombre }} {{ $rector->apellido_paterno }} {{ $rector->apellido_materno }}</b></td>
+                </tr>
+                <tr>
+                <td  colspan="5"><b>RECTOR</b></td>
+                </tr>
             </table>
 
         @endif
-   <div class="page-break">
 
-
+   <div class="page-break"></div>
    {{-- PAGINA 2 --}}
 
-        <table style="width:100%; margin-top:30px">
+        <table class="autoridades" style="width:100%; margin-top:24px">
             <tr>
                 <td style="border:1px solid #000; width:250px; text-align:center; font-size:16px; border-bottom:1px transparent">REVISADO Y CONFRONTADO POR:</td>
                 <td style="width:220px"></td>
-                <td style="border:1px solid #000; width:250px; text-align:center; font-size:16px; ">JEFE(A) DEL DEPARTAMENTO DE <br> REGISTRO Y CERTIFICACIÓN</td>
+                <td style="border:1px solid #000; width:250px; text-align:center; font-size:16px; line-height:13px ">JEFE(A) DEL DEPARTAMENTO DE <br> REGISTRO Y CERTIFICACIÓN</td>
             </tr>
             <tr>
                 <td style="border:1px solid #000; width:250px; height:50px; text-align:center; font-size:16px;  border-bottom:1px transparent"></td>
@@ -550,10 +548,10 @@
                 <td style="border:1px solid #000; width:250px; height:50px; text-align:center; font-size:16px;border-bottom:1px transparent; border-top:1px transparent"></td>
             </tr>
             <tr>
-                <td style="border:1px solid #000; width:200px; height:50px; font-size:17px; text-align:center; border-top:1px transparent; border-bottom:1px transparent; padding:0 10px"><p style="text-align:center;">BERNARDO LÓPEZ BELLO</p></td>
-                <td style="width:220px;font-size:15px; text-align:center"><br><br><b>SELLO</b></td>
-                <!-- <td style="border:1px solid #000;  text-align:center; width:200px; height:70px; font-size:17px; border-top:1px transparent;">PEDRO PASTOR DEL MORAL</td> -->
-                <td style="border:1px solid #000; width:200px; text-align:center; height:50px; border-top:1px transparent; border-bottom:1px transparent; font-size:17px;">FRANCISCO JAVIER MEDINA MARIN</td>
+                <td style="border:1px solid #000; width:200px; height:20px; font-size:16.5px; text-align:center; border-top:1px transparent; border-bottom:1px transparent; padding:0 10px"><p style="text-align:center;">BERNARDO LÓPEZ BELLO</p></td>
+                <td style="width:220px;font-size:15px; text-align:center"><br><b>SELLO</b></td>
+                <!-- <td style="border:1px solid #000;  text-align:center; width:200px; height:70px; font-size:16.5px; border-top:1px transparent;">PEDRO PASTOR DEL MORAL</td> -->
+                <td style="border:1px solid #000; width:200px; text-align:center; height:20px; border-top:1px transparent; border-bottom:1px transparent; font-size:16.5px;">FRANCISCO JAVIER MEDINA MARIN</td>
             </tr>
             <tr>
                 <td style="width:200px; height:45px; font-size:16px; text-align:left; border:1px solid #000; border-top:1px transparent; padding:0 10px">FECHA:</td>
@@ -562,21 +560,26 @@
             </tr>
          </table>
 
-         <table style="width:37%;">
+          <table style="width:35%; margin-top:50px; margin-bottom:910px">
             <tr>
-                <td style="width:100px; font-size:16px;padding:5px; text-align:center">
+                <td style="width:100px; font-size:16px;padding:5px; text-align:center; line-height:15px; text-transform:uppercase">
                 _________________________<br>
-                    SILVIA AGUSTÍN MAGAÑA <br>
-                    DIRECTOR(A) GENERAL
+                    {{ $directora->nombre }} {{ $directora->apellido_paterno }} {{ $directora->apellido_materno }} <br>
+                    DIRECTORA GENERAL
+
                 </td>
             </tr>
          </table>
 
 
-         <table style="width:100%; margin-top:1020px">
+
+
+         {{-- <table style="width:100%; margin-top:1020px"> --}}
+         <table style="width:100%;">
             <tr>
-                <td style="border:1px solid #000; width:160px;  font-size:16px; border:2px solid #000; padding:5px">FOLIO: <b>{{$alumno->folio}}</b></td>
-                <td style="border:1px solid #000; text-align:left; padding:0 5px; font-size:10.4px; border:1px transparent">ESTE CERTIFICADO REQUIERE DE TRAMITES ADICIONALES DE LEGALIZACIÓN. NO ES VÁLIDO SI PRESENTA BORRADURAS O ENMENDADURAS</td>
+                <td style="width:132px; line-height:10px; padding: 10px; text-align:center; font-size:16.5px; border:1.5px solid #000; ">FOLIO: <b>{{$alumno->folio}}</b></td>
+                <td style="border:1px solid #000; text-align:left; padding:0 5px; font-size:9.5px; border:1px transparent">
+                    ESTE CERTIFICADO REQUIERE DE TRAMITES ADICIONALES DE LEGALIZACIÓN. NO ES VÁLIDO SI PRESENTA BORRADURAS O ENMENDADURAS</td>
             </tr>
          </table>
 
@@ -584,7 +587,7 @@
 
 
 
-   </div>
+
 
 
 

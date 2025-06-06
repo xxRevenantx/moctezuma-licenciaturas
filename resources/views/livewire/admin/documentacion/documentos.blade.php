@@ -82,6 +82,7 @@
             </p>
             <p>Matrícula: {{ $selectedAlumno['matricula'] ?? '' }}</p>
             <p>CURP: {{ $selectedAlumno['CURP'] ?? '' }}</p>
+            <p>Folio: {{ $selectedAlumno["folio"] ?? '----' }}</p>
         </div>
     @endif
 

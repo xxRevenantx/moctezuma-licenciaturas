@@ -216,16 +216,18 @@ class PDFController extends Controller
 
 
     $licenciatura = Licenciatura::find($alumno->licenciatura_id);
-    $periodo = Periodo::where('generacion_id', $alumno->generacion_id)->get();
-
     $cuatrimestres = Cuatrimestre::all();
+
+     $rector = Directivo::where('cargo', 'Rector')->first();
+    $directora = Directivo::where('cargo', 'Directora General')->first();
 
     if($documento == 'kardex'){
         $data = [
             'alumno' => $alumno,
             'escuela'=> $escuela,
             'licenciatura'=> $licenciatura,
-            'periodo' => $periodo
+            'cuatrimestres' => $cuatrimestres,
+            'rector' => $rector,
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexPDF', $data)->setPaper('legal', 'portrait');
              return $pdf->stream("KARDEX".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
@@ -237,6 +239,8 @@ class PDFController extends Controller
             'licenciatura'=> $licenciatura,
             'fecha' => $fecha,
             'cuatrimestres' => $cuatrimestres,
+            'rector' => $rector,
+            'directora' => $directora
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.certificadoPDF', $data)->setPaper('legal', 'portrait');
              return $pdf->stream("CERTIFICADO_DE_ESTUDIOS_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");

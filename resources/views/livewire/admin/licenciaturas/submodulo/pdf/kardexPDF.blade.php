@@ -65,6 +65,8 @@
     table.datos td {
 
         /* border: 1px solid #000; */
+        padding: 0;
+        line-height: 13px;
     }
 
     table.cuatrimestres{
@@ -94,30 +96,31 @@
             border: 1px solid black;
             border-collapse: collapse;
             table-layout: fixed;
-            margin-top: 50px;
+            margin-top: 70px;
         }
 
         .celda {
             width: 50%;
-            height: 140px;
+            height: 110px;
             border-collapse: collapse;
             vertical-align: top;
         }
 
         .firma-rector {
             text-align: center;
-            padding-top: 120px;
+            padding-top: 150px;
         }
 
         .firma-rector .linea {
             border-top: 1px solid black;
-            width: 60%;
+            width: 75%;
             margin: 0 auto;
-            padding-top: 5px;
+            padding-top: 0px;
+            text-transform: uppercase
         }
 
         .promedio {
-            padding: 30px 0 0 20px;
+            padding: 65px 0 0 20px;
         }
 
         .prom-label {
@@ -156,7 +159,7 @@
     <table class="datos">
         <tr>
             <td style="text-decoration: underline;font-weight:bold; text-align:center; font-size:14px">{{ $escuela->nombre }}</td>
-            <td style="text-decoration: underline;font-weight:bold; text-align:center">{{ $licenciatura->RVOE}}</td>
+            <td style="text-decoration: underline;font-weight:bold; text-align:center">{{ $licenciatura->RVOE ?? "-------"}}</td>
             <td style="text-decoration: underline;font-weight:bold; text-align:center">{{ $escuela->CCT}}</td>
         </tr>
         <tr>
@@ -166,9 +169,9 @@
         </tr>
 
         <tr>
-            <td style="text-decoration: underline;font-weight:bold; text-align:center">{{ $alumno->nombre }}</td>
-            <td style="text-decoration: underline;font-weight:bold; text-align:center">{{ $alumno->apellido_paterno}}</td>
-            <td style="text-decoration: underline;font-weight:bold; text-align:center">{{ $alumno->apellido_materno}}</td>
+            <td style="text-decoration: underline;font-weight:bold; text-align:center; padding-top:8px">{{ $alumno->nombre }}</td>
+            <td style="text-decoration: underline;font-weight:bold; text-align:center; padding-top:8px">{{ $alumno->apellido_paterno}}</td>
+            <td style="text-decoration: underline;font-weight:bold; text-align:center; padding-top:8px">{{ $alumno->apellido_materno}}</td>
         </tr>
 
          <tr>
@@ -178,8 +181,8 @@
         </tr>
 
         <tr>
-            <td colspan="2" style="text-decoration: underline;font-weight:bold; text-align:center">{{ $licenciatura->nombre }}</td>
-            <td style="text-decoration: underline;font-weight:bold; text-align:center">ESCOLARIZADA</td>
+            <td colspan="2" style="text-decoration: underline;font-weight:bold; text-align:center; padding-top:8px">{{ $licenciatura->nombre }}</td>
+            <td style="text-decoration: underline;font-weight:bold; text-align:center; padding-top:8px">ESCOLARIZADA</td>
         </tr>
 
          <tr>
@@ -191,97 +194,92 @@
 
     </table>
 
-    @foreach ($periodo as $dato)
-        @php
-        $nombreCuatrimestre = '';
-    switch ($dato->cuatrimestre_id) {
-        case '1':
-            $nombreCuatrimestre = 'PRIMER CUATRIMESTRE';
-            break;
-        case '2':
-            $nombreCuatrimestre = 'SEGUNDO CUATRIMESTRE';
-            break;
-        case '3':
-            $nombreCuatrimestre = 'TERCER CUATRIMESTRE';
-            break;
-        case '4':
-            $nombreCuatrimestre = 'CUARTO CUATRIMESTRE';
-            break;
-        case '5':
-            $nombreCuatrimestre = 'QUINTO CUATRIMESTRE';
-            break;
-        case '6':
-            $nombreCuatrimestre = 'SEXTO CUATRIMESTRE';
-            break;
-        case '7':
-            $nombreCuatrimestre = 'SEPTIMO CUATRIMESTRE';
-        break;
-        case '8':
-            $nombreCuatrimestre = 'OCTAVO CUATRIMESTRE';
-            break;
-        case '9':
-            $nombreCuatrimestre = 'NOVENO CUATRIMESTRE';
-            break;
 
-        default:
-            # code...
-            break;
-    }
+             @foreach ($cuatrimestres as $key => $cuatrimestre)
 
+                    @if($cuatrimestre->id === 6)
+                           <div class="page-break"></div>
+                    @endif
 
- $nombreMeses = '';
-    switch ($dato->mes->meses) {
-        case 'SEPTIEMBRE/DICIEMBRE':
-                $nombreMeses = "SEPTIEMBRE - DICIEMBRE";
-            break;
-        case 'ENERO/ABRIL':
-                $nombreMeses = "ENERO - ABRIL";
-            break;
-        case 'MAYO/AGOSTO':
-                $nombreMeses = "MAYO - AGOSTO";
-            break;
-        default:
-             $nombreMeses = "---";
-            break;
-    }
+                           @php
+                                    $nombreCuatrimestre = '';
+                                   switch ($cuatrimestre->id) {
+                                    case '1':
+                                        $nombreCuatrimestre = 'PRIMER CUATRIMESTRE';
+                                        break;
+                                    case '2':
+                                        $nombreCuatrimestre = 'SEGUNDO CUATRIMESTRE';
+                                        break;
+                                    case '3':
+                                        $nombreCuatrimestre = 'TERCER CUATRIMESTRE';
+                                        break;
+                                    case '4':
+                                        $nombreCuatrimestre = 'CUARTO CUATRIMESTRE';
+                                        break;
+                                    case '5':
+                                        $nombreCuatrimestre = 'QUINTO CUATRIMESTRE';
+                                        break;
+                                    case '6':
+                                        $nombreCuatrimestre = 'SEXTO CUATRIMESTRE';
+                                        break;
+                                    case '7':
+                                        $nombreCuatrimestre = 'SEPTIMO CUATRIMESTRE';
+                                    break;
+                                    case '8':
+                                        $nombreCuatrimestre = 'OCTAVO CUATRIMESTRE';
+                                        break;
+                                    case '9':
+                                        $nombreCuatrimestre = 'NOVENO CUATRIMESTRE';
+                                        break;
 
+                                    default:
+                                        # code...
+                                        break;
+                                 }
 
-
-    @endphp
+                                 $materias = \DB::table('asignacion_materias')
+                                                    ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
+                                                    ->where('asignacion_materias.licenciatura_id', $alumno->licenciatura_id)
+                                                    ->where('asignacion_materias.modalidad_id', $alumno->modalidad_id)
+                                                    ->where('asignacion_materias.cuatrimestre_id', $cuatrimestre->id)
+                                                    ->where('materias.calificable', '!=', 'false')
+                                                    ->orderBy('materias.clave', 'asc')
+                                                    ->select('materias.*', 'asignacion_materias.id as asignacion_materia_id')
+                                                    ->get();
 
 
 
-  @if ($dato->cuatrimestre_id == 6)
-            <div class="page-break"></div>
-     @endif
+                                        $periodo = \App\Models\Periodo::where('generacion_id', $alumno->generacion_id)
+                                            ->where('cuatrimestre_id', $cuatrimestre->id)
+                                            ->first();
+
+
+
+                            @endphp
+
+
+
+
 
     <table class="cuatrimestres">
         <tr>
             <td style="width:300px">{{ $nombreCuatrimestre }}</td>
-            <td style="width:250px">PERIODO: {{ $nombreMeses }} {{ \Carbon\Carbon::parse($dato->inicio_periodo)->year }}</td>
-            <td>CICLO ESCOLAR: {{ $dato->ciclo_escolar }}</td>
+            <td style="width:250px">
+                @if($periodo && $periodo->mes && $periodo->inicio_periodo)
+                    PERIODO: {{ $periodo->mes->meses }} {{ \Carbon\Carbon::parse($periodo->inicio_periodo)->year }}
+                @else
+                    PERIODO: -----
+                @endif
+            </td>
+            <td>CICLO ESCOLAR: {{ $periodo->ciclo_escolar ?? "----" }}</td>
         </tr>
     </table>
 
 
     <table class="calificaciones">
 
-                          @php
-                    $materias = \DB::table('asignacion_materias')
-                        ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
-                        ->where('asignacion_materias.licenciatura_id', $alumno->licenciatura_id)
-                        ->where('asignacion_materias.modalidad_id', $alumno->modalidad_id)
-                        ->where('asignacion_materias.cuatrimestre_id', $dato->cuatrimestre_id)
-                        ->where('materias.nombre', '!=', 'Práctica')
-                        ->orderBy('materias.clave', 'asc')
-                        ->select('materias.*', 'asignacion_materias.id as asignacion_materia_id')
-                        ->get();
-                   @endphp
-
-
-
             <tr>
-         <td style="text-align:center;  font-weight:bold;" rowspan="2">CLAVE</td>
+                     <td style="text-align:center;  font-weight:bold;" rowspan="2">CLAVE</td>
                     <td style=" width:230px;text-align:center;  font-weight:bold;" rowspan="2">ASIGNATURA</td>
                     <td style=" width:10px; text-align:center;  font-weight:bold;"; rowspan="2">CAL. <br>FINAL</td>
                     <td style="text-align:center;  font-weight:bold;" rowspan="2">%.<br> ASIST.</td>
@@ -296,31 +294,16 @@
                         <p style="width:100%; border-top:1px solid #000; margin:100px 0 0 0;  padding:0"></p>
                         <p style="text-align:center; font-size:14px; margin:0; padding:0;  line-height:11px;  ">DÍA/MES/AÑO
                             <br>
-                              {{ \Carbon\Carbon::parse($dato->termino_periodo)->format('d/m/y') }}
+                            @if($periodo && $periodo->termino_periodo)
+                                {{ \Carbon\Carbon::parse($periodo->termino_periodo)->format('d/m/y') }}
+                            @else
+                                ------
+                            @endif
 
 
                         </p>
                     </td>
-
-
-
-                       {{-- <td rowspan="{{ count($materias) + 2  }}" style="width:110px; padding:0; margin:0; height:100px; position:relative">
-                             <p style="position:absolute; top:-13px; line-height:11px; text-align:center; font-weight:bold; font-size:12px">REVISADO Y CONFRONTADO</p>
-
-                            <p style="width:100%; border-top:1px solid #000; margin:100px 0 0 0;  padding:0"></p>
-
-
-                             <p style="text-align:center; font-size:14px; margin:0; padding:0 ">DÍA/MES/AÑO</p>
-
-                             <p style="text-align:center; font-size:15px; margin:0; padding:0">
-                                 {{ \Carbon\Carbon::parse($dato->termino_periodo)->format('d/m/y') }}
-                             </p>
-                    </td> --}}
-
-
             </tr>
-
-
 
                     <tr>
 
@@ -332,6 +315,7 @@
                     <td style="text-align:center; font-weight:bold; border-right:1px solid #000 ">CALIF.</td>
                     </tr>
 
+                    <tbody>
 
                 @foreach ($materias as $materia)
 
@@ -358,47 +342,51 @@
 
 
 
-                    @php
-    // Obtener los IDs de materias calificables (no prácticas)
-    $materiasCalificables = \App\Models\Materia::where('licenciatura_id', $alumno->licenciatura_id)
-        ->where('calificable', 'true')
-        ->pluck('id')
-        ->toArray();
+                            @php
+                            // Obtener los IDs de materias calificables (no prácticas)
+                            $materiasCalificables = \App\Models\Materia::where('licenciatura_id', $alumno->licenciatura_id)
+                                ->where('calificable', 'true')
+                                ->pluck('id')
+                                ->toArray();
 
-    // Obtener los IDs de las asignaciones de materias calificables para el alumno
-    $asignacionesCalificables = \DB::table('asignacion_materias')
-        ->where('licenciatura_id', $alumno->licenciatura_id)
-        ->where('modalidad_id', $alumno->modalidad_id)
-        ->whereIn('materia_id', $materiasCalificables)
-        ->pluck('id')
-        ->toArray();
+                            // Obtener los IDs de las asignaciones de materias calificables para el alumno
+                            $asignacionesCalificables = \DB::table('asignacion_materias')
+                                ->where('licenciatura_id', $alumno->licenciatura_id)
+                                ->where('modalidad_id', $alumno->modalidad_id)
+                                ->whereIn('materia_id', $materiasCalificables)
+                                ->pluck('id')
+                                ->toArray();
 
-    // Obtener las calificaciones del alumno (solo las válidas y no nulas, mayores que cero)
-    $calificaciones = \DB::table('calificaciones')
-        ->where('alumno_id', $alumno->id)
-        ->whereIn('asignacion_materia_id', $asignacionesCalificables)
-        ->whereNotNull('calificacion')
-        ->where('calificacion', '!=', '')
-        ->where('calificacion', '!=', '0')
-        ->pluck('calificacion')
-        ->map(function($value) {
-            return floatval($value);
-        });
+                            // Obtener las calificaciones del alumno (solo las válidas y no nulas, mayores que cero)
+                            $calificaciones = \DB::table('calificaciones')
+                                ->where('alumno_id', $alumno->id)
+                                ->whereIn('asignacion_materia_id', $asignacionesCalificables)
+                                ->whereNotNull('calificacion')
+                                ->where('calificacion', '!=', '')
+                                ->where('calificacion', '!=', '0')
+                                ->pluck('calificacion')
+                                ->map(function($value) {
+                                    return floatval($value);
+                                });
 
-    $suma = $calificaciones->sum();
-    $cuenta = $calificaciones->count();
-    $promedio = $cuenta > 0 ? round($suma / $cuenta, 1) : '';
-@endphp
+                            $suma = $calificaciones->sum();
+                            $cuenta = $calificaciones->count();
+                            $promedio = $cuenta > 0 ? round($suma / $cuenta, 1) : '';
+                        @endphp
 
-                @endforeach
+                                        @endforeach
+
+
+                </tbody>
 
     </table>
-    @endforeach
+        @endforeach
+
 
      <table class="tabla-contenedor">
         <tr>
             <td class="celda firma-rector" style="border: 1px solid #000">
-                <div class="linea">RECTOR(A)</div>
+                <div class="linea">  {{ $rector->nombre }} {{ $rector->apellido_paterno }} {{ $rector->apellido_materno }} RECTOR(A)</div>
             </td>
             <td class="celda">
                 <div class="promedio">
