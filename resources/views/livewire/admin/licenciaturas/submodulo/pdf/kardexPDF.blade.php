@@ -15,7 +15,7 @@
         page-break-after: always;
     }
 
-     @font-face {
+    @font-face {
         font-family: 'calibri';
         font-style: normal;
         src: url('{{ storage_path('fonts/calibri/calibri.ttf') }}') format('truetype');

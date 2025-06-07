@@ -25,13 +25,15 @@ class Documentos extends Component
     public function buscarAlumnos()
     {
         if (strlen($this->query) > 0) {
-            $this->alumnos = Inscripcion::where('nombre', 'like', '%' . $this->query . '%')
-                ->orWhere('apellido_paterno', 'like', '%' . $this->query . '%')
-                ->orWhere('apellido_materno', 'like', '%' . $this->query . '%')
-                ->orWhere('curp', 'like', '%' . $this->query . '%')
-                ->orWhere('matricula', 'like', '%' . $this->query . '%')
-                ->get()
-                ->toArray();
+            $this->alumnos = Inscripcion::with('licenciatura') // <--- aquí!
+            ->where('nombre', 'like', '%' . $this->query . '%')
+            ->orWhere('apellido_paterno', 'like', '%' . $this->query . '%')
+            ->orWhere('apellido_materno', 'like', '%' . $this->query . '%')
+            ->orWhere('curp', 'like', '%' . $this->query . '%')
+            ->orWhere('matricula', 'like', '%' . $this->query . '%')
+            ->get()
+            ->toArray();
+
         } else {
             $this->alumnos = [];
         }
@@ -40,9 +42,17 @@ class Documentos extends Component
 
     public function selectAlumno($index)
     {
-        $this->selectedAlumno = $this->alumnos[$index];
-        $this->query = $this->selectedAlumno['matricula'];
-        $this->alumnos = [];
+        if (isset($this->alumnos[$index])) {
+            $this->selectedAlumno = $this->alumnos[$index];
+            $this->query = $this->selectedAlumno['matricula'];
+            $this->alumnos = [];
+        } else {
+            $this->dispatch('swal',[
+                'title' => 'Alumno no encontrado',
+                'icon' => 'error',
+                'position' => 'top',
+            ]);
+        }
     }
 
     public function selectIndexUp()
