@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <title>CARTA PASANTE | {{$alumno->nombre}} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} </title>
+    <title>CONSTANCIA DE TÉRMINO | {{$alumno->nombre}} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} </title>
 </head>
 <style>
 
@@ -47,30 +47,75 @@
         z-index: -1;
     }
     .contenedor{
-        padding: 70px 0 ;
-        margin-top:40px;
+        padding: 70px 80px; ;
+        margin-top:100px;
         /* background: #d7d7d7; */
     }
 
-    .alumno{
-        font-size: 30px;
-        text-align: center;
+    .asunto{
+        font-size: 20px;
+
+        text-align: right;
         color: #000;
         font-family: 'calibri';
-        text-decoration: underline;
         font-weight: bold;
+        margin: 0px 0px 20px 275px;
+        line-height: 20px;
+        border-top: 4px double #000;
+        border-bottom: 4px double #000;
+        width: 385px;
+        /* padding: 10px; */
+
+
+    }
+
+    .lugar{
+         font-size: 20px;
+          text-align: right;
+        color: #000;
+        font-family: 'calibri';
+        margin-top: -20px;
+    }
+
+    .corresponda{
+        font-size: 25px;
+        color: #000;
+        font-family: 'calibri';
+        font-weight: bold;
+        margin-top: 25px;
+        line-height: 20px;
+        text-transform: uppercase;
+    }
+
+    .alumno{
+        font-size: 50px;
+        text-align: center;
+        color: #000;
+        font-family: 'greatVibes';
+        text-decoration: underline;
+        margin-top: -20px;
+
     }
 
     .descripcion{
         font-size: 20px;
-        text-align: center;
+        text-align: justify;
         color: #000;
         font-family: 'calibri';
-        font-weight: bold;
-        margin-top: 0px;
+        margin-top: -20px;
         line-height: 20px;
-        text-transform: uppercase;
     }
+
+    .descripcion2{
+        font-size: 20px;
+        text-align: justify;
+        color: #000;
+        font-family: 'calibri';
+        margin-top: 20px;
+        line-height: 20px;
+    }
+
+
     .licenciatura{
         text-align: center;
         color: #000;
@@ -80,59 +125,7 @@
         font-weight: bold;
     }
 
-    .contenedor-linea{
-        display: block;
-        margin: -30px auto;
-        width: 90%;
-    }
-    p.expide{
-        text-align: center;
-        font-family: 'calibri';
-        font-size: 25px;
-        margin-bottom: 0
-    }
-    p.to{
-          text-align: center;
-        font-family: 'calibri';
-        font-size: 30px;
-        margin-top: -20px;
-        margin-bottom: -20px;
-    }
 
-    p.carta{
-        text-align: center;
-        font-family: 'calibri';
-        font-size: 45px;
-        font-weight: bold;
-        margin-top: 8px;
-    }
-    p.archivo{
-        text-align: center;
-        font-family: 'calibri';
-        font-size: 20px;
-        font-weight: bold;
-        margin-top: -20px;
-        line-height: 20px;
-    }
-
-
-    .generacion{
-        font-size: 45px;
-        text-align: center;
-        color: #000;
-         font-family: 'greatVibes';
-        margin-top: -10px;
-        line-height: 40px;
-    }
-
-    .lugar{
-        font-size: 17px;
-        text-align: center;
-        color: #000;
-        font-family: 'calibri';
-        margin-top: -20px;
-        text-transform: uppercase;
-    }
 
     .atentamente{
          font-size: 17px;
@@ -162,11 +155,14 @@
 </style>
 <body>
     @php
-    $nombreCompleto = "{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}";
+     $nombreCompleto = "{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}";
+     $nombreFormateado = Str::title(Str::lower($nombreCompleto)); // Por si viene con mayúsculas raras
 
 
     $nombreRector = "{$rector->nombre} {$rector->apellido_paterno} {$rector->apellido_materno}";
     $nombreDirectora = "{$directora->nombre} {$directora->apellido_paterno} {$directora->apellido_materno}";
+
+    $licenciaturaMayuscula = Str::upper($alumno->licenciatura->nombre);
 @endphp
 
 
@@ -175,32 +171,39 @@
         </div>
 
         <div class="contenedor">
-            <p class="expide">EXPIDE LA PRESENTE</p>
-            <p class="carta">CARTA DE PASANTE</p>
-            <p class="to">A</p>
-          <p class="alumno">{{ $nombreCompleto }}</p>
+            <p class="asunto">Asunto: Constancia de término y acreditación.</p>
+            <p class="lugar">
+            Cd. Altamirano, Gro., a {{ \Carbon\Carbon::parse($fecha)->translatedFormat('d \d\e F \d\e\l Y') }}.
+          </p>
+
+          <p class="corresponda">A QUIEN CORRESPONDA:</p>
+
+          <p style="text-align: center; font-size: 20px; color: #000; font-family: 'calibri';  margin-top: 20px;">
+            Por este conducto se hace constar que la alumna
+          </p>
+
+          <p class="alumno">{{ $nombreFormateado }}</p>
 
           <p class="descripcion">
-           EN ATENCIÓN A QUE APROBÓ TOTALMENTE LAS ASIGNATURAS QUE <br>
-            COMPRENDEN EL PLAN DE ESTUDIOS CORRESPONDIENTES A LA <br>
-            LICENCIATURA EN {{ $licenciatura->nombre }}.
+           Con CURP de registro <b>{{$alumno->CURP}}</b>, cursó y acreditó
+           satisfactoriamente las asignaturas correspondientes a la Licenciatura en
+        <b>{{$licenciaturaMayuscula}}</b>, finalizando su último cuatrimestre el 20 de agosto del año en curso,
+        en la generación <b>{{$alumno->generacion->generacion}}</b>, y actualmente su documentación oficial se
+        encuentra en trámite ante las autoridades educativas correspondientes en la
+        Ciudad de Chilpancingo, Gro.
+          </p>
+
+          <p class="descripcion2">
+            Para los fines legales que el interesado(a) convengan, y conforme a derecho se
+                extiende la presente a los
+                {{ \NumberFormatter::create('es', \NumberFormatter::SPELLOUT)->format(\Carbon\Carbon::parse($fecha)->day) }}
+                días del mes de {{ \Carbon\Carbon::parse($fecha)->translatedFormat('F') }} del {{ \Carbon\Carbon::parse($fecha)->translatedFormat('Y') }}
+                en Cd.
+                Altamirano,Gro.
+
           </p>
 
 
-
-          <p class="generacion">
-            Durante el periodo <br> {{ $alumno->generacion->generacion }}
-          </p>
-
-          <p class="archivo">
-            SEGÚN CONSTANCIAS QUE EXISTEN EN EL ARCHIVO DE ESTA <br>
-            INSTITUCIÓN.
-          </p>
-
-          <p class="lugar">
-            CD. ALTAMIRANO, GRO., A {{ \Carbon\Carbon::parse($fecha)->translatedFormat('d \D\E F \D\E\L Y') }}
-            {{-- CD. ALTAMIRANO, GRO., A 28 DE AGOSTO DEL 2024 --}}
-          </p>
 
           <p class="atentamente">
            <b> A T E N T A M E N T E</b> <br>

@@ -232,6 +232,19 @@ class PDFController extends Controller
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexPDF', $data)->setPaper('legal', 'portrait');
              return $pdf->stream("KARDEX".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
     }
+    else if($documento == 'historial-academico'){
+        $data = [
+             'alumno' => $alumno,
+            'escuela'=> $escuela,
+            'licenciatura'=> $licenciatura,
+            'cuatrimestres' => $cuatrimestres,
+            'rector' => $rector,
+            'directora' => $directora,
+            'fecha' => $fecha
+        ];
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.historialAcademicoPDF', $data)->setPaper('legal', 'portrait');
+             return $pdf->stream("HISTORIAL_ACADEMICO_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+    }
     else if($documento == 'diploma'){
         $data = [
             'alumno' => $alumno,
@@ -255,6 +268,19 @@ class PDFController extends Controller
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.cartaPasantePDF', $data)->setPaper('letter', 'portrait');
              return $pdf->stream("CARTA_DE_PASANTE_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+    }
+
+    else if($documento == 'constancia-de-termino'){
+        $data = [
+            'alumno' => $alumno,
+            'escuela'=> $escuela,
+            'licenciatura'=> $licenciatura,
+            'fecha' => $fecha,
+            'rector' => $rector,
+            'directora' => $directora
+        ];
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciaTerminoPDF', $data)->setPaper('letter', 'portrait');
+             return $pdf->stream("CONSTANCIA_DE_TERMINO_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
     }
 
     else if($documento == 'certificado-de-estudios'){

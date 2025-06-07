@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <title>KARDEX | {{ $alumno->matricula }}</title>
+    <title>HISTORIAL ACADÉMICO | {{ $alumno->matricula }}</title>
 </head>
 <style>
 
@@ -163,7 +163,7 @@
           <img class="img_encabezado" src="{{ public_path('storage/encabezado.png') }}" alt="Encabezado">
     </div>
 
-    <h1 class="titulo">KARDEX DEL ALUMNO</h1>
+    <h1 class="titulo">HISTORIAL ACADÉMICO</h1>
 
 
     <table class="datos">
@@ -289,41 +289,11 @@
     <table class="calificaciones">
 
             <tr>
-                     <td style="text-align:center;  font-weight:bold;" rowspan="2">CLAVE</td>
-                    <td style=" width:230px;text-align:center;  font-weight:bold;" rowspan="2">ASIGNATURA</td>
-                    <td style=" width:10px; text-align:center;  font-weight:bold;"; rowspan="2">CAL. <br>FINAL</td>
-                    <td style="text-align:center;  font-weight:bold;" rowspan="2">%.<br> ASIST.</td>
-                    <td style="text-align:center; font-weight:bold" colspan="6">PERIODOS DE REGULARIZACIÓN</td>
-
-                    <td rowspan="{{ count($materias) + 2  }}" style="width: 20px; border:none; padding:0; margin:0"></td>
-
-
-                    <td  rowspan="{{ count($materias) + 2 }}" style="width:125px; padding:0; margin:0">
-                        <p style="text-align:center; font-size:12px; font-weight:bold; line-height:8px; margin:0; padding:0 ">REVISADO Y CONFRONTADO</p>
-
-                        <p style="width:100%; border-top:1px solid #000; margin:100px 0 0 0;  padding:0"></p>
-                        <p style="text-align:center; font-size:14px; margin:0; padding:0;  line-height:11px;  ">DÍA/MES/AÑO
-                            <br>
-                            @if($periodo && $periodo->termino_periodo)
-                                {{ \Carbon\Carbon::parse($periodo->termino_periodo)->format('d/m/y') }}
-                            @else
-                                ------
-                            @endif
-
-
-                        </p>
-                    </td>
+                     <td style=" width:10px; text-align:center;  font-weight:bold;">CLAVE</td>
+                    <td style=" width:230px;text-align:center;  font-weight:bold;" >ASIGNATURA</td>
+                    <td style=" width:10px; text-align:center;  font-weight:bold;">CAL. <br>FINAL</td>
             </tr>
 
-                    <tr>
-
-                    <td style="text-align:center; font-weight:bold;">FECHA</td>
-                    <td style="text-align:center; font-weight:bold;">CALIF.</td>
-                    <td style="text-align:center; font-weight:bold;">FECHA</td>
-                    <td style="text-align:center; font-weight:bold;">CALIF.</td>
-                    <td style="text-align:center; font-weight:bold;">FECHA</td>
-                    <td style="text-align:center; font-weight:bold; border-right:1px solid #000 ">CALIF.</td>
-                    </tr>
 
                     <tbody>
 
@@ -343,13 +313,6 @@
                         >
                             {{ $calificacion ? $calificacion->calificacion : "---" }}
                         </td>
-                        <td style="text-align:center; padding:0px">100</td>
-                        <td style="padding:0px"></td>
-                        <td style="padding:0px"></td>
-                        <td style="padding:0px"></td>
-                        <td style="padding:0px"></td>
-                        <td style="padding:0px"></td>
-                        <td style="padding:0px"></td>
                     </tr>
 
 
@@ -395,19 +358,6 @@
         @endforeach
 
 
-     <table class="tabla-contenedor">
-        <tr>
-            <td class="celda firma-rector" style="border: 1px solid #000">
-                <div class="linea">  {{ $rector->nombre }} {{ $rector->apellido_paterno }} {{ $rector->apellido_materno }} RECTOR(A)</div>
-            </td>
-            <td class="celda">
-                <div class="promedio">
-                    <span class="prom-label" style="line-height: 13px">PROMEDIO<br>GENERAL DE<br>APROVECHAMIENTO:</span>
-                    <span class="prom-box">{{ $promedio }}</span>
-                </div>
-            </td>
-        </tr>
-    </table>
 
 
 
