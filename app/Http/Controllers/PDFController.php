@@ -186,6 +186,7 @@ class PDFController extends Controller
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.actaResultadosPDF', $data)->setPaper('letter', 'portrait');
              return $pdf->stream("ACTA_DE_RESULTADOS_GEN_".$generacion->generacion.".pdf");
+
     }elseif($documento == 'registro-escolaridad'){
        $data = [
             'generacion' => $generacion,
@@ -217,9 +218,12 @@ class PDFController extends Controller
 
     $licenciatura = Licenciatura::find($alumno->licenciatura_id);
     $cuatrimestres = Cuatrimestre::all();
-
-     $rector = Directivo::where('cargo', 'Rector')->first();
+    $rector = Directivo::where('cargo', 'Rector')->first();
     $directora = Directivo::where('cargo', 'Directora General')->first();
+
+     $periodos = Periodo::where('generacion_id', $alumno->generacion_id)
+        ->get();
+
 
     if($documento == 'kardex'){
         $data = [
@@ -240,7 +244,8 @@ class PDFController extends Controller
             'cuatrimestres' => $cuatrimestres,
             'rector' => $rector,
             'directora' => $directora,
-            'fecha' => $fecha
+            'fecha' => $fecha,
+            'periodos' => $periodos
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.historialAcademicoPDF', $data)->setPaper('legal', 'portrait');
              return $pdf->stream("HISTORIAL_ACADEMICO_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");

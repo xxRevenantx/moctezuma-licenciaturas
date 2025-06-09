@@ -9,149 +9,162 @@
 </head>
 <style>
 
-      @page { margin:5px 45px 0px 45px; }
+            @page { margin:5px 45px 0px 45px; }
 
-    .page-break {
-        page-break-after: always;
-    }
-
-    @font-face {
-        font-family: 'calibri';
-        font-style: normal;
-        src: url('{{ storage_path('fonts/calibri/calibri.ttf') }}') format('truetype');
-
-    }
-
-    @font-face {
-    font-family: 'calibri';
-    font-style: bold;
-    font-weight: 700;
-    src: url('{{ storage_path('fonts/calibri/calibri-bold.ttf') }}') format('truetype');
-    }
-
-
-
-    body {
-        font-family: 'calibri';
-        margin: auto;
-    }
-
-     .encabezado {
-        text-align: center;
-        margin-top: 30px;
-        font-size: 16px;
-    }
-    .img_encabezado {
-        width: 80%;
-        margin-left: -100px;
-    }
-
-    .titulo {
-        text-align: center;
-        font-size: 20px;
-        font-weight: bold;
-        margin-top: 10px;
-        margin-bottom: 5px;
-    }
-
-    table.datos {
-        width: 100%;
-        border-collapse: collapse;
-        /* margin-top: 10px; */
-        border: 1px solid #000;
-        text-transform: uppercase;
-    }
-
-    table.datos td {
-
-        /* border: 1px solid #000; */
-        padding: 0;
-        line-height: 13px;
-    }
-
-    table.cuatrimestres{
-        width: 100%;
-         border-collapse: collapse;
-         margin-top: 10px
-
-    }
-    table.cuatrimestres td{
-        font-weight: bold;
-        font-size: 12px;
-
-    }
-
-    table.calificaciones{
-            width: 100%;
-         border-collapse: collapse;
-    }
-
-    table.calificaciones td{
-        font-size: 12px;
-        border:1px solid #000
-    }
-
-   .tabla-contenedor {
-            width: 100%;
-            border: 1px solid black;
-            border-collapse: collapse;
-            table-layout: fixed;
-            margin-top: 70px;
-        }
-
-        .celda {
-            width: 50%;
-            height: 110px;
-            border-collapse: collapse;
-            vertical-align: top;
-        }
-
-        .firma-rector {
-            text-align: center;
-            padding-top: 150px;
-        }
-
-        .firma-rector .linea {
-            border-top: 1px solid black;
-            width: 75%;
-            margin: 0 auto;
-            padding-top: 0px;
-            text-transform: uppercase
-        }
-
-        .promedio {
-            padding: 65px 0 0 20px;
-        }
-
-        .prom-label {
-            line-height: 1.5;
-            display: inline-block;
-            margin-top: 90px;
-        }
-
-        .prom-box {
-            display: inline-block;
-            width: 70px;
-            height: 20px;
-            border: 1px solid black;
-            vertical-align: middle;
-            margin-left: 10px;
-            margin-top: 90px;
-            text-align: center;
-            padding-bottom: 20px;
-            font-size: 20px;
-            font-weight: bold
-        }
-
-
-
-        table td.crossed
-            {
-             width: 50px;
-                height: 50px;
-                border: 1px solid black;
-                background: linear-gradient(to top right, black 1px, transparent 1px);
+            .page-break {
+                page-break-after: always;
             }
+
+            @font-face {
+                font-family: 'calibri';
+                font-style: normal;
+                src: url('{{ storage_path('fonts/calibri/calibri.ttf') }}') format('truetype');
+
+            }
+
+            @font-face {
+            font-family: 'calibri';
+            font-style: bold;
+            font-weight: 700;
+            src: url('{{ storage_path('fonts/calibri/calibri-bold.ttf') }}') format('truetype');
+            }
+
+
+
+            body {
+                font-family: 'calibri';
+                margin: auto;
+            }
+
+            .encabezado {
+                text-align: center;
+                margin-top: 30px;
+                font-size: 16px;
+            }
+            .img_encabezado {
+                width: 60%;
+                margin-left: -100px;
+            }
+
+            .titulo {
+                text-align: center;
+                font-size: 20px;
+                font-weight: bold;
+                margin-top: 10px;
+                margin-bottom: 5px;
+            }
+
+            table.datos {
+                width: 100%;
+                border-collapse: collapse;
+                /* margin-top: 10px; */
+                border: 1px solid #000;
+                text-transform: uppercase;
+            }
+
+            table.datos td {
+
+                /* border: 1px solid #000; */
+                padding: 0;
+                line-height: 13px;
+            }
+
+            table.cuatrimestres{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px
+
+            }
+            table.cuatrimestres td{
+                font-weight: bold;
+                font-size: 12px;
+
+            }
+
+            table.calificaciones{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }
+
+            table.calificaciones td{
+                font-size: 12px;
+                border:1px solid #000
+            }
+
+        .tabla-contenedor {
+                    width: 100%;
+                    border: 1px solid black;
+                    border-collapse: collapse;
+                    table-layout: fixed;
+                    margin-top: 70px;
+                }
+
+                .celda {
+                    width: 50%;
+                    height: 110px;
+                    border-collapse: collapse;
+                    vertical-align: top;
+                }
+
+                .firma-rector {
+                    text-align: center;
+                    padding-top: 150px;
+                }
+
+                .firma-rector .linea {
+                    border-top: 1px solid black;
+                    width: 75%;
+                    margin: 0 auto;
+                    padding-top: 0px;
+                    text-transform: uppercase
+                }
+
+                .promedio {
+                    padding: 65px 0 0 20px;
+                }
+
+                .prom-label {
+                    line-height: 1.5;
+                    display: inline-block;
+                    margin-top: 90px;
+                }
+
+                .prom-box {
+                    display: inline-block;
+                    width: 70px;
+                    height: 20px;
+                    border: 1px solid black;
+                    vertical-align: middle;
+                    margin-left: 10px;
+                    margin-top: 90px;
+                    text-align: center;
+                    padding-bottom: 20px;
+                    font-size: 20px;
+                    font-weight: bold
+                }
+
+
+
+                table td.crossed
+                    {
+                    width: 50px;
+                        height: 50px;
+                        border: 1px solid black;
+                        background: linear-gradient(to top right, black 1px, transparent 1px);
+                    }
+
+                    .datos_alumno {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 10px;
+                    }
+                    .datos_alumno td {
+                        font-size: 12px;
+                        border: 1px solid #000;
+                        padding: 5px;
+                        text-align: center;
+                    }
 
     </style>
 <body>
@@ -200,20 +213,132 @@
             <td style="font-size:13px; text-align:center">MODALIDAD</td>
         </tr>
 
-
-
     </table>
 
 
-             @foreach ($cuatrimestres as $key => $cuatrimestre)
+    <table class="datos_alumno">
 
-                    @if($cuatrimestre->id === 6)
-                           <div class="page-break"></div>
-                    @endif
+        @php
+            $promedio = \DB::table('calificaciones')
+                ->where('alumno_id', $alumno->id)
+                ->whereNotNull('calificacion')
+                ->where('calificacion', '!=', '')
+                ->where('calificacion', '!=', '0')
+                ->where('calificacion', '!=', 'NP')
+                ->pluck('calificacion')
+                ->map(function($value) {
+                    return floatval($value);
+                });
+            $suma = $promedio->sum();
+            $cuenta = $promedio->count();
+            $promedio = $cuenta > 0 ? floor($suma / $cuenta * 10) / 10 : '';
+
+
+            $creditosAlumno = \DB::table('calificaciones')
+                ->join('asignacion_materias', 'calificaciones.asignacion_materia_id', '=', 'asignacion_materias.id')
+                ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
+                ->where('calificaciones.alumno_id', $alumno->id)
+                ->whereNotNull('calificaciones.calificacion')
+                ->where('calificaciones.calificacion', '!=', '')
+                ->where('calificaciones.calificacion', '!=', '0')
+                ->where('calificaciones.calificacion', '!=', 'NP')
+                ->where('materias.calificable', '!=', 'false')
+                ->sum('materias.creditos');
+
+
+            $creditosTotales = \DB::table('asignacion_materias')
+                ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
+                ->where('asignacion_materias.licenciatura_id', $alumno->licenciatura_id)
+                ->where('asignacion_materias.modalidad_id', $alumno->modalidad_id)
+                ->where('asignacion_materias.cuatrimestre_id', '!=', null)
+                ->where('materias.calificable', '!=', 'false')
+                ->sum('materias.creditos');
+
+
+            $materiasAprobadas = \DB::table('calificaciones')
+                ->join('asignacion_materias', 'calificaciones.asignacion_materia_id', '=', 'asignacion_materias.id')
+                ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
+                ->where('calificaciones.alumno_id', $alumno->id)
+                ->whereNotNull('calificaciones.calificacion')
+                ->where('calificaciones.calificacion', '!=', '')
+                ->where('calificaciones.calificacion', '!=', '0')
+                ->where('calificaciones.calificacion', '!=', 'NP')
+                ->where('materias.calificable', '!=', 'false')
+                ->count();
+            $materiasReprobadas = \DB::table('calificaciones')
+                ->join('asignacion_materias', 'calificaciones.asignacion_materia_id', '=', 'asignacion_materias.id')
+                ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
+                ->where('calificaciones.alumno_id', $alumno->id)
+                ->whereNotNull('calificaciones.calificacion')
+                ->where('calificaciones.calificacion', '!=', '')
+                ->where('calificaciones.calificacion', '!=', '0')
+                ->where('calificaciones.calificacion', '!=', 'NP')
+                ->where('materias.calificable', '!=', 'false')
+                ->where('calificaciones.calificacion', '<', 6)
+                ->count();
+            $materiasNoPresentadas = \DB::table('calificaciones')
+                ->join('asignacion_materias', 'calificaciones.asignacion_materia_id', '=', 'asignacion_materias.id')
+                ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
+                ->where('calificaciones.alumno_id', $alumno->id)
+                ->whereNull('calificaciones.calificacion')
+                ->orWhere('calificaciones.calificacion', '')
+                ->orWhere('calificaciones.calificacion', '0')
+                ->orWhere('calificaciones.calificacion', 'NP')
+                ->where('materias.calificable', '!=', 'false')
+                ->count();
+
+
+
+        @endphp
+
+        <tr>
+            <td style="width:20px; text-align:center;  font-weight:bold; background:#d9d9d9">PROMEDIO</td>
+            <td style="width:70px; text-align:center;  font-weight:bold;">{{$promedio}}</td>
+            <td style="width:20px; text-align:center;  font-weight:bold; background:#d9d9d9">APROBADAS</td>
+            <td style="width:20px; text-align:center;  font-weight:bold;">{{$materiasAprobadas}}</td>
+            <td style=" text-align:center;  font-weight:bold; background:#d9d9d9"></td>
+        </tr>
+        <tr>
+            <td style="width:20px; text-align:center;  font-weight:bold; background:#d9d9d9">CRÉDITOS</td>
+            <td style="width:70px; text-align:center;  font-weight:bold;">{{$creditosAlumno}} de {{$creditosTotales}}</td>
+            <td style="width:50px; text-align:center;  font-weight:bold; background:#d9d9d9">REPROBADAS</td>
+            <td style=" text-align:center;  font-weight:bold;">0</td>
+            <td style=" text-align:center;  font-weight:bold; background:#d9d9d9"></td>
+        </tr>
+        <tr>
+            <td style=" text-align:center;  font-weight:bold; background:#d9d9d9"></td>
+            <td style=" text-align:center;  font-weight:bold; background:#d9d9d9"></td>
+           <td style="width:110px; text-align:center;  font-weight:bold; background:#d9d9d9">NO PRESENTADAS</td>
+          <td style=" text-align:center;  font-weight:bold; background:#d9d9d9">0</td>
+          <td style=" text-align:center;  font-weight:bold; background:#d9d9d9"></td>
+        </tr>
+    </table>
+
+
+
+    <table class="calificaciones">
+
+            <tr>
+                     <td style=" text-align:center;  font-weight:bold; background:#d9d9d9">#</td>
+                     <td style=" text-align:center;  font-weight:bold; background:#d9d9d9">CLAVE</td>
+                     <td style=" text-align:center;  font-weight:bold; background:#d9d9d9">CRÉDITOS</td>
+                     <td style=" text-align:center;  font-weight:bold; background:#d9d9d9">CUATRIMESTRE</td>
+                    <td style="text-align:center;  font-weight:bold; background:#d9d9d9" >ASIGNATURA</td>
+                    <td style="text-align:center;  font-weight:bold; background:#d9d9d9" >CALIFICACIÓN</td>
+                    <td style="text-align:center;  font-weight:bold; background:#d9d9d9" >TIPO DE EVALUACIÓN</td>
+            </tr>
+
+
+                    <tbody>
+
+
+             @foreach ($periodos as $key => $periodo)
+
+
 
                            @php
                                     $nombreCuatrimestre = '';
-                                   switch ($cuatrimestre->id) {
+                                   switch ($periodo->cuatrimestre->id) {
                                     case '1':
                                         $nombreCuatrimestre = 'PRIMER CUATRIMESTRE';
                                         break;
@@ -251,7 +376,7 @@
                                                     ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
                                                     ->where('asignacion_materias.licenciatura_id', $alumno->licenciatura_id)
                                                     ->where('asignacion_materias.modalidad_id', $alumno->modalidad_id)
-                                                    ->where('asignacion_materias.cuatrimestre_id', $cuatrimestre->id)
+                                                    ->where('asignacion_materias.cuatrimestre_id', $periodo->cuatrimestre->id)
                                                     ->where('materias.calificable', '!=', 'false')
                                                     ->orderBy('materias.clave', 'asc')
                                                     ->select('materias.*', 'asignacion_materias.id as asignacion_materia_id')
@@ -259,45 +384,13 @@
 
 
 
-                                        $periodo = \App\Models\Periodo::where('generacion_id', $alumno->generacion_id)
-                                            ->where('cuatrimestre_id', $cuatrimestre->id)
-                                            ->first();
-
 
 
                             @endphp
 
 
 
-
-
-    <table class="cuatrimestres">
-        <tr>
-            <td style="width:300px">{{ $nombreCuatrimestre }}</td>
-            <td style="width:250px">
-                @if($periodo && $periodo->mes && $periodo->inicio_periodo)
-                    PERIODO: {{ $periodo->mes->meses }} {{ \Carbon\Carbon::parse($periodo->inicio_periodo)->year }}
-                @else
-                    PERIODO: -----
-                @endif
-            </td>
-            <td>CICLO ESCOLAR: {{ $periodo->ciclo_escolar ?? "----" }}</td>
-        </tr>
-    </table>
-
-
-    <table class="calificaciones">
-
-            <tr>
-                     <td style=" width:10px; text-align:center;  font-weight:bold;">CLAVE</td>
-                    <td style=" width:230px;text-align:center;  font-weight:bold;" >ASIGNATURA</td>
-                    <td style=" width:10px; text-align:center;  font-weight:bold;">CAL. <br>FINAL</td>
-            </tr>
-
-
-                    <tbody>
-
-                @foreach ($materias as $materia)
+                @foreach ($materias as $key2 => $materia)
 
                     @php
                         $calificacion = \DB::table('calificaciones')
@@ -306,12 +399,18 @@
                             ->first();
                     @endphp
                     <tr>
+                        <td style="text-align: center; height: 10px; padding:0px">{{ $loop->iteration }}</td>
                         <td style="text-align: center; height: 10px; padding:0px">{{ $materia->clave }}</td>
+                        <td style="text-align: center; height: 10px; padding:0px">{{ $materia->creditos }}</td>
+                        <td style="text-align: center; height: 10px; padding:0px">{{ $materia->cuatrimestre_id }}</td>
                         <td style="text-transform:uppercase; height: 10px; line-height:9px; font-size:11px; padding-left:5px; margin:0">{{ $materia->nombre }}</td>
                         <td
                         style="text-align:center; padding:0px;"
                         >
                             {{ $calificacion ? $calificacion->calificacion : "---" }}
+                        </td>
+                        <td style="text-align:center; padding:0px;">
+                           {{ $calificacion ? "ORD" : "---" }}
                         </td>
                     </tr>
 
@@ -351,11 +450,11 @@
 
                                         @endforeach
 
-
+   @endforeach
                 </tbody>
 
     </table>
-        @endforeach
+
 
 
 

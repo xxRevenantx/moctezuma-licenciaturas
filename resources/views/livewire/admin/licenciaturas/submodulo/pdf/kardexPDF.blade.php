@@ -383,7 +383,8 @@
 
                             $suma = $calificaciones->sum();
                             $cuenta = $calificaciones->count();
-                            $promedio = $cuenta > 0 ? round($suma / $cuenta, 1) : '';
+
+                             $promedio = $cuenta > 0 ? floor($suma / $cuenta * 10) / 10 : '';
                         @endphp
 
                                         @endforeach

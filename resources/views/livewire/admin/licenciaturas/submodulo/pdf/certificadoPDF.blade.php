@@ -461,7 +461,7 @@
 
     $suma = $calificaciones->sum();
     $cuenta = $calificaciones->count();
-    $promedio = $cuenta > 0 ? round($suma / $cuenta, 1) : '';
+     $promedio = $cuenta > 0 ? floor($suma / $cuenta * 10) / 10 : '';
 @endphp
 
 <p style="text-align:justify; font-size:13px; margin:0; text-transform:uppercase">EL PRESENTE CERTIFICADO DE AMPARA <u><b>{{ $materiasCalificablesEnLetras }}</b></u> ASIGNATURAS, LAS CUALES CUBREN ÍNTEGRAMENTE EL PLAN DE ESTUDIOS DE LA LICENCIATURA <b>{{$licenciatura->nombre}}</b>
