@@ -53,6 +53,12 @@
         }
 
 
+       .rotate {
+        /* writing-mode: vertical-rl; */
+        transform: rotate(-90deg);
+
+        }
+
 
 
 </style>
@@ -195,17 +201,14 @@
 
        <table class="tblPrincipal">
                 <tr>
-                <td rowspan="1" style="
-                       font-size:10px;
-                        font-weight:normal;
-                         transform: rotate(-90deg);
 
-                    ">
-                    NÚMERO PROGRESIVO
 
-                    </td>
+                <td rowspan="2" style="font-size:10px; font-weight:normal; width:10px; padding:0px; margin:0px; height:0px">
+                    <div style=" white-space: nowrap;" class="rotate"><b>NÚM. PROG.</b></div></td>
+
+
                 <td colspan="2"><b>ANTECEDENTES</b></td>
-                <td style="width:10px" rowspan="2"><div style="width:50px; text-align:center;" class="rotate" ><b>NÚMERO DE MATRÍCULA</b></div></td>
+                <td style="width:10px" rowspan="2"><div style="text-align:center;" class="rotate" ><b>NÚMERO DE MATRÍCULA</b></div></td>
                 <td colspan="3" style=" text-align:center;"><b>NOMBRE DEL ALUMNO</b></td>
                 <td colspan="1" style=" text-align:center;"></td>
                 <td colspan="" style=" text-align:center;">RESULTADO FINAL</td>
@@ -215,12 +218,13 @@
                 <td  style=" text-align:center"></td>
                 </tr>
             <tr>
-            <th style="width:10px"><div style=" width:50px; text-align:center"  class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
-            <th style="width:10px"><div style=" width:50px;"  class="rotate datosHeader"><b>SITUACIÓN ESCOLAR</b></div></th>
+            <th style="width:50px"><div style=" width:100px; text-align:center"  class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
+            <th style="width:50px"><div style=" width:100px;"  class="rotate datosHeader"><b>SITUACIÓN ESCOLAR</b></div></th>
             <th style="width:100px;"><b>PRIMER APELLIDO</b></th>
             <th style="width:120px; border-left: 0x solid transparent"><b>SEGUNDO APELLIDO</b></th>
             <th style="width:100px; border-left: 0x solid transparent;"><b>NOMBRE(S)</b></th>
-            <th style="font-size:10px; font-weight:normal; width:10px;padding:0px; margin:0px; height:0px"><div style=" width:40px;"white-space: nowrap;" class="rotate"><b>SEXO: H o M</b><div></th>';
+            <th style="font-size:10px; font-weight:normal; width:10px;padding:0px; margin:0px; height:0px"><div style=" width:40px; white-space: nowrap;" class="rotate"><b>SEXO: H o M</b></div></th>';
+
 
 
             <th style="font-size:10px; font-weight:normal; width:15px;padding:0px; margin:0px; height:0px">
@@ -236,7 +240,7 @@
             <th style="width:10px" class="alto"><div style=" width:50px;" class="rotate"><b>SITUACIÓN ESCOLAR</b></div></th>
             </tr>
                     <tr>
-                <td style="font-size:11px">'</td>
+                <td style="font-size:11px">1</td>
                   <td style="font-size:11px">0</td>
                   <td style="font-size:11px">R</td>
                   <td style="font-size:11px"></td>

@@ -189,7 +189,7 @@
 
 <hr>
 
-<table class="min-w-full text-xs text-left mb-4" style="margin-top: 20px; text-transform: uppercase; font-size:14px">
+<table class="min-w-full text-xs text-left mb-4" style="margin-top: 20px; text-transform: uppercase; font-size:13px">
     <thead >
         <tr>
             <th class="px-2 py-1" style="background: #d4d4d4; color: black">#</th>

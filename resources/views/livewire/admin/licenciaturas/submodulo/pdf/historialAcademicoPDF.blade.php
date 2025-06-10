@@ -89,7 +89,9 @@
 
             table.calificaciones td{
                 font-size: 12px;
-                border:1px solid #000
+                border:1px solid #000;
+                padding: 0;
+                line-height: 10px;
             }
 
         .tabla-contenedor {
@@ -158,11 +160,12 @@
                         width: 100%;
                         border-collapse: collapse;
                         margin-top: 10px;
+                        border: 1px solid #000;
                     }
                     .datos_alumno td {
                         font-size: 12px;
-                        border: 1px solid #000;
-                        padding: 5px;
+                        /* border: 1px solid #000; */
+                        padding: 1px 3px;
                         text-align: center;
                     }
 
@@ -204,12 +207,14 @@
         </tr>
 
         <tr>
-            <td colspan="2" style="text-decoration: underline;font-weight:bold; text-align:center; padding-top:8px">{{ $licenciatura->nombre }}</td>
+            <td  style="text-decoration: underline;font-weight:bold; text-align:center; padding-top:8px">{{ $alumno->matricula }}</td>
+            <td  style="text-decoration: underline;font-weight:bold; text-align:center; padding-top:8px">{{ $licenciatura->nombre }}</td>
             <td style="text-decoration: underline;font-weight:bold; text-align:center; padding-top:8px">ESCOLARIZADA</td>
         </tr>
 
          <tr>
-            <td colspan="2" style="font-size:13px; text-align:center">LICENCIATURA</td>
+            <td  style="font-size:13px; text-align:center">MATRÍCULA</td>
+            <td  style="font-size:13px; text-align:center">LICENCIATURA</td>
             <td style="font-size:13px; text-align:center">MODALIDAD</td>
         </tr>
 
@@ -243,6 +248,7 @@
                 ->where('calificaciones.calificacion', '!=', '0')
                 ->where('calificaciones.calificacion', '!=', 'NP')
                 ->where('materias.calificable', '!=', 'false')
+                ->where('calificaciones.calificacion', '>', 5)
                 ->sum('materias.creditos');
 
 
@@ -264,7 +270,9 @@
                 ->where('calificaciones.calificacion', '!=', '0')
                 ->where('calificaciones.calificacion', '!=', 'NP')
                 ->where('materias.calificable', '!=', 'false')
+                ->where('calificaciones.calificacion', '>', 5)
                 ->count();
+
             $materiasReprobadas = \DB::table('calificaciones')
                 ->join('asignacion_materias', 'calificaciones.asignacion_materia_id', '=', 'asignacion_materias.id')
                 ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
@@ -276,15 +284,18 @@
                 ->where('materias.calificable', '!=', 'false')
                 ->where('calificaciones.calificacion', '<', 6)
                 ->count();
+
             $materiasNoPresentadas = \DB::table('calificaciones')
                 ->join('asignacion_materias', 'calificaciones.asignacion_materia_id', '=', 'asignacion_materias.id')
                 ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
                 ->where('calificaciones.alumno_id', $alumno->id)
-                ->whereNull('calificaciones.calificacion')
-                ->orWhere('calificaciones.calificacion', '')
-                ->orWhere('calificaciones.calificacion', '0')
-                ->orWhere('calificaciones.calificacion', 'NP')
-                ->where('materias.calificable', '!=', 'false')
+                ->where(function($query) {
+                    $query->whereNull('calificaciones.calificacion')
+                          ->orWhere('calificaciones.calificacion', 'NP');
+                          // ->orWhere('calificaciones.calificacion', '')
+                          // ->orWhere('calificaciones.calificacion', '0')
+                })
+                // ->where('materias.calificable', '!=', 'false')
                 ->count();
 
 
@@ -292,29 +303,31 @@
         @endphp
 
         <tr>
-            <td style="width:20px; text-align:center;  font-weight:bold; background:#d9d9d9">PROMEDIO</td>
-            <td style="width:70px; text-align:center;  font-weight:bold;">{{$promedio}}</td>
-            <td style="width:20px; text-align:center;  font-weight:bold; background:#d9d9d9">APROBADAS</td>
-            <td style="width:20px; text-align:center;  font-weight:bold;">{{$materiasAprobadas}}</td>
-            <td style=" text-align:center;  font-weight:bold; background:#d9d9d9"></td>
+            <td style="width:20px; text-align:center;  font-weight:bold; background:#d9d9d9" >PROMEDIO: </td>
+            <td style="width:100px; text-align:center; font-size:14px;  font-weight:bold;">{{$promedio}}</td>
+            <td style="width:20px; text-align:center;  font-weight:bold; background:#d9d9d9">APROBADAS: </td>
+            <td style="width:20px; text-align:center; font-size:14px; font-weight:bold;">{{$materiasAprobadas}}</td>
+            <td style=" text-align:center;  font-weight:bold; font-size:14px; background:#d9d9d9" rowspan="3">
+                Fecha de expedición : {{ \Carbon\Carbon::now()->format('d/m/Y') }}
+            </td>
         </tr>
         <tr>
-            <td style="width:20px; text-align:center;  font-weight:bold; background:#d9d9d9">CRÉDITOS</td>
-            <td style="width:70px; text-align:center;  font-weight:bold;">{{$creditosAlumno}} de {{$creditosTotales}}</td>
-            <td style="width:50px; text-align:center;  font-weight:bold; background:#d9d9d9">REPROBADAS</td>
-            <td style=" text-align:center;  font-weight:bold;">0</td>
-            <td style=" text-align:center;  font-weight:bold; background:#d9d9d9"></td>
+            <td style="width:20px; text-align:center;  font-weight:bold; background:#d9d9d9" rowspan="2">CRÉDITOS: </td>
+            <td style="width:100px; text-align:center;font-size:14px;  font-weight:bold;"  rowspan="2">{{$creditosAlumno}} de {{$creditosTotales}}</td>
+            <td style="width:50px; text-align:center;  font-weight:bold; background:#d9d9d9">REPROBADAS: </td>
+            <td style=" text-align:center;  font-weight:bold; font-size:14px;">{{ $materiasReprobadas }}</td>
+
         </tr>
         <tr>
-            <td style=" text-align:center;  font-weight:bold; background:#d9d9d9"></td>
-            <td style=" text-align:center;  font-weight:bold; background:#d9d9d9"></td>
-           <td style="width:110px; text-align:center;  font-weight:bold; background:#d9d9d9">NO PRESENTADAS</td>
-          <td style=" text-align:center;  font-weight:bold; background:#d9d9d9">0</td>
-          <td style=" text-align:center;  font-weight:bold; background:#d9d9d9"></td>
+           <td style="width:110px; text-align:center;  font-weight:bold; background:#d9d9d9">NO PRESENTADAS: </td>
+          <td style=" text-align:center;  font-weight:bold; width:100px; font-size:14px;">{{ $materiasNoPresentadas }}</td>
+
         </tr>
     </table>
 
-
+    @php
+         $contadorMateria = 1;
+    @endphp
 
     <table class="calificaciones">
 
@@ -399,18 +412,28 @@
                             ->first();
                     @endphp
                     <tr>
-                        <td style="text-align: center; height: 10px; padding:0px">{{ $loop->iteration }}</td>
-                        <td style="text-align: center; height: 10px; padding:0px">{{ $materia->clave }}</td>
-                        <td style="text-align: center; height: 10px; padding:0px">{{ $materia->creditos }}</td>
-                        <td style="text-align: center; height: 10px; padding:0px">{{ $materia->cuatrimestre_id }}</td>
-                        <td style="text-transform:uppercase; height: 10px; line-height:9px; font-size:11px; padding-left:5px; margin:0">{{ $materia->nombre }}</td>
+                        <td style="text-align: center; padding:0px">{{ $contadorMateria }}</td>
+                        <td style="text-align: center; padding:0px">{{ $materia->clave }}</td>
+                        <td style="text-align: center; padding:0px">{{ $materia->creditos }}</td>
+                        <td style="text-align: center; padding:0px">{{ $materia->cuatrimestre_id }}</td>
+                        <td style="text-transform:uppercase;font-size:10px; padding-top:0; padding-left:0; padding-left:5px; margin:0">{{ $materia->nombre }}</td>
                         <td
                         style="text-align:center; padding:0px;"
                         >
-                            {{ $calificacion ? $calificacion->calificacion : "---" }}
+                            @if ($calificacion)
+                                @if ($calificacion->calificacion === 'NP' || (is_numeric($calificacion->calificacion) && $calificacion->calificacion < 6))
+                                    <span style="color: red; font-weight: bold;">
+                                        {{ $calificacion->calificacion }}
+                                    </span>
+                                @else
+                                    {{ $calificacion->calificacion }}
+                                @endif
+                            @else
+                                EN PROCESO
+                            @endif
                         </td>
-                        <td style="text-align:center; padding:0px;">
-                           {{ $calificacion ? "ORD" : "---" }}
+                        <td style="text-align:center;  padding:0px;">
+                           {{ $calificacion ? "ORD" : "EN PROCESO" }}
                         </td>
                     </tr>
 
@@ -447,6 +470,10 @@
                             $cuenta = $calificaciones->count();
                             $promedio = $cuenta > 0 ? round($suma / $cuenta, 1) : '';
                         @endphp
+
+                                        @php
+                               $contadorMateria++;
+                                 @endphp
 
                                         @endforeach
 
