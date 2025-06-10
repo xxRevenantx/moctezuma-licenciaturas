@@ -144,7 +144,7 @@ class PDFController extends Controller
        $licenciatura_id = $request->licenciatura;
 
     $materias = Materia::where('licenciatura_id', $licenciatura_id)
-         ->where('nombre', '!=', 'Práctica')
+         ->where('calificable', '!=', 'false')
          ->orderBy('clave', 'asc')
          ->get();
 

@@ -218,11 +218,11 @@
                 <td  style=" text-align:center"></td>
                 </tr>
             <tr>
-            <th style="width:50px"><div style=" width:100px; text-align:center"  class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
-            <th style="width:50px"><div style=" width:100px;"  class="rotate datosHeader"><b>SITUACIÓN ESCOLAR</b></div></th>
+            <th style="width:50px"><div style=" width:50px; text-align:center"  class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
+            <th style="width:50px"><div style=" width:50px;"  class="rotate datosHeader"><b>SITUACIÓN ESCOLAR</b></div></th>
             <th style="width:100px;"><b>PRIMER APELLIDO</b></th>
-            <th style="width:120px; border-left: 0x solid transparent"><b>SEGUNDO APELLIDO</b></th>
-            <th style="width:100px; border-left: 0x solid transparent;"><b>NOMBRE(S)</b></th>
+            <th style="width:100px;"><b>SEGUNDO APELLIDO</b></th>
+            <th style="width:100px;;"><b>NOMBRE(S)</b></th>
             <th style="font-size:10px; font-weight:normal; width:10px;padding:0px; margin:0px; height:0px"><div style=" width:40px; white-space: nowrap;" class="rotate"><b>SEXO: H o M</b></div></th>';
 
 
@@ -239,17 +239,42 @@
             <th style="width:10px" class="alto"><div style=" width:50px;" class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
             <th style="width:10px" class="alto"><div style=" width:50px;" class="rotate"><b>SITUACIÓN ESCOLAR</b></div></th>
             </tr>
-                    <tr>
-                <td style="font-size:11px">1</td>
+
+            @foreach ($alumnos as $alumno )
+
+            @php
+                   // Buscar la asignación de la materia para el alumno actual
+                $asignacion = \App\Models\AsignacionMateria::where('materia_id', $materia->id) // Filtra por el id de la materia actual
+                    ->where('licenciatura_id', $licenciatura->id) // Filtra por el id de la licenciatura actual
+                    ->where('modalidad_id', $alumno->modalidad_id) // Filtra por la modalidad del alumno
+                    ->where('cuatrimestre_id', $materia->cuatrimestre_id) // Filtra por el cuatrimestre de la materia
+                    ->first(); // Obtiene el primer resultado
+
+                // Inicializa la variable de calificación en null
+                $calificacion = null;
+                // Si se encontró la asignación de materia
+                if($asignacion){
+                    // Busca la calificación del alumno para esa asignación de materia
+                    $calificacionObj = $alumno->calificaciones
+                        ->where('asignacion_materia_id', $asignacion->id) // Filtra por el id de la asignación de materia
+                        ->first(); // Obtiene el primer resultado
+                    // Si existe la calificación, la asigna, si no, deja vacío
+                    $calificacion = $calificacionObj ? $calificacionObj->calificacion : '';
+                }
+
+            @endphp
+
+
+
+                <tr>
+                <td style="font-size:11px">{{$loop->iteration}}</td>
                   <td style="font-size:11px">0</td>
                   <td style="font-size:11px">R</td>
-                  <td style="font-size:11px"></td>
-                  <td style="font-size:11px"></td>
-                  <td style="font-size:11px"></td>
-                  <td style="font-size:11px"></td>
-
-                <td style="font-size:11px" class="datos">M</td>
-                <td style="font-size:11px" class="datos">H</td>
+                  <td style="font-size:11px">{{$alumno->matricula}}</td>
+                  <td style="font-size:11px">{{$alumno->apellido_paterno}}</td>
+                  <td style="font-size:11px">{{$alumno->apellido_materno}}</td>
+                  <td style="font-size:11px">{{$alumno->nombre}}</td>
+                  <td style="font-size:11px" class="datos">{{$alumno->sexo}}</td>
 
                 <td style="font-size:11px" class="calificacion"></td>
                 <td style="font-size:11px" class="calificacion">0</td>
@@ -259,6 +284,9 @@
                   <td style="font-size:11px">0</td>
                   <td style="font-size:11px">R</td>
                 </tr>
+
+    @endforeach
+
             </table>
 
 
