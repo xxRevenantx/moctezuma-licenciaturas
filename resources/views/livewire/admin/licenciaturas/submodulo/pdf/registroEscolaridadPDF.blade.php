@@ -73,26 +73,23 @@
     <table width="100%" style="border-collapse: collapse;">
         <tr>
             <!-- Logo SEP -->
-            <td style="width: 170px; text-align: left;">
-                <img src="{{ public_path('storage/sep.jpg') }}" alt="SEP" style="height: 90px;">
+            <td style="width: 100px; text-align: left;">
+                <img src="{{ public_path('storage/sep.jpg') }}" alt="SEP" style="height: 70px;">
             </td>
 
             <!-- Texto centrado -->
             <td style="text-align: center;">
-                <p style="color: #000000; font-weight: bold; font-size: 15px; margin: 0;">
-                    GOBIERNO DEL ESTADO LIBRE Y SOBERANO DE GUERRERO
-                </p>
-                <p style="color: #000000; font-weight: bold; font-size: 15px; margin: 0;">
-                    SECRETARIA DE EDUCACIÓN GUERRERO
-                </p>
-                <p style="color: #000000; font-weight: bold; font-size: 15px; margin: 0;">
+                <p style="color: #000000; font-weight: bold; font-size: 15px; margin: 0; line-height:14px">
+                    GOBIERNO DEL ESTADO LIBRE Y SOBERANO DE GUERRERO <br>
+                    SECRETARIA DE EDUCACIÓN GUERRERO<br>
                     REGISTRO DE ESCOLARIDAD
                 </p>
+
             </td>
 
             <!-- Logo Moctezuma -->
-            <td style="width: 250px; text-align: right;">
-                <img src="{{ public_path('storage/moctezuma.png') }}" alt="moctezuma" style="height: 70px;">
+            <td style="width: 200px; text-align: right;">
+                <img src="{{ public_path('storage/moctezuma.png') }}" alt="moctezuma" style="height: 60px;">
             </td>
         </tr>
     </table>
@@ -203,8 +200,9 @@
                 <tr>
 
 
-                <td rowspan="2" style="font-size:10px; font-weight:normal; width:10px; padding:0px; margin:0px; height:0px">
-                    <div style=" white-space: nowrap;" class="rotate"><b>NÚM. PROG.</b></div></td>
+                <td rowspan="2" style="font-size:10px; width:100px  font-weight:normal;  padding:0px; margin:0px; height:0px">
+                    <div style="white-space:nowrap;  width:10px;" class="rotate"><b>NÚMERO DE REGISTRO</b></div>
+                </td>
 
 
                 <td colspan="2"><b>ANTECEDENTES</b></td>
@@ -219,18 +217,30 @@
                 </tr>
             <tr>
             <th style="width:50px"><div style=" width:50px; text-align:center"  class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
-            <th style="width:50px"><div style=" width:50px;"  class="rotate datosHeader"><b>SITUACIÓN ESCOLAR</b></div></th>
+            <th style="width:50px"><div style=" width:50px;"  class="rotate"><b>SITUACIÓN ESCOLAR</b></div></th>
             <th style="width:100px;"><b>PRIMER APELLIDO</b></th>
             <th style="width:100px;"><b>SEGUNDO APELLIDO</b></th>
             <th style="width:100px;;"><b>NOMBRE(S)</b></th>
             <th style="font-size:10px; font-weight:normal; width:10px;padding:0px; margin:0px; height:0px"><div style=" width:40px; white-space: nowrap;" class="rotate"><b>SEXO: H o M</b></div></th>';
 
 
+            @php
+                   // Buscar la asignación de la materia para el alumno actual
+                $asignacion = \App\Models\AsignacionMateria::where('licenciatura_id', $licenciatura->id)
+                ->where('cuatrimestre_id', $periodo->cuatrimestre_id)
+                ->get();
 
-            <th style="font-size:10px; font-weight:normal; width:15px;padding:0px; margin:0px; height:0px">
-                                <div style=" white-space: wrap; font-size:10px; font-weight:normal; width:60px;padding:0 ; text-transform:uppercase" class="rotate"></div>
-            </th>
+            @endphp
 
+                @foreach ($asignacion as $mat)
+                        <th style="font-size:10px; font-weight:normal;  padding:0px; margin:0px; height:0px; ">
+                                            <div style="white-space: wrap; font-size:10px; line-height:10px;font-weight:normal;padding:0 ; text-transform:uppercase" class="rotate">
+
+                                                            {{ $mat->materia->nombre }}
+
+                                            </div>
+                        </th>
+            @endforeach
 
 
             <th style="width:40px"></th>
@@ -244,10 +254,9 @@
 
             @php
                    // Buscar la asignación de la materia para el alumno actual
-                $asignacion = \App\Models\AsignacionMateria::where('materia_id', $materia->id) // Filtra por el id de la materia actual
-                    ->where('licenciatura_id', $licenciatura->id) // Filtra por el id de la licenciatura actual
+                $asignacion = \App\Models\AsignacionMateria::where('licenciatura_id', $licenciatura->id) // Filtra por el id de la licenciatura actual
                     ->where('modalidad_id', $alumno->modalidad_id) // Filtra por la modalidad del alumno
-                    ->where('cuatrimestre_id', $materia->cuatrimestre_id) // Filtra por el cuatrimestre de la materia
+                    ->where('cuatrimestre_id', $alumno->cuatrimestre_id) // Filtra por el cuatrimestre de la materia
                     ->first(); // Obtiene el primer resultado
 
                 // Inicializa la variable de calificación en null
@@ -266,8 +275,10 @@
 
 
 
+
+
                 <tr>
-                <td style="font-size:11px">{{$loop->iteration}}</td>
+                     <td style="font-size:11px">{{$loop->iteration}}</td>
                   <td style="font-size:11px">0</td>
                   <td style="font-size:11px">R</td>
                   <td style="font-size:11px">{{$alumno->matricula}}</td>
@@ -276,8 +287,14 @@
                   <td style="font-size:11px">{{$alumno->nombre}}</td>
                   <td style="font-size:11px" class="datos">{{$alumno->sexo}}</td>
 
-                <td style="font-size:11px" class="calificacion"></td>
                 <td style="font-size:11px" class="calificacion">0</td>
+                <td style="font-size:11px" class="calificacion">0</td>
+                <td style="font-size:11px" class="calificacion">0</td>
+                <td style="font-size:11px" class="calificacion">0</td>
+                <td style="font-size:11px" class="calificacion">0</td>
+
+
+
                   <td></td>
                   <td></td>
                   <td  style="font-size:11px" ></td>
