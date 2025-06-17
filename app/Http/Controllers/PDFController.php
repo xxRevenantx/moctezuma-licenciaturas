@@ -11,6 +11,7 @@ use App\Models\Horario;
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
 use App\Models\Materia;
+use App\Models\Modalidad;
 use App\Models\Periodo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -68,6 +69,7 @@ class PDFController extends Controller
            $escuela = Escuela::all()->first();
            $generacion = Generacion::where('id', $filtrar_generacion)->first();
            $licenciatura_nombre = Licenciatura::where('id', $licenciatura)->first();
+
 
         $data = [
             'horario' => $horario,
@@ -174,6 +176,9 @@ class PDFController extends Controller
         // ->limit(1)
         ->get();
 
+
+        $modalidades = Modalidad::all();
+
     if($documento == 'acta-resultados'){
         $data = [
             'generacion' => $generacion,
@@ -183,6 +188,7 @@ class PDFController extends Controller
             'rector' => $rector,
             'directora' => $directora,
             'alumnos' => $alumnos,
+
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.actaResultadosPDF', $data)->setPaper('letter', 'portrait');
              return $pdf->stream("ACTA_DE_RESULTADOS_GEN_".$generacion->generacion.".pdf");
@@ -195,6 +201,7 @@ class PDFController extends Controller
             'licenciatura' => $licenciatura,
             'alumnos' => $alumnos,
             'periodos' => $periodos,
+             'modalidades' => $modalidades
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.registroEscolaridadPDF', $data)->setPaper('legal', 'landscape');
              return $pdf->stream("REGISTRO_DE_ESCOLARIDAD_GEN_".$generacion->generacion.".pdf");

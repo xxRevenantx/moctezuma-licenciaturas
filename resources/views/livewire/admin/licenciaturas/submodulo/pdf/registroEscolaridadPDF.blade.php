@@ -64,10 +64,22 @@
 </style>
 <body>
 
-
-
-
     @foreach ( $periodos as $periodo )
+
+
+       @php
+            // Materias del cuatrimestre y licenciatura, sin importar modalidad
+            $asignaciones = \App\Models\AsignacionMateria::where('licenciatura_id', $licenciatura->id)
+                ->where('cuatrimestre_id', $periodo->cuatrimestre_id)
+                ->get();
+
+            // Agrupar por materia (evitar duplicados si existe una materia en ambas modalidades)
+            $materiasUnicas = $asignaciones->pluck('materia')->unique('id')->values();
+        @endphp
+
+
+
+
 
     <div style="width:100%; margin-bottom:20px; margin-top:20px">
     <table width="100%" style="border-collapse: collapse;">
@@ -200,47 +212,38 @@
                 <tr>
 
 
-                <td rowspan="2" style="font-size:10px; width:100px  font-weight:normal;  padding:0px; margin:0px; height:0px">
-                    <div style="white-space:nowrap;  width:10px;" class="rotate"><b>NÚMERO DE REGISTRO</b></div>
+                <td rowspan="2" style="font-size:10px;  text-align:center;font-weight:normal;  padding:0px; margin:0px;">
+                    <div style="white-space:nowrap;  width:30px;" class="rotate"><b>NÚMERO DE REGISTRO</b></div>
                 </td>
+|
 
 
                 <td colspan="2"><b>ANTECEDENTES</b></td>
                 <td style="width:10px" rowspan="2"><div style="text-align:center;" class="rotate" ><b>NÚMERO DE MATRÍCULA</b></div></td>
                 <td colspan="3" style=" text-align:center;"><b>NOMBRE DEL ALUMNO</b></td>
                 <td colspan="1" style=" text-align:center;"></td>
-                <td colspan="" style=" text-align:center;">RESULTADO FINAL</td>
+                <td colspan="{{ count($materiasUnicas) }}" style="text-align: center;">RESULTADO FINAL</td>
                 <td colspan="2" style=" text-align:center; font-size:8px">REGULARIZACIONES</td>
                 <td  style=" text-align:center"></td>
                 <td  style=" text-align:center"></td>
                 <td  style=" text-align:center"></td>
                 </tr>
             <tr>
-            <th style="width:50px"><div style=" width:50px; text-align:center"  class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
+            <th style="width:50px; height:100px; border:1px solid #000"><div style=" width:50px; text-align:center"  class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
             <th style="width:50px"><div style=" width:50px;"  class="rotate"><b>SITUACIÓN ESCOLAR</b></div></th>
+            <th style="width:100px;;"><b>NOMBRE(S)</b></th>
             <th style="width:100px;"><b>PRIMER APELLIDO</b></th>
             <th style="width:100px;"><b>SEGUNDO APELLIDO</b></th>
-            <th style="width:100px;;"><b>NOMBRE(S)</b></th>
-            <th style="font-size:10px; font-weight:normal; width:10px;padding:0px; margin:0px; height:0px"><div style=" width:40px; white-space: nowrap;" class="rotate"><b>SEXO: H o M</b></div></th>';
+            <th style="font-size:10px; font-weight:normal;padding:0px; margin:0px; height:0px;">
+                <div style=" white-space: nowrap;" class="rotate"><b>SEXO: H o M</b></div></th>';
 
-
-            @php
-                   // Buscar la asignación de la materia para el alumno actual
-                $asignacion = \App\Models\AsignacionMateria::where('licenciatura_id', $licenciatura->id)
-                ->where('cuatrimestre_id', $periodo->cuatrimestre_id)
-                ->get();
-
-            @endphp
-
-                @foreach ($asignacion as $mat)
-                        <th style="font-size:10px; font-weight:normal;  padding:0px; margin:0px; height:0px; ">
-                                            <div style="white-space: wrap; font-size:10px; line-height:10px;font-weight:normal;padding:0 ; text-transform:uppercase" class="rotate">
-
-                                                            {{ $mat->materia->nombre }}
-
-                                            </div>
+              @foreach ($materiasUnicas as $materia)
+                      <th style="font-size:10px; font-weight:normal; width:10px;  padding:0px; margin:0px; height:0px;  border:1px solid #000 ">
+                              <div style="white-space: wrap; font-size:10px; line-height:10px; font-weight:normal;padding:0 ; text-transform:uppercase" class="rotate">
+                                {{ $materia->nombre }}
+                            </div>
                         </th>
-            @endforeach
+                    @endforeach
 
 
             <th style="width:40px"></th>
@@ -250,48 +253,35 @@
             <th style="width:10px" class="alto"><div style=" width:50px;" class="rotate"><b>SITUACIÓN ESCOLAR</b></div></th>
             </tr>
 
-            @foreach ($alumnos as $alumno )
-
-            @php
-                   // Buscar la asignación de la materia para el alumno actual
-                $asignacion = \App\Models\AsignacionMateria::where('licenciatura_id', $licenciatura->id) // Filtra por el id de la licenciatura actual
-                    ->where('modalidad_id', $alumno->modalidad_id) // Filtra por la modalidad del alumno
-                    ->where('cuatrimestre_id', $alumno->cuatrimestre_id) // Filtra por el cuatrimestre de la materia
-                    ->first(); // Obtiene el primer resultado
-
-                // Inicializa la variable de calificación en null
-                $calificacion = null;
-                // Si se encontró la asignación de materia
-                if($asignacion){
-                    // Busca la calificación del alumno para esa asignación de materia
-                    $calificacionObj = $alumno->calificaciones
-                        ->where('asignacion_materia_id', $asignacion->id) // Filtra por el id de la asignación de materia
-                        ->first(); // Obtiene el primer resultado
-                    // Si existe la calificación, la asigna, si no, deja vacío
-                    $calificacion = $calificacionObj ? $calificacionObj->calificacion : '';
-                }
-
-            @endphp
-
-
-
-
+                @foreach ($alumnos as $alumno)
 
                 <tr>
-                     <td style="font-size:11px">{{$loop->iteration}}</td>
-                  <td style="font-size:11px">0</td>
-                  <td style="font-size:11px">R</td>
+                 <td style="text-align:center; font-size:11px">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</td>
+                  <td style="font-size:11px; text-align:center;">0</td>
+                  <td style="font-size:11px; text-align:center;">R</td>
                   <td style="font-size:11px">{{$alumno->matricula}}</td>
+                   <td style="font-size:11px">{{$alumno->nombre}}</td>
                   <td style="font-size:11px">{{$alumno->apellido_paterno}}</td>
                   <td style="font-size:11px">{{$alumno->apellido_materno}}</td>
-                  <td style="font-size:11px">{{$alumno->nombre}}</td>
-                  <td style="font-size:11px" class="datos">{{$alumno->sexo}}</td>
+                  <td style="font-size:11px; text-align:center" >{{$alumno->sexo}}</td>
 
-                <td style="font-size:11px" class="calificacion">0</td>
-                <td style="font-size:11px" class="calificacion">0</td>
-                <td style="font-size:11px" class="calificacion">0</td>
-                <td style="font-size:11px" class="calificacion">0</td>
-                <td style="font-size:11px" class="calificacion">0</td>
+                          @foreach ($materiasUnicas as $materia)
+                @php
+                    $asignacionMateria = \App\Models\AsignacionMateria::where('materia_id', $materia->id)
+                        ->where('licenciatura_id', $licenciatura->id)
+                        ->where('cuatrimestre_id', $periodo->cuatrimestre_id)
+                        ->where('modalidad_id', $alumno->modalidad_id)
+                        ->first();
+
+                    $calificacion = null;
+                    if ($asignacionMateria) {
+                        $calificacion = $alumno->calificaciones()
+                            ->where('asignacion_materia_id', $asignacionMateria->id)
+                            ->value('calificacion');
+                    }
+                    @endphp
+                    <td style="text-align: center; font-size:11px">{{ $calificacion ?? '' }}</td>
+                @endforeach
 
 
 
@@ -307,10 +297,10 @@
             </table>
 
 
+                <div class="page-break"></div>
 
-        @if (!$loop->last)
-            <div class="page-break"></div>
-        @endif
+
+
 
     @endforeach
 
