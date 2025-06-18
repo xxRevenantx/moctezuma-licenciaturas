@@ -33,6 +33,10 @@
         margin: auto;
     }
 
+    table.datos-escuela td{
+        line-height: 15px;
+    }
+
 
     table.tblPrincipal {
         width: 100%;
@@ -49,6 +53,7 @@
             text-align: left;
             padding-left: 6px;
             border: 1px solid #000;
+            line-height: 9px;
             /* padding: 0 */
         }
 
@@ -57,6 +62,16 @@
         /* writing-mode: vertical-rl; */
         transform: rotate(-90deg);
 
+        }
+
+        table.inscripcion td{
+            padding: 0 30px 0 0;
+            font-size: 12px;
+        }
+
+        table.table-directivos{
+            font-size: 12px;
+            line-height: 12px;
         }
 
 
@@ -71,10 +86,27 @@
             // Materias del cuatrimestre y licenciatura, sin importar modalidad
             $asignaciones = \App\Models\AsignacionMateria::where('licenciatura_id', $licenciatura->id)
                 ->where('cuatrimestre_id', $periodo->cuatrimestre_id)
-                ->get();
+                ->get()
+                 ->sortBy(fn($asignacion) => optional($asignacion->materia)->clave)
+                 ->values();
+                ;
 
             // Agrupar por materia (evitar duplicados si existe una materia en ambas modalidades)
             $materiasUnicas = $asignaciones->pluck('materia')->unique('id')->values();
+
+
+
+            $hombres = 0;
+                $mujeres = 0;
+                foreach ($alumnos as $alumno) {
+                    if (strtoupper($alumno->sexo) === 'H') {
+                        $hombres++;
+                    } elseif (strtoupper($alumno->sexo) === 'M') {
+                        $mujeres++;
+                    }
+                }
+
+
         @endphp
 
 
@@ -108,7 +140,7 @@
 </div>
 
 <!-- Estructura para DomPDF -->
-<table width="100%" style="border-collapse: collapse; margin-bottom: 10px; text-transform: uppercase;">
+<table class="datos-escuela" width="100%" style="border-collapse: collapse; margin-bottom: 10px; text-transform: uppercase;">
     <tr>
         <!-- Información de Plantel -->
         <td style="vertical-align: top;">
@@ -170,12 +202,13 @@
                     <th style="text-align: center;">M</th>
                     <th style="text-align: center;">TOTAL</th>
                 </tr>
-                <tr>
-                    <td style="text-align: center;">INSCRITOS</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
+               <tr>
+                <td style="text-align: center;">INSCRITOS</td>
+                <td style="text-align: center;">{{ $hombres }}</td>
+                <td style="text-align: center;">{{ $mujeres }}</td>
+                <td style="text-align: center;">{{ $hombres + $mujeres }}</td>
+            </tr>
+
             </table>
         </td>
     </tr>
@@ -212,46 +245,62 @@
                 <tr>
 
 
-                <td rowspan="2" style="font-size:10px;  text-align:center;font-weight:normal;  padding:0px; margin:0px;">
+                <td rowspan="2" style="font-size:10px; width:30px; text-align:center;font-weight:normal;  padding:0px; margin:0px;">
                     <div style="white-space:nowrap;  width:30px;" class="rotate"><b>NÚMERO DE REGISTRO</b></div>
                 </td>
 |
 
 
                 <td colspan="2"><b>ANTECEDENTES</b></td>
-                <td style="width:10px" rowspan="2"><div style="text-align:center;" class="rotate" ><b>NÚMERO DE MATRÍCULA</b></div></td>
+
+                 <td rowspan="2" style="font-size:11px; width:80px; font-weight:normal;padding:0px; margin:0px; height:0px; ">
+                    <div style="text-align:center; width:80px;" class="rotate"><b>NÚMERO DE MATRÍCULA</b></div></td>
+
+
                 <td colspan="3" style=" text-align:center;"><b>NOMBRE DEL ALUMNO</b></td>
-                <td colspan="1" style=" text-align:center;"></td>
-                <td colspan="{{ count($materiasUnicas) }}" style="text-align: center;">RESULTADO FINAL</td>
-                <td colspan="2" style=" text-align:center; font-size:8px">REGULARIZACIONES</td>
-                <td  style=" text-align:center"></td>
-                <td  style=" text-align:center"></td>
-                <td  style=" text-align:center"></td>
+
+                <td colspan="1" rowspan="2" style="font-size:11px; width:20px; font-weight:normal;padding:0px; margin:0px; height:0px; border-left:2px double #000;  border-right:2px double #000">
+                    <div style="width:25px; text-align:center; white-space: nowrap;" class="rotate"><b>SEXO: H o M</b></div></td>
+
+                <td colspan="{{ count($materiasUnicas) }}" style="text-align: center;"><b>RESULTADO FINAL</b></td>
+                <td colspan="4" style="text-align:center; font-size:11px; padding:0; margin:0"><b>REGULARIZACIONES</b></td>
+                <td colspan="3" style=" text-align:center;"><b>CUATRIMESTRE ACTUAL</b></td>
                 </tr>
             <tr>
             <th style="width:50px; height:100px; border:1px solid #000"><div style=" width:50px; text-align:center"  class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
             <th style="width:50px"><div style=" width:50px;"  class="rotate"><b>SITUACIÓN ESCOLAR</b></div></th>
             <th style="width:100px;;"><b>NOMBRE(S)</b></th>
             <th style="width:100px;"><b>PRIMER APELLIDO</b></th>
-            <th style="width:100px;"><b>SEGUNDO APELLIDO</b></th>
-            <th style="font-size:10px; font-weight:normal;padding:0px; margin:0px; height:0px;">
-                <div style=" white-space: nowrap;" class="rotate"><b>SEXO: H o M</b></div></th>';
+            <th style="width:100px;"><b>SEGUNDO APELLIDO</b></th>';
 
               @foreach ($materiasUnicas as $materia)
-                      <th style="font-size:10px; font-weight:normal; width:10px;  padding:0px; margin:0px; height:0px;  border:1px solid #000 ">
+                      {{-- <th style="font-size:10px; font-weight:normal; width:10px;  padding:0px; margin:0px; height:0px;  border:1px solid #000 ">
                               <div style="white-space: wrap; font-size:10px; line-height:10px; font-weight:normal;padding:0 ; text-transform:uppercase" class="rotate">
-                                {{ $materia->nombre }}
+
                             </div>
-                        </th>
+                        </th> --}}
+
+                   <th style="font-size:10px; font-weight:normal; width:50px;  padding:0px; margin:0px; height:0px;  border:1px solid #000 ">
+                        <div style="text-align:center;  text-transform:uppercase"  class="rotate">
+                              {{ $materia->nombre }}
+                        </div>
+                    </th>
+
+
+
                     @endforeach
 
 
-            <th style="width:40px"></th>
-            <th style="width:40px"></th>
-            <th style="width:10px" class="alto"><div style=" width:50px;" class="rotate"><b>ASIGNATURAS ACREDITADAS</b></div></th>
-            <th style="width:10px" class="alto"><div style=" width:50px;" class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
-            <th style="width:10px" class="alto"><div style=" width:50px;" class="rotate"><b>SITUACIÓN ESCOLAR</b></div></th>
+            <th style="border: 1px solid #000"></th>
+            <th style="border: 1px solid #000"></th>
+            <th style="border: 1px solid #000"></th>
+            <th style="border: 1px solid #000"></th>
+
+             <th style="width:50px; height:100px; border:1px solid #000"><div style=" width:50px; text-align:center"  class="rotate"><b>ASIGNATURAS ACREDITADAS</b></div></th>
+             <th style="width:50px; height:100px; border:1px solid #000"><div style=" width:50px; text-align:center"  class="rotate"><b>ASIGNATURAS NO ACREDITADAS</b></div></th>
+             <th style="width:50px; height:100px; border:1px solid #000"><div style=" width:50px; text-align:center"  class="rotate"><b>SITUACIÓN ESCOLAR</b></div></th>
             </tr>
+
 
                 @foreach ($alumnos as $alumno)
 
@@ -263,7 +312,7 @@
                    <td style="font-size:11px">{{$alumno->nombre}}</td>
                   <td style="font-size:11px">{{$alumno->apellido_paterno}}</td>
                   <td style="font-size:11px">{{$alumno->apellido_materno}}</td>
-                  <td style="font-size:11px; text-align:center" >{{$alumno->sexo}}</td>
+                  <td style="font-size:11px; text-align:center;  border-left:2px double #000;  border-right:2px double #000" >{{$alumno->sexo}}</td>
 
                           @foreach ($materiasUnicas as $materia)
                 @php
@@ -285,16 +334,47 @@
 
 
 
-                  <td></td>
-                  <td></td>
-                  <td  style="font-size:11px" ></td>
-                  <td style="font-size:11px">0</td>
-                  <td style="font-size:11px">R</td>
+                  <td style="width:15px"></td>
+                  <td style="width:15px"></td>
+                  <td style="width:15px"></td>
+                  <td style="width:15px"></td>
+
+                  <td style="width:15px; font-size:11px; text-align:center">{{ count($materiasUnicas) }}</td>
+                  <td style="width:15px; font-size:11px; text-align:center">0</td>
+                  <td style="width:15px; font-size:11px; text-align:center">R</td>
                 </tr>
 
     @endforeach
-
             </table>
+
+            <table class="inscripcion">
+                <tr>
+                    <td>INSCRIPCIÓN / REINSCRIPCIÓN</td>
+                    <td>ACREDITACIÓN / CERTIFICACIÓN</td>
+                    <td>REGULARIZACIÓN</td>
+                </tr>
+                <tr>
+                    <td>__DE __________ DE 20_____</td>
+                    <td>__DE __________ DE 20_____</td>
+                    <td>FECHA: _________</td>
+                </tr>
+            </table>
+
+            {{-- CODIDO DE AUTORIDADES AQUI --}}
+            <table class="table-directivos" style="width: 50%; border: 1px solid #000; border-collapse: collapse; margin-top: 10px;">
+            <tr>
+                <td style="width: 50%; text-align: center; padding: 40px 10px; border-right: 1px solid #000;">
+                    <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto; margin-bottom: 5px;"></div>
+                    <span style="font-weight: bold;">RECTOR(A) DEL PLANTEL</span>
+                </td>
+                <td style="width: 50%; text-align: center; padding: 40px 10px;">
+                    <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto; margin-bottom: 5px;"></div>
+                    <span style="font-weight: bold;">JEFE(A) DEL DEPARTAMENTO DE REGISTRO<br>Y CERTIFICACIÓN</span>
+                </td>
+            </tr>
+        </table>
+
+
 
 
                 <div class="page-break"></div>

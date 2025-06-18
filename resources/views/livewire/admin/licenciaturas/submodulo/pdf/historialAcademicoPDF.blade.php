@@ -165,8 +165,26 @@
                     .datos_alumno td {
                         font-size: 12px;
                         /* border: 1px solid #000; */
-                        padding: 1px 3px;
+                        padding: 0px 3px;
                         text-align: center;
+                        line-height: 14px
+                    }
+
+                      footer {
+                        position: absolute;
+                        bottom: 10px;
+                        left: 0;
+                        text-align: center;
+                        font-size: 12px;
+                        width: 100%;
+                        border-top: 1px solid #4a5568;
+                        border-bottom: 1px solid #4a5568;
+
+                    }
+                    footer p{
+                        margin: 0;
+                        padding: 0;
+                        line-height: 10px;
                     }
 
     </style>
@@ -484,7 +502,11 @@
 
 
 
-
+  <footer>
+        <p>{{$escuela->nombre}} C.C.T. {{$escuela->CCT}}</p>
+        <p>C. {{$escuela->calle}} No. {{$escuela->no_exterior}}, Col. {{$escuela->colonia}}, C.P. {{$escuela->codigo_postal}}, Cd. {{$escuela->ciudad}}, {{$escuela->estado}}.</p>
+        <p>Tel. {{$escuela->telefono}}</p>
+    </footer>
 
 
 
