@@ -16,6 +16,7 @@ class Directivo extends Model
         'apellido_paterno',
         'apellido_materno',
         'cargo',
+        'identificador',
         'telefono',
         'correo',
     ];

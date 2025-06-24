@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('apellido_paterno');
             $table->string('apellido_materno')->nullable();
             $table->string('cargo');
+            $table->string('identificador');
+            $table->enum('status', ["true","false"])->default("true");
             $table->string('telefono', 10)->nullable();
             $table->string('correo')->nullable();
             $table->timestamps();

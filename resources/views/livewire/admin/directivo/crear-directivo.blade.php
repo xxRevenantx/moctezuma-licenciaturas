@@ -45,6 +45,7 @@
                         <flux:input wire:model="apellido_paterno" :label="__('Apellido Paterno')" type="text" placeholder="Apellido Paterno" autocomplete="apellido_paterno" />
                         <flux:input wire:model="apellido_materno" :label="__('Apellido Materno')" type="text" placeholder="Apellido Materno" autocomplete="apellido_materno" />
                         <flux:input wire:model="cargo" :label="__('Cargo')" type="text" placeholder="Cargo" autocomplete="cargo" />
+                        <flux:input wire:model="identificador" :label="__('Identificador')" type="text" placeholder="Ejem: Director, Supervisor,Jefe, Rector, Subjefe, etc." autocomplete="identificador" />
                         <flux:input wire:model="telefono" :label="__('Teléfono')" type="text" placeholder="Teléfono" autocomplete="telefono" />
                         <flux:input wire:model="correo" :label="__('Correo Electrónico')" type="email" placeholder="Correo electrónico" autocomplete="correo" />
                         <div class="flex items-center gap-4 mt-5">

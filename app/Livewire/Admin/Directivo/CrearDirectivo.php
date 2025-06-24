@@ -16,6 +16,7 @@ class CrearDirectivo extends Component
     public $telefono;
     public $correo;
     public $cargo;
+    public $identificador;
 
 
     protected $rules = [
@@ -26,7 +27,7 @@ class CrearDirectivo extends Component
         'telefono' => 'nullable|string|max:10|regex:/^[0-9]{10}$/',
         'correo' => 'nullable|email|max:255',
         'cargo' => 'required|string|max:255',
-
+        'identificador' => 'required|string|max:255',
     ];
 
 
@@ -44,6 +45,7 @@ class CrearDirectivo extends Component
             'telefono' => $this->telefono,
             'correo' => $this->correo,
             'cargo' => $this->cargo,
+            'identificador' => trim($this->identificador)
         ]);
 
 
@@ -62,6 +64,7 @@ class CrearDirectivo extends Component
             'telefono',
             'correo',
             'cargo',
+            'identificador'
         ]);
 
         // Emitir un evento para refrescar la lista de directivos

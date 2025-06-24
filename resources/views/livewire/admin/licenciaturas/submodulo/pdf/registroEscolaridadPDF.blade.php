@@ -346,6 +346,23 @@
 
     @endforeach
             </table>
+            @php
+                $fecha1 = \Carbon\Carbon::parse($periodo->inicio_periodo);
+                $dia1 = $fecha1->format('d');
+                $mes1 = strtoupper($fecha1->locale('es')->translatedFormat('F')); // mes en texto y en mayúsculas
+                $año1 = $fecha1->format('Y');
+
+
+                $fecha2 = \Carbon\Carbon::parse($periodo->termino_periodo);
+                $dia2 = $fecha2->format('d');
+                $mes2 = strtoupper($fecha2->locale('es')->translatedFormat('F')); // mes en texto y en mayúsculas
+                $año2 = $fecha2->format('Y');
+
+
+
+
+
+            @endphp
 
             <table class="inscripcion">
                 <tr>
@@ -354,8 +371,10 @@
                     <td>REGULARIZACIÓN</td>
                 </tr>
                 <tr>
-                    <td>__DE __________ DE 20_____</td>
-                    <td>__DE __________ DE 20_____</td>
+               <td>{{ $dia1 }} DE {{ $mes1 }} DE 20{{ $fecha1->format('y') }}</td>
+               <td>{{ $dia2 }} DE {{ $mes2 }} DE 20{{ $fecha2->format('y') }}</td>
+
+
                     <td>FECHA: _________</td>
                 </tr>
             </table>

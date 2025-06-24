@@ -105,8 +105,10 @@
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Título</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre completo</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Cargo</th>
+                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Identificador</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Teléfono</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Correo</th>
+                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Status</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Acciones</th>
                 </tr>
             </thead>
@@ -122,8 +124,10 @@
                     <td class="border px-4 py-2">{{ $directivo->titulo }}</td>
                     <td class="border px-4 py-2">{{ $directivo->nombre }} {{ $directivo->apellido_paterno }} {{ $directivo->apellido_materno }}</td>
                     <td class="border px-4 py-2">{{ $directivo->cargo }}</td>
+                    <td class="border px-4 py-2">{{ $directivo->identificador }}</td>
                     <td class="border px-4 py-2">{{ $directivo->telefono }}</td>
                     <td class="border px-4 py-2">{{ $directivo->correo }}</td>
+                    <td class="border px-4 py-2">{{ $directivo->status }}</td>
 
                     <td class="border px-4 py-2">
                         <flux:button variant="primary"  @click="Livewire.dispatch('abrirDirectivo', { id: {{ $directivo->id }} })"
