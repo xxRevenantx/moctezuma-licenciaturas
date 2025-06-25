@@ -17,6 +17,8 @@ class EditarDirectivo extends Component
     public $telefono;
     public $correo;
     public $cargo;
+    public $identificador;
+    public $status;
     public $open = false;
 
 
@@ -34,6 +36,8 @@ class EditarDirectivo extends Component
         $this->telefono = $directivo->telefono;
         $this->correo = $directivo->correo;
         $this->cargo = $directivo->cargo;
+        $this->identificador = $directivo->identificador;
+        $this->status = $directivo->status == "true" ? true : false;;
 
         $this->open = true;
 
@@ -41,49 +45,75 @@ class EditarDirectivo extends Component
 
 
 
-    public function actualizarDirectivo()
-    {
-        $this->validate(
-            [
-                'titulo' => 'required|string|max:255',
-                'nombre' => 'required|string|max:255',
-                'apellido_paterno' => 'required|string|max:255',
-                'apellido_materno' => 'nullable|string|max:255',
-                'telefono' => 'nullable|string|max:255',
-                'correo' => 'nullable|email|max:255',
-                'cargo' => 'required|string|max:255',
-            ],
-            [
-                'titulo.required' => 'El título es obligatorio.',
-                'nombre.required' => 'El nombre es obligatorio.',
-                'apellido_paterno.required' => 'El apellido paterno es obligatorio.',
-                'telefono.max' => 'El teléfono no debe exceder 255 caracteres.',
-                'correo.email' => 'El correo electrónico no es válido.',
-                'cargo.required' => 'El cargo es obligatorio.',
-            ]
-        );
+public function actualizarDirectivo()
+{
+    $this->validate(
+        [
+            'titulo' => 'required|string|max:255',
+            'nombre' => 'required|string|max:255',
+            'apellido_paterno' => 'required|string|max:255',
+            'apellido_materno' => 'nullable|string|max:255',
+            'telefono' => 'nullable|string|max:255',
+            'correo' => 'nullable|email|max:255',
+            'cargo' => 'required|string|max:255',
+            'identificador' => 'required|string|max:100',
+        ],
+        [
+            'titulo.required' => 'El título es obligatorio.',
+            'nombre.required' => 'El nombre es obligatorio.',
+            'apellido_paterno.required' => 'El apellido paterno es obligatorio.',
+            'telefono.max' => 'El teléfono no debe exceder 255 caracteres.',
+            'correo.email' => 'El correo electrónico no es válido.',
+            'cargo.required' => 'El cargo es obligatorio.',
+            'identificador.required' => 'El campo identificador es requerido.',
+        ]
+    );
 
-        // Aquí puedes agregar la lógica para actualizar el directivo en la base de datos
-        // Por ejemplo:
-        $directivo = Directivo::find($this->directivoId);
-        $directivo->update([
-            'titulo' => $this->titulo,
-            'nombre' => $this->nombre,
-            'apellido_paterno' => $this->apellido_paterno,
-            'apellido_materno' => $this->apellido_materno,
-            'telefono' => $this->telefono,
-            'correo' => $this->correo,
-            'cargo' => $this->cargo,
-        ]);
-        $this->dispatch('swal', [
-            'title' => '¡Directivo actualizado correctamente!',
-            'icon' => 'success',
-            'position' => 'top-end',
-        ]);
+    $this->status = $this->status ? 'true' : 'false';
+    $identificadorNormalizado = strtolower(trim($this->identificador));
 
-        $this->dispatch('refreshDirectivos');
-        $this->cerrarModal();
+    // ❌ Validar que no haya otro con el mismo identificador y status = true
+    if ($this->status === 'true') {
+        $existeOtroActivo = Directivo::where('identificador', $identificadorNormalizado)
+            ->where('id', '!=', $this->directivoId)
+            ->where('status', 'true')
+            ->exists();
+
+        if ($existeOtroActivo) {
+             $this->dispatch('swal', [
+            'title' => 'Ya existe un directivo activo con este identificador. Solo puede haber uno activo',
+            'icon' => 'error',
+            'position' => 'top',
+        ]);
+            return;
+
+        }
     }
+
+    $directivo = Directivo::findOrFail($this->directivoId);
+
+    $directivo->update([
+        'titulo' => trim($this->titulo),
+        'nombre' => trim($this->nombre),
+        'apellido_paterno' => trim($this->apellido_paterno),
+        'apellido_materno' => trim($this->apellido_materno),
+        'telefono' => trim($this->telefono),
+        'correo' => trim($this->correo),
+        'cargo' => trim($this->cargo),
+        'identificador' => $identificadorNormalizado,
+        'status' => $this->status,
+    ]);
+
+    $this->dispatch('swal', [
+        'title' => '¡Directivo actualizado correctamente!',
+        'icon' => 'success',
+        'position' => 'top-end',
+    ]);
+
+    $this->dispatch('refreshDirectivos');
+    $this->cerrarModal();
+}
+
 
 
 

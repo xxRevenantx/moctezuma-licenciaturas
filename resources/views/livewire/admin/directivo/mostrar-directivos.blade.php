@@ -127,17 +127,30 @@
                     <td class="border px-4 py-2">{{ $directivo->identificador }}</td>
                     <td class="border px-4 py-2">{{ $directivo->telefono }}</td>
                     <td class="border px-4 py-2">{{ $directivo->correo }}</td>
-                    <td class="border px-4 py-2">{{ $directivo->status }}</td>
+                    <td class="border px-4 py-2">
+                            @if($directivo->status == "true")
+                              <flux:badge color="green">Activo</flux:badge>
+                            @else
+                                <flux:badge color="red">Inactivo</flux:badge>
+                            @endif
+                    </td>
 
                     <td class="border px-4 py-2">
-                        <flux:button variant="primary"  @click="Livewire.dispatch('abrirDirectivo', { id: {{ $directivo->id }} })"
-                             class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
-
-                             <flux:button variant="danger"
-                        @click="destroyDirectivo({{ $directivo->id }}, '{{ $directivo->nombre }}')"
-                        class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
-                        Eliminar
+                        <div class="flex gap-x-2">
+                        <flux:button variant="primary"
+                            @click="Livewire.dispatch('abrirDirectivo', { id: {{ $directivo->id }} })"
+                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">
+                            <flux:icon.pencil />
                         </flux:button>
+
+                        <flux:button variant="danger"
+
+                            @click="destroyDirectivo({{ $directivo->id }}, '{{ $directivo->nombre }}')"
+                            class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
+                            <flux:icon.trash  />
+                        </flux:button>
+                    </div>
+
                     </td>
                     </tr>
                 @endforeach

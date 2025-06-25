@@ -19,6 +19,7 @@ class Directivo extends Model
         'identificador',
         'telefono',
         'correo',
+        'status'
     ];
 
 

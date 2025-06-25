@@ -382,12 +382,14 @@
             {{-- CODIDO DE AUTORIDADES AQUI --}}
             <table class="table-directivos" style="width: 50%; border: 1px solid #000; border-collapse: collapse; margin-top: 10px;">
             <tr>
-                <td style="width: 50%; text-align: center; padding: 40px 10px; border-right: 1px solid #000;">
+                <td style="width: 50%; text-align: center; padding: 70px 10px 0; border-right: 1px solid #000;">
                     <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto; margin-bottom: 5px;"></div>
+                    <span style="font-weight: bold; text-transform:uppercase">{{ $rector->nombre }} {{ $rector->apellido_paterno }} {{ $rector->apellido_materno }}</span><br>
                     <span style="font-weight: bold;">RECTOR(A) DEL PLANTEL</span>
                 </td>
-                <td style="width: 50%; text-align: center; padding: 40px 10px;">
+                <td style="width: 50%; text-align: center; padding: 70px 10px 0;">
                     <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto; margin-bottom: 5px;"></div>
+                    <span style="font-weight: bold; text-transform:uppercase">{{ $jefe->nombre }} {{ $jefe->apellido_paterno }} {{ $jefe->apellido_materno }}</span><br>
                     <span style="font-weight: bold;">JEFE(A) DEL DEPARTAMENTO DE REGISTRO<br>Y CERTIFICACIÓN</span>
                 </td>
             </tr>

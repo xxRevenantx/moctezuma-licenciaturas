@@ -158,8 +158,10 @@ class PDFController extends Controller
     $generacion = Generacion::find($generacion_id);
     $licenciatura = Licenciatura::find($licenciatura_id);
     $escuela = Escuela::all()->first();
-    $rector = Directivo::where('cargo', 'Rector')->first();
-    $directora = Directivo::where('cargo', 'Directora General')->first();
+    $rector = Directivo::where('identificador', 'rector')->first();
+    $directora = Directivo::where('identificador', 'directora')->first();
+
+    $jefe =Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
 
     // PERIODOS ESDOLARES
 
@@ -187,6 +189,7 @@ class PDFController extends Controller
             'materias' => $materias,
             'rector' => $rector,
             'directora' => $directora,
+            'jefe' => $jefe,
             'alumnos' => $alumnos,
 
         ];
@@ -201,7 +204,10 @@ class PDFController extends Controller
             'licenciatura' => $licenciatura,
             'alumnos' => $alumnos,
             'periodos' => $periodos,
-             'modalidades' => $modalidades
+            'modalidades' => $modalidades,
+             'rector' => $rector,
+              'jefe' => $jefe,
+
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.registroEscolaridadPDF', $data)->setPaper('legal', 'landscape');
              return $pdf->stream("REGISTRO_DE_ESCOLARIDAD_GEN_".$generacion->generacion.".pdf");

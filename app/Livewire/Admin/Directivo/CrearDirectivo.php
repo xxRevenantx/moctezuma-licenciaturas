@@ -31,48 +31,60 @@ class CrearDirectivo extends Component
     ];
 
 
-    public function crearDirectivo()
-    {
-        $this->validate();
+   public function crearDirectivo()
+{
+    $this->validate();
 
-        // Aquí puedes agregar la lógica para guardar el directivo en la base de datos
-        // Por ejemplo:
-        Directivo::create([
-            'titulo' => $this->titulo,
-            'nombre' => $this->nombre,
-            'apellido_paterno' => $this->apellido_paterno,
-            'apellido_materno' => $this->apellido_materno,
-            'telefono' => $this->telefono,
-            'correo' => $this->correo,
-            'cargo' => $this->cargo,
-            'identificador' => trim($this->identificador)
+    $identificadorNormalizado = strtolower(trim($this->identificador));
+    $statusStr = 'true'; // Siempre será true por defecto
+
+    // 🚫 Validar que no haya otro activo con este identificador
+    $yaActivo = Directivo::where('identificador', $identificadorNormalizado)
+        ->where('status', 'true')
+        ->exists();
+
+    if ($yaActivo) {
+         $this->dispatch('swal', [
+            'title' => 'Ya existe un directivo activo con este identificador. Solo puede haber uno activo',
+            'icon' => 'error',
+            'position' => 'top',
         ]);
-
-
-        $this->dispatch('swal', [
-            'title' => '¡Directivo creado correctamente!',
-            'icon' => 'success',
-            'position' => 'top-end',
-        ]);
-
-        // Limpiar los campos después de crear el directivo
-        $this->reset([
-            'titulo',
-            'nombre',
-            'apellido_paterno',
-            'apellido_materno',
-            'telefono',
-            'correo',
-            'cargo',
-            'identificador'
-        ]);
-
-        // Emitir un evento para refrescar la lista de directivos
-        $this->dispatch('refreshDirectivos');
-
-
-
+            return;
     }
+
+    // ✅ Crear directivo
+    Directivo::create([
+        'titulo' => trim($this->titulo),
+        'nombre' => trim($this->nombre),
+        'apellido_paterno' => trim($this->apellido_paterno),
+        'apellido_materno' => trim($this->apellido_materno),
+        'telefono' => trim($this->telefono),
+        'correo' => trim($this->correo),
+        'cargo' => trim($this->cargo),
+        'identificador' => $identificadorNormalizado,
+        'status' => $statusStr,
+    ]);
+
+    $this->dispatch('swal', [
+        'title' => '¡Directivo creado correctamente!',
+        'icon' => 'success',
+        'position' => 'top-end',
+    ]);
+
+    $this->reset([
+        'titulo',
+        'nombre',
+        'apellido_paterno',
+        'apellido_materno',
+        'telefono',
+        'correo',
+        'cargo',
+        'identificador'
+    ]);
+
+    $this->dispatch('refreshDirectivos');
+}
+
 
 
     public function render()
