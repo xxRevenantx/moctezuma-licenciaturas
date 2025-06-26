@@ -215,6 +215,54 @@ class PDFController extends Controller
 
    }
 
+
+   // OFICIOS
+
+   public function documento_oficios(Request $request){
+    $documento = $request->tipo_documento;
+    $fecha = $request->fecha_expedicion;
+    $generacion_id = $request->generacion;
+
+    $escuela = Escuela::all()->first();
+
+    // Validación básica
+    if (!$generacion_id || !$documento || !$fecha) {
+        abort(404, 'Faltan parámetros');
+    }
+
+    $generacion = Generacion::find($generacion_id);
+
+    $escuela = Escuela::all()->first();
+    $rector = Directivo::where('identificador', 'rector')->first();
+    $directora = Directivo::where('identificador', 'directora')->first();
+
+    $jefe =Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
+    $subjefe =Directivo::where('identificador', 'subjefe')->where('status', 'true')->first();
+
+
+     if($documento == 'matriculas'){
+           $data = [
+            'generacion' => $generacion,
+            'escuela' => $escuela,
+            'rector' => $rector,
+            'directora' => $directora,
+            'fecha' => $fecha,
+            'jefe' => $jefe,
+            'subjefe' => $subjefe,
+            ];
+
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculasPDF', $data)->setPaper('letter', 'portrait');
+             return $pdf->stream("MATRICULAS_".$generacion->generacion.".pdf");
+
+    }
+
+
+
+
+
+
+   }
+
    // DOCUMENTO PERSONAL
 
   public function documento_personal(Request $request){

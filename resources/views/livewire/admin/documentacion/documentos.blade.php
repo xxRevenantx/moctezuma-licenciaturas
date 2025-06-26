@@ -102,7 +102,43 @@
                 </button>
                 <div x-show="openAccordion" x-transition class="p-4 border border-t-0 rounded-b bg-white dark:bg-gray-800">
                     <!-- Aquí puedes agregar el contenido del acordeón -->
-                    <p class="text-gray-700 dark:text-gray-200">Aquí puedes solicitar y descargar la documentación del alumno seleccionando los filtros y presionando el botón "Descargar".</p>
+                    <p class="text-gray-700 dark:text-gray-200 my-3">Para la expedición de oficios, selecciona la generación, documento y fecha de expedición.</p>
+
+                       <form action="{{ route('admin.pdf.documentacion.documento_oficios') }}" method="GET" target="_blank" class="mb-4">
+                        <div class="grid md:grid-cols-4 gap-4">
+
+
+                            <flux:select name="generacion" label="Selecciona la generación" class="w-full mb-4" required >
+                                <flux:select.option value="">Selecciona una generación</flux:select.option>
+                                @foreach($generaciones as $generacion)
+                                    <flux:select.option value="{{ $generacion->id }}">{{ $generacion->generacion }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+
+                            <flux:select name="tipo_documento" label="Selecciona el tipo de documento" class="w-full mb-4" required >
+                                <flux:select.option value="">Selecciona un tipo de documento</flux:select.option>
+                                <flux:select.option value="matriculas">Matrículas</flux:select.option>
+                                <flux:select.option value="kardex">Kardex</flux:select.option>
+                                <flux:select.option value="registro-boletos">Registro y boletas</flux:select.option>
+                                <flux:select.option value="folios">Folios</flux:select.option>
+                                <flux:select.option value="certificados">Certificados</flux:select.option>
+                            </flux:select>
+
+                            <flux:input required
+                                label="Fecha de expedición"
+                                name="fecha_expedicion"
+                                id="fecha"
+                                type="date"
+                                placeholder="Selecciona una fecha"
+                                class="w-full mb-4"
+                              />
+
+                            <flux:button type="submit" class="mt-6" variant="primary">Descargar</flux:button>
+                        </div>
+                    </form>
+
+
+
                 </div>
             </div>
 
@@ -148,7 +184,7 @@
                                 <flux:select.option value="acta-resultados">Acta de Resultados</flux:select.option>
                             </flux:select>
 
-                            <flux:button label="Descargar" type="submit" variant="primary" class="w-full mt-5">Descargar</flux:button>
+                            <flux:button label="Descargar" type="submit" variant="primary" class="w-full mt-6">Descargar</flux:button>
                         </div>
                     </form>
 
