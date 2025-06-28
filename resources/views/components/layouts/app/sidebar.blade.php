@@ -36,7 +36,6 @@
 
                         <flux:navlist.item icon="rectangle-stack" :href="route('admin.acciones.index')" :current="request()->routeIs('admin.acciones.index')" wire:navigate>{{ __('Listas Generales') }}</flux:navlist.item>
                         <flux:navlist.item icon="rectangle-stack" :href="route('admin.acciones.index')" :current="request()->routeIs('admin.acciones.index')" wire:navigate>{{ __('Constancias') }}</flux:navlist.item>
-                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.acciones.index')" :current="request()->routeIs('admin.acciones.index')" wire:navigate>{{ __('Credenciales') }}</flux:navlist.item>
                         <flux:navlist.item icon="rectangle-stack" :href="route('admin.documentacion.index')" :current="request()->routeIs('admin.documentacion.index')" wire:navigate>{{ __('Documentos') }}</flux:navlist.item>
 
                     </flux:navlist>

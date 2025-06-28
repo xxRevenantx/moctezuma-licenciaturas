@@ -81,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/expedicion-documentacion', [PDFController::class, 'documento_expedicion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_expedicion');
     Route::get('/documento-personal', [PDFController::class, 'documento_personal'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_personal');
     Route::get('/documento-oficios', [PDFController::class, 'documento_oficios'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_oficios');
+    Route::get('/credencial-alumno', [PDFController::class, 'credencial_alumno'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.credencial_alumno');
 
 
 

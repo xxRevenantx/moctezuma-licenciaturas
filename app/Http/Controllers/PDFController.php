@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AsignarGeneracion;
 use App\Models\Cuatrimestre;
 use App\Models\Dia;
 use App\Models\Directivo;
@@ -240,6 +241,16 @@ class PDFController extends Controller
     $subjefe =Directivo::where('identificador', 'subjefe')->where('status', 'true')->first();
 
 
+   $licenciaturas = AsignarGeneracion::where('generacion_id', $generacion_id)
+    ->whereHas('licenciatura', function ($query) {
+        $query->whereNotNull('RVOE');
+    })
+    ->with('licenciatura') // Para poder acceder al nombre, RVOE, etc.
+    ->get()
+    ->unique('licenciatura_id') // Evita duplicados aunque haya varias modalidades
+    ->pluck('licenciatura'); // Trae solo los modelos de licenciatura
+
+
      if($documento == 'matriculas'){
            $data = [
             'generacion' => $generacion,
@@ -249,16 +260,70 @@ class PDFController extends Controller
             'fecha' => $fecha,
             'jefe' => $jefe,
             'subjefe' => $subjefe,
+            'licenciaturas' => $licenciaturas
             ];
 
-         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculasPDF', $data)->setPaper('letter', 'portrait');
-             return $pdf->stream("MATRICULAS_".$generacion->generacion.".pdf");
-
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculasOficioPDF', $data)->setPaper('letter', 'portrait');
+             return $pdf->stream("OFICIO_MATRICULAS_".$generacion->generacion.".pdf");
     }
+    else if($documento == 'kardex'){
+        $data = [
+            'generacion' => $generacion,
+            'escuela' => $escuela,
+            'rector' => $rector,
+            'directora' => $directora,
+            'fecha' => $fecha,
+            'jefe' => $jefe,
+            'subjefe' => $subjefe,
+            'licenciaturas' => $licenciaturas
+            ];
 
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexOficioPDF', $data)->setPaper('letter', 'portrait');
+             return $pdf->stream("OFICIO_KARDEX_".$generacion->generacion.".pdf");
+    }else if($documento == 'registro-boletos'){
+         $data = [
+            'generacion' => $generacion,
+            'escuela' => $escuela,
+            'rector' => $rector,
+            'directora' => $directora,
+            'fecha' => $fecha,
+            'jefe' => $jefe,
+            'subjefe' => $subjefe,
+            'licenciaturas' => $licenciaturas
+            ];
 
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.registrosBoletasOficioPDF', $data)->setPaper('letter', 'portrait');
+             return $pdf->stream("OFICIO_REGISTROS_ESCOLARIDAD_ACTA_RESULTADOS_".$generacion->generacion.".pdf");
+    }else if($documento == 'folios'){
+        $data = [
+            'generacion' => $generacion,
+            'escuela' => $escuela,
+            'rector' => $rector,
+            'directora' => $directora,
+            'fecha' => $fecha,
+            'jefe' => $jefe,
+            'subjefe' => $subjefe,
+            'licenciaturas' => $licenciaturas
+            ];
 
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.foliosOficioPDF', $data)->setPaper('letter', 'portrait');
+             return $pdf->stream("OFICIO_FOLIOS_".$generacion->generacion.".pdf");
 
+    }else if($documento == 'certificados'){
+        $data = [
+            'generacion' => $generacion,
+            'escuela' => $escuela,
+            'rector' => $rector,
+            'directora' => $directora,
+            'fecha' => $fecha,
+            'jefe' => $jefe,
+            'subjefe' => $subjefe,
+            'licenciaturas' => $licenciaturas
+            ];
+
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.certificadosOficioPDF', $data)->setPaper('letter', 'portrait');
+             return $pdf->stream("OFICIO_CERTIFICADOS_".$generacion->generacion.".pdf");
+    }
 
 
    }
@@ -367,5 +432,38 @@ class PDFController extends Controller
     }
 
    }
+
+
+    //    CREDENCIAL DEL ALUMNO
+
+  public function credencial_alumno(Request $request)
+{
+    // Obtén los IDs como un array desde el input "alumnos_ids[]"
+    $alumnosIds = $request->input('alumnos_ids', []);
+
+
+    // Verifica si llegaron datos
+    if (empty($alumnosIds)) {
+        return redirect()->back()->with('error', 'No se seleccionaron alumnos.');
+    }
+
+    // Obtiene los datos de los alumnos
+    $alumnos = Inscripcion::whereIn('id', $alumnosIds)->get();
+
+    // Puedes ver los datos si estás probando
+    // dd($alumnos);
+
+    // Genera el PDF
+    $data = [
+        'alumnos' => $alumnos,
+    ];
+
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialPDF', $data)
+              ->setPaper('letter', 'portrait')
+
+              ;
+
+    return $pdf->stream("CREDENCIAL.pdf");
+}
 
 }

@@ -74,7 +74,7 @@ class EditarLicenciatura extends Component
             'nombre' => $this->nombre,
             'slug' => $this->slug,
             'nombre_corto' => $this->nombre_corto,
-            'RVOE' => $this->RVOE,
+            'RVOE' => $this->RVOE ? $this->RVOE : NULL,
             'imagen' => $this->imagen_nueva ? $datos['imagen'] : $this->imagen,
         ]);
 

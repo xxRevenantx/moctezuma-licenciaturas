@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <title>OFICIO DE MATRÍCULAS |  </title>
+    <title>OFICIO DE MATRÍCULAS | GEN: {{ $generacion->generacion }}  </title>
 </head>
 <style>
 
@@ -47,7 +47,7 @@
         z-index: -1;
     }
     .contenedor{
-        padding: 70px 80px;
+        padding: 70px 50px;
         margin-top:30px;
         font-family: 'calibri'
 
@@ -55,7 +55,7 @@
 
 
     .lugar, .asunto, .generacion{
-        font-size: 19px;
+        font-size: 18px;
         text-align: right;
         color: #000;
         font-family: 'calibri';
@@ -63,11 +63,33 @@
         line-height: 7px;
     }
 
-    .autoridades p{
+    .jefe{
+        width: 45%;
+        /* border: 1px solid #000; */
         line-height: 4px;
         font-size: 18px;
+        margin-top: -15px;
+
     }
 
+
+    .subjefe{
+        width: 44%;
+        /* border: 1px solid #000; */
+        font-size: 18px;
+         margin-left: 350px;
+        margin-top: -60px;
+        line-height: 19px;
+    }
+
+
+    .descripcion{
+        font-size: 18px;
+        line-height: 19px;
+        text-align: justify;
+        text-indent: 30px;
+        margin-top: -10px;
+    }
 
     .rector{
         text-transform: uppercase;
@@ -85,7 +107,7 @@
     $nombreDirectora = "{$directora->nombre} {$directora->apellido_paterno} {$directora->apellido_materno}";
 
     $nombreJefe = "{$jefe->titulo}{$jefe->nombre} {$jefe->apellido_paterno} {$jefe->apellido_materno}";
-    $subjefe = "{$subjefe->titulo}{$subjefe->nombre} {$subjefe->apellido_paterno} {$subjefe->apellido_materno}";
+    $nombreSubjefe = "{$subjefe->titulo}{$subjefe->nombre} {$subjefe->apellido_paterno} {$subjefe->apellido_materno}";
 @endphp
 
         <div class="fondo">
@@ -101,43 +123,72 @@
           <p class="generacion">Generación: {{$generacion->generacion}}</p>
 
 
-          <table class="autoridades">
-                <td>
+          <table class="jefe">
+            <tr>
+                <td style="width:400px">
                     <p style="text-transform: uppercase"><b>{{$nombreJefe}}</b></p>
                     <p>{{$jefe->cargo}}</p>
                     <p>Nivel Superior</p>
                     <p>Secretaría de Educación Guerrero</p>
                     <p><b>P R E S E N T E</b></p>
                 </td>
-                <td></td>
-                <td>
-                    <p>CATT'N</p>
-                    <p style="text-transform: uppercase"><b>{{$subjefe}}</b></p>
-                </td>
+            </tr>
           </table>
 
+          <table class="subjefe">
+            <tr>
+                <td>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <p><b>CATT'N</b><br><b style="text-transform: uppercase">{{$nombreSubjefe}}</b>
+                        <br>{{$subjefe->cargo}}
+                    </p>
+                </td>
+            </tr>
+          </table>
+
+          <p class="descripcion">
+            El que suscribe <b>{{ $rector->titulo }} {{ $nombreRector }}</b>, en mi carácter de Rector del
+            <b>{{ $escuela->nombre }}</b>, con Clave de Centro de Trabajo <b>{{ $escuela->CCT }}</b>, con domicilio en
+            calle Francisco I. Madero Ote. 800, Col. Esquipulas de la localidad de Ciudad Altamirano,
+            municipio de Pungarabato del estado de Guerrero, y de acuerdo a mis facultades concedidas,
+            de manera atenta y respetuosa me dirijo a usted para solicitar las <b>MATRÍCULAS</b> de la
+            <b>GENERACIÓN {{ $generacion->generacion }}</b>. A continuación se anexan las licenciaturas correspondientes a la
+            generación solicitada:
+            <ul style="margin-top: -20px; line-height:20px">
+
+            @foreach ($licenciaturas as $lic )
+                    <li style="text-transform: uppercase; font-size:19px"> <b>LICENCIATURA EN {{ $lic->nombre }}</b></li>
+            @endforeach
+
+             </ul>
+          </p>
+
+          <p style="font-size:19px; margin-top:-10px">Para tal efecto se adjunta la relación de los alumnos correspondiente.</p>
+
+          <p style="font-size: 19px; text-indent: 30px; line-height:20px;  margin-top:-10px">Quedando atento a nuestra solicitud, solo me resta enviar un afectuoso saludo y ponernos a sus finas atenciones.</p>
 
 
 
+          <p style="text-align: center">
+            <b>A T E N T A M E N T E</b> <br> <span style="text-transform: uppercase">{{ $rector->cargo }}</span>
+          </p>
 
 
-
-
-          <table>
+          <table style="width: 100%; margin-top:60px">
                 <tr>
                     <td style="text-align: center;">
                         <span style="display: block; border-top: 1px solid #000; width: 300px; margin: 0 auto;"></span>
-                        <span class="rector" style="font-family: 'calibri'; font-size: 18px; bold;">{{ $rector->titulo }} {{ $nombreRector }}</span><br>
-                        <span style="font-family: 'calibri'; font-size: 17px;">{{ $rector->cargo }}</span>
+                        <span class="rector" style="font-family: 'calibri'; font-size: 16px; bold;">{{ $rector->titulo }} {{ $nombreRector }}</span><br>
                     </td>
-                    <td style="text-align: center;">
-                        <span style="display: block; border-top: 1px solid #000; width: 300px; margin: 0 auto;"></span>
-                        <span class="directora" style="font-family: 'calibri'; font-size: 18px; bold;">M.S.P.{{ $nombreDirectora }}</span><br>
-                        <span style="font-family: 'calibri'; font-size: 17px;">{{ $directora->cargo }}</span>
-                    </td>
+
                 </tr>
           </table>
 
+          <p style="font-size:12px; margin-top:-10px">C.c.p. Archivo</p>
 
 
 
