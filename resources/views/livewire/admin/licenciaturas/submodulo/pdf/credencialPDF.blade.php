@@ -28,27 +28,42 @@
          }
 
 
-
+         .contenedorCredenciales{
+            width: 100%;
+            /* background: #000; */
+            margin: auto;
+            padding: 50px;
+         }
         .credenciales {
             border: 1px solid #000;
-         background-size: 100% 100%;
-            background-repeat: no-repeat;
-            background-position: center;
             width: 18cm;
             height: 5.7cm;
             margin: 5px auto;
             /* padding: 10px; */
 
         }
+        .imagen{
+            width: 50px;
+            position: absolute;
+            right: 100px;
+
+        }
+
+        .titulo
+        {
+            font-size: 10px;
+            color: #fff;
+            margin-top: -164px;
+            margin-left: 50px;
+        }
 
         .info {
-            /* position: absolute;
-            bottom: 15px;
-            left: 15px;
-            color: #000;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 5px;
-            border-radius: 5px; */
+            font-size: 11px;
+            font-family: 'calibri';
+            margin-top: -150px;
+            line-height: 10px;
+            margin-left: 130px;
+            width: 200px;
         }
 
         .page-break {
@@ -57,22 +72,32 @@
 
 
 
+
      </style>
 </head>
 <body>
+      <div class="contenedorCredenciales">
      @foreach ($alumnos as $index => $alumno)
-        <div class="credenciales" style="background-image: url('{{ public_path('storage/credencial-frontal.png') }}')">
+            <img class="imagen" src="{{  public_path('storage/licenciaturas/'.$alumno->licenciatura->imagen) }}" alt="">
+            <img class="credenciales" src="{{ public_path('storage/credencial-frontal.png') }}">
+        {{-- <div class="credenciales" style="background-image: url('{{ public_path('storage/credencial-frontal.png') }}')"> --}}
+
             <div class="info">
-                <strong>{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</strong><br>
+                <h1 class="titulo">CREDENCIAL DEL ESTUDIANTE</h1>
+                Nombre:<strong>{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</strong><br>
                 Matrícula: {{ $alumno->matricula }}<br>
-                CURP: {{ $alumno->curp }}
+                CURP: {{ $alumno->CURP }} <br>
+                Licenciatura: {{ $alumno->licenciatura->nombre_corto }} <br>
+                Ciclo escolar:  {{ $ciclo_escolar->ciclo_escolar }} <br>
+                Vigencia: Agosto {{substr($ciclo_escolar->ciclo_escolar, -4)}}
             </div>
-        </div>
+
 
         @if (($index + 1) % 4 === 0)
             <div class="page-break"></div>
         @endif
     @endforeach
+      </div>
 
 </body>
 </html>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AsignarGeneracion;
 use App\Models\Cuatrimestre;
+use App\Models\Dashboard;
 use App\Models\Dia;
 use App\Models\Directivo;
 use App\Models\Escuela;
@@ -450,12 +451,17 @@ class PDFController extends Controller
     // Obtiene los datos de los alumnos
     $alumnos = Inscripcion::whereIn('id', $alumnosIds)->get();
 
+    // CICLO ESCOLAR
+   $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+
+
     // Puedes ver los datos si estás probando
     // dd($alumnos);
 
     // Genera el PDF
     $data = [
         'alumnos' => $alumnos,
+        'ciclo_escolar' => $ciclo_escolar
     ];
 
     $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialPDF', $data)
