@@ -32,7 +32,7 @@
             width: 100%;
             /* background: #000; */
             margin: auto;
-            padding: 50px;
+            padding: 0 0 0 70px;
          }
         .credenciales {
             border: 1px solid #000;
@@ -45,7 +45,8 @@
         .imagen{
             width: 50px;
             position: absolute;
-            right: 100px;
+            right: 90px;
+            margin: 15px auto 0;
 
         }
 

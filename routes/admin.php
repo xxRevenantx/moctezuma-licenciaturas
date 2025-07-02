@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\SeleccionarModalidadController;
 use App\Http\Controllers\Admin\SubmoduloController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CiudadController;
+use App\Http\Controllers\ConstanciaController;
 use App\Http\Controllers\DocumentacionController;
 use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
@@ -40,24 +41,24 @@ Route::middleware(['auth'])->group(function () {
 
 
     // DOCUMENTACIÓN
-    Route::resource('documentacion', DocumentacionController::class)->middleware('can:admin.administracion')->names('admin.documentacion');
+    Route::resource('constancias', ConstanciaController::class)->middleware('can:admin.administracion')->names('admin.constancias');
 
+    Route::resource('documentacion', DocumentacionController::class)->middleware('can:admin.administracion')->names('admin.documentacion');
 
     Route::resource('usuarios', UserController::class)->middleware('can:admin.usuarios')->names('admin.usuarios');
 
     Route::resource('acciones', AccionController::class)->middleware('can:admin.administracion')->names('admin.acciones');
 
-
     Route::resource('estados', EstadoController::class)->middleware('can:admin.administracion')->names('admin.estados');
+
     Route::resource('ciudades', CiudadController::class)->middleware('can:admin.administracion')->names('admin.ciudades');
-
-
 
     Route::resource('asignacion-de-licenciaturas', LicenciaturaController::class)->middleware('can:admin.administracion')->names('admin.asignacion.licenciaturas');
 
-
     Route::resource('directivos', DirectivoController::class)->middleware('can:admin.administracion')->names('admin.directivos');
+
     Route::resource('cuatrimestres', CuatrimestreController::class)->middleware('can:admin.administracion')->names('admin.cuatrimestres');
+
     Route::resource('periodos-escolares', PeriodoController::class)->middleware('can:admin.administracion')->names('admin.periodos');
 
     Route::resource('crear-generacion', GeneracionController::class)->middleware('can:admin.generaciones')->names('admin.generaciones');
@@ -65,7 +66,6 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('asignar-generacion', AsignarGeneracionController::class)->middleware('can:admin.asignar.generacion')->names('admin.asignar.generacion');
 
     Route::resource('profesores', ProfesorController::class)->middleware('can:admin.administracion')->names('admin.profesor');
-
 
     Route::resource('materias', MateriaController::class)->middleware('can:admin.administracion')->names('admin.materia');
 
