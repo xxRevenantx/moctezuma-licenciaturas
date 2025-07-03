@@ -42,7 +42,7 @@
     @endif
 
     @if (!empty($alumnosSeleccionados))
-        <div class="mt-4 p-4 border rounded bg-gray-50">
+        <div class="mt-4 p-4 border rounded bg-gray-50 dark:bg-gray-800 dark:text-white">
             <p class="font-bold mb-2">Alumnos seleccionados:</p>
             <ul class="space-y-2">
                 @foreach ($alumnosSeleccionados as $alumno)

@@ -483,6 +483,12 @@ class PDFController extends Controller
          $rector = Directivo::where('cargo', 'Rector')->first();
          $escuela = Escuela::all()->first();
 
+         $periodo = Periodo::where('generacion_id', $alumno->generacion_id)
+         ->where('cuatrimestre_id', $alumno->cuatrimestre_id)
+         ->first();
+
+
+
        // CICLO ESCOLAR
          $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
 
@@ -490,7 +496,8 @@ class PDFController extends Controller
             'constancia' => $constancia,
             'rector' => $rector,
             'escuela' => $escuela,
-            'ciclo_escolar' => $ciclo_escolar
+            'ciclo_escolar' => $ciclo_escolar,
+            'periodo' => $periodo,
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciasPDF', $data)->setPaper('letter', 'portrait');
              return $pdf->stream("CONSTANCIA".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno->matricula.".pdf");

@@ -76,7 +76,7 @@
     @endif
 
     @if ($selectedAlumno)
-        <div class="mt-4 p-4 border rounded bg-gray-50">
+        <div class="mt-4 p-4 border rounded bg-gray-50 dark:bg-gray-800 dark:text-white">
             <p class="font-bold">
                 {{ $selectedAlumno['apellido_paterno'] ?? '' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} {{ $selectedAlumno['nombre'] ?? '' }}
             </p>

@@ -47,7 +47,7 @@
         z-index: -1;
     }
     .contenedor{
-        padding: 70px 100px;
+        padding: 50px 85px 0;
         margin-top:30px;
         font-family: 'calibri'
 
@@ -55,11 +55,12 @@
 
 
     .asunto{
-        margin-top: 200px;
+        margin-top: 160px;
         text-align: right;
         font-weight: bold;
-          font-size:18px;
-          text-transform: uppercase
+        font-size:18px;
+        text-transform: uppercase;
+        line-height: 15px;
     }
 
 
@@ -67,10 +68,17 @@
 
     .descripcion{
         font-size: 18px;
-        line-height: 19px;
+        line-height: 16px;
         text-align: justify;
         text-indent: 30px;
         margin-top: 20px;
+    }
+    .descripcion2{
+        font-size: 18px;
+      line-height: 16px;
+        text-align: justify;
+        text-indent: 30px;
+        margin-top: -20px;
     }
 
     .rector{
@@ -80,8 +88,8 @@
 
     .detalles{
         /* font-family: 'Times new Roman' */
-        line-height: 14px;
-        margin-top: 50px;
+        line-height: 13px;
+        margin-top: 30px;
         font-size:18px;
         position:absolute;
         float: right
@@ -97,8 +105,16 @@
         text-align: left;
         font-size: 21px;
         font-weight: bold;
-        margin-top: 60px;
+        margin-top: 50px;
         line-height: 15px;
+    }
+
+    .cierre{
+        text-align: justify;
+        font-size: 18px;
+        line-height: 18px;
+        margin-top: 20px;
+        text-indent: 30px;
     }
 
 
@@ -106,8 +122,8 @@
 <body>
     @php
 
-    // $nombreRector = "{$rector->nombre} {$rector->apellido_paterno} {$rector->apellido_materno}";
-    // $nombreDirectora = "{$directora->nombre} {$directora->apellido_paterno} {$directora->apellido_materno}";
+    $nombreRector = "{$rector->nombre} {$rector->apellido_paterno} {$rector->apellido_materno}";
+    $nombreAlumno = "{$constancia->alumno->nombre} {$constancia->alumno->apellido_paterno} {$constancia->alumno->apellido_materno}";
 
     // $nombreJefe = "{$jefe->titulo}{$jefe->nombre} {$jefe->apellido_paterno} {$jefe->apellido_materno}";
     // $nombreSubjefe = "{$subjefe->titulo}{$subjefe->nombre} {$subjefe->apellido_paterno} {$subjefe->apellido_materno}";
@@ -169,12 +185,56 @@
           </p>
 
           <p class="descripcion">
-            El que suscribe M.C. José Rubén Solórzano Carbajal, en mi carácter de rector del
-            Centro Universitario Moctezuma, con clave de incorporación 12PSU0173I, ubicada en
+            El que suscribe  <b>{{$rector->titulo}} {{$nombreRector}}</b>, en mi carácter de rector del
+            Centro Universitario Moctezuma, con clave de incorporación {{$escuela->CCT}}, ubicada en
             calle Francisco I. Madero Ote. 800 de la localidad de Cd. Altamirano, municipio de
             Pungarabato, Gro. Región Tierra Caliente.
+          </p>
+
+          <p style="text-align:center; font-size: 50px; font-weight: bold; margin-top: 20px; ">
+            HACE CONSTAR
+          </p>
+
+          <p class="descripcion2">
+            @if ($constancia->alumno->sexo == 'H')
+                 Que el alumno:  <b style="text-transform: uppercase">{{$nombreAlumno}}</b>, con CURP:
+                    <b style="text-transform: uppercase">{{$constancia->alumno->CURP}}</b> y matrícula:
+                    <b>{{$constancia->alumno->matricula}}</b>, de acuerdo a la documentación
+                    que obra en el archivo de la escuela, cursa el <b>{{$constancia->alumno->cuatrimestre_id}}° Cuatrimestre</b> (con fecha de inicio
+                  {{ \Carbon\Carbon::parse($periodo->inicio_periodo)->translatedFormat('d \d\e F \d\e\l Y') }}
+                    al {{ \Carbon\Carbon::parse($periodo->termino_periodo)->translatedFormat('d \d\e F \d\e\l Y') }}) de la Licenciatura en <b style="text-transform: uppercase">{{$constancia->alumno->licenciatura->nombre}}</b> asistiendo en forma regular a clases en este plantel educativo
+                    en el ciclo escolar {{$ciclo_escolar->ciclo_escolar}}.
+
+
+
+            @else
+                 Que la alumna:  <b style="text-transform: uppercase">{{$nombreAlumno}}</b>, con CURP:
+                    <b style="text-transform: uppercase">{{$constancia->alumno->CURP}}</b> y matrícula:
+                    <b>{{$constancia->alumno->matricula}}</b>, de acuerdo a la documentación
+                    que obra en el archivo de la escuela, cursa el <b>{{$constancia->alumno->cuatrimestre_id}}° Cuatrimestre</b>
+                    (con fecha de inicio {{ \Carbon\Carbon::parse($periodo->inicio_periodo)->translatedFormat('d \d\e F \d\e\l Y') }}
+                    al {{ \Carbon\Carbon::parse($periodo->termino_periodo)->translatedFormat('d \d\e F \d\e\l Y') }}) de la Licenciatura en <b style="text-transform: uppercase">{{$constancia->alumno->licenciatura->nombre}}</b> asistiendo en forma regular a clases en este plantel educativo
+                    en el ciclo escolar {{$ciclo_escolar->ciclo_escolar}}.
+
+            @endif
+          </p>
+
+          <p class="cierre">
+            A petición de la parte interesada y para todos los efectos y usos legales a que haya
+            lugar, se extiende la presente constancia en
+            Cd. Altamirano, estado de Guerrero a los {{ \Carbon\Carbon::parse($constancia->fecha_expedicion)->translatedFormat('d \d\i\a\s \d\e\l \m\e\s \d\e F \d\e\l Y') }}.
 
           </p>
+
+          <p style="text-align: center; font-size: 18px; margin-top: -20px;">
+            <b>A T E N T A M E N T E</b><br>
+            EDUCACIÓN INTEGRAL ¡ELIGE CUM! <br><br>
+            _______________________________<br>
+             <b style="text-transform:uppercase">{{$rector->titulo}} {{$nombreRector}}</b> <br>
+                <span style="text-transform: uppercase">{{$rector->cargo}}</span>
+          </p>
+
+
 
         </div>
 

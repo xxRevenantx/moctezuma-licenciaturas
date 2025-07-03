@@ -52,7 +52,7 @@
             x-show="open"
             x-transition
             x-cloak
-            class="absolute w-full bg-white border mt-1 rounded shadow z-10 max-h-60 overflow-auto"
+            class="absolute w-full bg-white border mt-1 rounded shadow z-10 max-h-60 overflow-auto dark:bg-gray-800 dark:text-white"
             style="display: none"
         >
             @forelse ($alumnos as $index => $alumno)
@@ -75,7 +75,7 @@
     @endif
 
     @if ($selectedAlumno)
-        <div class="mt-4 p-4 border rounded bg-gray-50">
+        <div class="mt-4 p-4 border rounded bg-gray-50 dark:bg-gray-800 dark:text-white">
             <p class="font-bold">
                 {{ $selectedAlumno['apellido_paterno'] ?? '' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} {{ $selectedAlumno['nombre'] ?? '' }}
             </p>
