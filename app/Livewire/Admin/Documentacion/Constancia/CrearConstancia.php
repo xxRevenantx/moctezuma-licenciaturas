@@ -55,6 +55,8 @@ class CrearConstancia extends Component
             $this->selectedIndex = 0;
              $this->no_constancia = Constancia::max('no_constancia') + 1;
 
+             $this->dispatch('refreshConstancias');
+
 
         } else {
             $this->dispatch('swal', [

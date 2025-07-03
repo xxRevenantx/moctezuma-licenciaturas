@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AsignarGeneracion;
+use App\Models\Constancia;
 use App\Models\Cuatrimestre;
 use App\Models\Dashboard;
 use App\Models\Dia;
@@ -470,6 +471,30 @@ class PDFController extends Controller
               ;
 
     return $pdf->stream("CREDENCIAL.pdf");
+}
+
+// CONSTANCIAS DEL ALUMNO
+
+    public function constancia(Request $request){
+         $id = $request->constancia_id;
+
+         $constancia = Constancia::findOrFail($id);
+         $alumno = Inscripcion::where('id', $constancia->alumno_id)->first();
+         $rector = Directivo::where('cargo', 'Rector')->first();
+         $escuela = Escuela::all()->first();
+
+       // CICLO ESCOLAR
+         $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+
+        $data = [
+            'constancia' => $constancia,
+            'rector' => $rector,
+            'escuela' => $escuela,
+            'ciclo_escolar' => $ciclo_escolar
+        ];
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciasPDF', $data)->setPaper('letter', 'portrait');
+             return $pdf->stream("CONSTANCIA".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno->matricula.".pdf");
+
 }
 
 }
