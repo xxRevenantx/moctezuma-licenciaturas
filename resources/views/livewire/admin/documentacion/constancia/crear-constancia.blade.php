@@ -36,7 +36,7 @@
                 <flux:input
                     label="Fecha de expedición"
                     type="date"
-                    wire:model="fecha"
+                    wire:model="fecha_expedicion"
                     placeholder="Selecciona una fecha"
                     class="w-full"
                 />

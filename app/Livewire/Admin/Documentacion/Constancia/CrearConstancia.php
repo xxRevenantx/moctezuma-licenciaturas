@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Documentacion\Constancia;
 
 use App\Models\Constancia;
 use App\Models\Inscripcion;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class CrearConstancia extends Component
@@ -14,14 +15,14 @@ class CrearConstancia extends Component
     public $selectedAlumno = null;
 
     public $generacion_id;
-    public $documento_expedicion;
 
     public $tipo_constancia = '';
-    public $fecha;
+    public $fecha_expedicion;
     public $no_constancia;
 
 
 
+    #[On('eliminarConstancia')]
     public function mount()
     {
         $this->no_constancia = Constancia::max('no_constancia') + 1;
@@ -31,7 +32,7 @@ class CrearConstancia extends Component
     public function guardarConstancia(){
         $this->validate([
             'tipo_constancia' => 'required',
-            'fecha' => 'required|date',
+            'fecha_expedicion' => 'required|date',
         ]);
 
         if ($this->selectedAlumno) {
@@ -39,7 +40,7 @@ class CrearConstancia extends Component
                 'alumno_id' => $this->selectedAlumno['id'],
                 'tipo_constancia' => $this->tipo_constancia,
                 'no_constancia' => $this->selectedAlumno['matricula'],
-                'fecha_expedicion' => $this->fecha,
+                'fecha_expedicion' => $this->fecha_expedicion,
             ]);
 
             $this->dispatch('swal', [
@@ -48,7 +49,7 @@ class CrearConstancia extends Component
                 'position' => 'top',
             ]);
 
-            $this->reset(['tipo_constancia', 'fecha']);
+            $this->reset(['tipo_constancia', 'fecha_expedicion']);
             $this->selectedAlumno = null;
             $this->query = '';
             $this->alumnos = [];

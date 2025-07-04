@@ -470,7 +470,7 @@ class PDFController extends Controller
 
               ;
 
-    return $pdf->stream("CREDENCIAL.pdf");
+    return $pdf->stream("CREDENCIAL(S).pdf");
 }
 
 // CONSTANCIAS DEL ALUMNO
@@ -500,7 +500,7 @@ class PDFController extends Controller
             'periodo' => $periodo,
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciasPDF', $data)->setPaper('letter', 'portrait');
-             return $pdf->stream("CONSTANCIA".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno->matricula.".pdf");
+             return $pdf->stream("CONSTANCIA_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno->matricula.".pdf");
 
 }
 

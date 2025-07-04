@@ -13,6 +13,27 @@ class MostrarConstancias extends Component
     use WithPagination;
 
     public $search = '';
+    public $no_constancia;
+
+
+     public function eliminarConstancia($id)
+    {
+        $constancia = Constancia::find($id);
+
+        if ($constancia) {
+            $constancia->delete();
+
+            $this->dispatch('swal', [
+            'title' => '¡Constancia eliminada correctamente!',
+            'icon' => 'success',
+            'position' => 'top-end',
+            ]);
+
+           $this->dispatch('eliminarConstancia');
+
+
+        }
+    }
 
      #[On('refreshConstancias')]
     public function render()

@@ -103,9 +103,9 @@
 
     .corresponda{
         text-align: left;
-        font-size: 21px;
+        font-size: 19px;
         font-weight: bold;
-        margin-top: 50px;
+        margin-top: 80px;
         line-height: 15px;
     }
 
@@ -226,13 +226,18 @@
 
           </p>
 
-          <p style="text-align: center; font-size: 18px; margin-top: -20px;">
+          <p style="text-align: center; font-size: 17px; margin-top: -20px; line-height: 13px;">
             <b>A T E N T A M E N T E</b><br>
             EDUCACIÓN INTEGRAL ¡ELIGE CUM! <br><br>
-            _______________________________<br>
-             <b style="text-transform:uppercase">{{$rector->titulo}} {{$nombreRector}}</b> <br>
+            </p>
+
+            <p style="text-align: center; font-size: 17px; line-height: 15px;">
+                  _______________________________ <br>
+            <b style="text-transform:uppercase">{{$rector->titulo}} {{$nombreRector}}</b> <br>
                 <span style="text-transform: uppercase">{{$rector->cargo}}</span>
-          </p>
+                </p>
+
+
 
 
 

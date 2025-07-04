@@ -37,6 +37,7 @@
                 <tr>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Folio</th>
+                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Matrícula</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre del alumno</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Tipo de constancia</th>
                 <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Fecha de expedición</th>
@@ -51,8 +52,8 @@
                 @else
                 @foreach($constancias as $key => $constancia)
                     <tr>
-                    <td class="border px-4 py-2">{{ $key+1 }}</td>
-                    <td class="border px-4 py-2">
+                    <td class="border px-4 py-2 text-center">{{ $key+1 }}</td>
+                    <td class="border px-4 py-2 text-center">
                         @if ($constancia->no_constancia < 9)
                             0{{ $constancia->no_constancia }}
                         @else
@@ -60,18 +61,19 @@
 
                         @endif
                     </td>
-                    <td class="border px-4 py-2">{{ $constancia->alumno->nombre }} {{ $constancia->alumno->apellido_paterno }} {{ $constancia->alumno->apellido_materno }}</td>
-                    <td class="border px-4 py-2">
+                    <td class="border px-4 py-2 text-center">{{ $constancia->alumno->matricula }}</td>
+                    <td class="border px-4 py-2 text-center">{{ $constancia->alumno->nombre }} {{ $constancia->alumno->apellido_paterno }} {{ $constancia->alumno->apellido_materno }}</td>
+                    <td class="border px-4 py-2 text-center">
                         @if ($constancia->tipo_constancia == 1)
                             Constancia de Estudios
                         @else
                            Constancia de Relaciones Exteriores
                         @endif
                     </td>
-                    <td class="border px-4 py-2">{{ \Carbon\Carbon::parse($constancia->fecha_expedicion)->format('d/m/Y') }}</td>
+                    <td class="border px-4 py-2 text-center">{{ \Carbon\Carbon::parse($constancia->fecha_expedicion)->format('d/m/Y') }}</td>
 
 
-                    <td class="border px-4 py-2">
+                    <td class="border px-4 py-2 text-center">
                         <div class="flex gap-x-2">
 
                          <form action="{{ route('admin.pdf.documentacion.constancia') }}" method="GET" target="_blank" class="mb-4">
@@ -111,7 +113,7 @@
 
 
     {{-- MODAL PARA EDITAR --}}
-    {{-- <livewire:admin.directivo.editar-directivo /> --}}
+    <livewire:admin.documentacion.constancia.editar-constancia  />
 
 
 </div>

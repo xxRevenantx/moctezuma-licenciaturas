@@ -89,6 +89,11 @@
                         wire:navigate>{{ __('Crear Profesor') }}</flux:navlist.item>
 
                     </flux:navlist.group>
+
+                    <flux:navlist.item icon="calendar-days" :href="route('admin.horario-general.index')" :current="request()->routeIs('admin.horario-general.index')" wire:navigate>{{ __('Horario General') }}</flux:navlist.item>
+
+
+
                    <flux:navlist.group  :heading="__('Materias')"   >
                         <flux:navlist.item icon="book-check" :href="route('admin.materia.index')"
                         :current="request()->routeIs('admin.materia.index')"
