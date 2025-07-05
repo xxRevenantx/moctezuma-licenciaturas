@@ -502,6 +502,45 @@ class PDFController extends Controller
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciasPDF', $data)->setPaper('letter', 'portrait');
              return $pdf->stream("CONSTANCIA_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno->matricula.".pdf");
 
+    }
+
+
+    // ETIQUETAS
+
+     public function etiquetas(Request $request)
+{
+    // Obtén los IDs como un array desde el input "alumnos_ids[]"
+    $alumnosIds = $request->input('alumnos_ids', []);
+
+
+    // Verifica si llegaron datos
+    if (empty($alumnosIds)) {
+        return redirect()->back()->with('error', 'No se seleccionaron alumnos.');
+    }
+
+    // Obtiene los datos de los alumnos
+    $alumnos = Inscripcion::whereIn('id', $alumnosIds)->get();
+
+    // CICLO ESCOLAR
+   $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+
+
+    // Puedes ver los datos si estás probando
+    // dd($alumnos);
+
+    // Genera el PDF
+    $data = [
+        'alumnos' => $alumnos,
+        'ciclo_escolar' => $ciclo_escolar
+    ];
+
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.etiquetaPDF', $data)
+              ->setPaper('letter', 'portrait')
+
+              ;
+
+    return $pdf->stream("ETIQUETA(S).pdf");
 }
+
 
 }

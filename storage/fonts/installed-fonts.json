@@ -8,5 +8,9 @@
     },
     "greatvibes": {
         "normal": "greatvibes_normal_a8485aec53b605476229aa6acf783cbf"
+    },
+    "raleway": {
+        "bold": "raleway_bold_c72333518ef3429993f0e7f428118f77",
+        "normal": "C:\\xampp\\htdocs\\laravel\\moctezuma-licenciaturas\\storage\\fonts\/raleway_normal_d3d06adb95cdd7b9c8b7efada55cdc1a"
     }
 }
