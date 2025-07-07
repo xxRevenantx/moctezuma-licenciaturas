@@ -535,12 +535,76 @@ class PDFController extends Controller
     ];
 
     $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.etiquetaPDF', $data)
-              ->setPaper('letter', 'portrait')
-
-              ;
-
+              ->setPaper('letter', 'portrait') ;
     return $pdf->stream("ETIQUETA(S).pdf");
 }
+
+
+// HORARIO GENERAL SEMIESCOLARIZADA
+
+public function horario_general_semiescolarizada(){
+     $horarios = Horario::with([
+        'asignacionMateria.materia',
+        'asignacionMateria.profesor',
+        'licenciatura'
+    ])
+    ->where('modalidad_id', 2)
+    ->get();
+
+    // Extraer columnas únicas
+    $columnasUnicas = $horarios
+        ->unique(fn ($item) => $item->cuatrimestre_id . '-' . $item->licenciatura_id)
+        ->map(fn ($item) => [
+            'cuatrimestre_id' => $item->cuatrimestre_id,
+            'licenciatura_id' => $item->licenciatura_id,
+            'etiqueta' => "Cuat. {$item->cuatrimestre_id} - Lic. {$item->licenciatura->nombre}"
+        ])
+        ->sortBy(fn ($col) => sprintf('%03d-%03d', $col['licenciatura_id'], $col['cuatrimestre_id']))
+        ->values();
+
+    // Horas únicas ordenadas
+    $horasUnicas = $horarios->pluck('hora')
+        ->unique()
+        ->sortBy(function ($hora) {
+            $inicio = explode('-', $hora)[0];
+            return \Carbon\Carbon::parse(trim($inicio))->format('H:i');
+        })
+        ->values();
+
+
+    $materiasPorDocente = $horarios
+    ->filter(fn ($h) => $h->asignacionMateria && $h->asignacionMateria->profesor)
+    ->groupBy(function ($h) {
+        $p = $h->asignacionMateria->profesor;
+        return "{$p->nombre} {$p->apellido_paterno} {$p->apellido_materno}";
+    })
+    ->map(function ($items, $profesorNombre) {
+        $profesor = $items->first()->asignacionMateria->profesor;
+        return [
+            'nombre' => $profesorNombre,
+            'color' => $profesor->color ?? '#FFFFFF',
+            'materias' => $items->map(fn ($i) => optional($i->asignacionMateria->materia)->nombre)->unique()->values(),
+            'total_horas' => $items->count(),
+        ];
+    })->values();
+
+
+
+
+    $data = [
+        'horarios' => $horarios,
+        'columnasUnicas' => $columnasUnicas,
+        'horasUnicas' => $horasUnicas,
+        'materiasPorDocente' => $materiasPorDocente,
+    ];
+
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.horarioGeneralSemiescolarizada', $data)
+              ->setPaper('legal', 'landscape') ;
+
+    return $pdf->stream("horario_general-semiescolarizada.pdf");
+}
+
+
 
 
 }

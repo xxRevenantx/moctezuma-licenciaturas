@@ -44,53 +44,82 @@
          .contenedorEtiquetas{
             width: 100%;
          }
-        .etiquetas {
-            height: 100%;
+        .etiqueta {
             width: 100%;
         }
 
-        .contenedor1{
-            margin-top: -940px;
+        .contenedor{
+            margin-top: -1050px;
 
         }
 
 
 
-        .nombre1{
+        .nombre{
             text-align: center;
-            font-size: 70px;
-            line-height: 50px;
+            font-size: 45px;
+            line-height: 30px;
             font-weight: bold;
+            color: #000
 
         }
-
-        .rotacion{
-        transform: rotate(-180deg);
-        }
-
-
         .nombre2{
-            margin-top: 150px;
             text-align: center;
-            font-size: 70px;
-            line-height: 50px;
-            font-weight: bold
+           font-size: 45px;
+            line-height: 30px;
+            font-weight: bold;
+            color: #000;
+            margin-top: 60px;
+
+        }
+        .nombre3{
+            text-align: center;
+           font-size: 45px;
+            line-height: 30px;
+            font-weight: bold;
+            color: #000;
+            margin-top: 70px;
+
+        }
+        .nombre4{
+            text-align: center;
+           font-size: 45px;
+            line-height: 30px;
+            font-weight: bold;
+            color: #000;
+            margin-top: 70px;
+
+        }
+        .nombre5{
+            text-align: center;
+           font-size: 45px;
+            line-height: 30px;
+            font-weight: bold;
+            color: #000;
+            margin-top: 60px;
+
         }
 
-        .licenciatura1, .licenciatura2{
+
+        .licenciatura{
             text-align: center;
-            font-size: 35px;
+            font-size: 25px;
             font-family: 'raleway';
             font-weight: bold;
-            margin-top: -40px;
+            margin-top: -45px;
+            color: #000;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .generacion1, .generacion2{
+        .generacion{
              text-align: center;
-            font-size: 35px;
+            font-size: 25px;
             font-family: 'raleway';
             font-weight: bold;
             margin-top: -40px;
+            color: #000
         }
 
 
@@ -108,24 +137,54 @@
 <body>
       <div class="contenedorEtiquetas">
      @foreach ($alumnos as $index => $alumno)
-            <img class="etiquetas" src="{{ public_path('storage/etiquetas.jpg') }}">
+            <img class="etiqueta" src="{{ public_path('storage/etiquetas2.jpg') }}">
         {{-- <div class="credenciales" style="background-image: url('{{ public_path('storage/credencial-frontal.png') }}')"> --}}
 
-            <div class="contenedor1">
-                <div class="rotacion">
-                <p class="nombre1">{{ $alumno->nombre  }} <br> {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</p>
-                <p class="licenciatura1">Licenciatura en {{ $alumno->licenciatura->nombre }}</p>
-                <p class="generacion1">Generación: {{ $alumno->generacion->generacion }}</p>
-                </div>
+            <div class="contenedor">
 
 
+                <p class="nombre">{{ $alumno->nombre  }} <br> {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</p>
+                @if(strlen($alumno->licenciatura->nombre) > 30)
+                    <p class="licenciatura" style="font-size:22px;">Lic. en {{ $alumno->licenciatura->nombre }}</p>
+                @else
+                    <p class="licenciatura">Lic. en {{ $alumno->licenciatura->nombre }}</p>
+                @endif
+                <p class="generacion">Generación: {{ $alumno->generacion->generacion }}</p>
 
 
                 <p class="nombre2">{{ $alumno->nombre  }} <br> {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</p>
-                <p class="licenciatura2">Licenciatura en {{ $alumno->licenciatura->nombre }}</p>
-                <p class="generacion2">Generación: {{ $alumno->generacion->generacion }}</p>
+                 @if(strlen($alumno->licenciatura->nombre) > 30)
+                    <p class="licenciatura" style="font-size:22px;">Lic. en {{ $alumno->licenciatura->nombre }}</p>
+                @else
+                    <p class="licenciatura">Lic. en {{ $alumno->licenciatura->nombre }}</p>
+                @endif
+                <p class="generacion">Generación: {{ $alumno->generacion->generacion }}</p>
 
 
+                <p class="nombre3">{{ $alumno->nombre  }} <br> {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</p>
+                 @if(strlen($alumno->licenciatura->nombre) > 30)
+                    <p class="licenciatura" style="font-size:22px;">Lic. en {{ $alumno->licenciatura->nombre }}</p>
+                @else
+                    <p class="licenciatura">Lic. en {{ $alumno->licenciatura->nombre }}</p>
+                @endif
+                <p class="generacion">Generación: {{ $alumno->generacion->generacion }}</p>
+
+
+                <p class="nombre4">{{ $alumno->nombre  }} <br> {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</p>
+                 @if(strlen($alumno->licenciatura->nombre) > 30)
+                    <p class="licenciatura" style="font-size:22px;">Lic. en {{ $alumno->licenciatura->nombre }}</p>
+                @else
+                    <p class="licenciatura">Lic. en {{ $alumno->licenciatura->nombre }}</p>
+                @endif
+                <p class="generacion">Generación: {{ $alumno->generacion->generacion }}</p>
+
+                <p class="nombre5">{{ $alumno->nombre  }} <br> {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</p>
+                 @if(strlen($alumno->licenciatura->nombre) > 30)
+                    <p class="licenciatura" style="font-size:22px;">Lic. en {{ $alumno->licenciatura->nombre }}</p>
+                @else
+                    <p class="licenciatura">Lic. en {{ $alumno->licenciatura->nombre }}</p>
+                @endif
+                <p class="generacion">Generación: {{ $alumno->generacion->generacion }}</p>
 
 
 
@@ -135,7 +194,7 @@
 
 
 
-        @if (($index + 1) % 2 === 0)
+        @if (($index + 1) % 4 === 0)
             <div class="page-break"></div>
         @endif
     @endforeach

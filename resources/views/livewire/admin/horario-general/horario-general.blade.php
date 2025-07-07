@@ -121,19 +121,30 @@
         No se encontraron resultados.
     </div>
 @else
+
+     <form action="{{ route('admin.pdf.horario-general-semiescolarizada') }}" method="GET" target="_blank" class="mb-4">
+                            <flux:button variant="primary" type="submit"
+                                   class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded cursor-pointer">
+                                    <div class="flex items-center gap-2">
+                                         <flux:icon.download /> Descargar Horario Semiescolarizada
+                                    </div>
+                             </flux:button>
+                        </form>
+
+
     <table class="table-auto w-full border border-collapse text-sm">
         <thead class="bg-gray-100">
             <tr>
-                <th class="border px-2 py-1">Hora</th>
+                <th class="border px-2 py-1 dark:bg-gray-600 dark:text-gray-100">Hora</th>
                 @foreach($columnasUnicas as $col)
-                    <th class="border px-2 py-1">{{ $col['etiqueta'] }}</th>
+                    <th class="border px-2 py-1 dark:bg-gray-600 dark:text-gray-100 ">{{ $col['etiqueta'] }}</th>
                 @endforeach
             </tr>
         </thead>
         <tbody>
             @foreach ($horasUnicas as $hora)
                 <tr>
-                    <td class="border px-2 py-1 font-bold">{{ $hora }}</td>
+                    <td class="border px-2 py-1 font-bold dark:bg-gray-600 dark:text-gray-100">{{ $hora }}</td>
                     @foreach ($columnasUnicas as $col)
                         @php
                             $item = $horarios->first(function ($h) use ($hora, $col) {
