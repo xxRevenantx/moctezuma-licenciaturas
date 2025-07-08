@@ -11,7 +11,7 @@
 </head>
 <style>
 
-      @page { margin:0px 10px 0px 10px; }
+      @page { margin:10px 10px 0px 10px; }
         body {
         /* width: 21.59cm;
         height: 27.94cm; */
@@ -31,7 +31,7 @@
 
 <body>
 
-<h2 style="text-align: center;">Horario General SemiEscolarizada</h2>
+<h2 style="text-align: center; line-height:19px">Centro Universitario Moctezuma <br>Horario General SemiEscolarizado</h2>
 
 <table>
     <thead>

@@ -17,6 +17,7 @@ use App\Http\Controllers\DocumentacionController;
 use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\HorarioGeneralController;
+use App\Http\Controllers\ListaProfesorController;
 use App\Http\Controllers\MateriaController;
 use App\Http\Controllers\MesController;
 use App\Http\Controllers\PDFController;
@@ -67,6 +68,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('asignar-generacion', AsignarGeneracionController::class)->middleware('can:admin.asignar.generacion')->names('admin.asignar.generacion');
 
     Route::resource('profesores', ProfesorController::class)->middleware('can:admin.administracion')->names('admin.profesor');
+
+    Route::resource('lista-profesores', ListaProfesorController::class)->middleware('can:admin.administracion')->names('admin.lista-profesores');
 
 
     Route::resource('horario-general', HorarioGeneralController::class)->middleware('can:admin.administracion')->names('admin.horario-general');

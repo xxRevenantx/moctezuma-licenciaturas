@@ -557,7 +557,7 @@ public function horario_general_semiescolarizada(){
         ->map(fn ($item) => [
             'cuatrimestre_id' => $item->cuatrimestre_id,
             'licenciatura_id' => $item->licenciatura_id,
-            'etiqueta' => "Cuat. {$item->cuatrimestre_id} - Lic. {$item->licenciatura->nombre}"
+            'etiqueta' => "Cuat. {$item->cuatrimestre_id} - Lic. {$item->licenciatura->nombre_corto}"
         ])
         ->sortBy(fn ($col) => sprintf('%03d-%03d', $col['licenciatura_id'], $col['cuatrimestre_id']))
         ->values();
@@ -573,20 +573,22 @@ public function horario_general_semiescolarizada(){
 
 
     $materiasPorDocente = $horarios
-    ->filter(fn ($h) => $h->asignacionMateria && $h->asignacionMateria->profesor)
-    ->groupBy(function ($h) {
-        $p = $h->asignacionMateria->profesor;
-        return "{$p->nombre} {$p->apellido_paterno} {$p->apellido_materno}";
-    })
-    ->map(function ($items, $profesorNombre) {
-        $profesor = $items->first()->asignacionMateria->profesor;
-        return [
-            'nombre' => $profesorNombre,
-            'color' => $profesor->color ?? '#FFFFFF',
-            'materias' => $items->map(fn ($i) => optional($i->asignacionMateria->materia)->nombre)->unique()->values(),
-            'total_horas' => $items->count(),
-        ];
-    })->values();
+        ->filter(fn ($h) => $h->asignacionMateria && $h->asignacionMateria->profesor)
+        ->groupBy(function ($h) {
+            $p = $h->asignacionMateria->profesor;
+            return "{$p->nombre} {$p->apellido_paterno} {$p->apellido_materno}";
+        })
+        ->map(function ($items, $profesorNombre) {
+            $profesor = $items->first()->asignacionMateria->profesor;
+            return [
+                'nombre' => $profesorNombre,
+                'color' => $profesor->color ?? '#FFFFFF',
+                'materias' => $items->map(fn ($i) => optional($i->asignacionMateria->materia)->nombre)->unique()->values(),
+                'total_horas' => $items->count(),
+            ];
+        })
+        ->sortBy('nombre')
+        ->values();
 
 
 

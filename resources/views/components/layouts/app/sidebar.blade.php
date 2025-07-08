@@ -87,6 +87,9 @@
                         <flux:navlist.item icon="rectangle-stack" :href="route('admin.profesor.index')"
                         :current="request()->routeIs('admin.profesor.index')"
                         wire:navigate>{{ __('Crear Profesor') }}</flux:navlist.item>
+                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.lista-profesores.index')"
+                        :current="request()->routeIs('admin.lista-profesores.index')"
+                        wire:navigate>{{ __('Lista de profesores') }}</flux:navlist.item>
 
                     </flux:navlist.group>
 
