@@ -16,6 +16,8 @@ class ListaProfesores extends Component
     public $periodo_id = '';
     public $materiasAsignadas = [];
 
+    public $buscador_materia = '';
+
     public function updatedQuery()
     {
         $this->buscarProfesores();
@@ -69,23 +71,37 @@ class ListaProfesores extends Component
         $this->cargarMateriasAsignadas();
     }
 
-    public function cargarMateriasAsignadas()
-    {
-        if ($this->selectedProfesor && $this->periodo_id) {
-            $profesorId = $this->selectedProfesor['id'];
-            $cuatrimestreId = $this->periodo_id;
+public function cargarMateriasAsignadas()
+{
+    if ($this->selectedProfesor) {
+        $profesorId = $this->selectedProfesor['id'];
 
-            $this->materiasAsignadas = DB::table('asignacion_materias')
-                ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
-                ->select('materias.nombre')
-                ->where('asignacion_materias.profesor_id', $profesorId)
-                ->where('asignacion_materias.cuatrimestre_id', $cuatrimestreId)
-                ->get()
-                ->toArray();
-        } else {
-            $this->materiasAsignadas = [];
-        }
+        $this->materiasAsignadas = DB::table('horarios')
+        ->join('asignacion_materias', 'horarios.asignacion_materia_id', '=', 'asignacion_materias.id')
+        ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
+        ->join('modalidades', 'asignacion_materias.modalidad_id', '=', 'modalidades.id')
+        ->join('cuatrimestres', 'asignacion_materias.cuatrimestre_id', '=', 'cuatrimestres.id')
+        ->join('licenciaturas', 'asignacion_materias.licenciatura_id', '=', 'licenciaturas.id')
+        ->select(
+            'materias.id as materia_id',
+            'materias.nombre as materia',
+            'modalidades.nombre as modalidad',
+            'cuatrimestres.cuatrimestre as cuatrimestre',
+            'licenciaturas.nombre as licenciatura'
+        )
+        ->where('asignacion_materias.profesor_id', $profesorId)
+        ->groupBy('materias.id', 'materias.nombre', 'modalidades.nombre', 'cuatrimestres.cuatrimestre', 'licenciaturas.nombre')
+        ->orderBy('modalidades.nombre')
+        ->orderBy('cuatrimestres.cuatrimestre')
+        ->get()
+        ->toArray();
+    } else {
+        $this->materiasAsignadas = [];
     }
+}
+
+
+
 
     public function selectIndexUp()
     {
@@ -100,6 +116,18 @@ class ListaProfesores extends Component
             $this->selectedIndex = ($this->selectedIndex + 1) % count($this->profesores);
         }
     }
+
+    public function getMateriasFiltradasProperty()
+{
+    return collect($this->materiasAsignadas)->filter(function ($materia) {
+        return str_contains(
+            strtolower($materia->materia),
+            strtolower($this->buscador_materia)
+        );
+    })->values();
+}
+
+
 
     public function render()
     {

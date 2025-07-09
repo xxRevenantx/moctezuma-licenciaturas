@@ -34,7 +34,7 @@
                         {{ $alumno['apellido_paterno'] ?? '' }} {{ $alumno['apellido_materno'] ?? '' }} {{ $alumno['nombre'] ?? '' }}
                     </p>
                     <p class="text-gray-700">
-                        Matrícula: {{ $alumno['matricula'] ?? '' }} | CURP: {{ $alumno['curp'] ?? '' }}
+                        Matrícula: {{ $alumno['matricula'] ?? '' }} | CURP: {{ $alumno['CURP'] ?? '' }}
                     </p>
                 </li>
             @endforeach

@@ -607,6 +607,11 @@ public function horario_general_semiescolarizada(){
 }
 
 
+ // LISTA DE ASISTENCIAS
+    public function lista_asistencia(Request $request){
+        dd($request->materia_id, $request->licenciatura_id, $request->cuatrimestre);
+    }
+
 
 
 }

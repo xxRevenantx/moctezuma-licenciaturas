@@ -95,6 +95,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/etiquetas', [PDFController::class, 'etiquetas'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.etiquetas');
 
 
+    Route::get('/lista-asistencia', [PDFController::class, 'lista_asistencia'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_asistencia');
+
+
+
+
 
     Route::prefix('licenciaturas')->group(function () {
         // Paso 1: Selección de modalidad

@@ -24,7 +24,7 @@ class Credenciales extends Component
                 ->where('nombre', 'like', '%' . $this->query . '%')
                 ->orWhere('apellido_paterno', 'like', '%' . $this->query . '%')
                 ->orWhere('apellido_materno', 'like', '%' . $this->query . '%')
-                ->orWhere('curp', 'like', '%' . $this->query . '%')
+                ->orWhere('CURP', 'like', '%' . $this->query . '%')
                 ->orWhere('matricula', 'like', '%' . $this->query . '%')
                 ->get()
                 ->toArray();
