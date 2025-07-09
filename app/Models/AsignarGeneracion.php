@@ -17,6 +17,7 @@ class AsignarGeneracion extends Model
     protected $table = 'asignar_generaciones';
 
     protected $fillable = [
+
         'licenciatura_id',
         'modalidad_id',
         'generacion_id',

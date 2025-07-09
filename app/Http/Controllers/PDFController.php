@@ -609,7 +609,37 @@ public function horario_general_semiescolarizada(){
 
  // LISTA DE ASISTENCIAS
     public function lista_asistencia(Request $request){
-        dd($request->materia_id, $request->licenciatura_id, $request->cuatrimestre);
+        $materia_id = $request->materia_id;
+        $licenciatura_id = $request->licenciatura_id;
+        $cuatrimestre_id = $request->cuatrimestre_id;
+
+        $materia = AsignarMateria::with(['materia', 'profesor'])
+            ->where('materia_id', $materia_id)
+            ->where('licenciatura_id', $licenciatura_id)
+            ->where('cuatrimestre_id', $cuatrimestre_id)
+            ->first();
+        if (!$materia) {
+            abort(404, 'Materia no encontrada');
+        }
+
+
+         $data = [
+            'materia' => $materia,
+            // 'alumnos' => Inscripcion::where('licenciatura_id', $licenciatura_id)
+            //     ->where('cuatrimestre_id', $cuatrimestre_id)
+            //     ->orderBy('apellido_paterno', 'asc')
+            //     ->orderBy('apellido_materno', 'asc')
+            //     ->orderBy('nombre', 'asc')
+            //     ->get(),
+            'cuatrimestre' => Cuatrimestre::find($cuatrimestre_id),
+            'escuela' => Escuela::all()->first(),
+
+         ];
+
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-asistenciaPDF', $data)
+              ->setPaper('letter', 'landscape'); ;
+
+        return $pdf->stream("Lista-asistencia.pdf");
     }
 
 
