@@ -148,8 +148,13 @@
                                     Asistencia
                                 </flux:button>
                             </form>
-                            <form action="" method="GET" target="_blank">
-                                <input type="hidden" name="evaluacion" value="">
+                            <form action="{{ route('admin.pdf.documentacion.lista_evaluacion') }}" method="GET" target="_blank">
+                                <input type="hidden" name="materia_id"  value="{{ $materia->materia_id }}">
+                                <input type="hidden" name="licenciatura_id"  value="{{ $materia->licenciatura_id }}">
+                                <input type="hidden" name="cuatrimestre_id"  value="{{ $materia->cuatrimestre }}">
+                                <input type="hidden" name="generacion_id"  value="{{ $materia->generacion_id }}">
+                                <input type="hidden" name="modalidad_id"  value="{{ $materia->modalidad_id }}">
+                                <input type="hidden" name="periodo"  value="{{ $periodo_id }}">
                                 <flux:button variant="primary" type="submit"
                                     class="bg-cyan-500 hover:bg-cyan-600 text-white  py-2 rounded cursor-pointer w-25">
                                     Evaluación

@@ -96,6 +96,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/lista-asistencia', [PDFController::class, 'lista_asistencia'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_asistencia');
+    Route::get('/lista-evaluacion', [PDFController::class, 'lista_evaluacion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_evaluacion');
 
 
 

@@ -7,7 +7,7 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <title>Lista de Asistencia | Gen: {{$generacion->generacion}} </title>
+    <title>Lista de Evaluación | Gen: {{$generacion}} </title>
 </head>
 <style>
 
@@ -52,7 +52,7 @@
 
     th, td {
 
-        padding: 2px;
+        padding: 4px;
         text-align: left;
         font-size: 13px;
     }
@@ -174,7 +174,8 @@
 
 
         </div>
-        <p style="font-size: 24px; text-align:center; font-weight:bold; margin-top:-30px; line-height:20px">LISTA DE ASISTENCIA <br>C.C.T. {{$escuela->CCT}}</p>
+        <p style="font-size: 24px; text-align:center; font-weight:bold; margin-top:-30px; line-height:20px">CONCENTRADO DE CALIFICACIONES <br> CUATRIMESTRAL</p>
+        <p style="font-size: 20px; color:#5b5b5b; text-align:center; font-weight:bold; margin-top:-25px; line-height:20px">CICLO ESCOLAR: {{$ciclo_escolar->ciclo_escolar}}</p>
 
         <p class="licenciatura" style="text-transform: uppercase" >LICENCIATURA EN: <b>{{ $materia->licenciatura->nombre }}</b> </p>
         <p class="licenciatura" >DOCENTE: <b>{{ $materia->profesor->nombre }} {{ $materia->profesor->apellido_paterno }} {{ $materia->profesor->apellido_materno }} </b> </p>
@@ -185,41 +186,6 @@
 
 
 
-        <table>
-           <thead>
-                <tr>
-                    <th style="text-align: center" rowspan="2">No.</th>
-                    <th style="text-align: center" rowspan="2">NOMBRE COMPLETO</th>
-                    @foreach ($fechas as $mesNumero => $dias)
-                        <th colspan="{{ count($dias) }}">{{ $meses[$mesNumero] }}</th>
-                    @endforeach
-                </tr>
-                <tr>
-
-
-                    @foreach ($fechas as $dias)
-                        @foreach ($dias as $dia)
-                            <th>{{ $dia }}</th>
-                        @endforeach
-                    @endforeach
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($alumnos as $key =>  $alumno)
-                    <tr>
-                        <td style="text-align: center;">{{ $key+1 }}</td>
-                        <td  style="text-align: left;">{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</td>
-                          @foreach($fechas as $mes => $dias)
-                            @foreach($dias as $dia)
-                                <td></td> <!-- Aquí puedes agregar un campo para marcar asistencia -->
-                            @endforeach
-                        @endforeach
-
-
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
 
 
 

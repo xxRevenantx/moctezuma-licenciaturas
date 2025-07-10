@@ -623,6 +623,9 @@ public function horario_general_semiescolarizada(){
             '7' => 'Julio', '8' => 'Agosto', '9' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
         ];
 
+        $generacion = Generacion::find($generacion_id);
+        $licenciatura = Licenciatura::find($licenciatura_id);
+
         // Genera las fechas de días dentro del periodo.
         // Genera los sábados del periodo
             $fechas = [];
@@ -649,6 +652,7 @@ public function horario_general_semiescolarizada(){
                 ->where('generacion_id', $generacion_id)
                 ->where('modalidad_id', $modalidad_id)
                 ->where('status', 'true')
+                ->where('foraneo', 'false') // Filtrar por alumnos no foráneos
                 ->orderBy('apellido_paterno', 'asc')
                 ->orderBy('apellido_materno', 'asc')
                 ->orderBy('nombre', 'asc')
@@ -666,16 +670,71 @@ public function horario_general_semiescolarizada(){
             'alumnos' => $alumnos,
             'periodo' => $periodo,
              'fechas' => $fechas, // Añadimos las fechas generadas
-             'meses' => $meses
+             'meses' => $meses,
+             'generacion' => $generacion,
 
          ];
+
+         $exportacion = $licenciatura->nombre . '_' . $materia->materia->slug . '_' . $generacion->generacion . '_' . $cuatrimestre_id.'°_Cuatrimestre';
 
     $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-asistenciaPDF', $data)
               ->setPaper('letter', 'landscape'); ;
 
-        return $pdf->stream("Lista-asistencia.pdf");
+        return $pdf->stream("LISTA_ASISTENCIA_".$exportacion.".pdf");
     }
 
 
+    // LISTA DE EVALUACION
+    public function lista_evaluacion(Request $request){
+        $materia_id = $request->materia_id;
+        $licenciatura_id = $request->licenciatura_id;
+        $cuatrimestre_id = $request->cuatrimestre_id;
+        $generacion_id = $request->generacion_id;
+        $modalidad_id = $request->modalidad_id;
+        $periodo = $request->periodo;
 
+
+        $generacion = Generacion::find($generacion_id);
+
+        $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+
+        $materia = AsignacionMateria::with(['materia', 'profesor'])
+            ->where('materia_id', $materia_id)
+            ->first();
+
+            $alumnos = Inscripcion::where('licenciatura_id', $licenciatura_id)
+                ->where('cuatrimestre_id', $cuatrimestre_id)
+                ->where('generacion_id', $generacion_id)
+                ->where('modalidad_id', $modalidad_id)
+                ->where('status', 'true')
+                ->where('foraneo', 'false') // Filtrar por alumnos no foráneos
+                ->orderBy('apellido_paterno', 'asc')
+                ->orderBy('apellido_materno', 'asc')
+                ->orderBy('nombre', 'asc')
+                ->get();
+
+
+        if (!$materia) {
+            abort(404, 'Materia no encontrada');
+        }
+
+
+
+        $data = [
+            'escuela' => Escuela::all()->first(),
+            'materia' => $materia,
+            'alumnos' => $alumnos,
+            'periodo' => $periodo,
+            'generacion' => $generacion,
+            'ciclo_escolar' => $ciclo_escolar,
+
+
+         ];
+
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-evaluacionPDF', $data)
+              ->setPaper('letter', 'landscape'); ;
+
+        return $pdf->stream("Lista_evaluacion.pdf");
+
+    }
 }
