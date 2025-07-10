@@ -11,15 +11,32 @@
 </head>
 <style>
 
-      @page { margin:10px 45px 20px 45px; }
-        body {
-        /* width: 21.59cm;
-        height: 27.94cm; */
-        /* padding: 20px; */
-        font-family: 'figtree', sans-serif;
+    @page { margin:10px 45px 20px 45px; }
+
+
+     @font-face {
+        font-family: 'calibri';
+        font-style: normal;
+        src: url('{{ storage_path('fonts/calibri/calibri.ttf') }}') format('truetype');
+
+    }
+
+     @font-face {
+    font-family: 'calibri';
+    font-style: bold;
+    font-weight: 700;
+    src: url('{{ storage_path('fonts/calibri/calibri-bold.ttf') }}') format('truetype');
+    }
+
+
+     body {
+
+        font-family: 'calibri',
         margin: auto;
         font-size: 13px;
     }
+
+
 
     .fecha {
         font-size: 16px;
@@ -35,11 +52,12 @@
 
     th, td {
 
-        padding: 8px;
+        padding: 4px;
         text-align: left;
+        font-size: 13px;
     }
     td{
-         border: 1px solid #8a8a8a;
+         border: 1px solid #000;
         text-align: left;
     }
 
@@ -63,6 +81,7 @@
         left: 0;
         text-align: center;
         font-size: 12px;
+        line-height: 12px;
         width: 100%;
 
         border-top: 1px solid #4a5568;
@@ -82,9 +101,9 @@
             font-weight: bold;
             color: #4a5568; /* Color similar al de la imagen */
             text-align: center;
-            font-size: 24px;
+            font-size: 27px;
             margin-top: 50px;
-            padding: 10px 0;
+            padding: 0px 0;
             border-top: 2px solid #4a5568;
             border-bottom: 2px solid #4a5568;
             display: inline-block;
@@ -92,12 +111,21 @@
 
 
     p.subtitulo{
-        text-align: center;
+        text-align: left;
         font-size: 16px;
          padding: 3px 0;
         margin: 0;
         font-weight: bold;
     }
+
+    p.licenciatura{
+        text-transform: uppercase;
+        font-size: 16px;
+        line-height: 7px;
+
+    }
+
+
 
     img.img1 {
         position: absolute;
@@ -122,6 +150,11 @@
         opacity: 0.1;
         text-align: center;
     }
+    p.cuatrimestre{
+        text-transform: uppercase;
+        font-size: 18px;
+        text-align: center;
+    }
 
 </style>
 <body>
@@ -132,59 +165,68 @@
              <img class="img1" src="{{ public_path('storage/letra2.jpg') }}" alt="Logo" height="100px" width="100">
             <h1 class="titulo">CENTRO UNIVERSITARIO MOCTEZUMA</h1>
 
-            @if ($escuela->logo)
-                <img class="img2" src="{{ public_path('storage/') }}" alt="Logo Licenciatura"  height="100px" width="100">
+            @if ($materia->licenciatura->imagen)
+                <img class="img2" src="{{ public_path('storage/licenciaturas/'.$materia->licenciatura->imagen) }}" alt="Logo Licenciatura"  height="100px" width="100">
             @else
-               <img class="img2" src="{{ public_path('storage/licenciaturas/') }}" alt="Logo Licenciatura"  height="100px" width="100">
+               <img class="img2" src="{{ public_path('storage/logo-moctezuma.jpg') }}" alt="Logo"  height="100px" width="100">
 
             @endif
 
 
         </div>
-        <p style="font-size: 19px" class="subtitulo">LISTA DE GRUPO</p>
-        <p style="text-transform: uppercase" class="subtitulo">LICENCIATURA EN </p>
-        <p class="subtitulo">GENERACIÓN: </p>
+        <p style="font-size: 24px; text-align:center; font-weight:bold; margin-top:-30px; line-height:20px">LISTA DE ASISTENCIA <br>C.C.T. {{$escuela->CCT}}</p>
+
+        <p class="licenciatura" style="text-transform: uppercase" >LICENCIATURA EN: <b>{{ $materia->licenciatura->nombre }}</b> </p>
+        <p class="licenciatura" >DOCENTE: <b>{{ $materia->profesor->nombre }} {{ $materia->profesor->apellido_paterno }} {{ $materia->profesor->apellido_materno }} </b> </p>
+        <p class="licenciatura" >MATERIA: <b>{{ $materia->materia->nombre }}</b> </p>
         {{-- <p>GRADO: {{$grade->grado}}° GRUPO: {{ $group != null ? $group->grupo : "TODOS" }} </p> --}}
 
-        {{$materia}}
+        <p class="cuatrimestre"> <b><u>{{ $materia->cuatrimestre->cuatrimestre }}° CUATRIMESTRE</u></b> &nbsp;&nbsp;&nbsp;&nbsp; MODALIDAD: <b><u>{{ $materia->modalidad->nombre }}</u></b></p>
 
 
-        {{-- <table>
-            <thead>
+
+        <table>
+           <thead>
                 <tr>
-                    <th>#</th>
+                    <th style="text-align: center" rowspan="2">No.</th>
+                    <th style="text-align: center" rowspan="2">NOMBRE COMPLETO</th>
+                    @foreach ($fechas as $mesNumero => $dias)
+                        <th colspan="{{ count($dias) }}">{{ $meses[$mesNumero] }}</th>
+                    @endforeach
+                </tr>
+                <tr>
 
-                    <th>NOMBRE(S)</th>
-                    <th>APELLIDO PATERNO</th>
-                    <th>APELLIDO MATERNO</th>
-                    <th>CURP</th>
-                    <th>MODALIDAD</th>
-                    <th>MES DE INGRESO</th>
-                    <th>OBSERVACIONES</th>
+
+                    @foreach ($fechas as $dias)
+                        @foreach ($dias as $dia)
+                            <th>{{ $dia }}</th>
+                        @endforeach
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
-                @foreach($matricula as $key =>  $student)
+                @foreach($alumnos as $key =>  $alumno)
                     <tr>
-                        <td>{{ $key+1 }}</td>
-                        <td>{{ $student->nombre }}</td>
-                        <td>{{ $student->apellido_paterno }}</td>
-                        <td>{{ $student->apellido_materno }}</td>
-                        <td>{{ $student->CURP }}</td>
-                        <td>{{ $student->modalidad->nombre }}</td>
-                        <td>SEPTIEMBRE</td>
-                        <td></td>
+                        <td style="text-align: center;">{{ $key+1 }}</td>
+                        <td  style="text-align: left;">{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</td>
+                          @foreach($fechas as $mes => $dias)
+                            @foreach($dias as $dia)
+                                <td></td> <!-- Aquí puedes agregar un campo para marcar asistencia -->
+                            @endforeach
+                        @endforeach
+
+
                     </tr>
                 @endforeach
             </tbody>
-        </table> --}}
+        </table>
 
 
 
     <footer>
         <p>{{$escuela->nombre}} C.C.T. {{$escuela->CCT}}</p>
         <p>C. {{$escuela->calle}} No. {{$escuela->no_exterior}}, Col. {{$escuela->colonia}}, C.P. {{$escuela->codigo_postal}}, Cd. {{$escuela->ciudad}}, {{$escuela->estado}}.</p>
-        <p>Tel. {{$escuela->telefono}}</p>
+        <p>Fecha de expedición: {{ now()->translatedFormat('d \d\e F \d\e\l Y \a \l\a\s H:i') }}</p>
     </footer>
 
 </body>

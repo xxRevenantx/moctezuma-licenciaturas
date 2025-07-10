@@ -77,28 +77,42 @@ public function cargarMateriasAsignadas()
         $profesorId = $this->selectedProfesor['id'];
 
         $this->materiasAsignadas = DB::table('horarios')
-        ->join('asignacion_materias', 'horarios.asignacion_materia_id', '=', 'asignacion_materias.id')
-        ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
-        ->join('modalidades', 'asignacion_materias.modalidad_id', '=', 'modalidades.id')
-        ->join('cuatrimestres', 'asignacion_materias.cuatrimestre_id', '=', 'cuatrimestres.id')
-        ->join('licenciaturas', 'asignacion_materias.licenciatura_id', '=', 'licenciaturas.id')
-        ->select(
-            'materias.id as materia_id',
-            'materias.nombre as materia',
-            'modalidades.nombre as modalidad',
-            'cuatrimestres.cuatrimestre as cuatrimestre',
-            'licenciaturas.nombre as licenciatura'
-        )
-        ->where('asignacion_materias.profesor_id', $profesorId)
-        ->groupBy('materias.id', 'materias.nombre', 'modalidades.nombre', 'cuatrimestres.cuatrimestre', 'licenciaturas.nombre')
-        ->orderBy('modalidades.nombre')
-        ->orderBy('cuatrimestres.cuatrimestre')
-        ->get()
-        ->toArray();
+            ->join('asignacion_materias', 'horarios.asignacion_materia_id', '=', 'asignacion_materias.id')
+            ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
+            ->join('modalidades', 'asignacion_materias.modalidad_id', '=', 'modalidades.id')
+            ->join('cuatrimestres', 'asignacion_materias.cuatrimestre_id', '=', 'cuatrimestres.id')
+            ->join('licenciaturas', 'asignacion_materias.licenciatura_id', '=', 'licenciaturas.id')
+            ->select(
+                'materias.id as materia_id',
+                'materias.nombre as materia',
+                'modalidades.nombre as modalidad',
+                'cuatrimestres.cuatrimestre as cuatrimestre',
+                'licenciaturas.nombre as licenciatura',
+                'licenciaturas.id as licenciatura_id',
+                'horarios.generacion_id as generacion_id',
+                'horarios.modalidad_id as modalidad_id'
+            )
+            ->where('asignacion_materias.profesor_id', $profesorId)
+            ->groupBy(
+                'materias.id',
+                'materias.nombre',
+                'modalidades.nombre',
+                'cuatrimestres.cuatrimestre',
+                'licenciaturas.id',
+                'licenciaturas.nombre',
+                'horarios.generacion_id',
+                'horarios.modalidad_id'
+            )
+            ->orderBy('modalidades.nombre')
+            ->orderBy('cuatrimestres.cuatrimestre')
+            ->get()
+            ->toArray();
     } else {
         $this->materiasAsignadas = [];
     }
 }
+
+
 
 
 

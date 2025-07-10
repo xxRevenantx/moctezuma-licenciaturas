@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AsignacionMateria;
 use App\Models\AsignarGeneracion;
 use App\Models\Constancia;
 use App\Models\Cuatrimestre;
@@ -612,27 +613,60 @@ public function horario_general_semiescolarizada(){
         $materia_id = $request->materia_id;
         $licenciatura_id = $request->licenciatura_id;
         $cuatrimestre_id = $request->cuatrimestre_id;
+        $generacion_id = $request->generacion_id;
+        $modalidad_id = $request->modalidad_id;
 
-        $materia = AsignarMateria::with(['materia', 'profesor'])
+        // Obtén el periodo y genera los días del mes.
+        $periodo = explode('-', $request->periodo); // Ejemplo: ['5', '8'] para Mayo-Agosto
+        $meses = [
+            '1' => 'Enero', '2' => 'Febrero', '3' => 'Marzo', '4' => 'Abril', '5' => 'Mayo', '6' => 'Junio',
+            '7' => 'Julio', '8' => 'Agosto', '9' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
+        ];
+
+        // Genera las fechas de días dentro del periodo.
+        // Genera los sábados del periodo
+            $fechas = [];
+            $añoActual = date('Y');
+
+            for ($mes = $periodo[0]; $mes <= $periodo[1]; $mes++) {
+                $fechas[$mes] = [];
+                $diasEnMes = cal_days_in_month(CAL_GREGORIAN, $mes, $añoActual);
+                for ($dia = 1; $dia <= $diasEnMes; $dia++) {
+                    $fecha = date('Y-m-d', strtotime("$añoActual-$mes-$dia"));
+                    if (date('N', strtotime($fecha)) == 6) { // 6 = sábado
+                        $fechas[$mes][] = $dia;
+                    }
+                }
+            }
+
+
+        $materia = AsignacionMateria::with(['materia', 'profesor'])
             ->where('materia_id', $materia_id)
-            ->where('licenciatura_id', $licenciatura_id)
-            ->where('cuatrimestre_id', $cuatrimestre_id)
             ->first();
+
+            $alumnos = Inscripcion::where('licenciatura_id', $licenciatura_id)
+                ->where('cuatrimestre_id', $cuatrimestre_id)
+                ->where('generacion_id', $generacion_id)
+                ->where('modalidad_id', $modalidad_id)
+                ->where('status', 'true')
+                ->orderBy('apellido_paterno', 'asc')
+                ->orderBy('apellido_materno', 'asc')
+                ->orderBy('nombre', 'asc')
+                ->get();
+
+
         if (!$materia) {
             abort(404, 'Materia no encontrada');
         }
 
 
          $data = [
-            'materia' => $materia,
-            // 'alumnos' => Inscripcion::where('licenciatura_id', $licenciatura_id)
-            //     ->where('cuatrimestre_id', $cuatrimestre_id)
-            //     ->orderBy('apellido_paterno', 'asc')
-            //     ->orderBy('apellido_materno', 'asc')
-            //     ->orderBy('nombre', 'asc')
-            //     ->get(),
-            'cuatrimestre' => Cuatrimestre::find($cuatrimestre_id),
             'escuela' => Escuela::all()->first(),
+            'materia' => $materia,
+            'alumnos' => $alumnos,
+            'periodo' => $periodo,
+             'fechas' => $fechas, // Añadimos las fechas generadas
+             'meses' => $meses
 
          ];
 

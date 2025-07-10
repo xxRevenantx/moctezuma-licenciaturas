@@ -30,7 +30,7 @@
 
     }
 
-       @font-face {
+     @font-face {
     font-family: 'calibri';
     font-style: bold;
     font-weight: 700;

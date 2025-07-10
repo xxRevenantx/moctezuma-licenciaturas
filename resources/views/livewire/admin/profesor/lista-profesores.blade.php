@@ -65,9 +65,9 @@
 
     <flux:select label="Periodo" wire:model.live="periodo_id">
         <option value="">--Selecciona el periodo---</option>
-        <option value="1">SEP/DIC</option>
-        <option value="2">ENE/ABR</option>
-        <option value="3">MAY-AGO</option>
+        <option value="9-12">SEP/DIC</option>
+        <option value="1-4">ENE/ABR</option>
+        <option value="5-8">MAY-AGO</option>
     </flux:select>
 
     {{-- TABLA DONDE SE MOSTRARÁN LAS MATERIAS ASIGNADAS AL PROFESOR --}}
@@ -124,7 +124,7 @@
         </thead>
         <tbody>
             @foreach ($this->materiasFiltradas as $index => $materia)
-            {{-- {{ $materia }} --}}
+
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-2 border-b text-center">{{ $index + 1 }}</td>
                     <td class="px-4 py-2 border-b text-center">{{ $materia->materia }}</td>
@@ -136,8 +136,11 @@
                         <div class="grid grid-cols-2 gap-2">
                             <form action="{{ route('admin.pdf.documentacion.lista_asistencia') }}" method="GET" target="_blank">
                                 <input type="hidden" name="materia_id"  value="{{ $materia->materia_id }}">
-                                <input type="hidden" name="licenciatura_id"  value="{{ $materia->licenciatura }}">
-                                <input type="hidden" name="cuatrimestre"  value="{{ $materia->cuatrimestre }}">
+                                <input type="hidden" name="licenciatura_id"  value="{{ $materia->licenciatura_id }}">
+                                <input type="hidden" name="cuatrimestre_id"  value="{{ $materia->cuatrimestre }}">
+                                <input type="hidden" name="generacion_id"  value="{{ $materia->generacion_id }}">
+                                <input type="hidden" name="modalidad_id"  value="{{ $materia->modalidad_id }}">
+                                <input type="hidden" name="periodo"  value="{{ $periodo_id }}">
 
 
                                 <flux:button variant="primary" type="submit"
