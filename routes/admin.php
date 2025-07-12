@@ -67,13 +67,16 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('asignar-generacion', AsignarGeneracionController::class)->middleware('can:admin.asignar.generacion')->names('admin.asignar.generacion');
 
-    Route::resource('profesores', ProfesorController::class)->middleware('can:admin.administracion')->names('admin.profesor');
 
-    Route::resource('lista-profesores', ListaProfesorController::class)->middleware('can:admin.administracion')->names('admin.lista-profesores');
+
+
+    Route::get('/profesores', [ProfesorController::class, 'index'])->middleware('can:admin.administracion')->name('admin.profesor.index');
+    Route::get('/lista-profesores', [ProfesorController::class, 'lista_profesores'])->middleware('can:admin.administracion')->name('admin.profesor.lista_profesores');
+    Route::get('/credencial-profesor', [ProfesorController::class, 'credencial_profesor'])->middleware('can:admin.administracion')->name('admin.profesor.credencial_profesor');
+
 
 
     Route::resource('horario-general', HorarioGeneralController::class)->middleware('can:admin.administracion')->names('admin.horario-general');
-
     Route::resource('materias', MateriaController::class)->middleware('can:admin.administracion')->names('admin.materia');
 
 
@@ -91,6 +94,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/documento-personal', [PDFController::class, 'documento_personal'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_personal');
     Route::get('/documento-oficios', [PDFController::class, 'documento_oficios'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_oficios');
     Route::get('/credencial-alumno', [PDFController::class, 'credencial_alumno'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.credencial_alumno');
+
+    Route::get('/credencial-profesor-pdf', [PDFController::class, 'credencial_profesor'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.credencial_profesor');
+
     Route::get('/constancia', [PDFController::class, 'constancia'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.constancia');
     Route::get('/etiquetas', [PDFController::class, 'etiquetas'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.etiquetas');
 

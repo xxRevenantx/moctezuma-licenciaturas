@@ -170,10 +170,9 @@
 
 
 
-    <footer>
-        <p>{{$escuela->nombre}} C.C.T. {{$escuela->CCT}}</p>
-        <p>C. {{$escuela->calle}} No. {{$escuela->no_exterior}}, Col. {{$escuela->colonia}}, C.P. {{$escuela->codigo_postal}}, Cd. {{$escuela->ciudad}}, {{$escuela->estado}}.</p>
-        <p>Tel. {{$escuela->telefono}}</p>
+     <footer>
+        <p>{{$escuela->nombre}} C.C.T. {{$escuela->CCT}}. C. {{$escuela->calle}} No. {{$escuela->no_exterior}}, Col. {{$escuela->colonia}}, C.P. {{$escuela->codigo_postal}}, Cd. {{$escuela->ciudad}}, {{$escuela->estado}}.</p>
+        <p>Fecha de expedición: {{ now()->translatedFormat('d \d\e F \d\e\l Y \a \l\a\s H:i') }}</p>
     </footer>
 
 </body>

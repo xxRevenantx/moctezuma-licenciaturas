@@ -17,6 +17,7 @@ use App\Models\Licenciatura;
 use App\Models\Materia;
 use App\Models\Modalidad;
 use App\Models\Periodo;
+use App\Models\Profesor;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
@@ -32,6 +33,7 @@ class PDFController extends Controller
         $filtar_foraneo = $request->filtar_foraneo; //
         $query = Inscripcion::where('licenciatura_id', $licenciatura)
             ->where('modalidad_id', $modalidad)
+            ->where('status', "true")
             ->where('generacion_id', $filtrar_generacion);
         if ($filtar_foraneo !== null) {
             $query->where('foraneo', $filtar_foraneo);
@@ -615,9 +617,15 @@ public function horario_general_semiescolarizada(){
         $cuatrimestre_id = $request->cuatrimestre_id;
         $generacion_id = $request->generacion_id;
         $modalidad_id = $request->modalidad_id;
+        $periodo =  $request->periodo;
 
+
+        if (!$periodo) {
+            abort(404, 'Periodo no encontrado');
+        }
         // Obtén el periodo y genera los días del mes.
-        $periodo = explode('-', $request->periodo); // Ejemplo: ['5', '8'] para Mayo-Agosto
+        $periodo = explode('-', $periodo); // Ejemplo: ['5', '8'] para Mayo-Agosto
+
         $meses = [
             '1' => 'Enero', '2' => 'Febrero', '3' => 'Marzo', '4' => 'Abril', '5' => 'Mayo', '6' => 'Junio',
             '7' => 'Julio', '8' => 'Agosto', '9' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
@@ -694,6 +702,12 @@ public function horario_general_semiescolarizada(){
         $periodo = $request->periodo;
 
 
+
+         if(!$periodo){
+              abort(404, 'Periodo no encontrado');
+        }
+
+
         $generacion = Generacion::find($generacion_id);
 
         $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
@@ -713,12 +727,23 @@ public function horario_general_semiescolarizada(){
                 ->orderBy('nombre', 'asc')
                 ->get();
 
-
         if (!$materia) {
             abort(404, 'Materia no encontrada');
         }
 
 
+
+        // Obtén el periodo y genera los días del mes.
+        $periodo = explode('-', $request->periodo); // Ejemplo: ['5', '8'] para Mayo-Agosto
+        $meses = [
+            '1' => 'ENE', '2' => 'FEB', '3' => 'MAR', '4' => 'ABR', '5' => 'MAY', '6' => 'JUN',
+            '7' => 'JUL', '8' => 'AGO', '9' => 'SEP', '10' => 'OCT', '11' => 'NOV', '12' => 'DIC'
+        ];
+
+
+        $periodos = Periodo::where('generacion_id', $generacion_id)
+         ->where('cuatrimestre_id',$cuatrimestre_id)
+         ->first();
 
         $data = [
             'escuela' => Escuela::all()->first(),
@@ -727,6 +752,8 @@ public function horario_general_semiescolarizada(){
             'periodo' => $periodo,
             'generacion' => $generacion,
             'ciclo_escolar' => $ciclo_escolar,
+            'meses' => $meses,
+            'periodos' => $periodos
 
 
          ];
@@ -737,4 +764,43 @@ public function horario_general_semiescolarizada(){
         return $pdf->stream("Lista_evaluacion.pdf");
 
     }
+
+    // CREDENCIAL DEL PROFESOR
+
+      public function credencial_profesor(Request $request)
+{
+    // Obtén los IDs como un array desde el input "profesores_ids[]"
+    $profesoresIds = $request->input('profesores_ids', []);
+
+
+    // Verifica si llegaron datos
+    if (empty($profesoresIds)) {
+        return redirect()->back()->with('error', 'No se seleccionaron profesores.');
+    }
+
+    // Obtiene los datos de los profesores
+    $profesores = Profesor::whereIn('id', $profesoresIds)->with('user')->get();
+
+    // CICLO ESCOLAR
+   $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+
+
+
+    // Puedes ver los datos si estás probando
+    // dd($alumnos);
+
+    // Genera el PDF
+    $data = [
+        'profesores' => $profesores,
+        'ciclo_escolar' => $ciclo_escolar
+    ];
+
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialProfesorPDF', $data)
+              ->setPaper('letter', 'portrait')
+
+              ;
+
+    return $pdf->stream("CREDENCIAL(S).pdf");
+}
+
 }

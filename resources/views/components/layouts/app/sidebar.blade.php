@@ -87,9 +87,19 @@
                         <flux:navlist.item icon="rectangle-stack" :href="route('admin.profesor.index')"
                         :current="request()->routeIs('admin.profesor.index')"
                         wire:navigate>{{ __('Crear Profesor') }}</flux:navlist.item>
-                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.lista-profesores.index')"
-                        :current="request()->routeIs('admin.lista-profesores.index')"
+
+                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.profesor.lista_profesores')"
+                        :current="request()->routeIs('admin.profesor.lista_profesores')"
                         wire:navigate>{{ __('Lista de profesores') }}</flux:navlist.item>
+
+                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.profesor.credencial_profesor')"
+                        :current="request()->routeIs('admin.profesor.credencial_profesor')"
+                        wire:navigate>{{ __('Credencial') }}</flux:navlist.item>
+
+
+
+
+
 
                     </flux:navlist.group>
 

@@ -19,8 +19,7 @@ class AccionSeeder extends Seeder
                 ['accion' => 'Asignación de materias', 'icono' => 'materias.png', 'slug' => 'asignacion-de-materias', 'order' => 3],
                 ['accion' => 'Horarios', 'icono' => 'horarios.png', 'slug' => 'horarios', 'order' => 4],
                 ['accion' => 'Calificaciones', 'icono' => 'calificaciones.png', 'slug' => 'calificaciones', 'order' => 5],
-                ['accion' => 'Documentos', 'icono' => 'documentos.png', 'slug' => 'documentos', 'order' => 6],
-                ['accion' => 'Bajas', 'icono' => 'baja.png', 'slug' => 'bajas', 'order' => 7],
+                ['accion' => 'Bajas', 'icono' => 'baja.png', 'slug' => 'bajas', 'order' => 6],
             ]
         ];
         foreach ($acciones as $accion) {

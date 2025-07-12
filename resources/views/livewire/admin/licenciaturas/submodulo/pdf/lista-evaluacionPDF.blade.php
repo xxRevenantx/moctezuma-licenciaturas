@@ -7,7 +7,7 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <title>Lista de Evaluación | Gen: {{$generacion}} </title>
+    <title>Lista de Evaluación | Gen: {{$generacion->generacion}} </title>
 </head>
 <style>
 
@@ -51,14 +51,12 @@
     }
 
     th, td {
-
-        padding: 4px;
-        text-align: left;
-        font-size: 13px;
+        text-align: center;
+        font-size: 15px;
+        padding-left: 5px
     }
     td{
          border: 1px solid #000;
-        text-align: left;
     }
 
     th {
@@ -177,21 +175,95 @@
         <p style="font-size: 24px; text-align:center; font-weight:bold; margin-top:-30px; line-height:20px">CONCENTRADO DE CALIFICACIONES <br> CUATRIMESTRAL</p>
         <p style="font-size: 20px; color:#5b5b5b; text-align:center; font-weight:bold; margin-top:-25px; line-height:20px">CICLO ESCOLAR: {{$ciclo_escolar->ciclo_escolar}}</p>
 
-        <p class="licenciatura" style="text-transform: uppercase" >LICENCIATURA EN: <b>{{ $materia->licenciatura->nombre }}</b> </p>
-        <p class="licenciatura" >DOCENTE: <b>{{ $materia->profesor->nombre }} {{ $materia->profesor->apellido_paterno }} {{ $materia->profesor->apellido_materno }} </b> </p>
-        <p class="licenciatura" >MATERIA: <b>{{ $materia->materia->nombre }}</b> </p>
-        {{-- <p>GRADO: {{$grade->grado}}° GRUPO: {{ $group != null ? $group->grupo : "TODOS" }} </p> --}}
+        {{-- AQUI VA LA TABLA --}}
 
-        <p class="cuatrimestre"> <b><u>{{ $materia->cuatrimestre->cuatrimestre }}° CUATRIMESTRE</u></b> &nbsp;&nbsp;&nbsp;&nbsp; MODALIDAD: <b><u>{{ $materia->modalidad->nombre }}</u></b></p>
+         <table style="width: 100%; border-collapse: collapse;  font-size: 14px; margin-bottom: 20px;" border="1">
+        <thead>
+            <tr style="background-color: #f2f2f2; text-align: center;">
+                <th colspan="3">CONCENTRADO DE CALIFICACIONES</th>
+                <th colspan="5" style="text-transform: uppercase">FECHAS: {{ \Carbon\Carbon::parse($periodos->inicio_periodo)->translatedFormat('d \d\e F \d\e\l Y') }} al
+                    {{ \Carbon\Carbon::parse($periodos->termino_periodo)->translatedFormat('d \d\e F \d\e\l Y') }}
+                    </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>LICENCIATURA:</strong></td>
+                <td colspan="2" style="text-transform: uppercase">{{ $materia->licenciatura->nombre }}</td>
+                <td><strong>GRUPO:</strong></td>
+                <td></td>
+                <td><strong>CUATRIMESTRE:</strong></td>
+                <td colspan="2">{{ $materia->cuatrimestre->cuatrimestre }}°</td>
+            </tr>
+            <tr>
+                <td><strong>MODALIDAD:</strong></td>
+                <td>{{ $materia->modalidad->nombre }}</td>
+                <td><strong>PERIODO:</strong></td>
+                <td colspan="3">{{ $meses[$periodo[0]] }}/{{ $meses[$periodo[1]] }}</td>
+                <td><strong>GENERACIÓN</strong></td>
+                <td>{{ $generacion->generacion }}</td>
+            </tr>
+            <tr>
+                <td><strong>PROFESOR:</strong></td>
+                <td colspan="3">{{ $materia->profesor->nombre }} {{ $materia->profesor->apellido_paterno }} {{ $materia->profesor->apellido_materno }}</td>
+                <td><strong>ASIGNATURA:</strong></td>
+                <td colspan="3" style="text-transform: uppercase">{{ $materia->materia->nombre }}</td>
+            </tr>
+        </tbody>
+    </table>
 
+
+      <table>
+           <thead>
+                <tr>
+                    <th style="text-align: center" rowspan="2" >No.</th>
+                    <th style="text-align: center" rowspan="2" >NOMBRE COMPLETO</th>
+                    <th style="text-align: center" colspan="7" >EVALUACIÓN</th>
+                </tr>
+                <tr>
+                    <th style="text-align: center" >ASISTENCIAS</th>
+                    <th style="text-align: center" >PARTICIPACIONES</th>
+                    <th style="text-align: center" >TAREAS</th>
+                    <th style="text-align: center" >EVIDENCIAS</th>
+                    <th style="text-align: center" >EXAMEN</th>
+                    <th style="text-align: center" >CAL.FINAL</th>
+                    <th style="text-align: center" >OBSERVACIONES</th>
+                </tr>
+            </thead>
+
+
+            <tbody>
+
+                @foreach($alumnos as $key =>  $alumno)
+                    <tr>
+                        <td style="text-align: center;">{{ $key+1 }}</td>
+                        <td  style="text-align: left;">{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                @endforeach
+
+            </tbody>
+        </table>
+
+        <p style="font-size: 14px"><b>Nota:</b> La calificación final sólo será redondeada si es mayor o igual a (.6)</p>
+
+        <p style="text-align:center; font-size: 14px; font-weight: bold; margin-top: 100px;">
+            ___________________________________________ <br>
+            NOMBRE Y FIRMA DEL DOCENTE
+        </p>
 
 
 
 
 
     <footer>
-        <p>{{$escuela->nombre}} C.C.T. {{$escuela->CCT}}</p>
-        <p>C. {{$escuela->calle}} No. {{$escuela->no_exterior}}, Col. {{$escuela->colonia}}, C.P. {{$escuela->codigo_postal}}, Cd. {{$escuela->ciudad}}, {{$escuela->estado}}.</p>
+        <p>{{$escuela->nombre}} C.C.T. {{$escuela->CCT}}. C. {{$escuela->calle}} No. {{$escuela->no_exterior}}, Col. {{$escuela->colonia}}, C.P. {{$escuela->codigo_postal}}, Cd. {{$escuela->ciudad}}, {{$escuela->estado}}.</p>
         <p>Fecha de expedición: {{ now()->translatedFormat('d \d\e F \d\e\l Y \a \l\a\s H:i') }}</p>
     </footer>
 

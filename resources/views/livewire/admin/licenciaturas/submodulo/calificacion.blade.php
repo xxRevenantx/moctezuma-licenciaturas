@@ -170,7 +170,7 @@
                                             </td>
 
                                     @endforeach
-                                    <td class="px-4 py-3 border font-bold bg-gray-50">
+                                    <td class="px-4 py-3 border font-bold ">
                                         {{ $count ? number_format($sum / $count, 2) : '-' }}
                                     </td>
                                 </tr>
@@ -179,10 +179,10 @@
                         @if($filtrar_generacion && $filtrar_cuatrimestre)
                         <tfoot>
                             <tr>
-                                <td colspan="{{ 3 + count($materias) }}" class="px-4 py-3 text-right font-bold bg-gray-100">
+                                <td colspan="{{ 3 + count($materias) }}" class="px-4 py-3 text-right font-bold">
                                     Promedio global:
                                 </td>
-                                <td class="px-4 py-3 font-bold bg-gray-200">
+                                <td class="px-4 py-3 font-bold ">
                                     {{ $global_count ? number_format($global_sum / $global_count, 2) : '-' }}
                                 </td>
                             </tr>

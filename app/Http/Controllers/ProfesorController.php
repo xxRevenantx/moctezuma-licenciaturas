@@ -13,10 +13,17 @@ class ProfesorController extends Controller
      */
     public function index()
     {
-
         return view('admin.profesores.index');
     }
 
+    public function lista_profesores(){
+        return view('admin.profesores.lista-profesores');
+    }
+
+    public function credencial_profesor()
+    {
+        return view('admin.profesores.credencial-profesor');
+    }
 
 
 
