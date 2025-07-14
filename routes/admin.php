@@ -96,6 +96,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/credencial-alumno', [PDFController::class, 'credencial_alumno'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.credencial_alumno');
 
     Route::get('/credencial-profesor-pdf', [PDFController::class, 'credencial_profesor'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.credencial_profesor');
+    Route::get('/credencial-profesor-estudiante-pdf', [PDFController::class, 'credencial_profesor_estudiante'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.credencial_profesor_estudiante');
 
     Route::get('/constancia', [PDFController::class, 'constancia'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.constancia');
     Route::get('/etiquetas', [PDFController::class, 'etiquetas'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.etiquetas');
@@ -103,6 +104,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/lista-asistencia', [PDFController::class, 'lista_asistencia'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_asistencia');
     Route::get('/lista-evaluacion', [PDFController::class, 'lista_evaluacion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_evaluacion');
+
+    // CALIFICACIONES DEL ALUMNO
+    Route::get('/calificacion-alumno', [PDFController::class, 'calificacion_alumno'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.calificacion_alumno');
 
 
 

@@ -125,6 +125,7 @@
                                     </th>
                                 @endforeach
                                 <th class="px-4 py-3">Promedio</th>
+                                <th class="px-4 py-3"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -172,6 +173,23 @@
                                     @endforeach
                                     <td class="px-4 py-3 border font-bold ">
                                         {{ $count ? number_format($sum / $count, 2) : '-' }}
+                                    </td>
+                                    <td class="px-4 py-3 border font-bold ">
+
+                                    <form action="{{ route('admin.pdf.documentacion.calificacion_alumno') }}" method="GET" target="_blank" class="mt-4">
+                                        <button type="submit" variant="primary" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                                            <div class="flex items-center gap-1">
+                                                <flux:icon.file-text/>
+                                                <span>PDF</span>
+                                            </div>
+                                        </button>
+                                        <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
+                                        <input type="hidden" name="alumno_id" value="{{ $alumno->id }}">
+                                        <input type="hidden" name="generacion_id" value="{{ $filtrar_generacion }}">
+                                        <input type="hidden" name="cuatrimestre_id" value="{{ $filtrar_cuatrimestre }}">
+                                    </form>
+
+
                                     </td>
                                 </tr>
                             @endforeach

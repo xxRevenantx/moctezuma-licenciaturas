@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AsignacionMateria;
 use App\Models\AsignarGeneracion;
+use App\Models\Calificacion;
 use App\Models\Constancia;
 use App\Models\Cuatrimestre;
 use App\Models\Dashboard;
@@ -803,4 +804,77 @@ public function horario_general_semiescolarizada(){
     return $pdf->stream("CREDENCIAL(S).pdf");
 }
 
+// CREDENCIAL DEL PROFESOR ESTUDIANTE
+public function credencial_profesor_estudiante(Request $request)
+{
+    // Obtén los IDs como un array desde el input "profesores_ids[]"
+    $profesoresIds = $request->input('profesores_ids', []);
+    // Verifica si llegaron datos
+    if (empty($profesoresIds)) {
+        return redirect()->back()->with('error', 'No se seleccionaron profesores.');
+    }
+    // Obtiene los datos de los profesores
+    $profesores = Profesor::whereIn('id', $profesoresIds)->
+    with('user')->get();
+    // CICLO ESCOLAR
+    $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+    // Puedes ver los datos si estás probando
+    // dd($alumnos);
+    // Genera el PDF
+    $data = [
+        'profesores' => $profesores,
+        'ciclo_escolar' => $ciclo_escolar
+    ];
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialProfesorEstudiantePDF', $data)
+              ->setPaper('letter', 'portrait') ;
+    return $pdf->stream("CREDENCIAL(S).pdf");
+}
+
+    // CALIFICACION DEL ALUMNO
+    public function calificacion_alumno(Request $request)
+    {
+        $alumno = $request->alumno_id;
+        $modalidad = $request->modalidad_id;
+        $generacion = $request->generacion_id;
+        $cuatrimestre = $request->cuatrimestre_id;
+
+      $periodo = Periodo::where('generacion_id', $generacion)
+         ->where('cuatrimestre_id',$cuatrimestre)
+         ->first();
+
+
+        $calificaciones = Calificacion::with(['asignacionMateria.materia', 'asignacionMateria.profesor'])
+            ->where('alumno_id', $alumno)
+            ->whereHas('asignacionMateria', function ($query) use ($modalidad, $generacion, $cuatrimestre) {
+                $query->where('modalidad_id', $modalidad)
+                      ->where('generacion_id', $generacion)
+                      ->where('cuatrimestre_id', $cuatrimestre);
+            })
+            ->get();
+
+        $escuela = Escuela::all()->first();
+        $inscripcion = Inscripcion::where('id', $alumno)->first();
+        $licenciatura = Licenciatura::where('id', $inscripcion->licenciatura_id)->first();
+        $profesor = Profesor::where('id', $inscripcion->profesor_id)->first();
+        $generacion = Generacion::where('id', $generacion)->first();
+        $cuatrimestre = Cuatrimestre::where('id', $cuatrimestre)->first();
+
+        $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+
+       $data = [
+        'cuatrimestre' => $cuatrimestre,
+        'calificaciones' => $calificaciones,
+        'ciclo_escolar' => $ciclo_escolar,
+        'escuela' => $escuela,
+        'licenciatura' => $licenciatura,
+        'generacion' => $generacion,
+        'periodo' => $periodo,
+    ];
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.boletaCalificacionPDF', $data)
+              ->setPaper('letter', 'portrait') ;
+    return $pdf->stream("BOLETA_DEL_".$cuatrimestre->cuatrimestre."°_CUATRIMESTRE_ALUMNO:".$inscripcion->nombre." ".$inscripcion->apellido_paterno." ".$inscripcion->apellido_materno.".pdf");
+
+
+
+    }
 }
