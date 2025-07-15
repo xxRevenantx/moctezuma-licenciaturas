@@ -846,11 +846,15 @@ public function credencial_profesor_estudiante(Request $request)
         $calificaciones = Calificacion::with(['asignacionMateria.materia', 'asignacionMateria.profesor'])
             ->where('alumno_id', $alumno)
             ->whereHas('asignacionMateria', function ($query) use ($modalidad, $generacion, $cuatrimestre) {
-                $query->where('modalidad_id', $modalidad)
-                      ->where('generacion_id', $generacion)
-                      ->where('cuatrimestre_id', $cuatrimestre);
+            $query->where('modalidad_id', $modalidad)
+                  ->where('generacion_id', $generacion)
+                  ->where('cuatrimestre_id', $cuatrimestre);
             })
-            ->get();
+            ->get()
+            ->sortBy(function ($item) {
+            return $item->asignacionMateria->materia->clave ?? '';
+            })
+            ->values();
 
         $escuela = Escuela::all()->first();
         $inscripcion = Inscripcion::where('id', $alumno)->first();
@@ -869,6 +873,7 @@ public function credencial_profesor_estudiante(Request $request)
         'licenciatura' => $licenciatura,
         'generacion' => $generacion,
         'periodo' => $periodo,
+        'inscripcion' => $inscripcion
     ];
     $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.boletaCalificacionPDF', $data)
               ->setPaper('letter', 'portrait') ;

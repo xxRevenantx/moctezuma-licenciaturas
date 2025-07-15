@@ -57,7 +57,7 @@
         text-align: center
     }
     td{
-         border: 1px solid #8a8a8a;
+         border: 1px solid #000000;
         text-align: center;
         text-transform: uppercase;
     }
@@ -104,7 +104,7 @@
             text-align: center;
             font-size: 24px;
             margin-top: 50px;
-            padding: 10px 0;
+            padding: 5px 0;
             border-top: 2px solid #4a5568;
             border-bottom: 2px solid #4a5568;
             display: inline-block;
@@ -151,18 +151,19 @@
        <div style="text-align: center;">
              <img class="img1" src="{{ public_path('storage/letra2.jpg') }}" alt="Logo" height="100px" width="100">
             <h1 class="titulo">CENTRO UNIVERSITARIO MOCTEZUMA</h1>
+            <h2 style="margin-top: -20px; font-size:23px; color:#4a5568">CICLO ESCOLAR {{ $ciclo_escolar->ciclo_escolar }} </h2>
             <img class="img2" src="{{ public_path('storage/licenciaturas/'.$licenciatura->imagen) }}" alt="Logo Licenciatura"  height="100px" width="100">
         </div>
-        <p style="font-size: 19px" class="subtitulo">BOLETA DE CALIFICACIONES</p>
+        <p style="font-size: 24px" class="subtitulo">BOLETA DE CALIFICACIONES</p>
 
         {{-- <p>GRADO: {{$grade->grado}}° GRUPO: {{ $group != null ? $group->grupo : "TODOS" }} </p> --}}
 
         <table>
-            <tr>
+            <tr style="background: #eeeeee">
                 <td style="padding: 0">{{$licenciatura->nombre}}</td>
                 <td style="padding: 0">{{$escuela->CCT}}</td>
                 <td style="padding: 0">{{$cuatrimestre->cuatrimestre}}° CUATRIMESTRE</td>
-                <td style="padding: 0">{{$periodo->mes->meses}}</td>
+                <td style="padding: 0">{{$periodo->mes->meses_corto}}</td>
                 <td style="padding: 0">{{$periodo->generacion->generacion}}</td>
             </tr>
             <tr style="font-size: 10px;">
@@ -173,23 +174,30 @@
                 <td style="padding: 0">GENERACIÓN</td>
             </tr>
             <tr>
-                <td style="padding: 0">{{$licenciatura->nombre}}</td>
-                <td style="padding: 0">{{$escuela->CCT}}</td>
-                <td style="padding: 0">{{$cuatrimestre->cuatrimestre}}° CUATRIMESTRE</td>
-                <td style="padding: 0">{{$periodo->mes->meses}}</td>
-                <td style="padding: 0">{{$periodo->generacion->generacion}}</td>
+                <td colspan="3" style="background: #eeeeee; padding: 0; font-size:12px">{{$escuela->calle}} #{{ $escuela->no_exterior }}. COL.{{ $escuela->colonia }}. CD.{{ $escuela->ciudad }}</td>
+                <td style="padding: 0">{{$escuela->municipio}}</td>
+                <td style="padding: 0">{{$escuela->estado}}</td>
             </tr>
             <tr style="font-size: 10px;">
-                <td style="padding: 0">LICENCIATURA</td>
-                <td style="padding: 0">C.C.T.</td>
-                <td style="padding: 0">CUATRIMESTRE</td>
-                <td style="padding: 0">PERIODO ESC.</td>
-                <td style="padding: 0">GENERACIÓN</td>
+                <td colspan="3" style="padding: 0">DIRECCIÓN</td>
+                <td style="padding: 0">MUNICIPIO</td>
+                <td style="padding: 0">ESTADO</td>
+            </tr>
+
+            <tr style="background: #eeeeee">
+                <td colspan="2" style="padding: 0; border-right: none;">{{ $inscripcion->apellido_paterno }}</td>
+                <td  style="padding: 0">{{ $inscripcion->apellido_materno }}</td>
+                <td colspan="2" style="padding: 0"> {{$inscripcion->nombre}}</td>
+            </tr>
+            <tr style="font-size: 10px;">
+                <td colspan="2"  style="padding: 0">APELLIDO PATERNO</td>
+                <td  style="padding: 0">APELLIDO MATERNO</td>
+                <td colspan="2" style="padding: 0">NOMBRE(S)</td>
             </tr>
         </table>
 
-        <table>
-            thead>
+        <table style="margin-top: 50px; border-collapse: collapse;">
+            <thead>
                 <tr>
                     <th>ASIGNATURA</th>
                     <th>CALIFICACIÓN</th>
@@ -197,7 +205,7 @@
             </thead>
             <tbody>
                 @foreach ($calificaciones as $calificacion)
-                    {{$calificacion}}
+
                     <tr>
                         <td>{{ $calificacion->asignacionMateria->materia->nombre }}</td>
                         <td>{{ $calificacion->calificacion }}</td>

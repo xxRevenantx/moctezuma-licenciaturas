@@ -2,13 +2,19 @@
 
 namespace App\Livewire\Admin\Licenciaturas\Submodulo;
 
+
 use App\Models\AsignacionMateria;
 use App\Models\AsignarGeneracion;
 use App\Models\Calificacion as ModelsCalificacion;
+use App\Models\Cuatrimestre;
+use App\Models\Dashboard as ModelsDashboard;
+use App\Models\Escuela;
+use App\Models\Generacion;
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
 use App\Models\Modalidad;
 use App\Models\Periodo;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -28,6 +34,52 @@ class Calificacion extends Component
     public $todas_calificaciones_guardadas = false;
     public $hayCambios = false;
 
+
+
+    public function enviarCalificacion($alumno, $cuatrimestre, $generacion, $modalidad){
+
+
+        $periodo = Periodo::where('generacion_id', $generacion)
+         ->where('cuatrimestre_id',$cuatrimestre)
+         ->first();
+
+
+        $calificaciones = ModelsCalificacion::with(['asignacionMateria.materia', 'asignacionMateria.profesor'])
+            ->where('alumno_id', $alumno)
+            ->whereHas('asignacionMateria', function ($query) use ($modalidad, $generacion, $cuatrimestre) {
+            $query->where('modalidad_id', $modalidad)
+                  ->where('generacion_id', $generacion)
+                  ->where('cuatrimestre_id', $cuatrimestre);
+            })
+            ->get()
+            ->sortBy(function ($item) {
+            return $item->asignacionMateria->materia->clave ?? '';
+            })
+            ->values();
+
+        $escuela = Escuela::all()->first();
+        $inscripcion = Inscripcion::where('id', $alumno)->first();
+        $licenciatura = Licenciatura::where('id', $inscripcion->licenciatura_id)->first();
+        $generacion = Generacion::where('id', $generacion)->first();
+        $cuatrimestre = Cuatrimestre::where('id', $cuatrimestre)->first();
+
+        $ciclo_escolar = ModelsDashboard::orderBy('id', 'desc')->first();
+
+       $this->dispatch('swal', [
+            'icon' => 'info',
+            'title' => 'Enviando correo espere',
+            'position' => 'top',
+        ]);
+
+        Mail::to('prueba@prueba.com')->send(new \App\Mail\CalificacionMail($calificaciones, $escuela, $inscripcion, $licenciatura, $generacion, $cuatrimestre, $ciclo_escolar));
+
+        $this->dispatch('swal', [
+            'icon' => 'success',
+            'title' => 'Correo enviado correctamente',
+            'position' => 'top-end',
+        ]);
+
+    }
 
 
     public function mount($modalidad, $licenciatura)

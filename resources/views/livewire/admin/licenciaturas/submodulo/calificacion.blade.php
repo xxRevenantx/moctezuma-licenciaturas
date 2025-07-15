@@ -1,4 +1,24 @@
-<div>
+<div
+x-data ="{
+        enviarCalificacion(alumno, cuatrimestre, generacion, modalidad) {
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: `La calificación del alumno en el cuatrimestre ${cuatrimestre}° cuatrimestre se enviará.`,
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    cancelButtonText: 'cancelar',
+                    confirmButtonText: 'Sí, enviar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        @this.call('enviarCalificacion', alumno, cuatrimestre, generacion, modalidad);
+
+                    }
+                })
+            }
+    }"
+>
     <h3 class="mt-5 flex items-center gap-1 text-2xl font-bold text-gray-800 dark:text-white">
         <!-- Icono SVG -->
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -174,23 +194,31 @@
                                     <td class="px-4 py-3 border font-bold ">
                                         {{ $count ? number_format($sum / $count, 2) : '-' }}
                                     </td>
-                                    <td class="px-4 py-3 border font-bold ">
+                                        <td class="px-4 py-3 border font-bold ">
+                                            <div class="flex justify-center items-center gap-2">
+                                                <form action="{{ route('admin.pdf.documentacion.calificacion_alumno') }}" method="GET" target="_blank" class="m-0 flex items-center justify-center">
+                                                    <button type="submit" variant="primary" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex items-center gap-1">
+                                                        <flux:icon.file-text/>
+                                                        <span>PDF</span>
+                                                    </button>
+                                                    <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
+                                                    <input type="hidden" name="alumno_id" value="{{ $alumno->id }}">
+                                                    <input type="hidden" name="generacion_id" value="{{ $filtrar_generacion }}">
+                                                    <input type="hidden" name="cuatrimestre_id" value="{{ $filtrar_cuatrimestre }}">
+                                                </form>
 
-                                    <form action="{{ route('admin.pdf.documentacion.calificacion_alumno') }}" method="GET" target="_blank" class="mt-4">
-                                        <button type="submit" variant="primary" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                                            <div class="flex items-center gap-1">
-                                                <flux:icon.file-text/>
-                                                <span>PDF</span>
+                                                <x-button variant="primary" class="flex items-center gap-1"
+                                                  @click="enviarCalificacion({{ $alumno->id }}, '{{ $filtrar_cuatrimestre }}', '{{ $filtrar_generacion }}', '{{ $modalidad->id }}')"
+                                                 class="cursor-pointer">
+
+
+                                                    <div class="flex items-center gap-1">
+                                                        <flux:icon.send/>
+                                                    <span>Enviar</span>
+                                                    </div>
+                                                </x-button>
                                             </div>
-                                        </button>
-                                        <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
-                                        <input type="hidden" name="alumno_id" value="{{ $alumno->id }}">
-                                        <input type="hidden" name="generacion_id" value="{{ $filtrar_generacion }}">
-                                        <input type="hidden" name="cuatrimestre_id" value="{{ $filtrar_cuatrimestre }}">
-                                    </form>
-
-
-                                    </td>
+                                        </td>
                                 </tr>
                             @endforeach
                         </tbody>
