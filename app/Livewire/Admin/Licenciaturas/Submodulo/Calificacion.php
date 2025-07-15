@@ -71,7 +71,10 @@ class Calificacion extends Component
             'position' => 'top',
         ]);
 
-        Mail::to('prueba@prueba.com')->send(new \App\Mail\CalificacionMail($calificaciones, $escuela, $inscripcion, $licenciatura, $generacion, $cuatrimestre, $ciclo_escolar));
+        $correo = $inscripcion->user->email;
+        // dd($correo);
+
+        Mail::to($correo)->send(new \App\Mail\CalificacionMail($calificaciones, $escuela, $inscripcion, $licenciatura, $generacion, $cuatrimestre, $ciclo_escolar, $periodo));
 
         $this->dispatch('swal', [
             'icon' => 'success',

@@ -82,7 +82,13 @@
 
     <div class="grid md:grid-cols-2 gap-4">
 
-        <flux:input
+     <flux:select label="Selecciona una licenciatura" name="licenciatura_id" wire:model="licenciatura" placeholder="--Selecciona una licenciatura---">
+        @foreach ($licenciaturas as $licenciatura)
+            <flux:select.option value="{{ $licenciatura->id }}">{{ $licenciatura->nombre }}</flux:select.option>
+        @endforeach
+    </flux:select>
+
+    <flux:input
     label="Buscar profesor(es)"
     wire:model.live.debounce.500ms="query_profesor_estudiante"
     name="query_profesor_estudiante"
@@ -96,7 +102,9 @@
     wire:keydown.arrow-up="selectIndexProfesorEstudianteUp"
     wire:keydown.enter.prevent="selectProfesorEstudiante({{ $selectedIndexProfesorEstudiante }})"
     autocomplete="off"
-/>
+    />
+
+
 
 @if (!empty($profesores_estudiante))
     <ul

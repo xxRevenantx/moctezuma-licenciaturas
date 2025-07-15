@@ -85,7 +85,7 @@
 
             <div class="info">
                 <h1 class="titulo">CREDENCIAL DEL ESTUDIANTE</h1>
-                Nombre:<strong>{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</strong><br>
+                Nombre: <strong style="font-size: 10px">{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</strong><br>
                 Matrícula: {{ $alumno->matricula }}<br>
                 CURP: {{ $alumno->CURP }} <br>
                 Licenciatura: {{ $alumno->licenciatura->nombre_corto }} <br>

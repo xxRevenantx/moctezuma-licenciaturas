@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>CREDENCIAL DEL PROFESOR</title>
+    <title>CREDENCIAL DEL PROFESOR-ESTUDIANTE</title>
 
      <style>
          @page { margin:30px 0px 0px 0px; }
@@ -85,9 +85,9 @@
         {{-- <div class="credenciales" style="background-image: url('{{ public_path('storage/credencial-frontal.png') }}')"> --}}
 
             <div class="info">
-                <h1 class="titulo">CREDENCIAL DEL PROFESOR</h1>
-                <b>Nombre:</b>{{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}<br>
-                <b>Título:</b> {{ $profesor->perfil ?? 'No especificado' }} <br>
+                <h1 class="titulo">CREDENCIAL DEL ESTUDIANTE</h1>
+                <b>Nombre: </b>{{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}<br>
+                <b>Licenciatura: </b><span style="text-transform: uppercase">{{ $licenciatura->nombre ?? 'No especificado' }}</span> <br>
                 <b>CURP:</b> {{ $profesor->user->CURP }} <br>
                 <b>Ciclo escolar:</b>  {{ $ciclo_escolar->ciclo_escolar }} <br>
                 <b>Vigencia:</b> Agosto {{substr($ciclo_escolar->ciclo_escolar, -4)}}

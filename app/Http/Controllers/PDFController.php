@@ -820,10 +820,13 @@ public function credencial_profesor_estudiante(Request $request)
     $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
     // Puedes ver los datos si estás probando
     // dd($alumnos);
+
+    $licenciatura = Licenciatura::where('id', $request->input('licenciatura_id'))->first();
     // Genera el PDF
     $data = [
         'profesores' => $profesores,
-        'ciclo_escolar' => $ciclo_escolar
+        'ciclo_escolar' => $ciclo_escolar,
+        'licenciatura' => $licenciatura
     ];
     $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialProfesorEstudiantePDF', $data)
               ->setPaper('letter', 'portrait') ;

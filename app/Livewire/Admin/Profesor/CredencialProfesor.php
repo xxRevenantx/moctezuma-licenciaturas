@@ -16,6 +16,8 @@ class CredencialProfesor extends Component
     public $profesores_estudiante = [];
     public $selectedIndexProfesorEstudiante = 0;
     public $profesoresEstudianteSeleccionados = []; // <- corregido nombre
+    public $licenciaturas; // <- para almacenar las licenciaturas
+
     public function updatedQuery()
     {
         $this->buscarProfesores();
@@ -148,6 +150,12 @@ public function selectIndexProfesorEstudianteDown()
         $this->selectedIndexProfesorEstudiante = ($this->selectedIndexProfesorEstudiante + 1) % count($this->profesores_estudiante);
     }
 }
+
+    public function mount()
+    {
+        // Aquí puedes cargar las licenciaturas si es necesario
+        $this->licenciaturas = \App\Models\Licenciatura::all();
+    }
 
 
 
