@@ -3,7 +3,7 @@ x-data ="{
         enviarCalificacion(alumno, cuatrimestre, generacion, modalidad) {
                 Swal.fire({
                     title: '¿Estás seguro?',
-                    text: `La calificación del alumno en el cuatrimestre ${cuatrimestre}° cuatrimestre se enviará.`,
+                    text: `La calificación del alumno en el cuatrimestre ${cuatrimestre}° cuatrimestre se enviará a su correo asignado.`,
                     icon: 'info',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
@@ -16,8 +16,27 @@ x-data ="{
 
                     }
                 })
+            },
+
+             enviarCalificacionesMasivasAlpine() {
+             Swal.fire({
+            title: '¿Estás seguro?',
+            text: '¿Deseas enviar las calificaciones a todos los alumnos?',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'Cancelar',
+            confirmButtonText: 'Sí, enviar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                @this.call('enviarCalificacionesMasivas');
             }
-    }"
+        });
+    }
+    }
+
+        "
 >
     <h3 class="mt-5 flex items-center gap-1 text-2xl font-bold text-gray-800 dark:text-white">
         <!-- Icono SVG -->
@@ -86,12 +105,16 @@ x-data ="{
                                 <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
                                 <input type="hidden" name="filtrar_generacion" value="{{ $filtrar_generacion }}">
                                 <input type="hidden" name="filtrar_cuatrimestre" value="{{ $filtrar_cuatrimestre }}">
-                                <button type="submit" variant="primary" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+
+
+                                <x-button type="submit" variant="primary" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
                                     <div class="flex items-center gap-1">
                                         <flux:icon.file-text/>
-                                        <span>Calificaciones PDF</span>
+                                        <span>Calificaciones Generales</span>
                                     </div>
-                                </button>
+                                </x-button>
+
+
                             </form>
                         </div>
                     </div>
@@ -197,10 +220,12 @@ x-data ="{
                                         <td class="px-4 py-3 border font-bold ">
                                             <div class="flex justify-center items-center gap-2">
                                                 <form action="{{ route('admin.pdf.documentacion.calificacion_alumno') }}" method="GET" target="_blank" class="m-0 flex items-center justify-center">
-                                                    <button type="submit" variant="primary" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 flex items-center gap-1">
-                                                        <flux:icon.file-text/>
+                                                    <x-button type="submit" variant="primary" class="bg-indigo-600" >
+                                                       <div class="flex items-center gap-2 ">
+                                                         <flux:icon.file-text/>
                                                         <span>PDF</span>
-                                                    </button>
+                                                       </div>
+                                                    </x-button>
                                                     <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
                                                     <input type="hidden" name="alumno_id" value="{{ $alumno->id }}">
                                                     <input type="hidden" name="generacion_id" value="{{ $filtrar_generacion }}">
@@ -290,6 +315,19 @@ x-data ="{
                                 <div class="{{ $barColor }} h-4 rounded-full transition-all duration-500" style="width: {{ $porcentaje }}%"></div>
                             </div>
                         </div>
+
+                   <div class="flex justify-end my-6">
+                         <x-button variant="primary"
+                            wire:loading.attr="disabled"
+                            class="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded"
+                            @click="enviarCalificacionesMasivasAlpine()"
+                            >
+                         <div class="flex items-center gap-2">
+                            <flux:icon.send/>
+                        <span>Enviar a todos</span>
+                           </div>
+                    </x-button>
+                    </div>
                     @endif
                 </div>
             </div>

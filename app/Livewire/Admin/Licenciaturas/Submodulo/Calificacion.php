@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin\Licenciaturas\Submodulo;
 
-
+use App\Mail\CalificacionMail;
 use App\Models\AsignacionMateria;
 use App\Models\AsignarGeneracion;
 use App\Models\Calificacion as ModelsCalificacion;
@@ -71,18 +71,90 @@ class Calificacion extends Component
             'position' => 'top',
         ]);
 
-        $correo = $inscripcion->user->email;
+        $correo = $inscripcion->user->email ?? null;
+        if (empty($correo)) {
+            $this->dispatch('swal', [
+            'icon' => 'error',
+            'title' => 'El alumno no tiene correo registrado',
+            'position' => 'top-end',
+            ]);
+            return;
+        }
+
         // dd($correo);
 
-        Mail::to($correo)->send(new \App\Mail\CalificacionMail($calificaciones, $escuela, $inscripcion, $licenciatura, $generacion, $cuatrimestre, $ciclo_escolar, $periodo));
+        Mail::to("prueba@prueba.com")->queue(new \App\Mail\CalificacionMail($calificaciones, $escuela, $inscripcion, $licenciatura, $generacion, $cuatrimestre, $ciclo_escolar, $periodo));
 
         $this->dispatch('swal', [
             'icon' => 'success',
-            'title' => 'Correo enviado correctamente',
+            'title' => 'Correo encolado correctamente. Se enviará en unos segundos.',
             'position' => 'top-end',
         ]);
 
     }
+
+    // ENVIAR CALIFICACIONES MASIVAS
+    public function enviarCalificacionesMasivas()
+{
+    if (!$this->filtrar_generacion || !$this->filtrar_cuatrimestre) {
+        $this->dispatch('swal', [
+            'icon' => 'warning',
+            'title' => 'Debes seleccionar generación y cuatrimestre.',
+            'position' => 'top-end',
+        ]);
+        return;
+    }
+
+    $alumnos = \App\Models\Inscripcion::with('user')
+        ->where('generacion_id', $this->filtrar_generacion)
+        ->where('licenciatura_id', $this->licenciatura->id)
+        ->get();
+
+    $periodo = Periodo::where('generacion_id', $this->filtrar_generacion)
+        ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
+        ->first();
+
+    $escuela = Escuela::first();
+    $licenciatura = $this->licenciatura;
+    $generacion = Generacion::find($this->filtrar_generacion);
+    $cuatrimestre = Cuatrimestre::find($this->filtrar_cuatrimestre);
+    $ciclo_escolar = \App\Models\Dashboard::latest()->first();
+    $modalidad = $this->modalidad->id;
+
+    foreach ($alumnos as $inscripcion) {
+        $correo = $inscripcion->user->email ?? null;
+
+        if (!$correo) continue; // Saltar si no hay correo
+
+        $calificaciones = ModelsCalificacion::with(['asignacionMateria.materia', 'asignacionMateria.profesor'])
+            ->where('alumno_id', $inscripcion->id)
+            ->whereHas('asignacionMateria', function ($query) use ($modalidad) {
+                $query->where('modalidad_id', $modalidad)
+                      ->where('generacion_id', $this->filtrar_generacion)
+                      ->where('cuatrimestre_id', $this->filtrar_cuatrimestre);
+            })
+            ->get()
+            ->sortBy(function ($item) {
+                return $item->asignacionMateria->materia->clave ?? '';
+            })
+            ->values();
+
+        Mail::to($correo)->queue(new CalificacionMail($calificaciones, $escuela,
+            $inscripcion,
+            $licenciatura,
+            $generacion,
+            $cuatrimestre,
+            $ciclo_escolar,
+            $periodo
+        ));
+    }
+
+    $this->dispatch('swal', [
+        'icon' => 'success',
+        'title' => 'Todos los correos fueron encolados.',
+        'position' => 'top-end',
+    ]);
+}
 
 
     public function mount($modalidad, $licenciatura)

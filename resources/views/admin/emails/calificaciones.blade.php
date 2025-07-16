@@ -1,3 +1,7 @@
+<x-mail::header :url="config('app.url')">
+    Centro Universitario Moctezuma
+</x-mail::header>
+
 <x-mail::message>
 {{-- This is the view for the email sent to students with their grades --}}
 {{-- It includes the student's name, semester, degree, and a table of grades --}}
@@ -8,9 +12,6 @@
 {{-- The email uses Blade templating for dynamic content rendering --}}
 {{-- The email is sent in HTML format for better presentation --}}
 {{-- The email is designed to be responsive and accessible --}}
-
-
-
 
 <x-mail::panel>
 <h1 style="text-align: center; font-size: 24px; color: #333;">CALIFICACIONES DEL {{ $cuatrimestre->cuatrimestre }}° CUATRIMESTRE</h1>
@@ -25,6 +26,8 @@
 
 <p>A continuación, podrá consultar el desglose de las evaluaciones obtenidas durante el periodo académico.</p>
 </x-mail::panel>
+
+
 <table style="margin-top: 50px; border-collapse: collapse; width: 100%; text-align: left; border: 1px solid #000;">
 <thead>
 <tr>
