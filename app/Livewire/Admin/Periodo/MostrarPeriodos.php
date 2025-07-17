@@ -203,7 +203,7 @@ class MostrarPeriodos extends Component
     public function render()
     {
         $cuatrimestres = Cuatrimestre::all();
-        $generaciones = Generacion::all();
+        $generaciones = Generacion::where('activa', 'true')->get();
         $meses = Mes::all();
 
         return view('livewire.admin.periodo.mostrar-periodos',[

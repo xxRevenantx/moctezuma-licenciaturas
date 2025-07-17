@@ -169,6 +169,19 @@
         </table>
 
 
+        {{-- <table>
+            <tr>
+                <td>H</td>
+                <td>M</td>
+                <td>TOTAL</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>20</td>
+                <td>30</td>
+            </tr>
+        </table> --}}
+
 
      <footer>
         <p>{{$escuela->nombre}} C.C.T. {{$escuela->CCT}}. C. {{$escuela->calle}} No. {{$escuela->no_exterior}}, Col. {{$escuela->colonia}}, C.P. {{$escuela->codigo_postal}}, Cd. {{$escuela->ciudad}}, {{$escuela->estado}}.</p>

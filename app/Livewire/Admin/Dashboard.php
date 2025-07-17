@@ -5,7 +5,9 @@ namespace App\Livewire\Admin;
 use App\Models\Dashboard as ModelsDashboard;
 use Livewire\Component;
 use App\Helpers\Flash;
+use App\Models\Generacion;
 use App\Models\Inscripcion;
+use App\Models\Profesor;
 
 class Dashboard extends Component
 {
@@ -39,6 +41,8 @@ class Dashboard extends Component
     public $totalHombresForaneosBaja;
     public $totalMujeresForaneosBaja;
 
+    public $generacionesActivas;
+    public $profesoresActivos;
 
 
 
@@ -69,6 +73,12 @@ class Dashboard extends Component
         $this->periodo_escolar = $dashboard->periodo_escolar ?? '';
 
         $this->licenciaturas = \App\Models\Licenciatura::all() ?? '';
+
+        $this->generacionesActivas = Generacion::where('activa', 'true')->get();
+
+        $this->profesoresActivos = Profesor::whereHas('user', function ($query) {
+            $query->where('status', 'true');
+        })->get();
 
         $this->resumenPorLicenciatura = $this->licenciaturas->map(function ($licenciatura) {
 

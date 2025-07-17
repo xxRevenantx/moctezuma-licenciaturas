@@ -16,11 +16,23 @@
         </div>
     </div>
 
-                            <div class="grid gap-2 md:grid-cols-4">
-                                <div class="relative bg-indigo-200 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 dark:bg-neutral-800">Profesores</div>
-                                <div class="relative bg-white rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 dark:bg-neutral-800">Generaciones</div>
-                                <div class="relative bg-white rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 dark:bg-neutral-800">3</div>
-                                <div class="relative bg-white rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 dark:bg-neutral-800">4</div>
+                            <div class="grid gap-2 md:grid-cols-2">
+                                <div class="relative bg-white rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 dark:bg-neutral-800">
+
+                                    <div class="flex items-center justify-start">
+                                        <flux:icon.user />
+                                            <span> Profesores Activos:  <flux:badge color="indigo">{{ count($profesoresActivos) }}</flux:badge></span>
+                                    </div>
+
+
+                                </div>
+                                <div class="relative bg-white rounded-xl border border-neutral-200 dark:border-neutral-700 p-5 dark:bg-neutral-800">Generaciones Activas:
+                                    @foreach ($generacionesActivas as $generaciones )
+
+                                            <flux:badge color="green"> {{ $generaciones->generacion }}</flux:badge>
+                                    @endforeach
+
+                                </div>
 
                             </div>
 
@@ -269,12 +281,16 @@
 
                    {{-- Puedes usar otro <x-placeholder-pattern /> o una gráfica --}}
 
-                <div class="grid auto-rows-min gap-4">
-                <div class="bg-white rounded-xl p-6 shadow border dark:bg-neutral-800 dark:border-neutral-700 mt-6">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Comparativa por Licenciatura (Locales y Foráneos)</h2>
-                        <canvas id="graficaAlumnos"></canvas>
-                </div>
-              </div>
+                <<div
+                x-data
+                x-init="$nextTick(() => renderGraficaAlumnos())"
+                class="bg-white rounded-xl p-6 shadow border dark:bg-neutral-800 dark:border-neutral-700 mt-6"
+            >
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
+                    Comparativa por Licenciatura (Locales y Foráneos)
+                </h2>
+                <canvas id="graficaAlumnos"></canvas>
+            </div>
 
 
 
@@ -282,87 +298,55 @@
     {{-- Toast Message --}}
     @include('components.toast-message')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-    const labels = @json($licenciaturas->pluck('nombre'));
 
-    const dataHombresLocales = @json(collect($resumenPorLicenciatura)->pluck('hombres'));
-    const dataMujeresLocales = @json(collect($resumenPorLicenciatura)->pluck('mujeres'));
 
-    const dataHombresBajasLocales = @json(collect($resumenPorLicenciaturaBaja)->pluck('hombres'));
-    const dataMujeresBajasLocales = @json(collect($resumenPorLicenciaturaBaja)->pluck('mujeres'));
+  <script>
+    function renderGraficaAlumnos() {
+        const ctx = document.getElementById('graficaAlumnos');
+        if (!ctx) return;
 
-    const dataHombresForaneos = @json(collect($resumenPorLicenciaturaForaneo)->pluck('hombres'));
-    const dataMujeresForaneos = @json(collect($resumenPorLicenciaturaForaneo)->pluck('mujeres'));
+        // Si ya existe una gráfica previa, destrúyela
+        if (window.graficaAlumnosInstance) {
+            window.graficaAlumnosInstance.destroy();
+        }
 
-    const dataHombresBajasForaneos = @json(collect($resumenPorLicenciaturaBajaForaneo)->pluck('hombres'));
-    const dataMujeresBajasForaneos = @json(collect($resumenPorLicenciaturaBajaForaneo)->pluck('mujeres'));
+        const labels = @js($licenciaturas->pluck('nombre'));
+        const dataHombresLocales = @js(collect($resumenPorLicenciatura)->pluck('hombres'));
+        const dataMujeresLocales = @js(collect($resumenPorLicenciatura)->pluck('mujeres'));
+        const dataHombresBajasLocales = @js(collect($resumenPorLicenciaturaBaja)->pluck('hombres'));
+        const dataMujeresBajasLocales = @js(collect($resumenPorLicenciaturaBaja)->pluck('mujeres'));
+        const dataHombresForaneos = @js(collect($resumenPorLicenciaturaForaneo)->pluck('hombres'));
+        const dataMujeresForaneos = @js(collect($resumenPorLicenciaturaForaneo)->pluck('mujeres'));
+        const dataHombresBajasForaneos = @js(collect($resumenPorLicenciaturaBajaForaneo)->pluck('hombres'));
+        const dataMujeresBajasForaneos = @js(collect($resumenPorLicenciaturaBajaForaneo)->pluck('mujeres'));
 
-    const ctx = document.getElementById('graficaAlumnos').getContext('2d');
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Locales Activos Hombres',
-                    data: dataHombresLocales,
-                    backgroundColor: '#3B82F6'
-                },
-                {
-                    label: 'Locales Activos Mujeres',
-                    data: dataMujeresLocales,
-                    backgroundColor: '#60A5FA'
-                },
-                {
-                    label: 'Locales Bajas Hombres',
-                    data: dataHombresBajasLocales,
-                    backgroundColor: '#F87171'
-                },
-                {
-                    label: 'Locales Bajas Mujeres',
-                    data: dataMujeresBajasLocales,
-                    backgroundColor: '#FCA5A5'
-                },
-                {
-                    label: 'Foráneos Activos Hombres',
-                    data: dataHombresForaneos,
-                    backgroundColor: '#10B981'
-                },
-                {
-                    label: 'Foráneos Activos Mujeres',
-                    data: dataMujeresForaneos,
-                    backgroundColor: '#6EE7B7'
-                },
-                {
-                    label: 'Foráneos Bajas Hombres',
-                    data: dataHombresBajasForaneos,
-                    backgroundColor: '#F59E0B'
-                },
-                {
-                    label: 'Foráneos Bajas Mujeres',
-                    data: dataMujeresBajasForaneos,
-                    backgroundColor: '#FCD34D'
-                },
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    stacked: true,
-                    ticks: {
-                        autoSkip: false
-                    }
-                },
-                y: {
-                    stacked: true,
-                    beginAtZero: true
+        window.graficaAlumnosInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Locales Activos Hombres', data: dataHombresLocales, backgroundColor: '#3B82F6' },
+                    { label: 'Locales Activos Mujeres', data: dataMujeresLocales, backgroundColor: '#60A5FA' },
+                    { label: 'Locales Bajas Hombres', data: dataHombresBajasLocales, backgroundColor: '#F87171' },
+                    { label: 'Locales Bajas Mujeres', data: dataMujeresBajasLocales, backgroundColor: '#FCA5A5' },
+                    { label: 'Foráneos Activos Hombres', data: dataHombresForaneos, backgroundColor: '#10B981' },
+                    { label: 'Foráneos Activos Mujeres', data: dataMujeresForaneos, backgroundColor: '#6EE7B7' },
+                    { label: 'Foráneos Bajas Hombres', data: dataHombresBajasForaneos, backgroundColor: '#F59E0B' },
+                    { label: 'Foráneos Bajas Mujeres', data: dataMujeresBajasForaneos, backgroundColor: '#FCD34D' },
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true }
                 }
             }
-        }
-    });
+        });
+    }
 </script>
+
+
 
 
 </div>
