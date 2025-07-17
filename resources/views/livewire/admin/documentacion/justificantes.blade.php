@@ -1,4 +1,21 @@
-<div>
+ <div x-data="{
+        destroyJustificante(id, nombre) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `El justificante se eliminará de forma permanente`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Sí, eliminar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('eliminarJustificante', id);
+                }
+            });
+        },
+    }">
 
      <form wire:submit.prevent="crearJustificante" class="mb-4">
              <div class="grid  md:grid-cols-5 gap-3 items-center " >
@@ -88,12 +105,70 @@
     @endif
 
 
-    <table>
-        <thead>
-            <th>Alumno</th>
-            <th></th>
-        </thead>
-    </table>
+    @if(isset($justificantes) && count($justificantes) > 0)
+        <div class="mt-8">
+            <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow overflow-hidden">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Alumno</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fechas Justificación</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Justificación</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fecha Expedición</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @foreach($justificantes as $justificante)
+                        <tr>
+                            <td class="px-4 py-2 text-gray-900">
+                                {{ $justificante->alumno->apellido_paterno ?? '' }} {{ $justificante->alumno->apellido_materno ?? '' }} {{ $justificante->alumno->nombre ?? '' }}
+                            </td>
+                            <td class="px-4 py-2 text-gray-900">
+                                @php
+                                $fechas = explode(',', $justificante->fechas_justificacion);
+                            @endphp
+
+                            @foreach ($fechas as $fecha)
+                                <flux:badge color="indigo" class="mr-2 mb-2">
+                                    {{ \Carbon\Carbon::parse(trim($fecha))->format('d/m/Y') }}
+                                </flux:badge>
+                            @endforeach
+
+
+                            </td>
+                            <td class="px-4 py-2 text-gray-900">{{ $justificante->justificacion }}</td>
+                            <td class="px-4 py-2 text-gray-900">{{ $justificante->fecha_expedicion }}</td>
+                            <td class="px-4 py-2 text-gray-900">
+
+                                  <div class="flex space-x-2 items-center">
+                                    <form action="{{ route('justificantes.download', $justificante->id) }}" method="GET"
+                                   target="_blank">
+                                      <flux:button variant="primary" type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded cursor-pointer">
+                                        <flux:icon.download />
+                                      </flux:button>
+                                  </form>
+
+                                <flux:button variant="primary" @click="Livewire.dispatch('abrirJustificante', { id: {{ $justificante->id }} })"
+                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
+
+                                <flux:button variant="danger"
+                                    @click="destroyJustificante({{ $justificante->id }}, '{{ $justificante->justificacion }}')"
+                                    class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
+                                    Eliminar
+                                </flux:button>
+                                  </div>
+
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @else
+        <div class="mt-8 text-gray-500 text-center">No hay justificantes registrados.</div>
+    @endif
+
+<livewire:admin.documentacion.editar-justificante />
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

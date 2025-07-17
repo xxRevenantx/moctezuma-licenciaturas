@@ -106,6 +106,8 @@
 
                 </div>
      </div>
+
+     <hr class="my-4">
     <div x-data="{ openAccordion: false }" x-cloak class="mb-4">
                 <button
                     @click="openAccordion = !openAccordion"
@@ -122,6 +124,7 @@
 
                 </div>
      </div>
+     <hr class="my-4">
     <div x-data="{ openAccordion: false }" x-cloak class="mb-4">
                 <button
                     @click="openAccordion = !openAccordion"

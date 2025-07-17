@@ -100,5 +100,10 @@ class Inscripcion extends Model
         return $this->hasMany(Constancia::class, 'alumno_id');
     }
 
+    public function justificantes()
+    {
+        return $this->hasMany(Justificante::class, 'alumno_id');
+    }
+
 
 }
