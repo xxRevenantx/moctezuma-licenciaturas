@@ -26,7 +26,7 @@ class Calificacion extends Model
 
     public function alumno()
     {
-        return $this->belongsTo(Inscripcion::class, 'id');
+        return $this->belongsTo(Inscripcion::class, 'alumno_id');
     }
 
     public function asignacionMateria()

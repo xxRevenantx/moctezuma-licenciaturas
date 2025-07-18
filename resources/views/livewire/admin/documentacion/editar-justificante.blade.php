@@ -109,7 +109,7 @@
                                                 />
                                                 <flux:radio
                                                     name="justificacion"
-                                                    value="otro"
+                                                    value="Otro"
                                                     label="Otro"
                                                 />
                                             </flux:radio.group>

@@ -50,7 +50,7 @@
                 />
                 <flux:radio
                     name="justificacion"
-                    value="otro"
+                    value="Otro"
                     label="Otro"
                 />
             </flux:radio.group>
@@ -104,60 +104,64 @@
         </div>
     @endif
 
+    @if (count($justificantes) > 0)
+        <div class="mb-4">
+                <input
+                    type="text"
+                    wire:model.live="busqueda_justificante"
+                    placeholder="Buscar alumno..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+                />
+    </div>
+    @endif
 
     @if(isset($justificantes) && count($justificantes) > 0)
+
+
         <div class="mt-8">
-            <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow overflow-hidden">
-                <thead class="bg-gray-100">
+            <table class="min-w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow overflow-hidden ">
+                <thead class="bg-gray-100 dark:bg-gray-800">
                     <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Alumno</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fechas Justificación</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Justificación</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fecha Expedición</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Acciones</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">Alumno</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">Fechas Justificación</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">Justificación</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">Fecha Expedición</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @foreach($justificantes as $justificante)
                         <tr>
-                            <td class="px-4 py-2 text-gray-900">
+                            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">
                                 {{ $justificante->alumno->apellido_paterno ?? '' }} {{ $justificante->alumno->apellido_materno ?? '' }} {{ $justificante->alumno->nombre ?? '' }}
                             </td>
-                            <td class="px-4 py-2 text-gray-900">
+                            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">
                                 @php
-                                $fechas = explode(',', $justificante->fechas_justificacion);
-                            @endphp
-
-                            @foreach ($fechas as $fecha)
-                                <flux:badge color="indigo" class="mr-2 mb-2">
-                                    {{ \Carbon\Carbon::parse(trim($fecha))->format('d/m/Y') }}
-                                </flux:badge>
-                            @endforeach
-
-
+                                    $fechas = explode(',', $justificante->fechas_justificacion);
+                                @endphp
+                                @foreach ($fechas as $fecha)
+                                    <flux:badge color="indigo" class="mr-2 mb-2">
+                                        {{ \Carbon\Carbon::parse(trim($fecha))->format('d/m/Y') }}
+                                    </flux:badge>
+                                @endforeach
                             </td>
-                            <td class="px-4 py-2 text-gray-900">{{ $justificante->justificacion }}</td>
-                            <td class="px-4 py-2 text-gray-900">{{ $justificante->fecha_expedicion }}</td>
-                            <td class="px-4 py-2 text-gray-900">
-
-                                  <div class="flex space-x-2 items-center">
-                                    <form action="{{ route('justificantes.download', $justificante->id) }}" method="GET"
-                                   target="_blank">
-                                      <flux:button variant="primary" type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded cursor-pointer">
-                                        <flux:icon.download />
-                                      </flux:button>
-                                  </form>
-
-                                <flux:button variant="primary" @click="Livewire.dispatch('abrirJustificante', { id: {{ $justificante->id }} })"
-                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
-
-                                <flux:button variant="danger"
-                                    @click="destroyJustificante({{ $justificante->id }}, '{{ $justificante->justificacion }}')"
-                                    class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
-                                    Eliminar
-                                </flux:button>
-                                  </div>
-
+                            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">{{ $justificante->justificacion }}</td>
+                            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">  {{ \Carbon\Carbon::parse(trim($justificante->fecha_expedicion))->format('d/m/Y') }}</td>
+                            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">
+                                <div class="flex space-x-2 items-center">
+                                    <form action="{{ route('admin.pdf.documentacion.justificantes', $justificante->id) }}" method="GET" target="_blank">
+                                        <flux:button variant="primary" type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded cursor-pointer">
+                                            <flux:icon.download />
+                                        </flux:button>
+                                    </form>
+                                    <flux:button variant="primary" @click="Livewire.dispatch('abrirJustificante', { id: {{ $justificante->id }} })"
+                                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
+                                    <flux:button variant="danger"
+                                        @click="destroyJustificante({{ $justificante->id }}, '{{ $justificante->justificacion }}')"
+                                        class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
+                                        Eliminar
+                                    </flux:button>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

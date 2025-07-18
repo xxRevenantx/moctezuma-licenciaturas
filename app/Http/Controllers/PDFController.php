@@ -14,6 +14,7 @@ use App\Models\Escuela;
 use App\Models\Generacion;
 use App\Models\Horario;
 use App\Models\Inscripcion;
+use App\Models\Justificante;
 use App\Models\Licenciatura;
 use App\Models\Materia;
 use App\Models\Modalidad;
@@ -836,53 +837,157 @@ public function credencial_profesor_estudiante(Request $request)
     // CALIFICACION DEL ALUMNO
     public function calificacion_alumno(Request $request)
     {
-        $alumno = $request->alumno_id;
-        $modalidad = $request->modalidad_id;
-        $generacion = $request->generacion_id;
-        $cuatrimestre = $request->cuatrimestre_id;
+                $alumno = $request->alumno_id;
+                $modalidad = $request->modalidad_id;
+                $generacion = $request->generacion_id;
+                $cuatrimestre = $request->cuatrimestre_id;
 
-      $periodo = Periodo::where('generacion_id', $generacion)
-         ->where('cuatrimestre_id',$cuatrimestre)
-         ->first();
+            $periodo = Periodo::where('generacion_id', $generacion)
+                ->where('cuatrimestre_id',$cuatrimestre)
+                ->first();
 
 
-        $calificaciones = Calificacion::with(['asignacionMateria.materia', 'asignacionMateria.profesor'])
-            ->where('alumno_id', $alumno)
-            ->whereHas('asignacionMateria', function ($query) use ($modalidad, $generacion, $cuatrimestre) {
-            $query->where('modalidad_id', $modalidad)
-                  ->where('generacion_id', $generacion)
-                  ->where('cuatrimestre_id', $cuatrimestre);
-            })
-            ->get()
-            ->sortBy(function ($item) {
-            return $item->asignacionMateria->materia->clave ?? '';
-            })
-            ->values();
+                $calificaciones = Calificacion::with(['asignacionMateria.materia', 'asignacionMateria.profesor'])
+                    ->where('alumno_id', $alumno)
+                    ->whereHas('asignacionMateria', function ($query) use ($modalidad, $generacion, $cuatrimestre) {
+                    $query->where('modalidad_id', $modalidad)
+                        ->where('generacion_id', $generacion)
+                        ->where('cuatrimestre_id', $cuatrimestre);
+                    })
+                    ->get()
+                    ->sortBy(function ($item) {
+                    return $item->asignacionMateria->materia->clave ?? '';
+                    })
+                    ->values();
 
-        $escuela = Escuela::all()->first();
-        $inscripcion = Inscripcion::where('id', $alumno)->first();
-        $licenciatura = Licenciatura::where('id', $inscripcion->licenciatura_id)->first();
-        $profesor = Profesor::where('id', $inscripcion->profesor_id)->first();
-        $generacion = Generacion::where('id', $generacion)->first();
-        $cuatrimestre = Cuatrimestre::where('id', $cuatrimestre)->first();
+                $escuela = Escuela::all()->first();
+                $inscripcion = Inscripcion::where('id', $alumno)->first();
+                $licenciatura = Licenciatura::where('id', $inscripcion->licenciatura_id)->first();
+                $profesor = Profesor::where('id', $inscripcion->profesor_id)->first();
+                $generacion = Generacion::where('id', $generacion)->first();
+                $cuatrimestre = Cuatrimestre::where('id', $cuatrimestre)->first();
 
-        $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+                $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+
+            $data = [
+                'cuatrimestre' => $cuatrimestre,
+                'calificaciones' => $calificaciones,
+                'ciclo_escolar' => $ciclo_escolar,
+                'escuela' => $escuela,
+                'licenciatura' => $licenciatura,
+                'generacion' => $generacion,
+                'periodo' => $periodo,
+                'inscripcion' => $inscripcion
+            ];
+            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.boletaCalificacionPDF', $data)
+                    ->setPaper('letter', 'portrait') ;
+            return $pdf->stream("BOLETA_DEL_".$cuatrimestre->cuatrimestre."°_CUATRIMESTRE_ALUMNO:".$inscripcion->nombre." ".$inscripcion->apellido_paterno." ".$inscripcion->apellido_materno.".pdf");
+
+    }
+
+    // CALIFICACIONES GENERALES
+    public function calificaciones_generales(Request $request)
+    {           $licenciatura = $request->licenciatura_id;
+                $modalidad = $request->modalidad_id;
+                $generacion = $request->generacion_id;
+                $cuatrimestre = $request->cuatrimestre_id;
+
+
+            $periodo = Periodo::where('generacion_id', $generacion)
+                ->where('cuatrimestre_id',$cuatrimestre)
+                ->first();
+
+                $escuela = Escuela::all()->first();
+                $licenciatura = Licenciatura::where('id', $licenciatura)->first();
+                $generacion = Generacion::where('id', $generacion)->first();
+                $cuatrimestres = Cuatrimestre::where('id', $cuatrimestre)->first();
+                $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+
+
+                    // Obtenemos todas las calificaciones de los alumnos de esa generación/modalidad/cuatrimestre
+            $calificaciones = Calificacion::with(['alumno', 'asignacionMateria'])
+                ->where('licenciatura_id', $licenciatura->id)
+                ->where('modalidad_id', $modalidad)
+                ->where('generacion_id', $generacion->id)
+                ->where('cuatrimestre_id', $cuatrimestres->id)
+                ->get();
+
+                $totalMaterias = $calificaciones->pluck('asignacionMateria.materia.clave')
+                ->unique()
+                ->count();
+
+                // dd($calificaciones);
+
+            // Agrupar por alumno y materias
+                 $alumnos = $calificaciones->groupBy('alumno_id')->map(function ($items, $alumnoId) {
+                $alumno = $items->first()->alumno;
+
+
+
+                $nombre = $alumno->nombre ?? '';
+                $paterno = $alumno->apellido_paterno ?? '';
+                $materno = $alumno->apellido_materno ?? '';
+                $matricula = $alumno->matricula;
+
+                $materias = $items->sortBy(function ($item) {
+                return $item->asignacionMateria->materia->clave ?? '';
+            })->mapWithKeys(function ($item) {
+                $materia = $item->asignacionMateria->materia;
+                return [$materia->clave => [
+                    'nombre' => $materia->nombre,
+                    'calificacion' => (int) $item->calificacion
+                ]];
+            });
+
+            $promedio = collect($materias)->pluck('calificacion')->avg();
+
+                return [
+                    'matricula' => $matricula,
+                    'nombre' => $nombre,
+                    'apellido_paterno' => $paterno,
+                    'apellido_materno' => $materno,
+                    'materias' => $materias,
+                    'promedio' => $promedio,
+                ];
+            })->sortBy('apellido_paterno')->values();
+
+
+
+            $data = [
+                'cuatrimestres' => $cuatrimestre,
+                'ciclo_escolar' => $ciclo_escolar,
+                'escuela' => $escuela,
+                'licenciatura' => $licenciatura,
+                'generacion' => $generacion,
+                'periodo' => $periodo,
+                'alumnos' => $alumnos,
+                 'totalMaterias' => $totalMaterias,
+            ];
+            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.calificacionesGeneralesPDF', $data)
+                    ->setPaper('letter', 'landscape') ;
+            return $pdf->stream("CALIFICACIONES_GENERALES_" . strtoupper($licenciatura->nombre) . "_" . strtoupper($generacion->generacion) . "_" . strtoupper($cuatrimestres->cuatrimestre) . "°_CUATRIMESTRE.pdf");
+
+    }
+
+
+    // JUSTIFICANTE
+
+    public function justificante($justificante){
+
+        $justificantes = Justificante::findOrFail($justificante);
+
 
        $data = [
-        'cuatrimestre' => $cuatrimestre,
-        'calificaciones' => $calificaciones,
-        'ciclo_escolar' => $ciclo_escolar,
-        'escuela' => $escuela,
-        'licenciatura' => $licenciatura,
-        'generacion' => $generacion,
-        'periodo' => $periodo,
-        'inscripcion' => $inscripcion
+        'justificantes' => $justificantes,
     ];
-    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.boletaCalificacionPDF', $data)
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.justificantePDF', $data)
               ->setPaper('letter', 'portrait') ;
-    return $pdf->stream("BOLETA_DEL_".$cuatrimestre->cuatrimestre."°_CUATRIMESTRE_ALUMNO:".$inscripcion->nombre." ".$inscripcion->apellido_paterno." ".$inscripcion->apellido_materno.".pdf");
+    return $pdf->stream("JUSTIFICANTE_".$justificantes->alumno->nombre."_".$justificantes->alumno->apellido_paterno."_".$justificantes->alumno->apellido_materno.".pdf");
 
 
 
     }
+
+
+
 }

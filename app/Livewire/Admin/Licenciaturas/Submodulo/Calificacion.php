@@ -363,7 +363,9 @@ public function render()
             ->where('licenciatura_id', $this->licenciatura->id)
             ->where('modalidad_id', $this->modalidad->id)
             ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
-            ->whereHas('materia')
+            ->whereHas('materia', function ($query) {
+                $query->where('calificable', "true");
+            })
             ->get()
             ->sortBy(fn($asignacion) => optional($asignacion->materia)->clave)
             ->values();

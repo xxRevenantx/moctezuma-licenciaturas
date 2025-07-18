@@ -100,11 +100,11 @@ x-data ="{
                             @endif
                         </div>
                         <div>
-                            <form method="GET" action="{{ route('admin.pdf.horario-escolarizada') }}" target="_blank">
+                            <form method="GET" action="{{ route('admin.pdf.documentacion.calificaciones_generales') }}" target="_blank">
                                 <input type="hidden" name="licenciatura_id" value="{{ $licenciatura->id }}">
                                 <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
-                                <input type="hidden" name="filtrar_generacion" value="{{ $filtrar_generacion }}">
-                                <input type="hidden" name="filtrar_cuatrimestre" value="{{ $filtrar_cuatrimestre }}">
+                                <input type="hidden" name="generacion_id" value="{{ $filtrar_generacion }}">
+                                <input type="hidden" name="cuatrimestre_id" value="{{ $filtrar_cuatrimestre }}">
 
 
                                 <x-button type="submit" variant="primary" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">

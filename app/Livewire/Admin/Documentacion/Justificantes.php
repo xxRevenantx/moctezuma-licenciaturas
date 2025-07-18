@@ -18,6 +18,9 @@ class Justificantes extends Component
     public $fechas;
     public $fecha_expedicion;
 
+    public $busqueda_justificante = '';
+
+
 
       public function updatedQuery()
     {
@@ -136,9 +139,19 @@ class Justificantes extends Component
 
 
     #[On('refreshJustificantes')]
-    public function render()
-    {
-        $justificantes = \App\Models\Justificante::with('alumno')->get();
-        return view('livewire.admin.documentacion.justificantes', compact('justificantes'));
-    }
+public function render()
+{
+    $justificantes = \App\Models\Justificante::with('alumno')
+        ->when($this->busqueda_justificante, function ($query) {
+            $query->whereHas('alumno', function ($q) {
+                $q->where('nombre', 'like', '%' . $this->busqueda_justificante . '%')
+                  ->orWhere('apellido_paterno', 'like', '%' . $this->busqueda_justificante . '%')
+                  ->orWhere('apellido_materno', 'like', '%' . $this->busqueda_justificante . '%');
+            });
+        })
+        ->get();
+
+    return view('livewire.admin.documentacion.justificantes', compact('justificantes'));
+}
+
 }

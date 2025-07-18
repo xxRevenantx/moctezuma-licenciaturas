@@ -107,6 +107,9 @@ Route::middleware(['auth'])->group(function () {
 
     // CALIFICACIONES DEL ALUMNO
     Route::get('/calificacion-alumno', [PDFController::class, 'calificacion_alumno'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.calificacion_alumno');
+    Route::get('/calificaciones-generales', [PDFController::class, 'calificaciones_generales'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.calificaciones_generales');
+
+    Route::get('/justificantes/{justificante}', [PDFController::class, 'justificante'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.justificantes');
 
 
 

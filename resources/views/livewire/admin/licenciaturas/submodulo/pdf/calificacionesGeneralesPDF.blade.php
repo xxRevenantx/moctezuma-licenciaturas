@@ -7,11 +7,11 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <title>BOLETA DEL {{$cuatrimestre->cuatrimestre}}° CUATRIMESTRE </title>
+    <title>CALIFICACIONES GENERALES {{ $cuatrimestres }}° CUATRIMESTRE </title>
 </head>
 <style>
 
-    @page { margin:10px 65px 20px 65px; }
+    @page { margin:10px 55px 20px 55px; }
 
 
      @font-face {
@@ -103,7 +103,7 @@
             color: #4a5568; /* Color similar al de la imagen */
             text-align: center;
             font-size: 24px;
-            margin-top: 50px;
+            margin-top: 20px;
             padding: 5px 0;
             border-top: 2px solid #4a5568;
             border-bottom: 2px solid #4a5568;
@@ -151,8 +151,10 @@
        <div style="text-align: center;">
              <img class="img1" src="{{ public_path('storage/letra2.jpg') }}" alt="Logo" height="100px" width="100">
             <h1 class="titulo">CENTRO UNIVERSITARIO MOCTEZUMA</h1>
-            <h2 style="margin-top: -20px; font-size:23px; color:#4a5568">CICLO ESCOLAR {{ $ciclo_escolar->ciclo_escolar }} </h2>
-           @if(!empty($licenciatura->imagen) && file_exists(public_path('storage/licenciaturas/'.$licenciatura->imagen)))
+            <h2 style="margin-top: -20px; font-size:23px; color:#4a5568">GENERACIÓN {{ $generacion->generacion }} </h2>
+            <h2 style="margin-top: -20px; font-size:23px; color:#4a5568; text-transform:uppercase">LIC. {{ $licenciatura->nombre }} </h2>
+
+            @if(!empty($licenciatura->imagen) && file_exists(public_path('storage/licenciaturas/'.$licenciatura->imagen)))
                 <img class="img2" src="{{ public_path('storage/licenciaturas/'.$licenciatura->imagen) }}" alt="Logo Licenciatura" height="100px" width="100">
 
             @else
@@ -160,77 +162,56 @@
 
 
             @endif
+
         </div>
-        <p style="font-size: 24px" class="subtitulo">BOLETA DE CALIFICACIONES</p>
+        <p style="font-size: 24px" class="subtitulo">CALIFICACIONES DEL {{ $cuatrimestres }}° CUATRIMESTRE</p>
 
-        {{-- <p>GRADO: {{$grade->grado}}° GRUPO: {{ $group != null ? $group->grupo : "TODOS" }} </p> --}}
+                        @php
+                    $primerAlumno = $alumnos->first();
+                @endphp
 
-        <table>
-            <tr style="background: #eeeeee">
-                <td style="padding: 0">{{$licenciatura->nombre}}</td>
-                <td style="padding: 0">{{$escuela->CCT}}</td>
-                <td style="padding: 0">{{$cuatrimestre->cuatrimestre}}° CUATRIMESTRE</td>
-                <td style="padding: 0">{{$periodo->mes->meses_corto}}</td>
-                <td style="padding: 0">{{$periodo->generacion->generacion}}</td>
-            </tr>
-            <tr style="font-size: 10px;">
-                <td style="padding: 0">LICENCIATURA</td>
-                <td style="padding: 0">C.C.T.</td>
-                <td style="padding: 0">CUATRIMESTRE</td>
-                <td style="padding: 0">PERIODO ESC.</td>
-                <td style="padding: 0">GENERACIÓN</td>
-            </tr>
-            <tr>
-                <td colspan="3" style="background: #eeeeee; padding: 0; font-size:12px">{{$escuela->calle}} #{{ $escuela->no_exterior }}. COL.{{ $escuela->colonia }}. CD.{{ $escuela->ciudad }}</td>
-                <td style="padding: 0">{{$escuela->municipio}}</td>
-                <td style="padding: 0">{{$escuela->estado}}</td>
-            </tr>
-            <tr style="font-size: 10px;">
-                <td colspan="3" style="padding: 0">DIRECCIÓN</td>
-                <td style="padding: 0">MUNICIPIO</td>
-                <td style="padding: 0">ESTADO</td>
-            </tr>
+                    <table>
+                    <thead>
+                                <tr>
+                                    <th colspan="5">DATOS DEL ALUMNO</th>
+                                    <th colspan="{{ $totalMaterias+1 }}">MATERIAS</th>
+                                </tr>
+                                <tr>
+                                    <th style="font-size: 11px">#</th>
+                                    <th style="font-size: 11px">MATRÍCULA</th>
+                                    <th style="font-size: 11px">NOMBRE(S)</th>
+                                    <th style="font-size: 11px">APELLIDO PATERNO</th>
+                                    <th style="font-size: 11px">APELLIDO MATERNO</th>
+                                    @if(!empty($primerAlumno['materias']))
+                                        @foreach ($primerAlumno['materias'] as $clave => $info)
+                                            <th style="font-size: 11px">{{ $info['nombre'] }}</th>
+                                        @endforeach
+                                    @else
+                                        <th style="font-size: 11px">NO HAY CALIFICACIONES</th>
+                                    @endif
+                                    <th style="font-size: 11px">Promedio</th>
+                                </tr>
+                            </thead>
+                   <tbody>
+                                @foreach ($alumnos as $index => $alumno)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $alumno['matricula'] }}</td>
+                                        <td>{{ $alumno['nombre'] }}</td>
+                                        <td>{{ $alumno['apellido_paterno'] }}</td>
+                                        <td>{{ $alumno['apellido_materno'] }}</td>
+                                        @foreach ($alumno['materias'] as $info)
+                                            <td style="font-size:15px">{{ $info['calificacion'] }}</td>
+                                        @endforeach
+                                        <td><strong>{{ floor($alumno['promedio'] * 10) / 10 }}</strong></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
 
-            <tr style="background: #eeeeee">
-                <td colspan="2" style="padding: 0; border-right: none;">{{ $inscripcion->apellido_paterno }}</td>
-                <td  style="padding: 0">{{ $inscripcion->apellido_materno }}</td>
-                <td colspan="2" style="padding: 0"> {{$inscripcion->nombre}}</td>
-            </tr>
-            <tr style="font-size: 10px;">
-                <td colspan="2"  style="padding: 0">APELLIDO PATERNO</td>
-                <td  style="padding: 0">APELLIDO MATERNO</td>
-                <td colspan="2" style="padding: 0">NOMBRE(S)</td>
-            </tr>
-        </table>
+                </table>
 
-        <table style="margin-top: 50px; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th>ASIGNATURA</th>
-                    <th>CALIFICACIÓN</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($calificaciones as $calificacion)
 
-                    <tr>
-                        <td>{{ $calificacion->asignacionMateria->materia->nombre }}</td>
-                        <td>{{ $calificacion->calificacion }}</td>
-                    </tr>
-                @endforeach
-                <tr>
-                    <td style="font-weight: bold; font-size:17px; text-align:right">CALIFICACIÓN CUATRIMESTRAL</td>
-                    <td style="font-weight: bold; font-size:17px;" >
-                        @if ($calificaciones->count() > 0)
-                            {{ number_format($calificaciones->sum('calificacion') / $calificaciones->count(), 1) }}
-                        @else
-                            N/A
-                        @endif
-                    </td>
-                </tr>
-            </tbody>
-            </tbody>
-        </table>
+
 
 
      <footer>
