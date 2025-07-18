@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ open: false }">
 
     @php
     function esColorDark($hexColor) {
@@ -68,21 +68,44 @@
         <div class="text-center text-gray-500 mt-10">No hay horarios que coincidan con los filtros seleccionados.</div>
     @else
 
-     <form method="GET" action="{{ route('admin.pdf.horario-escolarizada') }}" target="_blank" class="my-3">
-    <input type="hidden" name="licenciatura_id" value="{{ $filtroLicenciatura }}">
-    <input type="hidden" name="modalidad_id" value="{{ $modalidadId }}">
-    <input type="hidden" name="filtrar_generacion" value="{{ $filtroGeneracion }}">
-    <input type="hidden" name="filtrar_cuatrimestre" value="{{ $filtroCuatrimestre }}">
+                            <form method="GET" action="{{ route('admin.pdf.horario-escolarizada') }}" target="_blank" class="my-3">
+                            <input type="hidden" name="licenciatura_id" value="{{ $filtroLicenciatura }}">
+                            <input type="hidden" name="modalidad_id" value="{{ $modalidadId }}">
+                            <input type="hidden" name="filtrar_generacion" value="{{ $filtroGeneracion }}">
+                            <input type="hidden" name="filtrar_cuatrimestre" value="{{ $filtroCuatrimestre }}">
 
 
 
-    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-        <div class="flex items-center gap-1">
-            <flux:icon.file-text/>
-            <span>Horario PDF</span>
-        </div>
-    </button>
-</form>
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                <div class="flex items-center gap-1">
+                                    <flux:icon.file-text/>
+                                    <span>Horario PDF</span>
+                                </div>
+                            </button>
+                        </form>
+
+  <!-- Botón que activa el modal -->
+                        {{-- <button x-on:click="open = true" class="mb-4 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded">
+                            Ver PDF
+                        </button>
+
+                        <!-- Modal Alpine.js, solo uno, fuera del v-for y NO redefinas x-data aquí -->
+                        <div
+                            x-show="open"
+                            x-transition
+                            class="fixed inset-0 z-50 bg-gray-200 bg-opacity-40 flex justify-center items-center"
+                            style="display: none;"
+                        >
+                            <div class="bg-white rounded p-4 w-full max-w-7xl shadow-lg relative">
+                                <iframe
+                                    src="{{ route('admin.pdf.horario-escolarizada') }}"
+                                    class="w-full h-[800px]"
+                                ></iframe>
+                                <button x-on:click="open = false" class="mt-2 absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-3 py-1">
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div> --}}
 
 
         <table class="table-auto w-full border border-collapse text-sm">
