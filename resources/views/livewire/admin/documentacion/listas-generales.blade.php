@@ -32,7 +32,7 @@
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
     </svg>
-    <span class="text-blue-600 dark:text-blue-400">Cargando...</span>
+    <span class="text-blue-600 dark:text-blue-400"></span>
 </div>
 
 
@@ -41,7 +41,7 @@
 <div  wire:loading.remove wire:target="consultarListas">
 
     @if ($licenciatura_id)
-    <div class="flex items-center p-4 text-sm text-gray-800 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600" role="alert">
+    <div class="flex items-center p-4 text-sm text-gray-800 border border-gray-300 rounded-lg bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600" role="alert">
 
         <div>
             <span class="font-weight uppercase">Licenciatura en {{ $licenciatura_nombre->nombre ?? '' }}</span>
@@ -49,39 +49,82 @@
         </div>
 
          <div class="my-4 flex justify-end">
-        <flux:input icon="magnifying-glass" placeholder="Buscar..."/>
+        <flux:input icon="magnifying-glass" wire:model.live="search" placeholder="Buscar..."/>
     </div>
 
 @endif
 
 
-    <table class="min-w-full divide-y divide-gray-200 mt-6">
-        <thead class="bg-gray-50 dark:bg-gray-700">
-            <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">#</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Nombre</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Matrícula</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Generación</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Modalidad</th>
-            </tr>
-        </thead>
-        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200">
-            @if($alumnos && count($alumnos) > 0)
-                @foreach($alumnos as $index => $alumno)
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ $index + 1 }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ $alumno->nombre }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ $alumno->matricula }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ $alumno->generacion->generacion ?? '-' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ $alumno->modalidad->nombre ?? '-' }}</td>
-                </tr>
+
+
+    @php
+    $alumnosPorCuatrimestre = collect($alumnos)->sortBy('cuatrimestre_id')->groupBy('cuatrimestre_id');
+@endphp
+
+
+    @if($alumnosPorCuatrimestre->count() > 0)
+        @foreach($alumnosPorCuatrimestre as $cuatrimestreId => $grupoAlumnos)
+            <div class="mt-8">
+
+                <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4" role="alert">
+                <p class="font-bold"> {{ $grupoAlumnos->first()->cuatrimestre->nombre ?? $cuatrimestreId }}° Cuatrimestre </p>
+                </div>
+                @php
+                    $porGeneracion = $grupoAlumnos->groupBy('generacion_id');
+                @endphp
+                @foreach($porGeneracion as $generacionId => $alumnosGeneracion)
+                    <div class="mb-6">
+                        <h3 class="text-md font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                            Generación {{ $alumnosGeneracion->first()->generacion->generacion ?? $generacionId }}
+                        </h3>
+                        @php
+                            $porModalidad = $alumnosGeneracion->groupBy('modalidad_id');
+                        @endphp
+                        @foreach($porModalidad as $modalidadId => $alumnosModalidad)
+                            <div class="mb-4">
+                                <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                                    Modalidad: {{ $alumnosModalidad->first()->modalidad->nombre ?? $modalidadId }}
+                                </h4>
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">#</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Nombre</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Apellido Paterno</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Apellido Materno</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Matrícula</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Generación</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Modalidad</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                                        @foreach($alumnosModalidad as $index => $alumno)
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ $index + 1 }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ $alumno->nombre }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ $alumno->apellido_paterno }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ $alumno->apellido_materno }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ $alumno->matricula }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ $alumno->generacion->generacion ?? '-' }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">{{ $alumno->modalidad->nombre ?? '-' }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endforeach
+                    </div>
                 @endforeach
-            @else
+            </div>
+        @endforeach
+    @else
+        <table class="min-w-full divide-y divide-gray-200 mt-6">
+            <tbody>
                 <tr>
-                <td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-300">No hay alumnos para mostrar.</td>
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-300">No hay alumnos para mostrar.</td>
                 </tr>
-            @endif
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    @endif
 </div>
 </div>
