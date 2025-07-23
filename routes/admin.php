@@ -43,10 +43,12 @@ Route::middleware(['auth'])->group(function () {
 
 
     // DOCUMENTACIÓN
-    Route::resource('constancias', ConstanciaController::class)->middleware('can:admin.administracion')->names('admin.constancias');
+    Route::get('/listas-generales', [DocumentacionController::class, 'listasGenerales'])->middleware('can:admin.administracion')->name('admin.listas-generales');
+    Route::get('/constancias', [DocumentacionController::class, 'constancias'])->middleware('can:admin.administracion')->name('admin.constancias');
+    Route::get('/documentacion', [DocumentacionController::class, 'documentacion'])->middleware('can:admin.administracion')->name('admin.documentacion');
 
-    Route::resource('documentacion', DocumentacionController::class)->middleware('can:admin.administracion')->names('admin.documentacion');
 
+    ////////
     Route::resource('usuarios', UserController::class)->middleware('can:admin.usuarios')->names('admin.usuarios');
 
     Route::resource('acciones', AccionController::class)->middleware('can:admin.administracion')->names('admin.acciones');

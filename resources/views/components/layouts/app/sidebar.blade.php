@@ -34,9 +34,9 @@
                 <flux:navlist.group :heading="__('Documentación')" expandable  >
                     <flux:navlist >
 
-                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.acciones.index')" :current="request()->routeIs('admin.acciones.index')" wire:navigate>{{ __('Listas Generales') }}</flux:navlist.item>
-                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.constancias.index')" :current="request()->routeIs('admin.constancias.index')" wire:navigate>{{ __('Constancias') }}</flux:navlist.item>
-                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.documentacion.index')" :current="request()->routeIs('admin.documentacion.index')" wire:navigate>{{ __('Documentos') }}</flux:navlist.item>
+                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.listas-generales')" :current="request()->routeIs('admin.listas-generales')" wire:navigate>{{ __('Listas Generales') }}</flux:navlist.item>
+                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.constancias')" :current="request()->routeIs('admin.constancias')" wire:navigate>{{ __('Constancias') }}</flux:navlist.item>
+                        <flux:navlist.item icon="rectangle-stack" :href="route('admin.documentacion')" :current="request()->routeIs('admin.documentacion')" wire:navigate>{{ __('Documentos') }}</flux:navlist.item>
 
                     </flux:navlist>
 
