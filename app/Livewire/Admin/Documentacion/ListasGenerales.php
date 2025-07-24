@@ -27,12 +27,19 @@ class ListasGenerales extends Component
     ]);
 
     $this->alumnos = Inscripcion::where('licenciatura_id', $this->licenciatura_id)
+        ->where('status', "true")
+        ->whereHas('generacion', function ($query) {
+            $query->where('activa', "true")
+                  ->when($this->search, function ($q) {
+                      $q->where('generacion', 'like', '%' . $this->search . '%');
+                  });
+        })
         ->when($this->search, function ($query) {
             $query->where(function ($q) {
                 $q->where('nombre', 'like', '%' . $this->search . '%')
-            ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
-            ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
-            ->orWhere('matricula', 'like', '%' . $this->search . '%');
+                    ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
+                    ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
+                    ->orWhere('matricula', 'like', '%' . $this->search . '%');
             });
         })
         ->with(['licenciatura', 'generacion', 'modalidad', 'cuatrimestre'])
