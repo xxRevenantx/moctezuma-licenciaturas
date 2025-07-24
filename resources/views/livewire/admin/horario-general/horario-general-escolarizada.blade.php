@@ -54,7 +54,30 @@
             </div>
         </div>
 
-                    <flux:input
+
+
+        <!-- Loader: se muestra cuando está cargando Livewire -->
+    <div wire:loading.flex class="justify-center items-center py-10">
+        <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        <span class="text-blue-600 dark:text-blue-400"></span>
+    </div>
+
+
+
+    @if($horarios->isEmpty())
+       <flux:input
+            label="Buscar por profesor o materia"
+            wire:model.live="busqueda"
+            placeholder="Ej. Matemáticas o Juan Pérez"
+            class="w-full my-3"
+        />
+        <div class="text-center text-gray-500 mt-10">No hay horarios que coincidan con los filtros seleccionados.</div>
+    @else
+
+         <flux:input
             label="Buscar por profesor o materia"
             wire:model.live="busqueda"
             placeholder="Ej. Matemáticas o Juan Pérez"
@@ -62,91 +85,95 @@
         />
 
 
+                            <div x-data="{
+                                                open: false,
+                                                pdfUrl: '',
+                                                licenciatura_id: '{{ $filtroLicenciatura }}',
+                                                modalidad_id: '{{ $modalidadId }}',
+                                                filtrar_generacion: '{{ $filtroGeneracion }}',
+                                                filtrar_cuatrimestre: '{{ $filtroCuatrimestre }}'
+                                            }">
+
+                                            <x-button
+                                                x-on:click="
+                                                    pdfUrl = '{{ route('admin.pdf.horario-escolarizada') }}'
+                                                        + '?licenciatura_id=' + licenciatura_id
+                                                        + '&modalidad_id=' + modalidad_id
+                                                        + '&filtrar_generacion=' + filtrar_generacion
+                                                        + '&filtrar_cuatrimestre=' + filtrar_cuatrimestre;
+                                                    open = true;
+                                                "
+                                                variant="primary"
+                                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-3"
+                                            >
+                                                <div class="flex items-center gap-1">
+                                                    <flux:icon.download />
+                                                    <span>Horario PDF</span>
+                                                </div>
+                                            </x-button>
+
+                                            <div
+                                                x-show="open"
+                                                x-transition
+                                                x-cloak
+                                                class="fixed inset-0 z-50 bg-gray-200 bg-opacity-40 flex justify-center items-center"
+                                                style="display: none;"
+                                            >
+                                                <div class="bg-white rounded p-4 w-full max-w-7xl shadow-lg relative">
+                                                    <iframe
+                                                        :src="pdfUrl"
+                                                        class="w-full h-[800px] rounded"
+                                                    ></iframe>
+                                                    <button x-on:click="open = false" class="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1">
+                                                        Cerrar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
 
 
-    @if($horarios->isEmpty())
-        <div class="text-center text-gray-500 mt-10">No hay horarios que coincidan con los filtros seleccionados.</div>
-    @else
 
-                            <form method="GET" action="{{ route('admin.pdf.horario-escolarizada') }}" target="_blank" class="my-3">
-                            <input type="hidden" name="licenciatura_id" value="{{ $filtroLicenciatura }}">
-                            <input type="hidden" name="modalidad_id" value="{{ $modalidadId }}">
-                            <input type="hidden" name="filtrar_generacion" value="{{ $filtroGeneracion }}">
-                            <input type="hidden" name="filtrar_cuatrimestre" value="{{ $filtroCuatrimestre }}">
-
-
-
-                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                                <div class="flex items-center gap-1">
-                                    <flux:icon.file-text/>
-                                    <span>Horario PDF</span>
-                                </div>
-                            </button>
-                        </form>
-
-  <!-- Botón que activa el modal -->
-                        {{-- <button x-on:click="open = true" class="mb-4 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded">
-                            Ver PDF
-                        </button>
-
-                        <!-- Modal Alpine.js, solo uno, fuera del v-for y NO redefinas x-data aquí -->
-                        <div
-                            x-show="open"
-                            x-transition
-                            class="fixed inset-0 z-50 bg-gray-200 bg-opacity-40 flex justify-center items-center"
-                            style="display: none;"
-                        >
-                            <div class="bg-white rounded p-4 w-full max-w-7xl shadow-lg relative">
-                                <iframe
-                                    src="{{ route('admin.pdf.horario-escolarizada') }}"
-                                    class="w-full h-[800px]"
-                                ></iframe>
-                                <button x-on:click="open = false" class="mt-2 absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-3 py-1">
-                                    Cerrar
-                                </button>
-                            </div>
-                        </div> --}}
-
-
-        <table class="table-auto w-full border border-collapse text-sm">
-            <thead class="bg-gray-100">
+        <div wire:loading.remove>
+    <table class="table-auto w-full border border-collapse text-sm">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="border px-2 py-1">Hora</th>
+                @foreach($columnasUnicas as $col)
+                    <th class="border px-2 py-1">{{ $col['etiqueta'] }}</th>
+                @endforeach
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($horasUnicas as $hora)
                 <tr>
-                    <th class="border px-2 py-1">Hora</th>
-                    @foreach($columnasUnicas as $col)
-                        <th class="border px-2 py-1">{{ $col['etiqueta'] }}</th>
+                    <td class="border px-2 py-1 font-bold">{{ $hora }}</td>
+                    @foreach ($columnasUnicas as $col)
+                        @php
+                            $item = $horarios->first(fn ($h) =>
+                                $h->hora === $hora &&
+                                $h->dia_id === $col['dia_id']
+                            );
+
+                            $materia = optional(optional($item)->asignacionMateria)->materia?->nombre;
+                            $profesorObj = optional(optional($item)->asignacionMateria)->profesor;
+                            $profesor = $profesorObj
+                                ? trim($profesorObj->nombre . ' ' . $profesorObj->apellido_paterno . ' ' . $profesorObj->apellido_materno)
+                                : null;
+                            $color = $profesorObj?->color ?? '#ffffff';
+                            $textColor = esColorDark($color) ? 'white' : 'black';
+                        @endphp
+                        <td class="border px-2 py-1 text-sm" style="background-color: {{ $color }}; color: {{ $textColor }}">
+                            @if ($item)
+                                <div class="text-center">{{ $materia }}</div>
+                                <div class="text-xs italic text-center font-bold">{{ $profesor }}</div>
+                            @endif
+                        </td>
                     @endforeach
                 </tr>
-            </thead>
-            <tbody>
-                @foreach ($horasUnicas as $hora)
-                    <tr>
-                        <td class="border px-2 py-1 font-bold">{{ $hora }}</td>
-                        @foreach ($columnasUnicas as $col)
-                            @php
-                                $item = $horarios->first(fn ($h) =>
-                                    $h->hora === $hora &&
-                                    $h->dia_id === $col['dia_id']
-                                );
-
-                                $materia = optional(optional($item)->asignacionMateria)->materia?->nombre;
-                                $profesorObj = optional(optional($item)->asignacionMateria)->profesor;
-                                $profesor = $profesorObj
-                                    ? trim($profesorObj->nombre . ' ' . $profesorObj->apellido_paterno . ' ' . $profesorObj->apellido_materno)
-                                    : null;
-                                $color = $profesorObj?->color ?? '#ffffff';
-                                $textColor = esColorDark($color) ? 'white' : 'black';
-                            @endphp
-                            <td class="border px-2 py-1 text-sm" style="background-color: {{ $color }}; color: {{ $textColor }}">
-                                @if ($item)
-                                    <div class="text-center">{{ $materia }}</div>
-                                    <div class="text-xs italic text-center font-bold">{{ $profesor }}</div>
-                                @endif
-                            </td>
-                        @endforeach
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+            @endforeach
+        </tbody>
+    </table>
+</div>
     @endif
 </div>
 </div>

@@ -84,8 +84,9 @@ Route::middleware(['auth'])->group(function () {
 
 
     // RUTAS PDF
-                                            //  NO OLVIDAR LOS MIDDLEWAREA
+                                            //  NO OLVIDAR LOS MIDDLEWARE
     Route::get('/matricula', [PDFController::class, 'matricula'])->middleware('can:admin.administracion')->name('admin.pdf.matricula');
+    Route::get('/matricula-generacion', [PDFController::class, 'matricula_generacion'])->middleware('can:admin.administracion')->name('admin.pdf.matricula-generacion');
     Route::get('/horario-semiescolarizada', [PDFController::class, 'horario_semiescolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.horario-semiescolarizada');
     Route::get('/horario-escolarizada', [PDFController::class, 'horario_escolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.horario-escolarizada');
 

@@ -92,9 +92,9 @@
                 </form> --}}
 
                 <!-- Botón que activa el modal -->
-                        <button x-on:click="open = true" class="mb-4 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded">
-                            Ver PDF
-                        </button>
+                        <x-button x-on:click="open = true" variant="primary" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4">
+                            <flux:icon.download />  Ver PDF
+                        </x-button>
 
                         <!-- Modal Alpine.js, solo uno, fuera del v-for y NO redefinas x-data aquí -->
                         <div
@@ -108,14 +108,22 @@
                                     src="{{ route('admin.pdf.horario-general-semiescolarizada') }}"
                                     class="w-full h-[800px]"
                                 ></iframe>
-                                <button x-on:click="open = false" class="mt-2 absolute top-2 right-2 bg-gray-200 hover:bg-gray-300 rounded px-3 py-1">
+                                <button x-on:click="open = false" class="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1">
                                     Cerrar
                                 </button>
                             </div>
                         </div>
 
+<div wire:loading.flex class="justify-center items-center py-10">
+    <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+    </svg>
+    <span class="text-blue-600 dark:text-blue-400">.</span>
+</div>
 
-
+    {{-- Tabla: solo visible cuando no está cargando --}}
+<div wire:loading.remove>
     <table class="table-auto w-full border border-collapse text-sm">
         <thead class="bg-gray-100">
             <tr>
@@ -160,5 +168,6 @@
             @endforeach
         </tbody>
     </table>
+</div>
 @endif
 </div>

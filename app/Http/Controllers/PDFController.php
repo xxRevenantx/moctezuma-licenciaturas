@@ -36,10 +36,15 @@ class PDFController extends Controller
         $query = Inscripcion::where('licenciatura_id', $licenciatura)
             ->where('modalidad_id', $modalidad)
             ->where('status', "true")
-            ->where('generacion_id', $filtrar_generacion);
+            ->where('generacion_id', $filtrar_generacion)
+            ->orderBy('apellido_paterno', 'asc')
+            ->orderBy('apellido_materno', 'asc')
+            ->orderBy('nombre', 'asc');
         if ($filtar_foraneo !== null) {
             $query->where('foraneo', $filtar_foraneo);
         }
+
+
         $matricula = $query->get();
         $generacion = Generacion::where('id', $filtrar_generacion)->first();
         $licenciatura_nombre = Licenciatura::where('id', $licenciatura)->first();
@@ -55,6 +60,39 @@ class PDFController extends Controller
         ];
               $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculaPDF', $data)->setPaper('letter', 'landscape');
              return $pdf->stream("Matricula.pdf");
+    }
+
+    // MATRICULA GENERACION
+    public function matricula_generacion(Request $request)
+    {
+        $licenciatura = $request->licenciatura_id;
+        $generacion = $request->generacion_id;
+
+        // dd($licenciatura, $modalidad, $filtrar_generacion, $filtar_foraneo);
+
+        $matricula = Inscripcion::where('licenciatura_id', $licenciatura)
+            ->where('status', "true")
+            ->where('generacion_id', $generacion)
+            ->orderBy('apellido_paterno', 'asc')
+            ->orderBy('apellido_materno', 'asc')
+            ->orderBy('nombre', 'asc')
+            ->get();
+
+        $generacion = Generacion::where('id', $generacion)->first();
+        $licenciatura_nombre = Licenciatura::where('id', $licenciatura)->first();
+        $escuela = Escuela::all()->first();
+
+        // Aquí puedes agregar la lógica para generar el PDF con los datos recibidos
+        // Por ejemplo, puedes usar una librería como Dompdf o Snappy para generar el PDF
+
+        $data = [
+            'matricula' => $matricula,
+            'generacion' => $generacion,
+            'licenciatura_nombre' => $licenciatura_nombre,
+            'escuela' => $escuela,
+        ];
+              $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculaGeneracionPDF', $data)->setPaper('letter', 'landscape');
+             return $pdf->stream("Matricula_Generacion.pdf");
     }
 
 
