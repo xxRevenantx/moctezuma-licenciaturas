@@ -59,18 +59,48 @@
                    <span> Generación {{ $grupoGeneracion->first()->generacion->generacion ?? $generacionId }}</span>
                     <span style="font-size: 20px"><b>Total: {{ $grupoGeneracion->count() }} alumnos</b></span>
 
-                    <form method="GET" action="{{ route('admin.pdf.matricula-generacion') }}" target="_blank">
-
-                                            <input type="hidden" name="licenciatura_id" value="{{ $licenciatura_id }}">
-                                            <input type="hidden" name="generacion_id" value="{{ $generacionId }}">
-
-                                             <x-button type="submit" variant="primary" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                                                <div class="flex items-center gap-1">
-                                                   <flux:icon.download />
-                                                    <span>Lista General por Generación</span>
-                                                    </div>
+                                        <div x-data="{
+                                            open: false,
+                                            pdfUrl: '',
+                                            licenciatura_id: '{{ $licenciatura_id }}',
+                                            generacion_id: '{{ $generacionId }}',
+                                            }"
+                                            x-on:keydown.escape.window="open = false"
+                                        >
+                                            <x-button
+                                            x-on:click="
+                                                pdfUrl = '{{ route('admin.pdf.matricula-generacion') }}'
+                                                + '?licenciatura_id=' + licenciatura_id
+                                                + '&generacion_id=' + generacion_id;
+                                                open = true;
+                                            "
+                                            variant="primary"
+                                            class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 mb-3"
+                                            >
+                                            <div class="flex items-center gap-1">
+                                                <flux:icon.download />
+                                                <span>Lista General por Generación</span>
+                                            </div>
                                             </x-button>
-                    </form>
+
+                                            <div
+                                            x-show="open"
+                                            x-transition
+                                            x-cloak
+                                            class="fixed inset-0 z-50 bg-gray-200 bg-opacity-40 flex justify-center items-center"
+                                            style="display: none;"
+                                            >
+                                            <div class="bg-white rounded p-4 w-full max-w-7xl shadow-lg relative">
+                                                <iframe
+                                                :src="pdfUrl"
+                                                class="w-full h-[800px] rounded"
+                                                ></iframe>
+                                                <button x-on:click="open = false" class="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1">
+                                                Cerrar
+                                                </button>
+                                            </div>
+                                            </div>
+                                        </div>
 
                 </h3>
                 En esta lista se agrupan los estudiantes (foráneos, locales, semiescolarizados y escolarizados), creando una lista por generación.
@@ -105,21 +135,54 @@
                                         <span style="font-size: 18px"><b>Total: {{ $alumnosModalidad->count() }} alumnos</b></span>
 
 
-                                        <form method="GET" action="{{ route('admin.pdf.matricula') }}" target="_blank">
-
-                                            <input type="hidden" name="licenciatura_id" value="{{ $licenciatura_id }}">
-                                            <input type="hidden" name="modalidad_id" value="{{ $alumnosModalidad->first()->modalidad->id ?? $modalidadId }}">
-                                            <input type="hidden" name="filtrar_generacion" value="{{ $generacionId }}">
-                                            <input type="hidden" name="filtar_foraneo" value="{{ $filtrar_foraneo }}">
-
-
-                                            <x-button type="submit" variant="primary" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                                                <div class="flex items-center gap-1">
-                                                   <flux:icon.download />
-                                                    <span>Lista por Modalidad</span>
-                                                    </div>
+                                        <div x-data="{
+                                            open: false,
+                                            pdfUrl: '',
+                                            licenciatura_id: '{{ $licenciatura_id }}',
+                                            filtrar_generacion: '{{ $generacionId }}',
+                                            modalidad_id: '{{ $alumnosModalidad->first()->modalidad->id ?? $modalidadId }}',
+                                            filtar_foraneo: '{{ $filtrar_foraneo }}',
+                                            }"
+                                            x-on:keydown.escape.window="open = false"
+                                        >
+                                            <x-button
+                                            x-on:click="
+                                                pdfUrl = '{{ route('admin.pdf.matricula') }}'
+                                                + '?licenciatura_id=' + licenciatura_id
+                                                + '&modalidad_id=' + modalidad_id
+                                                + '&filtrar_generacion=' + filtrar_generacion
+                                                + '&filtar_foraneo=' + filtar_foraneo;
+                                                open = true;
+                                            "
+                                            variant="primary"
+                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-3"
+                                            >
+                                            <div class="flex items-center gap-1">
+                                                <flux:icon.download />
+                                                <span>Lista por modalidad</span>
+                                            </div>
                                             </x-button>
-                                        </form>
+
+                                            <div
+                                            x-show="open"
+                                            x-transition
+                                            x-cloak
+                                            class="fixed inset-0 z-50 bg-gray-200 bg-opacity-40 flex justify-center items-center"
+                                            style="display: none;"
+                                            >
+                                            <div class="bg-white rounded p-4 w-full max-w-7xl shadow-lg relative">
+                                                <iframe
+                                                :src="pdfUrl"
+                                                class="w-full h-[800px] rounded"
+                                                ></iframe>
+                                                <button x-on:click="open = false" class="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1">
+                                                Cerrar
+                                                </button>
+                                            </div>
+                                            </div>
+                                        </div>
+
+
 
 
                                     </div>

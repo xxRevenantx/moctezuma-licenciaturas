@@ -181,6 +181,8 @@ public function updatedFiltrarGeneracion()
 
       $this->cuatrimestres = Periodo::where('generacion_id', $this->filtrar_generacion)
             ->get();
+
+
 }
 
 
