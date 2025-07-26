@@ -16,6 +16,7 @@ use App\Http\Controllers\ConstanciaController;
 use App\Http\Controllers\DocumentacionController;
 use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
+use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\HorarioGeneralController;
 use App\Http\Controllers\ListaProfesorController;
 use App\Http\Controllers\MateriaController;
@@ -50,6 +51,10 @@ Route::middleware(['auth'])->group(function () {
 
     ////////
     Route::resource('usuarios', UserController::class)->middleware('can:admin.usuarios')->names('admin.usuarios');
+
+    // Estudiantes
+    Route::get('estudiante', [EstudianteController::class, 'index'])->middleware('can:admin.administracion')->name('admin.estudiante');
+
 
     Route::resource('acciones', AccionController::class)->middleware('can:admin.administracion')->names('admin.acciones');
 

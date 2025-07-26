@@ -25,6 +25,7 @@
             <flux:navlist >
                 <flux:navlist.group :heading="__('Usuarios')" class="grid ">
                     <flux:navlist.item icon="users" :href="route('admin.usuarios.index')" :current="request()->routeIs('admin.usuarios.index')" wire:navigate>{{ __('Usuarios') }}</flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('admin.estudiante')" :current="request()->routeIs('admin.estudiante')" wire:navigate>{{ __('Estudiantes') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
             @endcan

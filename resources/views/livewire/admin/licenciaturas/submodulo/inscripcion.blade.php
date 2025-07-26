@@ -4,7 +4,7 @@
 
 
     <form wire:submit.prevent="guardarEstudiante">
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 mt-5  justify-center  dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5">
+         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 mt-5  justify-center  dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5">
 
         <div class="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5">
             <h1 class="text-2xl font-bold text-center text-neutral-800 dark:text-neutral-200 uppercase pb-4">
