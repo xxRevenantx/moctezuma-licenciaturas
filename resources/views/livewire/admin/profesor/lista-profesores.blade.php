@@ -16,6 +16,8 @@
     />
 
     @if (!empty($profesores))
+
+
     <div wire:loading.delay wire:target="query" class="flex justify-center items-center mt-2">
     <div class="flex items-center space-x-2">
         <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -87,24 +89,19 @@
             {{-- Buscador --}}
             <div class="mb-4">
                 <label for="buscador" class="block font-semibold text-gray-700 mb-1">Buscar materia:</label>
-                <input
-                    id="buscador"
-                    type="text"
-                    wire:model.live="buscador_materia"
-                    placeholder="Filtrar por nombre de materia..."
-                    class="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
-                />
-            </div>
 
-            <div wire:loading.delay wire:target="buscador_materia,selectProfesor,periodo_id" class="flex justify-center items-center h-40">
-    <div class="flex flex-col items-center space-y-2">
-        <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg>
-        <p class="text-sm text-gray-600">Cargando materias...</p>
-    </div>
-</div>
+                <div class="my-4 flex justify-end">
+                    <flux:input icon="magnifying-glass" wire:model.live="buscador_materia" placeholder="Buscar por nombre de materia..."/>
+                </div>
+
+            </div>
+                    <div wire:loading.flex wire:target="buscador_materia,selectProfesor,periodo_id" class="justify-center items-center py-10">
+                <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                <span class="text-blue-600 dark:text-blue-400"></span>
+            </div>
 
 
             <div wire:loading.remove wire:target="buscador_materia,selectProfesor,periodo_id">

@@ -19,7 +19,7 @@
 {{-- {{ $alumnos }} --}}
 
 <div wire:loading.flex wire:target="consultarListas" class="justify-center items-center py-10">
-    <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <svg class="animate-spin h-20 w-20 text-blue-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
     </svg>
@@ -46,7 +46,7 @@
 
          <div class="my-4 flex justify-end">
         <flux:input icon="magnifying-glass" wire:model.live="search" placeholder="Buscar..."/>
-    </div>
+         </div>
 
 @endif
 
@@ -59,48 +59,71 @@
                    <span> Generación {{ $grupoGeneracion->first()->generacion->generacion ?? $generacionId }}</span>
                     <span style="font-size: 20px"><b>Total: {{ $grupoGeneracion->count() }} alumnos</b></span>
 
-                                        <div x-data="{
-                                            open: false,
-                                            pdfUrl: '',
-                                            licenciatura_id: '{{ $licenciatura_id }}',
-                                            generacion_id: '{{ $generacionId }}',
+                                        <div
+                                            x-data="{
+                                                open: false,
+                                                pdfUrl: '',
+                                                isLoading: false,
+                                                licenciatura_id: '{{ $licenciatura_id }}',
+                                                generacion_id: '{{ $generacionId }}',
                                             }"
                                             x-on:keydown.escape.window="open = false"
                                         >
+                                            <!-- BOTÓN -->
                                             <x-button
-                                            x-on:click="
-                                                pdfUrl = '{{ route('admin.pdf.matricula-generacion') }}'
-                                                + '?licenciatura_id=' + licenciatura_id
-                                                + '&generacion_id=' + generacion_id;
-                                                open = true;
-                                            "
-                                            variant="primary"
-                                            class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 mb-3"
+                                                x-on:click="
+                                                    isLoading = true;
+                                                    pdfUrl = '{{ route('admin.pdf.matricula-generacion') }}'
+                                                        + '?licenciatura_id=' + licenciatura_id
+                                                        + '&generacion_id=' + generacion_id
+                                                        + '&t=' + new Date().getTime(); // para evitar caché
+                                                    open = true;
+                                                "
+                                                variant="primary"
+                                                class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 mb-3"
                                             >
-                                            <div class="flex items-center gap-1">
-                                                <flux:icon.download />
-                                                <span>Lista General por Generación</span>
-                                            </div>
+                                                <div class="flex items-center gap-1">
+                                                    <flux:icon.download />
+                                                    <span>Lista General por Generación</span>
+                                                </div>
                                             </x-button>
 
+                                            <!-- MODAL -->
                                             <div
-                                            x-show="open"
-                                            x-transition
-                                            x-cloak
-                                            class="fixed inset-0 z-50 bg-gray-200 bg-opacity-40 flex justify-center items-center"
-                                            style="display: none;"
+                                                x-show="open"
+                                                x-transition
+                                                x-cloak
+                                                class="fixed inset-0 z-50 bg-gray-200 bg-opacity-40 flex justify-center items-center"
+                                                style="display: none;"
                                             >
-                                            <div class="bg-white rounded p-4 w-full max-w-7xl shadow-lg relative">
-                                                <iframe
-                                                :src="pdfUrl"
-                                                class="w-full h-[800px] rounded"
-                                                ></iframe>
-                                                <button x-on:click="open = false" class="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1">
-                                                Cerrar
-                                                </button>
-                                            </div>
+                                                <div class="bg-white rounded p-4 w-full max-w-7xl shadow-lg relative">
+
+                                                    <!-- LOADER -->
+                                                    <div x-show="isLoading" class="absolute inset-0 z-10 flex items-center justify-center bg-white bg-opacity-80">
+                                                        <div class="text-lg font-semibold text-gray-700 animate-pulse">
+                                                            Cargando PDF...
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- IFRAME CON :key -->
+                                                    <iframe
+                                                        :key="pdfUrl"
+                                                        :src="pdfUrl"
+                                                        class="w-full h-[800px] rounded"
+                                                        @load="isLoading = false"
+                                                    ></iframe>
+
+                                                    <!-- BOTÓN CERRAR -->
+                                                    <button
+                                                        x-on:click="open = false"
+                                                        class="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1"
+                                                    >
+                                                        Cerrar
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
+
 
                 </h3>
                 En esta lista se agrupan los estudiantes (foráneos, locales, semiescolarizados y escolarizados), creando una lista por generación.
@@ -136,51 +159,76 @@
 
 
                                         <div x-data="{
-                                            open: false,
-                                            pdfUrl: '',
-                                            licenciatura_id: '{{ $licenciatura_id }}',
-                                            filtrar_generacion: '{{ $generacionId }}',
-                                            modalidad_id: '{{ $alumnosModalidad->first()->modalidad->id ?? $modalidadId }}',
-                                            filtar_foraneo: '{{ $filtrar_foraneo }}',
-                                            }"
-                                            x-on:keydown.escape.window="open = false"
-                                        >
-                                            <x-button
-                                            x-on:click="
-                                                pdfUrl = '{{ route('admin.pdf.matricula') }}'
-                                                + '?licenciatura_id=' + licenciatura_id
-                                                + '&modalidad_id=' + modalidad_id
-                                                + '&filtrar_generacion=' + filtrar_generacion
-                                                + '&filtar_foraneo=' + filtar_foraneo;
-                                                open = true;
-                                            "
-                                            variant="primary"
-                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-3"
+                                                    open: false,
+                                                    pdfUrl: '',
+                                                    isLoading: false,
+                                                    licenciatura_id: '{{ $licenciatura_id }}',
+                                                    filtrar_generacion: '{{ $generacionId }}',
+                                                    modalidad_id: '{{ $alumnosModalidad->first()->modalidad->id ?? $modalidadId }}',
+                                                    filtar_foraneo: '{{ $filtrar_foraneo }}',
+                                                }"
+                                                x-on:keydown.escape.window="open = false"
                                             >
-                                            <div class="flex items-center gap-1">
-                                                <flux:icon.download />
-                                                <span>Lista por modalidad</span>
-                                            </div>
-                                            </x-button>
+                                                <!-- BOTÓN -->
+                                                <x-button
+                                                    x-on:click="
+                                                        isLoading = true;
+                                                        pdfUrl = '{{ route('admin.pdf.matricula') }}'
+                                                            + '?licenciatura_id=' + licenciatura_id
+                                                            + '&modalidad_id=' + modalidad_id
+                                                            + '&filtrar_generacion=' + filtrar_generacion
+                                                            + '&filtar_foraneo=' + filtar_foraneo
+                                                            + '&t=' + new Date().getTime();
+                                                        open = true;
+                                                    "
+                                                    variant="primary"
+                                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-3"
+                                                >
+                                                    <div class="flex items-center gap-1">
+                                                        <flux:icon.download />
+                                                        <span>Lista por modalidad</span>
+                                                    </div>
+                                                </x-button>
 
-                                            <div
-                                            x-show="open"
-                                            x-transition
-                                            x-cloak
-                                            class="fixed inset-0 z-50 bg-gray-200 bg-opacity-40 flex justify-center items-center"
-                                            style="display: none;"
-                                            >
-                                            <div class="bg-white rounded p-4 w-full max-w-7xl shadow-lg relative">
-                                                <iframe
-                                                :src="pdfUrl"
-                                                class="w-full h-[800px] rounded"
-                                                ></iframe>
-                                                <button x-on:click="open = false" class="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1">
-                                                Cerrar
-                                                </button>
+                                                <!-- MODAL -->
+                                                <div
+                                                    x-show="open"
+                                                    x-transition
+                                                    x-cloak
+                                                    class="fixed inset-0 z-50 bg-gray-200 bg-opacity-40 flex justify-center items-center"
+                                                    style="display: none;"
+                                                >
+                                                    <div class="bg-white rounded p-4 w-full max-w-7xl shadow-lg relative">
+
+                                                        <!-- LOADER -->
+                                                        <div
+                                                            x-show="isLoading"
+                                                            class="absolute inset-0 bg-white bg-opacity-80 z-10 flex items-center justify-center"
+                                                        >
+                                                            <div class="text-lg font-semibold text-gray-700 animate-pulse">
+                                                                Cargando PDF...
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- IFRAME -->
+                                                        <iframe
+                                                            :key="pdfUrl"
+                                                            :src="pdfUrl"
+                                                            class="w-full h-[800px] rounded"
+                                                            @load="isLoading = false"
+                                                        ></iframe>
+
+                                                        <!-- BOTÓN CERRAR -->
+                                                        <button
+                                                            x-on:click="open = false"
+                                                            class="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1"
+                                                        >
+                                                            Cerrar
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            </div>
-                                        </div>
+
 
 
 

@@ -176,14 +176,13 @@ public function updatedFiltrarGeneracion()
 {
     $this->limpiarSeleccionados();
     $this->resetPage();
-
     $this->contarHombreMujeres();
 
-      $this->cuatrimestres = Periodo::where('generacion_id', $this->filtrar_generacion)
-            ->get();
+    $this->cuatrimestres = Periodo::where('generacion_id', $this->filtrar_generacion)->get();
 
-
+   $this->dispatch('cerrarModalPdf');
 }
+
 
 
 
@@ -221,13 +220,16 @@ public function cambiarCuatrimestreSeleccionados($id){
 }
 
    // LIMPIAR FILTROS
-   public function limpiarFiltros()
-    {
-        $this->search = '';
-        $this->filtrar_generacion = null;
-        $this->filtrar_foraneo = null;
-       $this->limpiarSeleccionados();
-    }
+ public function limpiarFiltros()
+{
+    $this->search = '';
+    $this->filtrar_generacion = null;
+    $this->filtrar_foraneo = null;
+    $this->limpiarSeleccionados();
+
+   $this->dispatch('cerrarModalPdf');
+}
+
 
 
 

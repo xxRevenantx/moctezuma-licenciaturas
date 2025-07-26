@@ -82,14 +82,15 @@
         <h3 class="mt-5 px-2">Buscar Estudiante:</h3>
         <flux:input type="text" wire:model.live="search" placeholder="Buscar Estudiante (Nombre, Apellido Paterno, Apellido Materno, CURP)" class="p-2 mb-4 w-full" />
 
-                <div wire:loading.delay
-                wire:target="search, filtrar_generacion, filtrar_foraneo"
-                       class="flex justify-center">
-                    <svg class="animate-spin h-20 w-20 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                    </svg>
-                 </div>
+
+
+                  <div wire:loading.flex wire:target="search, filtrar_generacion, filtrar_foraneo" class="justify-center items-center py-10">
+                <svg class="animate-spin h-20 w-20 text-blue-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                <span class="text-blue-600 dark:text-blue-400"></span>
+            </div>
 
             <div wire:loading.remove
                  wire:target="search, filtrar_generacion, filtrar_foraneo">
@@ -100,52 +101,19 @@
 
 
 
-                                        <div x-data="{
-                                            open: false,
-                                            pdfUrl: '',
-                                            licenciatura_id: '{{ $licenciatura->id }}',
-                                            modalidad_id: '{{ $modalidad->id }}',
-                                            filtrar_generacion: '{{ $filtrar_generacion }}',
-                                            filtar_foraneo: '{{ $filtrar_foraneo }}',
-                                            }"
-                                            x-on:keydown.escape.window="open = false"
-                                        >
-                                            <x-button
-                                            x-on:click="
-                                                pdfUrl = '{{ route('admin.pdf.matricula') }}'
-                                                + '?licenciatura_id=' + licenciatura_id
-                                                + '&modalidad_id=' + modalidad_id
-                                                + '&filtrar_generacion=' + filtrar_generacion
-                                                + '&filtar_foraneo=' + filtar_foraneo;
-                                                open = true;
-                                            "
-                                            variant="primary"
-                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-3"
-                                            >
-                                            <div class="flex items-center gap-1">
-                                                <flux:icon.download />
-                                                <span>Lista PDF</span>
-                                            </div>
-                                            </x-button>
-
-                                            <div
-                                            x-show="open"
-                                            x-transition
-                                            x-cloak
-                                            class="fixed inset-0 z-50 bg-gray-200 bg-opacity-40 flex justify-center items-center"
-                                            style="display: none;"
-                                            >
-                                            <div class="bg-white rounded p-4 w-full max-w-7xl shadow-lg relative">
-                                                <iframe
-                                                :src="pdfUrl"
-                                                class="w-full h-[800px] rounded"
-                                                ></iframe>
-                                                <button x-on:click="open = false" class="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1">
-                                                Cerrar
-                                                </button>
-                                            </div>
-                                            </div>
-                                        </div>
+                                    <form method="get" action="{{ route('admin.pdf.matricula') }}" target="_blank" class="inline-block">
+                                        @csrf
+                                        <input type="hidden" name="licenciatura_id" value="{{ $licenciatura->id }}">
+                                        <input type="hidden" name="modalidad_id" value="{{ $modalidad->id }}">
+                                        <input type="hidden" name="filtrar_generacion" value="{{ $filtrar_generacion }}">
+                                        <input type="hidden" name="filtrar_foraneo" value="{{ $filtrar_foraneo }}">
+                                        <x-button type="submit" variant="primary" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 flex items-center gap-1">
+                                                <div class="flex items-center gap-1">
+                                                    <flux:icon.download />
+                                                    <span>Exportar a PDF</span>
+                                                </div>
+                                        </x-button>
+                                    </form>
 
 
 

@@ -40,7 +40,8 @@ class ListasGenerales extends Component
                     ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
                     ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
                     ->orWhere('matricula', 'like', '%' . $this->search . '%')
-                    ->orWhereRaw("CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno, ') LIKE ?", ['%' . $this->search . '%']);
+                    ->orWhereRaw("CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno) LIKE ?", ['%' . $this->search . '%']);
+
             });
         })
         ->with(['licenciatura', 'generacion', 'modalidad', 'cuatrimestre'])
