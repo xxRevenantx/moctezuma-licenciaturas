@@ -60,12 +60,34 @@
 
    @if ($selectedAlumno)
 
-{{ $selectedAlumno["fecha_nacimiento"] ?? '---' }}
+   <div class="flex justify-between items-center my-4">
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Detalles del Alumno(a): {{ $selectedAlumno['nombre'] ?? '---' }} {{ $selectedAlumno['apellido_paterno'] ?? '' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} </h1>
+
+    <flux:button variant="primary" square @click="Livewire.dispatch('abrirEstudiante', { id: {{ $selectedAlumno['id'] }} })"
+                    class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600">
+                    <flux:icon.pencil-square />
+        </flux:button>
+
+  <livewire:admin.licenciaturas.submodulo.matricula-editar>
+   </div>
+
+
+
    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 mt-5 justify-center dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5">
     {{-- DATOS GENERALES --}}
     <div class="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-5">
         <h1 class="text-2xl font-bold text-center text-neutral-800 dark:text-neutral-200 uppercase pb-4">Datos Generales</h1>
         <hr class="mb-4">
+
+                    @if (!empty($selectedAlumno['foto']))
+                <div class="mt-4 flex flex-col items-center">
+                    <img src="{{ asset('storage/estudiantes/' . $selectedAlumno['foto']) }}" alt="Foto del alumno" class="w-32 h-32 object-cover rounded-full border border-gray-300 shadow" />
+                    <span class="text-sm text-gray-500 mt-2">Foto del alumno</span>
+                </div>
+            @endif
+
+
+
         <flux:field>
             <flux:input readonly variant="filled" label="Nombre completo"
                 value="{{ $selectedAlumno['apellido_paterno'] ?? '---' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} {{ $selectedAlumno['nombre'] ?? '' }}" />
@@ -73,7 +95,19 @@
             <flux:input readonly variant="filled" label="Matrícula" value="{{ $selectedAlumno['matricula'] ?? '---' }}" />
             <flux:input readonly variant="filled" label="CURP" value="{{ $selectedAlumno['CURP'] ?? '---' }}" />
             <flux:input readonly variant="filled" label="Folio" value="{{ $selectedAlumno['folio'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Fecha de Nacimiento" value="{{ $selectedAlumno["fecha_nacimiento"] ?? '---' }}" />
+            @php
+                $fechaNacimiento = $selectedAlumno['fecha_nacimiento'] ?? null;
+                $fechaFormateada = '---';
+                if ($fechaNacimiento) {
+                    try {
+                        $dt = \Carbon\Carbon::parse($fechaNacimiento);
+                        $fechaFormateada = $dt->format('d/m/Y');
+                    } catch (\Exception $e) {
+                        $fechaFormateada = $fechaNacimiento;
+                    }
+                }
+            @endphp
+            <flux:input readonly variant="filled" label="Fecha de Nacimiento" value="{{ $fechaFormateada }}" />
             <flux:input readonly variant="filled" label="Edad" value="{{ $edad ?? '---' }}" />
             <flux:input readonly variant="filled" label="Género" value="{{ $selectedAlumno['sexo'] ?? '---' }}" />
             <flux:input readonly variant="filled" label="Nacionalidad" value="{{ $selectedAlumno['pais'] ?? '---' }}" />
@@ -96,7 +130,7 @@
             <flux:input readonly variant="filled" label="Teléfono" value="{{ $selectedAlumno['telefono'] ?? '---' }}" />
             <flux:input readonly variant="filled" label="Celular" value="{{ $selectedAlumno['celular'] ?? '---' }}" />
             <flux:input readonly variant="filled" label="Tutor" value="{{ $selectedAlumno['tutor'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Correo electrónico" value="{{ $selectedAlumno['correo'] ?? '---' }}" />
+            <flux:input readonly variant="filled" label="Correo electrónico" value="{{ $selectedAlumno['user']['email'] ?? '---' }}" />
         </flux:field>
     </div>
 
@@ -108,9 +142,10 @@
             <flux:input readonly variant="filled" label="Bachillerato Procedente" value="{{ $selectedAlumno['bachillerato'] ?? '---' }}" />
             <flux:input readonly variant="filled" label="Licenciatura" value="{{ $selectedAlumno['licenciatura']['nombre'] ?? '---' }}" />
             <flux:input readonly variant="filled" label="Generación" value="{{ $selectedAlumno['generacion']['generacion'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Cuatrimestre" value="{{ $selectedAlumno['cuatrimestre']['cuatrimestre'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Foráneo" value="{{ ($selectedAlumno['foraneo'] ?? "false") ? 'Sí' : 'No' }}" />
-            <flux:input readonly variant="filled" label="Status" value="{{ ($selectedAlumno['activo'] ?? "false") ? 'Activo' : 'Inactivo' }}" />
+            <flux:input readonly variant="filled" label="Cuatrimestre" value="{{ $selectedAlumno['cuatrimestre']['cuatrimestre'] ?? '---' }}° CUATRIMESTRE" />
+            <flux:input readonly variant="filled" label="Modalidad" value="{{ $selectedAlumno['modalidad']['nombre'] ?? '---' }}" />
+            <flux:input readonly variant="filled" label="Foráneo" value="{{ $selectedAlumno['foraneo'] === 'false' ? 'No' : 'Sí' }}" />
+            <flux:input readonly variant="filled" label="Status" value="{{ $selectedAlumno['status'] === 'false' ? 'Inactivo' : 'Activo' }}" />
 
             {{-- @php
                 $docs = [];
@@ -121,6 +156,18 @@
                 $documentosEntregados = implode(', ', $docs) ?: '---';
             @endphp
             <flux:input readonly variant="filled" label="Documentos entregados" value="{{ $documentosEntregados }}" /> --}}
+
+            @php
+                $docs = [];
+                if (!empty($selectedAlumno['certificado'])) $docs[] = 'Certificado';
+                if (!empty($selectedAlumno['acta'])) $docs[] = 'Acta de Nacimiento';
+                if (!empty($selectedAlumno['medico'])) $docs[] = 'Certificado Médico';
+                if (!empty($selectedAlumno['fotos'])) $docs[] = 'Fotos Infantiles';
+                $documentosEntregados = implode(', ', $docs) ?: '---';
+            @endphp
+            <flux:input readonly variant="filled" label="Documentos entregados" value="{{ $documentosEntregados }}" />
+
+
         </flux:field>
     </div>
 </div>
@@ -145,16 +192,14 @@
         <h1 class="text-2xl font-bold text-center text-neutral-800 dark:text-neutral-200 uppercase pb-4">Datos Generales</h1>
         <hr class="mb-4">
         <flux:field>
-            <flux:input readonly variant="filled" label="Nombre completo"
-                value="{{ $selectedAlumno['apellido_paterno'] ?? '---' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} {{ $selectedAlumno['nombre'] ?? '' }}" />
-
-            <flux:input readonly variant="filled" label="Matrícula" value="{{ $selectedAlumno['matricula'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="CURP" value="{{ $selectedAlumno['CURP'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Folio" value="{{ $selectedAlumno['folio'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Fecha de Nacimiento" value="{{ $selectedAlumno["fecha_nacimiento"] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Edad" value="{{ $edad ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Género" value="{{ $selectedAlumno['sexo'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Nacionalidad" value="{{ $selectedAlumno['nacionalidad'] ?? '---' }}" />
+            <flux:input readonly variant="filled" label="Nombre completo" value="---" />
+            <flux:input readonly variant="filled" label="Matrícula" value="---" />
+            <flux:input readonly variant="filled" label="CURP" value="---" />
+            <flux:input readonly variant="filled" label="Folio" value="---" />
+            <flux:input readonly variant="filled" label="Fecha de Nacimiento" value="---" />
+            <flux:input readonly variant="filled" label="Edad" value="---" />
+            <flux:input readonly variant="filled" label="Género" value="---" />
+            <flux:input readonly variant="filled" label="Nacionalidad" value="---" />
         </flux:field>
     </div>
 
@@ -163,18 +208,18 @@
         <h1 class="text-2xl font-bold text-center text-neutral-800 dark:text-neutral-200 uppercase pb-4">Datos de Contacto</h1>
         <hr class="mb-4">
         <flux:field>
-            <flux:input readonly variant="filled" label="Calle" value="{{ $selectedAlumno['calle'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Número Exterior" value="{{ $selectedAlumno['num_ext'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Número Interior" value="{{ $selectedAlumno['num_int'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Colonia" value="{{ $selectedAlumno['colonia'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Código Postal" value="{{ $selectedAlumno['cp'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Municipio" value="{{ $selectedAlumno['municipio'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Ciudad/Localidad" value="{{ $selectedAlumno['ciudad'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Estado" value="{{ $selectedAlumno['estado'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Teléfono" value="{{ $selectedAlumno['telefono'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Celular" value="{{ $selectedAlumno['celular'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Tutor" value="{{ $selectedAlumno['tutor'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Correo electrónico" value="{{ $selectedAlumno['correo'] ?? '---' }}" />
+            <flux:input readonly variant="filled" label="Calle" value="---" />
+            <flux:input readonly variant="filled" label="Número Exterior" value="---" />
+            <flux:input readonly variant="filled" label="Número Interior" value="---" />
+            <flux:input readonly variant="filled" label="Colonia" value="---" />
+            <flux:input readonly variant="filled" label="Código Postal" value="---" />
+            <flux:input readonly variant="filled" label="Municipio" value="---" />
+            <flux:input readonly variant="filled" label="Ciudad/Localidad" value="---" />
+            <flux:input readonly variant="filled" label="Estado" value="---" />
+            <flux:input readonly variant="filled" label="Teléfono" value="---" />
+            <flux:input readonly variant="filled" label="Celular" value="---" />
+            <flux:input readonly variant="filled" label="Tutor" value="---" />
+            <flux:input readonly variant="filled" label="Correo electrónico" value="---" />
         </flux:field>
     </div>
 
@@ -183,12 +228,13 @@
         <h1 class="text-2xl font-bold text-center text-neutral-800 dark:text-neutral-200 uppercase pb-4">Datos Escolares</h1>
         <hr class="mb-4">
         <flux:field>
-            <flux:input readonly variant="filled" label="Bachillerato Procedente" value="{{ $selectedAlumno['bachillerato'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Licenciatura" value="{{ $selectedAlumno['licenciatura']['nombre'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Generación" value="{{ $selectedAlumno['generacion']['nombre'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Cuatrimestre" value="{{ $selectedAlumno['cuatrimestre']['nombre'] ?? '---' }}" />
-            <flux:input readonly variant="filled" label="Foráneo" value="{{ ($selectedAlumno['foraneo'] ?? false) ? 'Sí' : 'No' }}" />
-            <flux:input readonly variant="filled" label="Status" value="{{ ($selectedAlumno['activo'] ?? false) ? 'Activo' : 'Inactivo' }}" />
+            <flux:input readonly variant="filled" label="Bachillerato Procedente" value="---" />
+            <flux:input readonly variant="filled" label="Licenciatura" value="---" />
+            <flux:input readonly variant="filled" label="Generación" value="---" />
+            <flux:input readonly variant="filled" label="Cuatrimestre" value="---" />
+            <flux:input readonly variant="filled" label="Modalidad" value="---" />
+            <flux:input readonly variant="filled" label="Foráneo" value="---" />
+            <flux:input readonly variant="filled" label="Status" value="---" />
 
             @php
                 $docs = [];
