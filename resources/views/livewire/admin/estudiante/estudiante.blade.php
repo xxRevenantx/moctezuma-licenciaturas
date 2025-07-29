@@ -80,19 +80,54 @@
   <livewire:admin.licenciaturas.submodulo.matricula-editar>
    </div>
 
-   @if ($selectedAlumno && $this->isEgresado($selectedAlumno))
-    <span class="text-red-600 font-semibold">Alumno egresado</span>
-@endif
+       @if ($selectedAlumno)
 
-
-    <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-3 my-4" role="alert">
-                        <div class="flex justify-between items-center">
+                {{-- EGRESADO --}}
+                @if ($this->isEgresado($selectedAlumno))
+                    <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-3 my-4" role="alert">
+                        <div class="flex justify-start gap-3 items-center">
                             <p class="font-bold text-1xl">
-                            Alumno Egreso de la Generación: 2020-2023
+                                Alumno(a) Egresado(a) de la Generación: {{ $selectedAlumno['generacion']['generacion'] ?? '---' }}
                             </p>
 
-        </div>
-    </div>
+                            @if ($this->isBaja($selectedAlumno))
+                                <flux:badge color="red">Dado de baja</flux:badge>
+                            @endif
+
+                            @if(isset($selectedAlumno['foraneo']) && $selectedAlumno['foraneo'] === 'false')
+                                <flux:badge color="indigo">Local</flux:badge>
+                            @else
+                                <flux:badge color="orange">Foráneo</flux:badge>
+                            @endif
+                        </div>
+                    </div>
+
+                {{-- ACTIVO --}}
+                @else
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-3 my-4" role="alert">
+                        <div class="flex justify-between gap-3 items-center">
+                            <p class="font-bold text-1xl">
+                                Alumno Activo de la Generación: {{ $selectedAlumno['generacion']['generacion'] ?? '---' }}
+                            </p>
+
+                            @if ($this->isBaja($selectedAlumno))
+                                <flux:badge color="red">Dado de baja</flux:badge>
+                            @endif
+
+                            @if(isset($selectedAlumno['foraneo']) && $selectedAlumno['foraneo'] === 'false')
+                                <flux:badge color="indigo">Local</flux:badge>
+                            @else
+                                <flux:badge color="orange">Foráneo</flux:badge>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+            @endif
+
+
+
+
 
 
 
@@ -105,7 +140,7 @@
                     @if (!empty($selectedAlumno['foto']))
                 <div class="mt-4 flex flex-col items-center">
                     <img src="{{ asset('storage/estudiantes/' . $selectedAlumno['foto']) }}" alt="Foto del alumno" class="w-32 h-32 object-cover rounded-full border border-gray-300 shadow" />
-                    <span class="text-sm text-gray-500 mt-2">Foto del alumno</span>
+                    <span class="text-sm text-gray-500 mt-2">Foto del estudiante</span>
                 </div>
             @endif
 
@@ -168,7 +203,6 @@
             <flux:input readonly variant="filled" label="Cuatrimestre" value="{{ $selectedAlumno['cuatrimestre']['cuatrimestre'] ?? '---' }}° CUATRIMESTRE" />
             <flux:input readonly variant="filled" label="Modalidad" value="{{ $selectedAlumno['modalidad']['nombre'] ?? '---' }}" />
             <flux:input readonly variant="filled" label="Foráneo" value="{{ $selectedAlumno['foraneo'] === 'false' ? 'No' : 'Sí' }}" />
-            <flux:input readonly variant="filled" label="Status" value="{{ $selectedAlumno['status'] === 'false' ? 'Inactivo' : 'Activo' }}" />
 
             {{-- @php
                 $docs = [];
@@ -257,7 +291,6 @@
             <flux:input readonly variant="filled" label="Cuatrimestre" value="---" />
             <flux:input readonly variant="filled" label="Modalidad" value="---" />
             <flux:input readonly variant="filled" label="Foráneo" value="---" />
-            <flux:input readonly variant="filled" label="Status" value="---" />
 
             @php
                 $docs = [];
