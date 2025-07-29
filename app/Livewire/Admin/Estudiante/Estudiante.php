@@ -43,11 +43,17 @@ class Estudiante extends Component
         $this->selectedIndex = 0;
     }
 
+    // Verificar si el alumno en su generación es egresado
+  public function isEgresado($alumno)
+{
+    return isset($alumno['activa']) && $alumno['activa'] == "false";
+}
+
     public function selectAlumno($index)
     {
         if (isset($this->alumnos[$index])) {
             $this->selectedAlumno = $this->alumnos[$index];
-            $this->query = $this->selectedAlumno['nombre'] . ' ' . $this->selectedAlumno['apellido_paterno'] . ' ' . $this->selectedAlumno['apellido_materno'] . ' | ' . $this->selectedAlumno['CURP'] . ' | ' . $this->selectedAlumno['matricula'];
+            $this->query = $this->selectedAlumno['nombre'] . ' ' . $this->selectedAlumno['apellido_paterno'] . ' ' . $this->selectedAlumno['apellido_materno'] ;
             $this->alumnos = [];
 
             // Calcular edad
@@ -102,6 +108,15 @@ class Estudiante extends Component
                     }
 
     }
+
+    public function limpiarAlumno()
+{
+    $this->query = '';
+    $this->selectedAlumno = null;
+    $this->edad = null;
+    $this->fechaNacimiento = null;
+}
+
 
     public function render()
     {

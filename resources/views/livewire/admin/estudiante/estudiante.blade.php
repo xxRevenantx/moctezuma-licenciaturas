@@ -61,15 +61,38 @@
    @if ($selectedAlumno)
 
    <div class="flex justify-between items-center my-4">
-          <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Detalles del Alumno(a): {{ $selectedAlumno['nombre'] ?? '---' }} {{ $selectedAlumno['apellido_paterno'] ?? '' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} </h1>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+            Detalles del Alumno(a): {{ $selectedAlumno['nombre'] ?? '---' }} {{ $selectedAlumno['apellido_paterno'] ?? '' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} | Matrícula: {{ $selectedAlumno['matricula'] ?? '---' }} | CURP: {{ $selectedAlumno['CURP'] ?? '---' }}
+        </h1>
 
     <flux:button variant="primary" square @click="Livewire.dispatch('abrirEstudiante', { id: {{ $selectedAlumno['id'] }} })"
                     class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600">
                     <flux:icon.pencil-square />
-        </flux:button>
+    </flux:button>
+
+    <a target="_blank" href="{{ route('admin.pdf.expediente', $selectedAlumno['id']) }}">
+
+        Expediente
+    </a>
+
+
 
   <livewire:admin.licenciaturas.submodulo.matricula-editar>
    </div>
+
+   @if ($selectedAlumno && $this->isEgresado($selectedAlumno))
+    <span class="text-red-600 font-semibold">Alumno egresado</span>
+@endif
+
+
+    <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-3 my-4" role="alert">
+                        <div class="flex justify-between items-center">
+                            <p class="font-bold text-1xl">
+                            Alumno Egreso de la Generación: 2020-2023
+                            </p>
+
+        </div>
+    </div>
 
 
 

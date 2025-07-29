@@ -27,6 +27,10 @@ class PDFController extends Controller
 {
 
 
+    public function expediente($id){
+        dd($id);
+    }
+
     public function matricula(Request $request)
     {
         $licenciatura = $request->licenciatura_id;
