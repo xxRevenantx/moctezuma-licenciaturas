@@ -12,11 +12,18 @@
 
             <div class="relative w-10 h-10  invisible lg:visible">
                 <!-- Avatar circular con imagen -->
-                <div class="w-full h-full rounded-full overflow-hidden border-4 border-gray-100 shadow ">
+                @if(auth()->user()->photo && file_exists(storage_path('app/public/profile-photos/' . auth()->user()->photo)))
+                    <div class="w-full h-full rounded-full overflow-hidden border-4 border-gray-100 shadow ">
                         <img src="{{ asset('storage/profile-photos/' . auth()->user()->photo) }}"
-                        alt="Avatar"
-                        class="w-full h-full object-cover">
-                </div>
+                            alt="Avatar"
+                            class="w-full h-full object-cover">
+                    </div>
+                @else
+                    <flux:avatar circle badge badge:circle badge:color="green"
+                        :initials="auth()->user()->initials()"
+                        :name="auth()->user()->name"
+                    />
+                @endif
 
                 <!-- Badge verde (posición inferior derecha) -->
                 <span class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-md"></span>

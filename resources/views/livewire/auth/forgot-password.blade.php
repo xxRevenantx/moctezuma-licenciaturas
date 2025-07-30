@@ -16,7 +16,7 @@
             placeholder="email@ejemplo.com"
         />
 
-        <flux:button  style="background: #04689c; color:white; cursor:pointer" type="submit" class="w-full">{{ __('Reestablecer contraseña') }}</flux:button>
+        <flux:button  style="background: #04689c; color:white; cursor:pointer" type="submit" class="w-full">{{ __('Restablecer contraseña') }}</flux:button>
     </form>
 
     <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-400">

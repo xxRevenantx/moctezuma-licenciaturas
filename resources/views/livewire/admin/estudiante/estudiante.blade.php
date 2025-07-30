@@ -70,9 +70,9 @@
                     <flux:icon.pencil-square />
     </flux:button>
 
-    <a target="_blank" href="{{ route('admin.pdf.expediente', $selectedAlumno['id']) }}">
-
-        Expediente
+    <a target="_blank" href="{{ route('admin.pdf.expediente', $selectedAlumno['id']) }}"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition-colors duration-200 ml-2">
+         Expediente
     </a>
 
 
@@ -105,7 +105,7 @@
                 {{-- ACTIVO --}}
                 @else
                     <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-3 my-4" role="alert">
-                        <div class="flex justify-between gap-3 items-center">
+                        <div class="flex justify-start gap-3 items-center">
                             <p class="font-bold text-1xl">
                                 Alumno Activo de la Generación: {{ $selectedAlumno['generacion']['generacion'] ?? '---' }}
                             </p>

@@ -7,6 +7,13 @@
             <div>
                 <flux:input wire:model.live="photo" :label="__('Imagen de perfil')" type="file" accept="image/jpeg,image/jpg,image/png" />
 
+                <div wire:loading wire:target="photo" class="mt-4 flex items-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span>{{ __('Cargando imagen...') }}</span>
+                </div>
 
                 @if ($photo)
                     <div class="mt-4">
@@ -17,14 +24,12 @@
                     <div class="mt-4">
                         <img src="{{ asset('storage/profile-photos/'. $photoUrl) }}" alt="{{ __('Current Profile Image') }}" class="w-20 h-20 rounded-full">
                         <flux:button wire:click="eliminarFoto" class="mt-2" variant="danger">Eliminar foto</flux:button>
-
                     </div>
                 @else
-                <flux:avatar circle class="mt-3 w-25 h-25"
-                :initials="auth()->user()->initials()"
-                :name="auth()->user()->username"
-    />
-
+                    <flux:avatar circle class="mt-3 w-25 h-25"
+                        :initials="auth()->user()->initials()"
+                        :name="auth()->user()->username"
+                    />
                 @endif
             </div>
 
@@ -34,7 +39,9 @@
                 <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
 
 
-                <flux:description>Este correo será tomado en cuenta para el envío de tus calificaciones. Evita extraviarlo para el mejor control de tu historial académico.</flux:description>
+                @if(auth()->user()->hasRole('Estudiante'))
+                    <flux:description>Este correo será tomado en cuenta para el envío de tus calificaciones. Evita extraviarlo para el mejor control de tu historial académico.</flux:description>
+                @endif
 
 
                 @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
