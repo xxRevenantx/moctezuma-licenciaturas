@@ -63,7 +63,7 @@ class PDFController extends Controller
             'escuela' => $escuela,
         ];
               $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculaPDF', $data)->setPaper('letter', 'landscape');
-             return $pdf->stream("Matricula.pdf");
+             return $pdf->stream("Lista_de_grupo_Lic_en_{$licenciatura_nombre->nombre}_Gen:{$generacion->generacion}.pdf");
     }
 
     // MATRICULA GENERACION
@@ -96,7 +96,7 @@ class PDFController extends Controller
             'escuela' => $escuela,
         ];
               $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculaGeneracionPDF', $data)->setPaper('letter', 'landscape');
-             return $pdf->stream("Matricula_Generacion.pdf");
+             return $pdf->stream("Lista_de_grupo_Lic_en_{$licenciatura_nombre->nombre}_Gen:{$generacion->generacion}.pdf");
     }
 
 

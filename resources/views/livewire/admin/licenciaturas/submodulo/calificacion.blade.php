@@ -38,6 +38,7 @@ x-data ="{
 
         "
 >
+
     <h3 class="mt-5 flex items-center gap-1 text-2xl font-bold text-gray-800 dark:text-white">
         <!-- Icono SVG -->
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -219,6 +220,8 @@ x-data ="{
                                     </td>
                                         <td class="px-4 py-3 border font-bold ">
                                             <div class="flex justify-center items-center gap-2">
+
+
                                                 <form action="{{ route('admin.pdf.documentacion.calificacion_alumno') }}" method="GET" target="_blank" class="m-0 flex items-center justify-center">
                                                     <x-button type="submit" variant="primary" class="bg-indigo-600" >
                                                        <div class="flex items-center gap-2 ">
@@ -242,6 +245,8 @@ x-data ="{
                                                     <span>Enviar</span>
                                                     </div>
                                                 </x-button>
+
+
                                             </div>
                                         </td>
                                 </tr>
@@ -264,6 +269,8 @@ x-data ="{
 
                         @if($filtrar_generacion && $filtrar_cuatrimestre && count($alumnos) && count($materias))
                         <div class="flex justify-end my-4 items-center">
+
+
                             <button
                                 wire:click="guardarTodasLasCalificaciones"
                                 wire:loading.attr="disabled"
@@ -272,6 +279,8 @@ x-data ="{
                             >
                                 {{ $todas_calificaciones_guardadas ? 'Actualizar calificaciones' : 'Guardar calificaciones' }}
                             </button>
+
+
                             @if(!$hayCambios)
                                 <span class="ml-2 text-gray-400 text-sm">No hay cambios por guardar</span>
                             @else

@@ -432,7 +432,7 @@
                     <tr>
                         <td style="text-align: center; padding:0px">{{ $contadorMateria }}</td>
                         <td style="text-align: center; padding:0px">{{ $materia->clave }}</td>
-                        <td style="text-align: center; padding:0px">{{ $materia->creditos }}</td>
+                        <td style="text-align: center; padding:0px">{{ $calificacion ? $materia->creditos : '---' }}</td>
                         <td style="text-align: center; padding:0px">{{ $materia->cuatrimestre_id }}</td>
                         <td style="text-transform:uppercase;font-size:10px; padding-top:0; padding-left:0; padding-left:5px; margin:0">{{ $materia->nombre }}</td>
                         <td
