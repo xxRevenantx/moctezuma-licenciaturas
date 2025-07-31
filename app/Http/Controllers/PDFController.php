@@ -28,7 +28,21 @@ class PDFController extends Controller
 
 
     public function expediente($id){
-        dd($id);
+
+        $alumno = Inscripcion::with(['generacion', 'licenciatura', 'modalidad', 'user'])->find($id);
+        $escuela = Escuela::all()->first();
+
+        if (!$alumno) {
+            abort(404);
+        }
+
+        $data = [
+            'alumno' => $alumno,
+            'escuela' => $escuela,
+        ];
+
+        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.expedientePDF', $data)->setPaper('letter', 'portrait');
+        return $pdf->stream("Expediente_{$alumno->nombre}.pdf");
     }
 
     public function matricula(Request $request)

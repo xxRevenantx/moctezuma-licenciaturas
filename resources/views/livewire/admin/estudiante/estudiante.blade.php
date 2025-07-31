@@ -87,7 +87,7 @@
                     <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-3 my-4" role="alert">
                         <div class="flex justify-start gap-3 items-center">
                             <p class="font-bold text-1xl">
-                                Alumno(a) Egresado(a) de la Generación: {{ $selectedAlumno['generacion']['generacion'] ?? '---' }}
+                                Generación Egresada: {{ $selectedAlumno['generacion']['generacion'] ?? '---' }}
                             </p>
 
                             @if ($this->isBaja($selectedAlumno))
@@ -107,7 +107,7 @@
                     <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-3 my-4" role="alert">
                         <div class="flex justify-start gap-3 items-center">
                             <p class="font-bold text-1xl">
-                                Alumno Activo de la Generación: {{ $selectedAlumno['generacion']['generacion'] ?? '---' }}
+                                Generación Activa: {{ $selectedAlumno['generacion']['generacion'] ?? '---' }}
                             </p>
 
                             @if ($this->isBaja($selectedAlumno))
