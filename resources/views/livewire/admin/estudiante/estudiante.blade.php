@@ -60,25 +60,31 @@
 
    @if ($selectedAlumno)
 
-   <div class="flex justify-between items-center my-4">
+   <div class="md:flex justify-between items-center my-4">
         <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
             Detalles del Alumno(a): {{ $selectedAlumno['nombre'] ?? '---' }} {{ $selectedAlumno['apellido_paterno'] ?? '' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} | Matrícula: {{ $selectedAlumno['matricula'] ?? '---' }} | CURP: {{ $selectedAlumno['CURP'] ?? '---' }}
         </h1>
 
-    <flux:button variant="primary" square @click="Livewire.dispatch('abrirEstudiante', { id: {{ $selectedAlumno['id'] }} })"
-                    class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600">
-                    <flux:icon.pencil-square />
-    </flux:button>
+    <div class="flex items-center mt-2 md:mt-0">
+        <flux:button variant="primary" square @click="Livewire.dispatch('abrirEstudiante', { id: {{ $selectedAlumno['id'] }} })"
+                        class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600">
+                        <flux:icon.pencil-square />
+        </flux:button>
 
-    <a target="_blank" href="{{ route('admin.pdf.expediente', $selectedAlumno['id']) }}"
-        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition-colors duration-200 ml-2">
-         Expediente
-    </a>
+        <a target="_blank" href="{{ route('admin.pdf.expediente', $selectedAlumno['id']) }}"
+            class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow transition-colors duration-200 ml-2">
+            Expediente
+        </a>
+
+    </div>
+
 
 
 
   <livewire:admin.licenciaturas.submodulo.matricula-editar>
    </div>
+
+
 
        @if ($selectedAlumno)
 

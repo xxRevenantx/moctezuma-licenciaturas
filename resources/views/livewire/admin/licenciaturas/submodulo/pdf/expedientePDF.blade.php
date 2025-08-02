@@ -52,7 +52,7 @@
 
     th, td {
 
-        padding: 2px;
+        /* padding: 2px; */
         text-align: left;
         font-size: 13px;
     }
@@ -126,6 +126,10 @@
             vertical-align: top;
         }
 
+        .center{
+            text-align: center
+        }
+
         .sin-borde {
             border: none;
         }
@@ -137,7 +141,7 @@
         }
 
         .subtitulo {
-            background-color: #d8e4bc;
+            background-color: #eaeaea;
             font-weight: bold;
         }
 
@@ -176,67 +180,129 @@
 
         <h1 style="background: #88AC2E; text-align: center; padding: 5px; width: 50%; margin: 20px auto;">EXPEDIENTE DEL ALUMNO</h1>
 
+        <h2>DATOS DEL ALUMNO</h2>
            <table>
         <tr>
-            <td  class="subtitulo">NOMBRE DEL ALUMNO (A)</td>
-            <td>CALDERON</td>
-            <td>RIOS</td>
-            <td>JOCELYN</td>
+            <td colspan="2"  class="subtitulo">NOMBRE DEL ALUMNO (A)</td>
+            <td style="text-align: center">{{ $alumno->nombre }}</td>
+            <td style="text-align: center">{{ $alumno->apellido_paterno }}</td>
+            <td style="text-align: center">{{ $alumno->apellido_materno }}</td>
 
-            <td rowspan="4" colspan="2" class="foto">
-                <img src="{{ public_path('img/alumna.png') }}" width="70">
+            <td rowspan="3"  class="foto">
+                <img src="{{ public_path('storage/estudiantes/' . $alumno->foto) }}" width="70">
             </td>
         </tr>
 
         <tr>
-            <td class="subtitulo">EDAD</td>
-            <td>19</td>
+            <td colspan="2"></td>
+            <td style="text-align: center; font-size:9px; padding:0px;">A. PATERNO</td>
+            <td style="text-align: center; font-size:9px; padding:0px;">A. MATERNO</td>
+            <td style="text-align: center; font-size:9px; padding:0px;">NOMBRE(S)</td>
         </tr>
+
         <tr>
             <td class="subtitulo">FECHA DE NACIMIENTO</td>
-            <td>0000-00-00</td>
-            <td class="subtitulo">SEXO</td>
-            <td>FEMENINO</td>
+            <td class="center" colspan="1">{{ \Carbon\Carbon::parse($alumno->fecha_nacimiento)->format('d/m/Y') }}</td>
+           <td class="subtitulo">CURP</td>
+            <td colspan="2">{{ $alumno->CURP }}</td>
+
+
+
         </tr>
+
         <tr>
-            <td class="subtitulo">ESTADO CIVIL</td>
-            <td></td>
-            <td class="subtitulo">CURP</td>
-            <td>CARJ040217MGRLSCA1</td>
-        </tr>
-        <tr>
+
             <td class="subtitulo">LUGAR DE NACIMIENTO</td>
-            <td colspan="3">0, 0</td>
+            <td class="center" colspan="5">
+                @if(!empty($alumno->lugar_nacimiento))
+                    {{ $alumno->lugar_nacimiento }}
+                @else
+                   -------------
+                @endif
+            </td>
         </tr>
+
         <tr>
-            <td class="subtitulo">DOMICILIO DE PROCEDENCIA</td>
-            <td colspan="3">Ciudad / Estado</td>
+            <td class="subtitulo">DOMICILIO</td>
+            <td colspan="5" class="center" >
+                @if(!empty($alumno->calle))
+                    {{ $alumno->calle }}
+                @else
+                    -------------
+                @endif
+            </td>
+
         </tr>
+
         <tr>
-            <td class="subtitulo">COLONIA</td>
-            <td>0</td>
-            <td class="subtitulo">CP</td>
-            <td>0</td>
+             <td class="subtitulo">COLONIA</td>
+            <td colspan="2" class="center">
+                @if(!empty($alumno->colonia))
+                    {{ $alumno->colonia }}
+                @else
+                    -------------
+                @endif
+            </td>
+            <td class="subtitulo center">CP</td>
+            <td colspan="2" class="center">
+                @if(!empty($alumno->codigo_postal))
+                    {{ $alumno->codigo_postal }}
+                @else
+                    -------------
+                @endif
+            </td>
         </tr>
+
         <tr>
             <td class="subtitulo">MUNICIPIO</td>
-            <td>0</td>
-            <td class="subtitulo">EMAIL</td>
-            <td class="email">calderonjocelyn312@gmail.com</td>
+            <td colspan="2" class="center">
+                @if(!empty($alumno->municipio))
+                    {{ $alumno->municipio }}
+                @else
+                    -------------
+                @endif
+            </td>
+            <td class="subtitulo center">EMAIL</td>
+            <td colspan="2" class="email center">{{ $alumno->user->email }}</td>
         </tr>
         <tr>
-            <td class="subtitulo">TELÉFONO</td>
-            <td></td>
-            <td class="subtitulo">CELULAR</td>
-            <td></td>
+            <td class="subtitulo ">TELÉFONO</td>
+            <td class="center" colspan="2">
+                @if(!empty($alumno->telefono))
+                    {{ $alumno->telefono }}
+                @else
+                    -------------
+                @endif
+            </td>
+            <td class="subtitulo center">CELULAR</td>
+            <td class="center" colspan="2">
+                @if(!empty($alumno->celular))
+                    {{ $alumno->celular }}
+                @else
+                    -------------
+                @endif
+            </td>
         </tr>
         <tr>
             <td class="subtitulo">NOMBRE DEL PADRE O TUTOR</td>
-            <td colspan="3">0</td>
+            <td style="text-transform: uppercase;" colspan="5" class="center">
+                @if(!empty($alumno->tutor))
+                    {{ $alumno->tutor }}
+                @else
+                    -------------
+                @endif
+            </td>
         </tr>
         <tr>
             <td class="subtitulo">BACHILLERATO DE PROCEDENCIA</td>
-            <td colspan="3">0</td>
+            <td style="text-transform: uppercase;" colspan="5" class="center">
+                @if(!empty($alumno->bachillerato_procedente))
+                    {{ $alumno->bachillerato_procedente }}
+
+                @else
+                    -------------
+                @endif
+            </td>
         </tr>
     </table>
 
@@ -245,13 +311,13 @@
     <table>
         <tr>
             <td class="subtitulo">LICENCIATURA SOLICITADA</td>
-            <td colspan="3"></td>
+            <td colspan="3" style="text-align: center; text-transform: uppercase;">{{ $alumno->licenciatura->nombre}}</td>
         </tr>
         <tr>
             <td class="subtitulo">GENERACIÓN</td>
-            <td>4</td>
-            <td class="subtitulo">TURNO</td>
-            <td></td>
+            <td style="text-align: center; text-transform: uppercase;">{{ $alumno->generacion->generacion }}</td>
+            <td class="subtitulo">MODALIDAD</td>
+            <td style="text-align: center; text-transform: uppercase;">{{ $alumno->modalidad->nombre }}</td>
         </tr>
     </table>
 
@@ -259,17 +325,78 @@
 
     <table>
         <tr>
-            <td>- CERTIFICADO DE BACHILLERATO:</td>
-            <td>- ACTA DE NACIMIENTO:</td>
+            <td>CERTIFICADO DE BACHILLERATO</td>
+            <td>
+                @if($alumno->certificado)
+                    <span style="color: green; font-weight: bold;">ENTREGADO</span>
+                @else
+                    <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
+                @endif
+            </td>
+              <td rowspan="6" style="width: 50%; text-align: justify;">
+              <p style="padding: 10px">
+                 • LA DOCUMENTACIÓN MENCIONADA DEBERÁ
+                ENTREGARSE AL MOMENTO DE INSCRIBIRSE. <br>
+                • EL ALUMNO PODRÁ INSCRIBIRSE CARECIENDO DEL
+                CERTIFICADO CORRESPONDIENTE SIEMPRE Y CUANDO
+                PRESENTE CONSTANCIA DE ACREDITACIÓN Y LO
+                PRESENTE EN EL PLAZO QUE INDIQUE, DE NO HACERLO
+                ASÍ, NO SE LE PODRÁ DAR SEGUIMIENTO AL TRÁMITE
+                CORRESPONDIENTE ANTE LAS AUTORIDADES
+                EDUCATIVAS DEL ESTADO Y POR LO TANTO SU
+                INSCRIPCIÓN SE ANULARÁ.
+              </p>
+
+            </td>
         </tr>
         <tr>
-            <td>- CERTIFICADO MÉDICO:</td>
-            <td>- 6 FOTOGRAFÍAS TAMAÑO INFANTIL B/N:</td>
+            <td>ACTA DE NACIMIENTO</td>
+            <td>
+                @if($alumno->acta_nacimiento)
+                    <span style="color: green; font-weight: bold;">&#10003; ENTREGADO</span>
+                @else
+                    <span style="color: red; font-weight: bold;">&#10007; NO ENTREGADO</span>
+                @endif
+            </td>
+
         </tr>
         <tr>
-            <td>- CURP:</td>
-            <td>- OTROS:</td>
+            <td>CERTIFICADO MÉDICO</td>
+            <td>
+                @if($alumno->certificado_medico)
+                    <span style="color: green; font-weight: bold;">ENTREGADO</span>
+                @else
+                    <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
+                @endif
+            </td>
         </tr>
+        <tr>
+            <td>FOTOGRAFÍA TAMAÑO INFANTIL</td>
+            <td>
+                @if($alumno->fotos_infantiles)
+                    <span style="color: green; font-weight: bold;">ENTREGADO</span>
+                @else
+                    <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
+                @endif
+            </td>
+        </tr>
+        <tr>
+            <td>CURP</td>
+            <td>
+                @if($alumno->CURP)
+                    <span style="color: green; font-weight: bold;">ENTREGADO</span>
+                @else
+                    <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
+                @endif
+            </td>
+        </tr>
+        <tr>
+            <td>OTROS</td>
+            <td></td>
+        </tr>
+
+
+
     </table>
 
 
