@@ -215,7 +215,7 @@
             <td style="text-align: center">{{ $alumno->apellido_materno }}</td>
 
             <td rowspan="3"  class="foto">
-                <img src="{{ public_path('storage/estudiantes/' . $alumno->foto) }}" width="70">
+                <img src="{{ public_path('storage/estudiantes/' . $alumno->foto) }}" width="75" height="90" style="object-fit: cover;">
             </td>
         </tr>
 
