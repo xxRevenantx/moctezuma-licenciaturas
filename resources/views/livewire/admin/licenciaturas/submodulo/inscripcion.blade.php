@@ -128,21 +128,7 @@
                     <h2 class="text-sm font-semibold text-gray-700 border-b pb-2 mb-4">REGISTRO DE DOCUMENTACIÓN</h2>
 
                     <div class="flex flex-col md:flex-row gap-4">
-                      <!-- Lista de documentos -->
-                      <div class="space-y-3 text-sm text-gray-700 flex-1">
-                        <flux:fieldset>
 
-
-                    <div class="space-y-3">
-                        <flux:switch align="left" wire:model="certificado" label="Certificado" />
-                        <flux:switch align="left" wire:model="acta_nacimiento" label="Acta de Nacimiento" />
-                        <flux:switch align="left" wire:model="certificado_medico" label="Certificado Médico" />
-                        <flux:switch align="left" wire:model="fotos_infantiles" label="Fotos Infantiles" />
-                    </div>
-                  </flux:fieldset>
-
-
-                      </div>
 
                       <!-- Subir foto -->
                       <div class="flex flex-col items-center flex-1 text-center">
@@ -165,16 +151,8 @@
                         <p class="text-xs text-gray-500">Peso máximo 1mb en formato<br>PNG, JPG o JPGE<br>Imagen 2.5cm x 3cm  </p>
                       </div>
 
-
                     </div>
 
-                    <!-- Otros -->
-                    <div class="mt-4">
-                      <label class="block text-sm text-gray-700 mb-1">OTROS:</label>
-                      <input type="text" placeholder="Detalla los documentos"
-                        class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring focus:ring-blue-200" />
-                    </div>
-                  </div>
 
                   <flux:fieldset class="mt-4">
                     <flux:legend>Foráneo</flux:legend>
@@ -198,14 +176,18 @@
 
 
 
-    <div class="flex items-center">
-        <flux:button variant="primary" type="submit" class="w-full cursor-pointer">{{ __('Guardar') }}</flux:button>
+
+
+    </div>
+     <div class="flex items-center w-full">
+        <flux:button variant="primary" type="submit" class="w-full cursor-pointer flex-1">{{ __('Guardar') }}</flux:button>
     </div>
 
 </form>
+</fieldset>
 
 </div>
 
 
 
-</div>
+

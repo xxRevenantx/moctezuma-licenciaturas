@@ -46,11 +46,20 @@ return new class extends Migration
             $table->unsignedBigInteger('cuatrimestre_id');
             $table->unsignedBigInteger('modalidad_id');
 
-            $table->enum('certificado', ["true","false"])->nullable()->default("true");
-            $table->enum('acta_nacimiento', ["true", "false"])->nullable()->default("true");
-            $table->enum('certificado_medico', ["true", "false"])->nullable()->default("true");
+
+            $table->string('CURP_documento')->nullable();
+            $table->string('acta_nacimiento')->nullable();
+            $table->string('certificado_estudios')->nullable();
+            $table->string('comprobante_domicilio')->nullable();
+            $table->string('certificado_medico')->nullable();
+            $table->string('ine')->nullable();
+
             $table->enum('fotos_infantiles', ["true", "false"])->nullable()->default("true");
+
+
             $table->string('foto')->nullable();
+
+
 
             $table->string('otros')->nullable();
 

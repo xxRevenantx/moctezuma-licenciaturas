@@ -53,8 +53,10 @@ class MatriculaEditar extends Component
     public $generacion_id;
     public $cuatrimestre_id;
     public $modalidad_id;
-    public $certificado;
+    public $CURP_documento;
+    public $certificado_estudios;
     public $acta_nacimiento;
+    public $comprobante_domicilio;
     public $certificado_medico;
     public $fotos_infantiles;
     public $foto;
@@ -65,6 +67,10 @@ class MatriculaEditar extends Component
     public $fecha_baja;
 
     public $fotoUrl;
+
+
+    public $certificado_estudios_archivo;
+    public $ruta_certificado_estudios; // Para mostrar en el modal
 
       // Método para abrir el modal con datos
       #[On('abrirEstudiante')]
@@ -125,8 +131,10 @@ class MatriculaEditar extends Component
             $this->generacion_id = $estudiante->generacion_id;
             $this->cuatrimestre_id = $estudiante->cuatrimestre_id;
             $this->modalidad_id = $estudiante->modalidad_id;
-            $this->certificado = $estudiante->certificado == "true" ? true : false;
+            $this->CURP_documento = $estudiante->CURP_documento == "true" ? true : false;
+            $this->certificado_estudios = $estudiante->certificado_estudios == "true" ? true : false;
             $this->acta_nacimiento = $estudiante->acta_nacimiento == "true" ? true : false;
+            $this->comprobante_domicilio = $estudiante->comprobante_domicilio == "true" ? true : false;
             $this->certificado_medico = $estudiante->certificado_medico == "true" ? true : false;
             $this->fotos_infantiles = $estudiante->fotos_infantiles == "true" ? true : false;
             $this->foto = $estudiante->foto;
@@ -204,7 +212,7 @@ class MatriculaEditar extends Component
 
      public function cerrarModal()
       {
-          $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente', 'generacion_id', 'cuatrimestre_id', 'certificado', 'acta_nacimiento', 'certificado_medico', 'fotos_infantiles', 'fotoUrl','otros','foraneo','status']);
+          $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente', 'generacion_id', 'cuatrimestre_id', 'CURP_documento', 'certificado_estudios', 'acta_nacimiento', 'comprobante_domicilio', 'certificado_medico', 'fotos_infantiles', 'fotoUrl','otros','foraneo','status']);
           $this->resetValidation();
       }
 
@@ -329,8 +337,8 @@ class MatriculaEditar extends Component
                 'estado_nacimiento_id' => $this->estado_nacimiento_id,
                 'ciudad_nacimiento_id' => $this->ciudad_nacimiento_id,
                 'calle' => strtoupper(trim($this->calle)),
-                'numero_exterior' => strtoupper(trim($this->numero_exterior)),
-                'numero_interior' => strtoupper(trim($this->numero_interior)),
+                'numero_exterior' => trim($this->numero_exterior),
+                'numero_interior' => trim($this->numero_interior),
                 'colonia' => strtoupper(trim($this->colonia)),
                 'codigo_postal' => strtoupper(trim($this->codigo_postal)),
                 'municipio' => strtoupper(trim($this->municipio)),
@@ -344,13 +352,14 @@ class MatriculaEditar extends Component
                 'generacion_id' => $this->generacion_id,
                 'cuatrimestre_id' => $this->cuatrimestre_id,
                 'modalidad_id' => $this->modalidad_id,
-
-                'certificado' => $this->certificado ? "true" : "false",
+                'CURP_documento' => $this->CURP_documento ? "true" : "false",
+                'certificado_estudios' => $this->certificado_estudios ? "true" : "false",
                 'acta_nacimiento' => $this->acta_nacimiento ? "true" : "false",
+                'comprobante_domicilio' => $this->comprobante_domicilio ? "true" : "false",
                 'certificado_medico' => $this->certificado_medico ? "true" : "false",
                 'fotos_infantiles' => $this->fotos_infantiles ? "true" : "false",
                  'foto' => $this->foto_nueva ? $datos['foto'] : $this->foto,
-                'otros' => strtoupper(trim($this->otros)),
+                'otros' => trim($this->otros),
                 'foraneo' => $this->foraneo ? "true" : "false",
                 'estatus' => $this->status ? "true" : "false",
                 'fecha_baja' => $this->fecha_baja,
@@ -359,9 +368,10 @@ class MatriculaEditar extends Component
             ]);
         }
 
+
           $this->dispatch('refreshNavbar');
 
-        $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente','licenciatura_id','generacion_id','cuatrimestre_id','modalidad_id','certificado','acta_nacimiento','certificado_medico','fotos_infantiles','foto_nueva','otros','foraneo','status', 'fecha_baja']);
+        $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente','licenciatura_id','generacion_id','cuatrimestre_id','modalidad_id','CURP_documento','certificado_estudios','acta_nacimiento', 'comprobante_domicilio','certificado_medico','fotos_infantiles','foto_nueva','otros','foraneo','status', 'fecha_baja']);
 
          $this->dispatch('swal', [
               'title' => 'Estudiante actualizado correctamente!',
@@ -384,6 +394,7 @@ class MatriculaEditar extends Component
         $estados =Estado::orderBy('nombre')->get();
         $ciudades = Ciudad::orderBy('nombre')->get();
         $acciones = Accion::all();
+        $licenciaturas = \App\Models\Licenciatura::orderBy('id')->get();
 
         $generaciones = AsignarGeneracion::where('licenciatura_id', $this->licenciatura_id)
         ->where('modalidad_id', $this->modalidad_id)
@@ -404,6 +415,6 @@ class MatriculaEditar extends Component
         $modalidades = Modalidad::all();
 
 
-        return view('livewire.admin.licenciaturas.submodulo.matricula-editar', compact('estados', 'ciudades', 'acciones',  'generaciones', 'usuarios', 'cuatrimestres', 'modalidades'));
+        return view('livewire.admin.licenciaturas.submodulo.matricula-editar', compact('estados', 'ciudades', 'acciones',  'generaciones', 'usuarios', 'cuatrimestres', 'modalidades', 'licenciaturas'));
     }
 }

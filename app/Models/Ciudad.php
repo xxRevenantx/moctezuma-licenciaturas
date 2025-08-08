@@ -16,9 +16,16 @@ class Ciudad extends Model
         'nombre',
     ];
 
-    public function inscripcion()
+
+
+    public function inscripciones_como_nacimiento()
     {
-        return $this->hasMany(Inscripcion::class);
+        return $this->hasMany(Inscripcion::class, 'ciudad_nacimiento_id');
+    }
+
+    public function inscripciones()
+    {
+        return $this->hasMany(Inscripcion::class, 'ciudad_id');
     }
 
 

@@ -62,12 +62,9 @@ class Inscripcion extends Component
     public $bachillerato_procedente;
     public $generacion_id;
     public $cuatrimestre_id;
-    public $certificado;
-    public $acta_nacimiento;
-    public $certificado_medico;
-    public $fotos_infantiles;
+
     public $foto;
-    public $otros;
+
     public $foraneo;
     public $status;
 
@@ -376,11 +373,7 @@ class Inscripcion extends Component
             'generacion_id' => $this->generacion_id,
             'cuatrimestre_id' => $this->cuatrimestre_id,
             'modalidad_id' => $this->modalidad->id,
-            'certificado' => $this->certificado,
-            'acta_nacimiento' => $this->acta_nacimiento,
-            'certificado_medico' => $this->certificado_medico,
-            'fotos_infantiles' => $this->fotos_infantiles,
-            'otros' => trim(strtoupper($this->otros)),
+
             'foraneo' => $this->foraneo == "true" ? "true" : "false",
             'status' => $this->status == "true" ? "true" : "false",
             'foto' => $datos["foto"]
@@ -417,12 +410,7 @@ class Inscripcion extends Component
             'bachillerato_procedente',
             'generacion_id',
             'cuatrimestre_id',
-            'certificado',
-            'acta_nacimiento',
-            'certificado_medico',
-            'fotos_infantiles',
             'foto',
-            'otros',
             'foraneo',
             'foto',
 

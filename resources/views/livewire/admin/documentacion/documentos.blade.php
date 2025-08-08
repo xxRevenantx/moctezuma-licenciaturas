@@ -1,7 +1,7 @@
 <div class="relative" x-data="{ open: false }" x-cloak>
     <div class="flex flex-col gap-4">
 
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white py-3">Documentación personal del alumno</h1>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white py-3">Documentación interna del alumno</h1>
      </div>
 
 
@@ -90,6 +90,22 @@
 
     <hr class="my-4">
 
+    <div x-data="{ openAccordion: false }" x-cloak class="mb-4">
+                <button
+                    @click="openAccordion = !openAccordion"
+                    class="w-full flex justify-between items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-semibold rounded focus:outline-none"
+                >
+                     <h1 class="text-2xl font-bold text-gray-800 dark:text-white py-3">Identidad(Documentación Personal)</h1>
+                    <svg :class="{'transform rotate-180': openAccordion}" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="openAccordion" x-transition class="p-4 border border-t-0 rounded-b bg-white dark:bg-gray-800">
+
+                        <livewire:admin.documentacion.identidad>
+
+                </div>
+     </div>
     <div x-data="{ openAccordion: false }" x-cloak class="mb-4">
                 <button
                     @click="openAccordion = !openAccordion"

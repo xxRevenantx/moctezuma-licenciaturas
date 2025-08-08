@@ -45,10 +45,15 @@ class Inscripcion extends Model
         'generacion_id',
         'cuatrimestre_id',
         'modalidad_id',
-        'certificado',
+
+        'ine',
+        'CURP_documento',
+        'certificado_estudios',
         'acta_nacimiento',
+        'comprobante_domicilio',
         'certificado_medico',
         'fotos_infantiles',
+
         'foto',
         'otros',
         'foraneo',
@@ -77,18 +82,30 @@ class Inscripcion extends Model
     public function modalidad(){
         return $this->belongsTo(Modalidad::class);
     }
-    public function estadoNacimiento(){
-        return $this->belongsTo(Estado::class, 'estado_nacimiento_id');
-    }
-    public function ciudadNacimiento(){
-        return $this->belongsTo(Ciudad::class, 'ciudad_nacimiento_id');
-    }
-    public function ciudad(){
-        return $this->belongsTo(Ciudad::class);
-    }
-    public function estado(){
-        return $this->belongsTo(Estado::class);
-    }
+
+
+     public function ciudadNacimiento()
+        {
+            return $this->belongsTo(Ciudad::class, 'ciudad_nacimiento_id');
+        }
+
+         public function estadoNacimiento()
+        {
+            return $this->belongsTo(Estado::class, 'estado_nacimiento_id');
+        }
+
+        public function ciudad()
+        {
+            return $this->belongsTo(Ciudad::class, 'ciudad_id');
+        }
+
+        public function estado()
+        {
+            return $this->belongsTo(Estado::class, 'estado_id');
+        }
+
+
+
 
     public function calificaciones()
     {

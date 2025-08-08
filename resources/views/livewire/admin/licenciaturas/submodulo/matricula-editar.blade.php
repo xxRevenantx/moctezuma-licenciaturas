@@ -95,13 +95,13 @@
                         <flux:input type="text" label="Código Postal" placeholder="Código Postal" wire:model="codigo_postal" />
                         <flux:input type="text" label="Municipio" placeholder="Municipio" wire:model="municipio" />
 
-                         <flux:select label="Estado" wire:model="ciudad_id">
+                         <flux:select label="Ciudad" wire:model="ciudad_id">
                                 <option value="">--Seleccione una ciudad--</option>
                                 @foreach($ciudades as $ciudad)
                                     <option value="{{ $ciudad->id }}">{{ $ciudad->nombre }}</option>
                                 @endforeach
-
                             </flux:select>
+
 
                              <flux:select label="Estado" wire:model="estado_id">
                                 <option value="">--Seleccione un estado--</option>
@@ -130,6 +130,13 @@
                         <flux:field>
                             <flux:input type="text" label="Bachillerato Procedente" placeholder="Bachillerato Procedente" wire:model="bachillerato_procedente" />
 
+                            {{-- LICENCIATURA --}}
+                            <flux:select label="Licenciatura" wire:model.live="licenciatura_id">
+                                <option value="">--Seleccione una licenciatura--</option>
+                                @foreach($licenciaturas as $licenciatura)
+                                    <option value="{{ $licenciatura->id }}">{{ $licenciatura->nombre }}</option>
+                                @endforeach
+                            </flux:select>
 
 
                             <flux:select label="Generación" wire:model.live="generacion_id">
@@ -166,10 +173,20 @@
 
 
                                 <div class="space-y-3">
-                                    <flux:switch align="left" wire:model="certificado" label="Certificado" />
+
+                                  {{-- CARGA DE DOCUMENTOS   --}}
+                                {{-- <livewire.admin.licenciaturas.submodulo.carga-documentos.carga-documentos /> --}}
+
+
+
+
+
+                                     {{-- <flux:switch align="left" wire:model="CURP_documento" label="CURP" />
+                                    <flux:switch align="left" wire:model="certificado_estudios" label="Certificado de Estudios" />
                                     <flux:switch align="left" wire:model="acta_nacimiento" label="Acta de Nacimiento" />
+                                    <flux:switch align="left" wire:model="comprobante_domicilio" label="Comprobante de Domicilio" />
                                     <flux:switch align="left" wire:model="certificado_medico" label="Certificado Médico" />
-                                    <flux:switch align="left" wire:model="fotos_infantiles" label="Fotos Infantiles" />
+                                    <flux:switch align="left" wire:model="fotos_infantiles" label="Fotos Infantiles" /> --}}
                                 </div>
                             </flux:fieldset>
 
@@ -210,11 +227,7 @@
                                 </div>
 
                                 <!-- Otros -->
-                                <div class="mt-4">
-                                <label class="block text-sm text-gray-700 mb-1">OTROS:</label>
-                                <input type="text" placeholder="Detalla los documentos"
-                                    class="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring focus:ring-blue-200" />
-                                </div>
+                                  <flux:input type="text" label="Documentos" placeholder="Otros documentos" wire:model="otros" />
                             </div>
 
                             <flux:fieldset class="mt-4">
@@ -246,8 +259,10 @@
                 <div class="flex items-center">
                     <flux:button variant="primary" type="submit" class="w-full cursor-pointer">{{ __('Guardar') }}</flux:button>
                 </div>
-
         </form>
+
+
+
 
 
  </div>

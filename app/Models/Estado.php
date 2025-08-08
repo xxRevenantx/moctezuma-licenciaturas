@@ -21,9 +21,14 @@ class Estado extends Model
 
 
 
-    public function inscripcion()
+    public function inscripciones_como_nacimiento()
     {
-        return $this->hasMany(Inscripcion::class);
+        return $this->hasMany(Inscripcion::class, 'estado_nacimiento_id');
+    }
+
+    public function inscripciones()
+    {
+        return $this->hasMany(Inscripcion::class, 'estado_id');
     }
 
 

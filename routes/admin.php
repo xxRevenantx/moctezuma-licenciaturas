@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CiudadController;
 use App\Http\Controllers\ConstanciaController;
 use App\Http\Controllers\DocumentacionController;
+use App\Http\Controllers\DocumentosUnificadosController;
 use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\EstudianteController;
@@ -89,7 +90,12 @@ Route::middleware(['auth'])->group(function () {
 
 
     // RUTAS PDF
-                                            //  NO OLVIDAR LOS MIDDLEWARE
+
+    //DOCUMENTOS UNIFICADOS
+
+    Route::get('/documentos/unificados_identidad/{id}', [DocumentosUnificadosController::class, 'DocumentosUnificadosAlumno'])->middleware('can:admin.administracion')->name('admin.alumnos.documentos.unificar');
+
+
     Route::get('/expediente/{id}', [PDFController::class, 'expediente'])->middleware('can:admin.administracion')->name('admin.pdf.expediente');
     Route::get('/matricula', [PDFController::class, 'matricula'])->middleware('can:admin.administracion')->name('admin.pdf.matricula');
     Route::get('/matricula-generacion', [PDFController::class, 'matricula_generacion'])->middleware('can:admin.administracion')->name('admin.pdf.matricula-generacion');

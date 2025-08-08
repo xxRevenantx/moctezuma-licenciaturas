@@ -50,7 +50,7 @@
 
                         <tr>
                         <td class="border px-4 py-2 text-center">{{ $key+1}}</td>
-                        <td class="border px-4 py-2 text-center">{{ $estado->nombre }}</td>
+                        <td class="border px-4 py-2 text-center" style="text-transform: uppercase">{{ $estado->nombre }}</td>
 
 
                         <td class="border px-4 py-2 text-center">

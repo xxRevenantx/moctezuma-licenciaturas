@@ -22,28 +22,35 @@
                <div class="flex flex-col items-center justify-center gap-5 mb-4 ">
 
                    <div class="w-120 border-2 border-gray-50  dark:bg-neutral-800 shadow-md rounded-3xl p-7 space-y-5">
-                       <h2 class="text-xl font-bold mb-4 text-center text-accent">Editar Licenciatura <flux:badge color="indigo">{{ $nombre }}</flux:badge></h2>
-                       <flux:input wire:model.live="imagen_nueva" badge="Opcional" :label="__('Imagen de la licenciatura')" type="file" accept="image/jpeg,image/jpg,image/png" />
+
+                    <h2 class="text-xl font-bold mb-4 text-center text-accent">Editar Licenciatura <flux:badge color="indigo">{{ $nombre }}</flux:badge></h2>
 
 
+                    <flux:input wire:model.live="imagen_nueva" badge="Opcional" :label="__('Imagen de la licenciatura')" type="file" accept="image/jpeg,image/jpg,image/png" />
 
+                    <div class="mt-4 flex flex-col items-center justify-center">
+                        <div class="text-center">
+                            @if ($imagen)
+                                <p class="font-semibold">Imagen Actual</p>
+                                <img src="{{ asset('storage/licenciaturas/' . $imagen) }}" alt="Imagen de la licenciatura" class="w-24 h-24  block m-auto ">
+                            @else
+                                <p class="text-gray-500 italic">No hay imagen disponible</p>
+                            @endif
 
-                          <div class="mt-4 flex flex-col items-center justify-center">
-                                <div class="text-center">
-                                    @if ($imagen)
-                                        <p class="font-semibold">Imagen Actual</p>
-                                        <img src="{{ asset('storage/licenciaturas/' . $imagen) }}" alt="Imagen de la licenciatura" class="w-24 h-24  block m-auto ">
-                                    @else
-                                        <p class="text-gray-500 italic">No hay imagen disponible</p>
-                                    @endif
-
-                                    @if ($imagen_nueva)
-                                        <p class="mt-4 font-semibold">Nueva Imagen</p>
-                                        <img src="{{ $imagen_nueva->temporaryUrl() }}" alt="Nueva imagen de la licenciatura" class="w-24 h-24  block m-auto">
-                                    @endif
-                                </div>
-
+                            <div wire:loading wire:target="imagen_nueva" class="flex flex-col items-center mt-4">
+                                <svg class="animate-spin h-8 w-8 text-accent mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                </svg>
+                                <span class="text-accent">Cargando imagen...</span>
                             </div>
+
+                            @if ($imagen_nueva)
+                                <p class="mt-4 font-semibold">Nueva Imagen</p>
+                                <img src="{{ $imagen_nueva->temporaryUrl() }}" alt="Nueva imagen de la licenciatura" class="w-24 h-24  block m-auto">
+                            @endif
+                        </div>
+                    </div>
 
 
                        <flux:input badge="Requerido" wire:model.live="nombre" :label="__('Licenciatura')" type="text" placeholder="Nombre de la licenciatura"  autofocus autocomplete="nombre" />

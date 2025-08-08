@@ -27,7 +27,7 @@ class Estudiante extends Component
     public function buscarAlumnos()
     {
         if (strlen($this->query) > 0) {
-            $this->alumnos = Inscripcion::with(['licenciatura', 'user', 'generacion', 'modalidad', 'cuatrimestre'])
+            $this->alumnos = Inscripcion::with(['licenciatura', 'user', 'generacion', 'modalidad', 'cuatrimestre', 'ciudadNacimiento', 'estadoNacimiento', 'ciudad', 'estado'])
                 ->where('nombre', 'like', '%' . $this->query . '%')
                 ->orWhere('apellido_paterno', 'like', '%' . $this->query . '%')
                 ->orWhere('apellido_materno', 'like', '%' . $this->query . '%')
@@ -35,6 +35,9 @@ class Estudiante extends Component
                 ->orWhere('matricula', 'like', '%' . $this->query . '%')
                 ->get()
                 ->toArray();
+
+
+
         } else {
             $this->alumnos = [];
         }
@@ -116,7 +119,7 @@ class Estudiante extends Component
     public function refreshAlumno()
     {
         if ($this->selectedAlumno && isset($this->selectedAlumno['id'])) {
-            $alumno = Inscripcion::with(['licenciatura', 'user', 'generacion', 'modalidad', 'cuatrimestre'])
+            $alumno = Inscripcion::with(['licenciatura', 'user', 'generacion', 'modalidad', 'cuatrimestre', 'ciudadNacimiento', 'estadoNacimiento', 'ciudad', 'estado'])
                 ->find($this->selectedAlumno['id']);
 
             if ($alumno) {

@@ -11,8 +11,11 @@
 </head>
 <style>
 
-    @page { margin:10px 45px 20px 45px; }
+    @page { margin: 0px 0px 10px 0px; }
 
+       .page-break {
+     page-break-after: always;
+    }
 
      @font-face {
         font-family: 'calibri';
@@ -78,11 +81,12 @@
     footer {
         position: absolute;
         bottom: 0;
-        left: 0;
+        left: 5%;
         text-align: center;
         font-size: 12px;
         line-height: 12px;
-        width: 100%;
+        width: 90%;
+        margin: auto;
 
         border-top: 1px solid #4a5568;
         border-bottom: 1px solid #4a5568;
@@ -171,14 +175,36 @@
             background-color: #d8e4bc;
         }
 
+        .contenedor{
+            padding: 0 35px
+        }
 
 </style>
 <body>
+
+
+    <div style="width: 12%; text-align: center; margin-top: 0px;  position: absolute; left: 50px; top: 20px; ">
+        <img style="width: 100%;"  src="{{ public_path('storage/licenciaturas/' . $alumno->licenciatura->imagen) }}" alt="{{ $alumno->licenciatura->nombre }}">
+     </div>
+    <div style="width: 100%; text-align: center; margin-top: 0px;">
+        <img style="width: 100%;"  src="{{ public_path('storage/expediente_encabezado.png') }}" alt="">
+     </div>
+
+     <div style="text-align: center; margin-top: 0px; font-size:25px;  position: absolute; right: 147px; top: 3px; ">
+        <p>{{ \Carbon\Carbon::now()->locale('es')->isoFormat('DD') }}</p>
+     </div>
+     <div style="text-align: center; margin-top: 0px; font-size:25px;  position: absolute; right: 105px; top: 3px; ">
+        <p>{{ \Carbon\Carbon::now()->locale('es')->isoFormat('MM') }}</p>
+     </div>
+     <div style="text-align: center; margin-top: 0px; font-size:25px;  position: absolute; right: 60px; top: 3px; ">
+        <p>{{ \Carbon\Carbon::now()->locale('es')->isoFormat('YY') }}</p>
+     </div>
+
+    <div class="contenedor">
         <div class="watermark">
             <img src="{{ public_path('storage/letra.png') }}" alt="Watermark">
         </div>
 
-        <h1 style="background: #88AC2E; text-align: center; padding: 5px; width: 50%; margin: 20px auto;">EXPEDIENTE DEL ALUMNO</h1>
 
         <h2>DATOS DEL ALUMNO</h2>
            <table>
@@ -195,16 +221,16 @@
 
         <tr>
             <td colspan="2"></td>
+            <td style="text-align: center; font-size:9px; padding:0px;">NOMBRE(S)</td>
             <td style="text-align: center; font-size:9px; padding:0px;">A. PATERNO</td>
             <td style="text-align: center; font-size:9px; padding:0px;">A. MATERNO</td>
-            <td style="text-align: center; font-size:9px; padding:0px;">NOMBRE(S)</td>
         </tr>
 
         <tr>
             <td class="subtitulo">FECHA DE NACIMIENTO</td>
             <td class="center" colspan="1">{{ \Carbon\Carbon::parse($alumno->fecha_nacimiento)->format('d/m/Y') }}</td>
-           <td class="subtitulo">CURP</td>
-            <td colspan="2">{{ $alumno->CURP }}</td>
+           <td class="subtitulo center" >CURP</td>
+            <td colspan="2" class="center">{{ $alumno->CURP }}</td>
 
 
 
@@ -214,8 +240,8 @@
 
             <td class="subtitulo">LUGAR DE NACIMIENTO</td>
             <td class="center" colspan="5">
-                @if(!empty($alumno->lugar_nacimiento))
-                    {{ $alumno->lugar_nacimiento }}
+                @if(!empty($alumno->ciudadNacimiento->nombre))
+                   {{ $alumno->ciudadNacimiento->nombre }}, {{ $alumno->estadoNacimiento->nombre }}
                 @else
                    -------------
                 @endif
@@ -227,6 +253,15 @@
             <td colspan="5" class="center" >
                 @if(!empty($alumno->calle))
                     {{ $alumno->calle }}
+                    @if(!empty($alumno->numero_exterior))
+                        NO. EXT.{{ $alumno->numero_exterior }}
+                    @else
+                        S/N
+                    @endif
+                    @if(!empty($alumno->numero_interior))
+                        {{ $alumno->numero_interior }}
+                    @endif
+
                 @else
                     -------------
                 @endif
@@ -310,13 +345,13 @@
 
     <table>
         <tr>
-            <td class="subtitulo">LICENCIATURA SOLICITADA</td>
+            <td class="subtitulo">LICENCIATURA ASIGNADA</td>
             <td colspan="3" style="text-align: center; text-transform: uppercase;">{{ $alumno->licenciatura->nombre}}</td>
         </tr>
         <tr>
             <td class="subtitulo">GENERACIÓN</td>
             <td style="text-align: center; text-transform: uppercase;">{{ $alumno->generacion->generacion }}</td>
-            <td class="subtitulo">MODALIDAD</td>
+            <td class="subtitulo center">MODALIDAD</td>
             <td style="text-align: center; text-transform: uppercase;">{{ $alumno->modalidad->nombre }}</td>
         </tr>
     </table>
@@ -326,14 +361,14 @@
     <table>
         <tr>
             <td>CERTIFICADO DE BACHILLERATO</td>
-            <td>
-                @if($alumno->certificado)
+            <td class="center">
+                @if($alumno->certificado == "true")
                     <span style="color: green; font-weight: bold;">ENTREGADO</span>
                 @else
                     <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
                 @endif
             </td>
-              <td rowspan="6" style="width: 50%; text-align: justify;">
+              <td rowspan="5" style="width: 50%; text-align: justify; line-height: 12px">
               <p style="padding: 10px">
                  • LA DOCUMENTACIÓN MENCIONADA DEBERÁ
                 ENTREGARSE AL MOMENTO DE INSCRIBIRSE. <br>
@@ -351,19 +386,19 @@
         </tr>
         <tr>
             <td>ACTA DE NACIMIENTO</td>
-            <td>
-                @if($alumno->acta_nacimiento)
-                    <span style="color: green; font-weight: bold;">&#10003; ENTREGADO</span>
+            <td class="center">
+                @if($alumno->acta_nacimiento == "true")
+                    <span style="color: green; font-weight: bold;">ENTREGADO</span>
                 @else
-                    <span style="color: red; font-weight: bold;">&#10007; NO ENTREGADO</span>
+                    <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
                 @endif
             </td>
 
         </tr>
         <tr>
             <td>CERTIFICADO MÉDICO</td>
-            <td>
-                @if($alumno->certificado_medico)
+            <td class="center">
+                @if($alumno->certificado_medico == "true")
                     <span style="color: green; font-weight: bold;">ENTREGADO</span>
                 @else
                     <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
@@ -372,38 +407,113 @@
         </tr>
         <tr>
             <td>FOTOGRAFÍA TAMAÑO INFANTIL</td>
-            <td>
-                @if($alumno->fotos_infantiles)
+            <td class="center">
+                @if($alumno->fotos_infantiles == "true")
                     <span style="color: green; font-weight: bold;">ENTREGADO</span>
                 @else
                     <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
                 @endif
             </td>
         </tr>
-        <tr>
-            <td>CURP</td>
-            <td>
-                @if($alumno->CURP)
-                    <span style="color: green; font-weight: bold;">ENTREGADO</span>
-                @else
-                    <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
-                @endif
-            </td>
-        </tr>
+
         <tr>
             <td>OTROS</td>
-            <td></td>
+            <td class="center">
+            @if(!empty($alumno->otros))
+                {{ $alumno->otros }}
+            @else
+                -------------
+            @endif
+            </td>
         </tr>
 
-
+           <tr>
+            <td style=" text-align: justify; line-height: 12px; text-transform: uppercase;" colspan="3">
+                ME COMPROMETO A ENTREGAR LOS DOCUMENTOS FALTANTES A MÁS TARDAR EL DÍA________ DE_______________________
+                DEL___________. ESTOY DE ACUERDO QUE EN CASO DE NO CUMPLIR CON EL COMPROMISO ANTERIOR, SEA CANCELADA MI
+                INSCRIPCIÓN Y CAUSE BAJA SIN NINGUNA RESPONSABILIDAD PARA EL {{ $escuela->nombre }}.
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" class="center" style="text-transform: uppercase">
+                CD. ALTAMIRANO, GRO., A {{ \Carbon\Carbon::now()->locale('es')->isoFormat('DD [de] MMMM [de] YYYY') }}
+            </td>
+        </tr>
 
     </table>
 
 
     <footer>
-        <p>{{$escuela->nombre}} C.C.T. {{$escuela->CCT}} C. {{$escuela->calle}} No. {{$escuela->no_exterior}}, Col. {{$escuela->colonia}}, C.P. {{$escuela->codigo_postal}}, Cd. {{$escuela->ciudad}}, {{$escuela->estado}}.</p>
-        <p>Fecha de expedición: {{ now()->translatedFormat('d \d\e F \d\e\l Y \a \l\a\s H:i') }}</p>
+        <p>{{ $escuela->nombre }} | {{ $escuela->pagina_web }} | Tel: {{ $escuela->telefono}}</p>
+        <p>EXPEDIENTE DEL ALUMNO - PÁGINA 1</p>
     </footer>
+
+    <div class="page-break"></div>
+
+    <div style="width: 100%; text-align: center; margin-top: 20px;">
+        <img style="width: 50%;"  src="{{ public_path('storage/logo.png') }}" alt="">
+    </div>
+
+    <div style="font-size: 15px; line-height: 14px; text-align: justify">
+    <p>Todo pago que se efectúa al {{ $escuela->nombre }} presupone una serie de trámites internos, así como el apartado de
+    un lugar en el curso por iniciar. Esto implica que el alumno que cubra cuotas por cualquier concepto y desee darse de baja
+    estará sujeto a las siguientes condiciones:</p>
+
+    <p style="text-indent: 10px"> <b>a)</b> Los alumnos que hayan realizado el pago total o parcial de la inscripción y cancelen su ingreso al Centro Universitario
+    Moctezuma, no se les reembolsará monto alguno de lo pagado. Realizado el pago parcial de la inscripción deberán liquidar el
+    100% de la inscripción al valor vigente de la misma en que esto suceda.
+    </p>
+    <p style="text-indent: 10px"><b>b)</b> En caso de reinscripción de alumnos en cuatrimestres o semestres avanzados, que cancelen su reingreso al Centro
+    Universitario Moctezuma, no se les reembolsará monto alguno de lo pagado</p>
+    <p style="text-indent: 10px"><b>c)</b> Cuando el alumno deje de asistir a clases sin previo aviso, el {{ $escuela->nombre }} tendrá la facultad de procesar la
+    baja correspondiente y el alumno deberá cubrir las colegiaturas correspondientes, de acuerdo a la fecha de baja procesada por
+    el CUM.</p>
+
+    <p><b>PAGO ANTICIPADO</b></p>
+    <p>El pago del cuatrimestre por anticipado tendrá un 8% de descuento exclusivamente sobre las colegiaturas sin incluir
+        otras promociones. Como fecha límite para gozar de dicho descuento se tendrá la fecha establecida en el calendario de
+        vencimientos.</p>
+
+    <p><b>PAGOS VENCIDOS</b></p>
+
+    <p style="text-indent: 10px"> <b>a)</b> Al acumularse <b>dos pagos</b> vencidos el alumno será suspendido, perdiendo el derecho al servicio educativo y administrativo aún
+    y cuando se encontrara en periodo de exámenes parciales hasta que no liquide su adeudo. Las faltas no son justificables.
+    </p>
+    <p style="text-indent: 10px"> <b>b)</b> Al acumular <b>tres pagos vencidos</b> el alumno podrá ser dado de baja, no pudiendo asistir a clases hasta en tanto liquide el
+    adeudo pendiente. Deberá tomarse en cuenta que las faltas acumuladas por este retraso afectara la acreditación de sus
+    asignaturas.
+    </p>
+
+   <p style="text-indent: 10px"> <b>c)</b> Al finalizar el ciclo escolar, no podrán presentar exámenes de fin de período y extraordinarios si no se tienen liquidados al
+    100% los pagos de Colegiaturas, Inscripción, Reinscripción, Cursos de Regularización y /o cualquier otro servicio.</p>
+    <p style="text-indent: 10px"> <b>d)</b> Los pagos de colegiatura deberán realizarse dentro de los primeros cinco días de inicio del mes correspondiente.</p>
+
+
+    <p style="text-transform: uppercase; font-weight: bold; ">
+        DEBO Y PAGARÉ INCONDICIONALMENTE POR ESTE PAGARÉ A LA ORDEN DE {{ $escuela->nombre }}, EN
+        _________________________________, EL DÍA _____________________ , LA CANTIDAD DE $_________________________
+        _____________________________________MXN. POR CONCEPTO DE ADEUDOS EN COLEGIATURAS VENCIDAS. ESTE PAGARÉ CAUSARÁ
+        INTERESES A RAZÓN DEL ____ MENSUAL DESDE LA FECHA DE VENCIMIENTO HASTA SU TOTAL LIQUIDACIÓN, PAGADERO
+        CONJUNTAMENTE CON EL PRINCIPAL.
+    </p>
+
+    </div>
+
+    <p style="text-transform: uppercase; font-weight: bold; text-align: center;">ACEPTAMOS:</p>
+
+    <table style="width: 100%; text-align: center; border: none;">
+        <tr>
+            <td class="sin-borde" style="text-align: center; width: 50%;">_____________________________________<br>NOMBRE Y FIRMA DEL ALUMNO</td>
+            <td class="sin-borde" style="text-align: center; width: 50%;">_____________________________________<br>NOMBRE Y FIRMA DEL PADRE/MADRE O TUTOR</td>
+        </tr>
+    </table>
+
+    <footer>
+        <p>{{ $escuela->nombre }} | {{ $escuela->pagina_web }} | Tel: {{ $escuela->telefono}}</p>
+        <p>EXPEDIENTE DEL ALUMNO - PÁGINA 2</p>
+    </footer>
+
+    </div>
 
 </body>
 </html>
