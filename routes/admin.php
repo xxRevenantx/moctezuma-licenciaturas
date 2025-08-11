@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AsignarGeneracionController;
 use App\Http\Controllers\Admin\CuatrimestreController;
 use App\Http\Controllers\Admin\DirectivoController;
 use App\Http\Controllers\Admin\GeneracionController;
+use App\Http\Controllers\Admin\GrupoController;
 use App\Http\Controllers\Admin\InscripcionController;
 use App\Http\Controllers\Admin\LicenciaturaController;
 use App\Http\Controllers\Admin\PeriodoController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\DocumentosUnificadosController;
 use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\EstudianteController;
+
 use App\Http\Controllers\HorarioGeneralController;
 use App\Http\Controllers\ListaProfesorController;
 use App\Http\Controllers\MateriaController;
@@ -68,6 +70,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('directivos', DirectivoController::class)->middleware('can:admin.administracion')->names('admin.directivos');
 
     Route::resource('cuatrimestres', CuatrimestreController::class)->middleware('can:admin.administracion')->names('admin.cuatrimestres');
+
+    Route::get('grupos', [GrupoController::class, 'index'])->middleware('can:admin.administracion')->name('admin.grupos.index');
 
     Route::resource('periodos-escolares', PeriodoController::class)->middleware('can:admin.administracion')->names('admin.periodos');
 

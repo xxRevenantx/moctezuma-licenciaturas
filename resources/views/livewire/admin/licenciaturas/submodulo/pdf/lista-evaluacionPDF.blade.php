@@ -191,7 +191,7 @@
                 <td><strong>LICENCIATURA:</strong></td>
                 <td colspan="2" style="text-transform: uppercase">{{ $materia->licenciatura->nombre }}</td>
                 <td><strong>GRUPO:</strong></td>
-                <td></td>
+                <td>-----</td>
                 <td><strong>CUATRIMESTRE:</strong></td>
                 <td colspan="2">{{ $materia->cuatrimestre->cuatrimestre }}°</td>
             </tr>
