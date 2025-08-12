@@ -107,7 +107,12 @@
                 }
 
 
+                $grupo = \App\Models\Grupo::where('licenciatura_id', $licenciatura->id)
+                    ->where('cuatrimestre_id', $periodo->cuatrimestre_id)
+                    ->first();
+
         @endphp
+
 
 
 
@@ -233,7 +238,7 @@
             &nbsp;&nbsp;
             CUATRIMESTRE: <span style="text-decoration: underline; font-weight: bold; ">{{ $periodo->cuatrimestre_id }}°</span>
             &nbsp;&nbsp;
-            GRUPO: <span style="text-decoration: underline; font-weight: bold; ">_______</span>
+            GRUPO: <span style="text-decoration: underline; font-weight: bold; ">{{ $grupo->grupo }}</span>
             &nbsp;&nbsp;
             TURNO: <span style="text-decoration: underline; font-weight: bold; ">MATUTINO</span>
         </td>

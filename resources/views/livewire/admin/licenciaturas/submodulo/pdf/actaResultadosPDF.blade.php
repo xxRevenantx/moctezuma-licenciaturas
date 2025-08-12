@@ -115,6 +115,12 @@
          <p><b>ACTA DE RESULTADOS DE EVALUACIÓN</b></p>
     </div>
 
+        @php
+               $grupo = \App\Models\Grupo::where('licenciatura_id', $licenciatura->id)
+                    ->where('cuatrimestre_id',$materia->cuatrimestre_id)
+                    ->first();
+
+        @endphp
 
 
          <table class="datos">
@@ -135,7 +141,7 @@
             </tr>
             <tr>
                 <td style="width:45%;">ACREDITACIÓN: _________________</td>
-                <td style="width:25%;">GRUPO: <u><b>102</b></u></td>
+                <td style="width:25%;">GRUPO: <u><b>{{ $grupo->grupo }}</b></u></td>
                 <td style="width:30%;">CUATRIMESTRE: <u><b>{{ $materia->cuatrimestre_id }}</b></u></td>
             </tr>
             <tr>
@@ -228,8 +234,9 @@
                         $letraCalificacion = 'NP';
                         break;
                         default:
-                        $letraCalificacion = 'CERO';
+                        $letraCalificacion = '----';
                 }
+
 
 
             @endphp
@@ -240,10 +247,18 @@
                     {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno}} {{ $alumno->nombre }}
                 </td>
                 <td style="border: 1px solid black; text-align: center; padding:0">
-                    {{ $calificacion }}
+                    @if($calificacion === '')
+                       ----
+                    @else
+                        {{ $calificacion }}
+                    @endif
                 </td>
                 <td style="border: 1px solid black; text-align: center; padding:0">
-                    {{ $letraCalificacion }}
+                    @if($letraCalificacion === '')
+                        ----
+                    @else
+                        {{ $letraCalificacion }}
+                    @endif
                 </td>
                 <td style="border: 1px solid black; text-align: center; padding:0">100%</td>
                 <td style="border: 1px solid black; text-align: center; padding:0">
