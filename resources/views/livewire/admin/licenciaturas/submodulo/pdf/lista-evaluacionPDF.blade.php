@@ -177,6 +177,8 @@
 
         {{-- AQUI VA LA TABLA --}}
 
+
+
          <table style="width: 100%; border-collapse: collapse;  font-size: 14px; margin-bottom: 20px;" border="1">
         <thead>
             <tr style="background-color: #f2f2f2; text-align: center;">
@@ -191,7 +193,7 @@
                 <td><strong>LICENCIATURA:</strong></td>
                 <td colspan="2" style="text-transform: uppercase">{{ $materia->licenciatura->nombre }}</td>
                 <td><strong>GRUPO:</strong></td>
-                <td>-----</td>
+                <td>{{ $grupo->grupo }}</td>
                 <td><strong>CUATRIMESTRE:</strong></td>
                 <td colspan="2">{{ $materia->cuatrimestre->cuatrimestre }}°</td>
             </tr>

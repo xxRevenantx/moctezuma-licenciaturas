@@ -54,6 +54,10 @@ class Licenciatura extends Model
         return $this->hasMany(Calificacion::class);
     }
 
-
+    // Grupo
+    public function grupos()
+    {
+        return $this->hasMany(Grupo::class);
+    }
 
 }

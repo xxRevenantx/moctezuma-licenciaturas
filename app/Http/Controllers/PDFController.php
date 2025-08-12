@@ -12,6 +12,7 @@ use App\Models\Dia;
 use App\Models\Directivo;
 use App\Models\Escuela;
 use App\Models\Generacion;
+use App\Models\Grupo;
 use App\Models\Horario;
 use App\Models\Inscripcion;
 use App\Models\Justificante;
@@ -770,6 +771,10 @@ public function horario_general_semiescolarizada(){
 
         $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
 
+        $grupo = Grupo::where('licenciatura_id', $licenciatura_id)
+            ->where('cuatrimestre_id', $cuatrimestre_id)
+            ->first();
+
         $materia = AsignacionMateria::with(['materia', 'profesor'])
             ->where('materia_id', $materia_id)
             ->first();
@@ -811,9 +816,8 @@ public function horario_general_semiescolarizada(){
             'generacion' => $generacion,
             'ciclo_escolar' => $ciclo_escolar,
             'meses' => $meses,
-            'periodos' => $periodos
-
-
+            'periodos' => $periodos,
+            'grupo' => $grupo
          ];
 
     $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-evaluacionPDF', $data)

@@ -51,6 +51,10 @@ class Cuatrimestre extends Model
         return $this->hasMany(Calificacion::class, 'cuatrimestre_id');
     }
 
-
+    // Grupos
+    public function grupos()
+    {
+        return $this->hasMany(Grupo::class);
+    }
 
 }

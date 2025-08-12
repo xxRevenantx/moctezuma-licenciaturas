@@ -13,7 +13,15 @@ return new class extends Migration
     {
         Schema::create('grupos', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('licenciatura_id');
+            $table->unsignedBigInteger('cuatrimestre_id');
+            $table->string('grupo');
             $table->timestamps();
+
+
+            $table->foreign('licenciatura_id')->references('id')->on('licenciaturas')->onDelete('cascade');
+            $table->foreign('cuatrimestre_id')->references('id')->on('cuatrimestres')->onDelete('cascade');
+
         });
     }
 
