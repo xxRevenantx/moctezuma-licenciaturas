@@ -762,6 +762,7 @@ public function horario_general_semiescolarizada(){
 
 
 
+
          if(!$periodo){
               abort(404, 'Periodo no encontrado');
         }
@@ -796,6 +797,8 @@ public function horario_general_semiescolarizada(){
 
 
 
+
+
         // Obtén el periodo y genera los días del mes.
         $periodo = explode('-', $request->periodo); // Ejemplo: ['5', '8'] para Mayo-Agosto
         $meses = [
@@ -808,6 +811,9 @@ public function horario_general_semiescolarizada(){
          ->where('cuatrimestre_id',$cuatrimestre_id)
          ->first();
 
+
+         $modalidad = Modalidad::findOrFail ($modalidad_id);
+
         $data = [
             'escuela' => Escuela::all()->first(),
             'materia' => $materia,
@@ -817,7 +823,8 @@ public function horario_general_semiescolarizada(){
             'ciclo_escolar' => $ciclo_escolar,
             'meses' => $meses,
             'periodos' => $periodos,
-            'grupo' => $grupo
+            'grupo' => $grupo,
+            'modalidad' => $modalidad
          ];
 
     $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-evaluacionPDF', $data)

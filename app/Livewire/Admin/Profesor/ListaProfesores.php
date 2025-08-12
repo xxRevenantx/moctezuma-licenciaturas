@@ -27,9 +27,7 @@ class ListaProfesores extends Component
     {
         if (strlen($this->query) > 0) {
             $this->profesores = Profesor::with('user')
-                ->where('nombre', 'like', '%' . $this->query . '%')
-                ->orWhere('apellido_paterno', 'like', '%' . $this->query . '%')
-                ->orWhere('apellido_materno', 'like', '%' . $this->query . '%')
+                ->where(DB::raw("CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno)"), 'like', '%' . $this->query . '%')
                 ->orWhereHas('user', function ($q) {
                     $q->where('CURP', 'like', '%' . $this->query . '%')
                         ->orWhere('email', 'like', '%' . $this->query . '%');

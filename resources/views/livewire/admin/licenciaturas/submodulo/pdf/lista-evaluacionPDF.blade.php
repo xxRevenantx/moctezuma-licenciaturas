@@ -61,10 +61,10 @@
 
     th {
          border: 1px solid #2d2d2d;
-        background: #638acd;
+        background: #c9c9c9;
         font-weight: bold;
         text-align: center;
-        color: white;
+        color: rgb(0, 0, 0);
     }
 
 
@@ -199,7 +199,7 @@
             </tr>
             <tr>
                 <td><strong>MODALIDAD:</strong></td>
-                <td>{{ $materia->modalidad->nombre }}</td>
+                <td>{{ $modalidad->nombre }}</td>
                 <td><strong>PERIODO:</strong></td>
                 <td colspan="3">{{ $meses[$periodo[0]] }}/{{ $meses[$periodo[1]] }}</td>
                 <td><strong>GENERACIÓN</strong></td>

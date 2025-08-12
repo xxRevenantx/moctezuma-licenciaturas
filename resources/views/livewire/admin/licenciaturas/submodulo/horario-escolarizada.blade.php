@@ -107,14 +107,15 @@ function isColorLight($hexColor) {
 
         @endif
 
-             <div wire:loading.delay
+            <div wire:loading.delay
                 wire:target="filtrar_generacion, filtrar_cuatrimestre"
-                       class="flex justify-center">
-                    <svg class="animate-spin h-20 w-20 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                    </svg>
-                 </div>
+                class="flex flex-col items-center justify-center w-full py-8">
+                <svg class="animate-spin h-20 w-20 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <span class="mt-4 text-base text-gray-700 dark:text-gray-200 text-center">Cargando horario…</span>
+            </div>
 
                  <div wire:loading.remove
                  wire:target="filtrar_generacion, filtrar_cuatrimestre">
@@ -177,25 +178,48 @@ function isColorLight($hexColor) {
        </div>
 
        {{-- MATERIAS DEL PROFESOR Y HORAS TOTALES --}}
-        <div class="mt-8">
-            <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Materias del Profesor y Horas Totales</h4>
-            <div class="overflow-x-auto">
-                <table class="min-w-full border border-gray-200 rounded-lg shadow-sm bg-white dark:bg-gray-800 table-striped">
-                    <thead class="bg-gray-100 dark:bg-gray-700">
-                        <tr>
-                            <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">#</th>
-                            <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Profesor</th>
-                            <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Materias</th>
-                            <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Total de Horas</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                       @php
+       {{-- MATERIAS DEL PROFESOR Y HORAS TOTALES --}}
+<div class="mt-8">
+    <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+        Materias del Profesor y Horas Totales
+    </h4>
+
+    {{-- Loader mientras se recalcula la tabla de profesores/horas --}}
+    <div
+        wire:loading.delay
+        wire:target="actualizarHorario, filtrar_generacion, filtrar_cuatrimestre"
+        class="w-full flex flex-col items-center justify-center gap-3 p-6 border border-dashed border-gray-300 rounded-lg bg-white dark:bg-gray-800 text-center"
+    >
+        <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
+            Recalculando materias y horas del profesorado…
+        </span>
+    </div>
+
+    {{-- Contenido real (se oculta mientras carga) --}}
+    <div
+        wire:loading.remove
+        wire:target="actualizarHorario, filtrar_generacion, filtrar_cuatrimestre"
+        class="overflow-x-auto"
+    >
+        <table class="min-w-full border border-gray-200 rounded-lg shadow-sm bg-white dark:bg-gray-800 table-striped">
+            <thead class="bg-gray-100 dark:bg-gray-700">
+                <tr>
+                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">#</th>
+                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Profesor</th>
+                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Materias</th>
+                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Total de Horas</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                @php
                     $profesoresMaterias = [];
                     $profesoresMateriasEnHorario = [];
                     $profesoresHorasEnHorario = [];
 
-                    // Recorre el horario para contar materias y horas por profesor en el horario
                     foreach ($horario as $diaId => $horasDia) {
                         foreach ($horasDia as $hora => $materiaId) {
                             if ($materiaId && $materiaId != 0) {
@@ -205,10 +229,8 @@ function isColorLight($hexColor) {
                                     if (!isset($profesoresMateriasEnHorario[$profId])) {
                                         $profesoresMateriasEnHorario[$profId] = [];
                                     }
-                                    // Solo cuenta una vez cada materia por profesor (materias distintas)
                                     $profesoresMateriasEnHorario[$profId][$materiaId] = $materia;
 
-                                    // Cuenta el total de horas (todas las repeticiones)
                                     if (!isset($profesoresHorasEnHorario[$profId])) {
                                         $profesoresHorasEnHorario[$profId] = 0;
                                     }
@@ -217,7 +239,7 @@ function isColorLight($hexColor) {
                             }
                         }
                     }
-                    // Agrupa materias por profesor (todas las materias asignadas)
+
                     foreach ($materias as $materia) {
                         if (isset($materia->profesor) && $materia->profesor) {
                             $profId = $materia->profesor->id;
@@ -232,53 +254,52 @@ function isColorLight($hexColor) {
                     }
                 @endphp
 
-                        @foreach ($profesoresMaterias as $profesorData)
-                            @php
-                                $profesor = $profesorData['profesor'];
-                                $materiasDelProfesor = $profesorData['materias'];
-                                $profesorColor = $profesor->color ?? '#f3f4f6';
-                                $isLight = isColorLight($profesorColor);
-                                $textColor = $isLight ? '#222222' : '#ffffff';
-                                $materiasEnHorario = isset($profesoresMateriasEnHorario[$profesor->id]) ? $profesoresMateriasEnHorario[$profesor->id] : [];
-                            @endphp
-                           <tr>
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 border-b text-center">
-                                {{ $loop->iteration }}
-                            </td>
-                            <td class="px-4 py-2 text-sm border-b text-center">
-                                <span class="inline-block px-2 py-1 rounded" style="background-color: {{ $profesorColor }}; color: {{ $textColor }};">
-                                    {{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2 text-sm text-center border-b text-gray-900 dark:text-gray-100">
-                                <ul class="list-disc pl-4">
-                                    @foreach ($materiasDelProfesor as $mat)
-                                        <li>
-                                            {{ $mat->materia->nombre }} <span class="text-xs text-gray-500">({{ $mat->materia->clave }})</span>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </td>
-                            <td class="px-4 py-2 text-sm text-center border-b text-gray-700 dark:text-gray-200">
-                                {{ $profesoresHorasEnHorario[$profesor->id] ?? 0 }}
-                                <div class="text-xs text-gray-500">Total de horas</div>
-                            </td>
+                @foreach ($profesoresMaterias as $profesorData)
+                    @php
+                        $profesor = $profesorData['profesor'];
+                        $materiasDelProfesor = $profesorData['materias'];
+                        $profesorColor = $profesor->color ?? '#f3f4f6';
+                        $isLight = isColorLight($profesorColor);
+                        $textColor = $isLight ? '#222222' : '#ffffff';
+                        $materiasEnHorario = $profesoresMateriasEnHorario[$profesor->id] ?? [];
+                    @endphp
+                    <tr>
+                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 border-b text-center">
+                            {{ $loop->iteration }}
+                        </td>
+                        <td class="px-4 py-2 text-sm border-b text-center">
+                            <span class="inline-block px-2 py-1 rounded" style="background-color: {{ $profesorColor }}; color: {{ $textColor }};">
+                                {{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2 text-sm text-center border-b text-gray-900 dark:text-gray-100">
+                            <ul class="list-disc pl-4">
+                                @foreach ($materiasDelProfesor as $mat)
+                                    <li>
+                                        {{ $mat->materia->nombre }} <span class="text-xs text-gray-500">({{ $mat->materia->clave }})</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </td>
+                        <td class="px-4 py-2 text-sm text-center border-b text-gray-700 dark:text-gray-200">
+                            {{ $profesoresHorasEnHorario[$profesor->id] ?? 0 }}
+                            <div class="text-xs text-gray-500">Total de horas</div>
+                        </td>
+                    </tr>
+                @endforeach
 
-                        </tr>
-
-                        @endforeach
-                        @php
-                            $totalHoras = array_sum($profesoresHorasEnHorario);
-                        @endphp
-                        <tr>
-                            <td colspan="5" class="px-4 py-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-300 border-b">
-                                Total global de horas: {{ $totalHoras }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                @php
+                    $totalHoras = array_sum($profesoresHorasEnHorario);
+                @endphp
+                <tr>
+                    <td colspan="5" class="px-4 py-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-300 border-b">
+                        Total global de horas: {{ $totalHoras }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 
 </div>
