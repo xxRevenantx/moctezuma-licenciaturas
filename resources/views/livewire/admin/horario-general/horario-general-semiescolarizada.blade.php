@@ -238,6 +238,7 @@
                         'clave'  => $mat->clave,
                         'licenciatura' => $mat->licenciatura?->nombre ?? 'N/A',
                         'licenciatura_id' => $mat->licenciatura?->id ?? 'N/A',
+
                     ];
                 }
             }
@@ -302,6 +303,7 @@ uksort($porProfesor, function ($a, $b) use ($porProfesor) {
                                                 {{ $m['nombre'] }}
                                                 <span class="text-xs text-gray-500">({{ $m['clave'] }})</span>
                                                 <span class="text-xs text-gray-500">({{ $m['licenciatura'] }})</span>
+
 
 
                                             </li>

@@ -604,74 +604,103 @@ class PDFController extends Controller
 
 // HORARIO GENERAL SEMIESCOLARIZADA
 
-public function horario_general_semiescolarizada(){
-     $horarios = Horario::with([
-        'asignacionMateria.materia',
+public function horario_general_semiescolarizada()
+{
+    $horarios = Horario::with([
+        'asignacionMateria.materia.licenciatura',
         'asignacionMateria.profesor',
-        'licenciatura'
+        'licenciatura',
+        'dia',
     ])
     ->where('modalidad_id', 2)
     ->get();
 
-    // Extraer columnas únicas
+    // Columnas únicas (Cuat. + Lic.)
     $columnasUnicas = $horarios
         ->unique(fn ($item) => $item->cuatrimestre_id . '-' . $item->licenciatura_id)
         ->map(fn ($item) => [
             'cuatrimestre_id' => $item->cuatrimestre_id,
             'licenciatura_id' => $item->licenciatura_id,
-            'etiqueta' => "Cuat. {$item->cuatrimestre_id} - Lic. {$item->licenciatura->nombre_corto}"
+            'etiqueta' => "Cuat. {$item->cuatrimestre_id} - Lic. " . (
+                $item->licenciatura->nombre_corto ?? $item->licenciatura->nombre
+            ),
         ])
         ->sortBy(fn ($col) => sprintf('%03d-%03d', $col['licenciatura_id'], $col['cuatrimestre_id']))
         ->values();
 
-    // Horas únicas ordenadas
+    // Horas únicas (ASC por hora inicial)
     $horasUnicas = $horarios->pluck('hora')
         ->unique()
         ->sortBy(function ($hora) {
-            $inicio = explode('-', $hora)[0];
-            return \Carbon\Carbon::parse(trim($inicio))->format('H:i');
+            $inicio = trim(explode('-', (string)$hora)[0] ?? '');
+            return strtotime(strtolower($inicio)) ?: 0;
         })
         ->values();
 
-
-    $materiasPorDocente = $horarios
-        ->filter(fn ($h) => $h->asignacionMateria && $h->asignacionMateria->profesor)
+    // === Resumen: Materias del Profesor y Horas Totales ===
+    // Agrupar por profesor (incluye "sin asignar")
+    $resumenDocentes = $horarios
         ->groupBy(function ($h) {
-            $p = $h->asignacionMateria->profesor;
-            return "{$p->nombre} {$p->apellido_paterno} {$p->apellido_materno}";
+            return optional(optional($h->asignacionMateria)->profesor)->id ?: 'sin';
         })
-        ->map(function ($items, $profesorNombre) {
-            $profesor = $items->first()->asignacionMateria->profesor;
+        ->map(function ($items, $profId) {
+            $prof = optional(optional($items->first()->asignacionMateria)->profesor);
+
+            // Materias únicas por docente (por ID de materia)
+            $materias = $items->map(function ($i) {
+                    $m = optional(optional($i->asignacionMateria)->materia);
+                    if (!$m) return null;
+                    return [
+                        'id'           => $m->id,
+                        'nombre'       => $m->nombre,
+                        'clave'        => $m->clave,
+                        'licenciatura' => optional($m->licenciatura)->nombre ?? 'N/A',
+                    ];
+                })
+                ->filter()
+                ->unique('id')
+                ->values();
+
+            $nombre = trim(
+                ($prof->nombre ?? 'Sin asignar') . ' ' .
+                ($prof->apellido_paterno ?? '') . ' ' .
+                ($prof->apellido_materno ?? '')
+            );
+
             return [
-                'nombre' => $profesorNombre,
-                'color' => $profesor->color ?? '#FFFFFF',
-                'materias' => $items->map(fn ($i) => optional($i->asignacionMateria->materia)->nombre)->unique()->values(),
-                'total_horas' => $items->count(),
+                'nombre'      => $nombre,
+                'color'       => $prof->color ?? '#e5e7eb',
+                'materias'    => $materias,
+                'total_horas' => $items->count(),   // slots de horario asignados
             ];
         })
-        ->sortBy('nombre')
+        // Orden ASC por nombre del profesor (natural y case-insensitive)
+        ->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)
         ->values();
 
-
-
+    $totalGeneralHoras = $resumenDocentes->sum('total_horas');
 
     $data = [
-        'horarios' => $horarios,
-        'columnasUnicas' => $columnasUnicas,
-        'horasUnicas' => $horasUnicas,
-        'materiasPorDocente' => $materiasPorDocente,
+        'horarios'            => $horarios,
+        'columnasUnicas'      => $columnasUnicas,
+        'horasUnicas'         => $horasUnicas,
+        'resumenDocentes'     => $resumenDocentes,
+        'totalGeneralHoras'   => $totalGeneralHoras,
     ];
 
-    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.horarioGeneralSemiescolarizada', $data)
-              ->setPaper('legal', 'landscape') ;
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+        'livewire.admin.licenciaturas.submodulo.pdf.horarioGeneralSemiescolarizada',
+        $data
+    )->setPaper('legal', 'landscape');
 
-    return $pdf->stream("horario_general-semiescolarizada.pdf");
+    return $pdf->stream('horario_general-semiescolarizada.pdf');
 }
+
 
 
  // LISTA DE ASISTENCIAS
     public function lista_asistencia(Request $request){
-        $materia_id = $request->materia_id;
+        $materia_id = $request->asignacion_materia;
         $licenciatura_id = $request->licenciatura_id;
         $cuatrimestre_id = $request->cuatrimestre_id;
         $generacion_id = $request->generacion_id;
@@ -710,8 +739,8 @@ public function horario_general_semiescolarizada(){
             }
 
 
-        $materia = AsignacionMateria::with(['materia', 'profesor'])
-            ->where('materia_id', $materia_id)
+          $materia = AsignacionMateria::with(['materia', 'profesor'])
+            ->where('id', $materia_id)
             ->first();
 
             $alumnos = Inscripcion::where('licenciatura_id', $licenciatura_id)
@@ -753,7 +782,7 @@ public function horario_general_semiescolarizada(){
 
     // LISTA DE EVALUACION
     public function lista_evaluacion(Request $request){
-        $materia_id = $request->materia_id;
+        $materia_id = $request->asignacion_materia;
         $licenciatura_id = $request->licenciatura_id;
         $cuatrimestre_id = $request->cuatrimestre_id;
         $generacion_id = $request->generacion_id;
@@ -777,8 +806,10 @@ public function horario_general_semiescolarizada(){
             ->first();
 
         $materia = AsignacionMateria::with(['materia', 'profesor'])
-            ->where('materia_id', $materia_id)
+            ->where('id', $materia_id)
             ->first();
+
+
 
             $alumnos = Inscripcion::where('licenciatura_id', $licenciatura_id)
                 ->where('cuatrimestre_id', $cuatrimestre_id)

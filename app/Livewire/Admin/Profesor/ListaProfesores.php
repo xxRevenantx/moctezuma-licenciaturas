@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Profesor;
 
+use App\Models\Periodo;
 use App\Models\Profesor;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -13,11 +14,12 @@ class ListaProfesores extends Component
     public $selectedIndex = 0;
     public $selectedProfesor = null;
 
-    public $periodo_id = '';
     public $materiasAsignadas = [];
-
     public $buscador_materia = '';
 
+    public $periodo_id = '';
+
+    // ===== Eventos de UI =====
     public function updatedQuery()
     {
         $this->buscarProfesores();
@@ -25,95 +27,51 @@ class ListaProfesores extends Component
 
     public function buscarProfesores()
     {
-        if (strlen($this->query) > 0) {
-            $this->profesores = Profesor::with('user')
-                ->where(DB::raw("CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno)"), 'like', '%' . $this->query . '%')
-                ->orWhereHas('user', function ($q) {
-                    $q->where('CURP', 'like', '%' . $this->query . '%')
-                        ->orWhere('email', 'like', '%' . $this->query . '%');
-                })
-                ->get()
-                ->map(function ($profesor) {
-                    return [
-                        'id' => $profesor->id,
-                        'nombre' => $profesor->nombre,
-                        'apellido_paterno' => $profesor->apellido_paterno,
-                        'apellido_materno' => $profesor->apellido_materno,
-                        'CURP' => $profesor->user->CURP ?? '',
-                    ];
-                })
-                ->toArray();
-        } else {
+        if (strlen(trim($this->query)) === 0) {
             $this->profesores = [];
+            $this->selectedIndex = 0;
+            return;
         }
+
+        $this->profesores = Profesor::with('user')
+            ->where(DB::raw("CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno)"), 'like', '%' . $this->query . '%')
+            ->orWhereHas('user', function ($q) {
+                $q->where('CURP', 'like', '%' . $this->query . '%')
+                  ->orWhere('email', 'like', '%' . $this->query . '%');
+            })
+            ->orderBy('nombre')
+            ->orderBy('apellido_paterno')
+            ->get()
+            ->map(function ($profesor) {
+                return [
+                    'id' => $profesor->id,
+                    'nombre' => $profesor->nombre,
+                    'apellido_paterno' => $profesor->apellido_paterno,
+                    'apellido_materno' => $profesor->apellido_materno,
+                    'CURP' => $profesor->user->CURP ?? '',
+                ];
+            })
+            ->toArray();
+
         $this->selectedIndex = 0;
     }
 
     public function selectProfesor($index)
     {
-        if (isset($this->profesores[$index])) {
-            $this->selectedProfesor = $this->profesores[$index];
-            $this->profesores = [];
-            $this->cargarMateriasAsignadas();
-        } else {
+        if (! isset($this->profesores[$index])) {
             $this->dispatch('swal', [
                 'title' => 'Profesor no encontrado',
                 'icon' => 'error',
                 'position' => 'top',
             ]);
+            return;
         }
-    }
 
-    public function updatedPeriodoId()
-    {
+        $this->selectedProfesor = $this->profesores[$index];
+        $this->profesores = [];
+        $this->buscador_materia = ''; // limpiar búsqueda
         $this->cargarMateriasAsignadas();
     }
-
-public function cargarMateriasAsignadas()
-{
-    if ($this->selectedProfesor) {
-        $profesorId = $this->selectedProfesor['id'];
-
-        $this->materiasAsignadas = DB::table('horarios')
-            ->join('asignacion_materias', 'horarios.asignacion_materia_id', '=', 'asignacion_materias.id')
-            ->join('materias', 'asignacion_materias.materia_id', '=', 'materias.id')
-            ->join('modalidades', 'asignacion_materias.modalidad_id', '=', 'modalidades.id')
-            ->join('cuatrimestres', 'asignacion_materias.cuatrimestre_id', '=', 'cuatrimestres.id')
-            ->join('licenciaturas', 'asignacion_materias.licenciatura_id', '=', 'licenciaturas.id')
-            ->select(
-                'materias.id as materia_id',
-                'materias.nombre as materia',
-                'modalidades.nombre as modalidad',
-                'cuatrimestres.cuatrimestre as cuatrimestre',
-                'licenciaturas.nombre as licenciatura',
-                'licenciaturas.id as licenciatura_id',
-                'horarios.generacion_id as generacion_id',
-                'horarios.modalidad_id as modalidad_id'
-            )
-            ->where('asignacion_materias.profesor_id', $profesorId)
-            ->groupBy(
-                'materias.id',
-                'materias.nombre',
-                'modalidades.nombre',
-                'cuatrimestres.cuatrimestre',
-                'licenciaturas.id',
-                'licenciaturas.nombre',
-                'horarios.generacion_id',
-                'horarios.modalidad_id'
-            )
-            ->orderBy('modalidades.nombre')
-            ->orderBy('cuatrimestres.cuatrimestre')
-            ->get()
-            ->toArray();
-    } else {
-        $this->materiasAsignadas = [];
-    }
-}
-
-
-
-
-
 
     public function selectIndexUp()
     {
@@ -129,20 +87,66 @@ public function cargarMateriasAsignadas()
         }
     }
 
+    // ===== Datos =====
+    public function cargarMateriasAsignadas()
+    {
+        if (! $this->selectedProfesor) {
+            $this->materiasAsignadas = [];
+            return;
+        }
+
+        $profesorId = $this->selectedProfesor['id'];
+
+        // Solo materias que tienen horario asignado
+        $this->materiasAsignadas = DB::table('asignacion_materias as am')
+            ->join('materias as m', 'am.materia_id', '=', 'm.id')
+            ->join('modalidades as mo', 'am.modalidad_id', '=', 'mo.id')
+            ->join('cuatrimestres as c', 'am.cuatrimestre_id', '=', 'c.id')
+            ->join('licenciaturas as l', 'am.licenciatura_id', '=', 'l.id')
+            ->join('profesores as p', 'am.profesor_id', '=', 'p.id')
+            ->join('horarios as h', 'h.asignacion_materia_id', '=', 'am.id') // INNER JOIN => debe tener horario
+            ->where('am.profesor_id', $profesorId)
+            ->select([
+                'am.id as asignacion_materia_id',
+                'm.id as materia_id',
+                'm.nombre as materia',
+                'mo.id as modalidad_id',
+                'mo.nombre as modalidad',
+                'c.id as cuatrimestre_id',
+                'c.cuatrimestre as cuatrimestre',
+                'l.id as licenciatura_id',
+                'l.nombre as licenciatura',
+                DB::raw('GROUP_CONCAT(DISTINCT h.generacion_id) as generaciones')
+            ])
+            ->groupBy(
+                'am.id', 'm.id', 'm.nombre',
+                'mo.id', 'mo.nombre',
+                'c.id', 'c.cuatrimestre',
+                'l.id', 'l.nombre'
+            )
+            ->orderBy('mo.nombre')
+            ->orderBy('c.cuatrimestre')
+            ->get()
+            ->toArray();
+    }
+
     public function getMateriasFiltradasProperty()
-{
-    return collect($this->materiasAsignadas)->filter(function ($materia) {
-        return str_contains(
-            strtolower($materia->materia),
-            strtolower($this->buscador_materia)
-        );
-    })->values();
-}
+    {
+        if (! $this->selectedProfesor) {
+            return collect(); // Nada hasta escoger profesor
+        }
 
-
+        $needle = mb_strtolower($this->buscador_materia);
+        return collect($this->materiasAsignadas)->filter(function ($row) use ($needle) {
+            return $needle === '' || str_contains(mb_strtolower($row->materia), $needle);
+        })->values();
+    }
 
     public function render()
     {
-        return view('livewire.admin.profesor.lista-profesores');
+        // Si usas periodos más adelante, deja esto. No se muestra hasta elegir profesor.
+        return view('livewire.admin.profesor.lista-profesores', [
+            'periodos' => Periodo::orderBy('id', 'desc')->get(),
+        ]);
     }
 }

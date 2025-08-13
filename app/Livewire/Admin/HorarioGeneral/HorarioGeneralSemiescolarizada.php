@@ -19,7 +19,8 @@ public function render()
     $horarios = Horario::with([
         'asignacionMateria.materia',
         'asignacionMateria.profesor',
-        'licenciatura'
+        'licenciatura',
+        'asignacionMateria.modalidad'
     ])
     ->where('modalidad_id', 2)
     ->when($this->busqueda, function ($query) {

@@ -163,6 +163,8 @@
              <img class="img1" src="{{ public_path('storage/letra2.jpg') }}" alt="Logo" height="100px" width="100">
             <h1 class="titulo">CENTRO UNIVERSITARIO MOCTEZUMA</h1>
 
+
+
             @if ($materia->licenciatura->imagen)
                 <img class="img2" src="{{ public_path('storage/licenciaturas/'.$materia->licenciatura->imagen) }}" alt="Logo Licenciatura"  height="100px" width="100">
             @else

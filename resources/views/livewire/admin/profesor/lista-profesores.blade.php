@@ -1,191 +1,334 @@
-<div>
-    <flux:input required
-        label="Buscar Profesor"
-        wire:model.live.debounce.500ms="query"
-        name="profesor_id"
-        id="query"
-        type="text"
-        placeholder="Buscar profesor por nombre o apellidos"
-        @focus="open = true"
-        @input="open = true"
-        @blur="setTimeout(() => open = false, 150)"
-        wire:keydown.arrow-down="selectIndexDown"
-        wire:keydown.arrow-up="selectIndexUp"
-        wire:keydown.enter="selectProfesor({{ $selectedIndex }})"
-        autocomplete="off"
-    />
+<div class="space-y-6">
 
-    @if (!empty($profesores))
+    {{-- Buscar profesor --}}
+    <div>
+        <flux:input required
+            label="Buscar Profesor"
+            wire:model.live.debounce.500ms="query"
+            name="profesor_id"
+            id="query"
+            type="text"
+            placeholder="Buscar profesor por nombre o apellidos"
+            @focus="open = true"
+            @input="open = true"
+            @blur="setTimeout(() => open = false, 150)"
+            wire:keydown.arrow-down="selectIndexDown"
+            wire:keydown.arrow-up="selectIndexUp"
+            wire:keydown.enter="selectProfesor({{ $selectedIndex }})"
+            autocomplete="on"
+        />
 
+        {{-- Loader mientras busca profesor --}}
+        <div class="mt-2 flex items-center text-sm text-gray-600" wire:loading.delay.shortest wire:target="query">
+            <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            Buscando profesores…
+        </div>
 
-    <div wire:loading.delay wire:target="query" class="flex justify-center items-center mt-2">
-    <div class="flex items-center space-x-2">
-        <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg>
-        <span class="text-sm text-gray-600">Buscando profesor...</span>
+        @if(!empty($profesores))
+            <ul class="mt-2 bg-white border rounded shadow max-h-60 overflow-auto" wire:loading.remove wire:target="query">
+                @foreach($profesores as $idx => $p)
+                    <li
+                        class="px-3 py-2 cursor-pointer {{ $selectedIndex === $idx ? 'bg-indigo-50' : '' }}"
+                        wire:click="selectProfesor({{ $idx }})"
+                    >
+                        {{ $p['nombre'] }} {{ $p['apellido_paterno'] }} {{ $p['apellido_materno'] }}
+                        <span class="text-xs text-gray-500">({{ $p['CURP'] }})</span>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
     </div>
-</div>
 
-
-        <ul
-            x-show="open"
-            x-transition
-            x-cloak
-            class="absolute w-100 bg-white border mt-1 rounded shadow z-50 max-h-60 overflow-y-auto"
-            style="display: none; z-index: 99999;"
-        >
-            @forelse ($profesores as $index => $profesor)
-            <li
-            class="p-2 cursor-pointer {{ $selectedIndex === $index ? 'bg-blue-200' : '' }}"
-            wire:click="selectProfesor({{ $index }})"
-            @mouseenter="open = true"
-            >
-            <p class="font-bold text-indigo-600">
-            {{ $profesor['apellido_paterno'] ?? '' }} {{ $profesor['apellido_materno'] ?? '' }} {{ $profesor['nombre'] ?? '' }}
+    {{-- Info profesor seleccionado --}}
+    @if($selectedProfesor)
+        <div class="p-4 bg-indigo-100 rounded">
+            <p class="font-semibold">
+                Nombre del profesor: {{ $selectedProfesor['nombre'] }} {{ $selectedProfesor['apellido_paterno'] }} {{ $selectedProfesor['apellido_materno'] }}
             </p>
-            </li>
-            @empty
-            <li class="p-2">No se encontraron profesores.</li>
-            @endforelse
-        </ul>
-    @endif
-
-    @if ($selectedProfesor)
-        <div class="mt-4 p-4 border rounded bg-indigo-200 dark:bg-gray-800 dark:text-white">
-            <p class="font-bold">
-                Nombre del profesor: {{ $selectedProfesor['apellido_paterno'] ?? '' }} {{ $selectedProfesor['apellido_materno'] ?? '' }} {{ $selectedProfesor['nombre'] ?? '' }}
-            </p>
-            <p class="font-bold">
-                CURP del profesor: {{ $selectedProfesor['CURP'] ?? '' }}
-            </p>
+            <p class="text-sm">CURP: {{ $selectedProfesor['CURP'] }}</p>
         </div>
     @endif
 
-    <br>
+    {{-- Periodo --}}
+    @if($selectedProfesor)
+        <flux:select label="Periodo" wire:model.live="periodo_id" required>
+            <option value="">--Selecciona el periodo---</option>
+            <option value="9-12">SEP/DIC</option>
+            <option value="1-4">ENE/ABR</option>
+            <option value="5-8">MAY-AGO</option>
+        </flux:select>
+    @endif
 
-    <flux:select label="Periodo" wire:model.live="periodo_id">
-        <option value="">--Selecciona el periodo---</option>
-        <option value="9-12">SEP/DIC</option>
-        <option value="1-4">ENE/ABR</option>
-        <option value="5-8">MAY-AGO</option>
-    </flux:select>
+    {{-- Materias asignadas --}}
+    @if($selectedProfesor)
+        <div class="space-y-3">
+            <h2 class="text-lg font-semibold">Materias Asignadas</h2>
 
-    {{-- TABLA DONDE SE MOSTRARÁN LAS MATERIAS ASIGNADAS AL PROFESOR --}}
- @if (!empty($materiasAsignadas))
-    <div class="mt-6">
+            <div class="w-full">
+                <flux:input icon="magnifying-glass" wire:model.live="buscador_materia" placeholder="Buscar por nombre de materia..."/>
+            </div>
 
+            <div class="relative overflow-x-auto bg-white rounded shadow">
 
-        {{-- Tabla --}}
-       {{-- LOADER centrado mientras se carga --}}
-
-{{-- CONTENIDO de la tabla --}}
-
-    @if (!empty($materiasAsignadas))
-        <div class="mt-6">
-            <h3 class="font-bold text-lg mb-2">Materias Asignadas</h3>
-
-            {{-- Buscador --}}
-            <div class="mb-4">
-                <label for="buscador" class="block font-semibold text-gray-700 mb-1">Buscar materia:</label>
-
-                <div class="my-4 flex justify-end">
-                    <flux:input icon="magnifying-glass" wire:model.live="buscador_materia" placeholder="Buscar por nombre de materia..."/>
+                {{-- Loader materias --}}
+                <div class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-10"
+                     wire:loading.flex
+                     wire:target="selectProfesor,buscador_materia,cargarMateriasAsignadas">
+                    <div class="flex items-center text-gray-700">
+                        <svg class="animate-spin h-6 w-6 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        Cargando materias…
+                    </div>
                 </div>
 
-            </div>
-                    <div wire:loading.flex wire:target="buscador_materia,selectProfesor,periodo_id" class="justify-center items-center py-10">
-                <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-                <span class="text-blue-600 dark:text-blue-400"></span>
-            </div>
-
-
-            <div wire:loading.remove wire:target="buscador_materia,selectProfesor,periodo_id">
-
-            {{-- Tabla --}}
-           @if ($this->materiasFiltradas->isNotEmpty())
-    <table class="w-full table-auto border border-gray-300 bg-white shadow rounded">
-        <thead class="bg-gray-100 text-left">
-            <tr>
-                <th class="px-4 py-2 border-b text-center">#</th>
-                <th class="px-4 py-2 border-b text-center">Materia</th>
-                <th class="px-4 py-2 border-b text-center">Modalidad</th>
-                <th class="px-4 py-2 border-b text-center">Cuatrimestre</th>
-                <th class="px-4 py-2 border-b text-center">Licenciatura</th>
-                <th class="px-4 py-2 border-b text-center">Lista de</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($this->materiasFiltradas as $index => $materia)
-
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-2 border-b text-center">{{ $index + 1 }}</td>
-                    <td class="px-4 py-2 border-b text-center">{{ $materia->materia }}</td>
-                    <td class="px-4 py-2 border-b text-center">{{ $materia->modalidad }}</td>
-                    <td class="px-4 py-2 border-b text-center">{{ $materia->cuatrimestre }}</td>
-                    <td class="px-4 py-2 border-b text-center">{{ $materia->licenciatura }}</td>
-                    <td class="px-4 py-2 border-b text-center">
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <form action="{{ route('admin.pdf.documentacion.lista_asistencia') }}" method="GET" target="_blank">
-                                <input type="hidden" name="materia_id"  value="{{ $materia->materia_id }}">
-                                <input type="hidden" name="licenciatura_id"  value="{{ $materia->licenciatura_id }}">
-                                <input type="hidden" name="cuatrimestre_id"  value="{{ $materia->cuatrimestre }}">
-                                <input type="hidden" name="generacion_id"  value="{{ $materia->generacion_id }}">
-                                <input type="hidden" name="modalidad_id"  value="{{ $materia->modalidad_id }}">
-                                <input type="hidden" name="periodo"  value="{{ $periodo_id }}">
-
-
-                                <flux:button variant="primary" type="submit"
-                                    class="bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded cursor-pointer w-25">
-                                    Asistencia
-                                </flux:button>
-                            </form>
-                            <form action="{{ route('admin.pdf.documentacion.lista_evaluacion') }}" method="GET" target="_blank">
-                                <input type="hidden" name="materia_id"  value="{{ $materia->materia_id }}">
-                                <input type="hidden" name="licenciatura_id"  value="{{ $materia->licenciatura_id }}">
-                                <input type="hidden" name="cuatrimestre_id"  value="{{ $materia->cuatrimestre }}">
-                                <input type="hidden" name="generacion_id"  value="{{ $materia->generacion_id }}">
-                                <input type="hidden" name="modalidad_id"  value="{{ $materia->modalidad_id }}">
-                                <input type="hidden" name="periodo"  value="{{ $periodo_id }}">
-                                <flux:button variant="primary" type="submit"
-                                    class="bg-cyan-500 hover:bg-cyan-600 text-white  py-2 rounded cursor-pointer w-25">
-                                    Evaluación
-                                </flux:button>
-                            </form>
-                        </div>
-
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-@else
-    <div class="text-center mt-4 text-gray-500">
-        No hay resultados que coincidan con tu búsqueda.
-    </div>
-@endif
-
+                <div
+    x-data="{
+        term: @entangle('buscador_materia'),
+        dense: false,
+        showCols: { modalidad: true, cuatrimestre: true, licenciatura: true },
+        highlight(t) {
+            if (!this.term) return t;
+            // escape regex
+            const esc = this.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return t.replace(new RegExp(esc, 'ig'), (m) => `<mark class='bg-yellow-200 px-0.5 rounded'>${m}</mark>`);
+        },
+        async copy(text, $el) {
+            try {
+                await navigator.clipboard.writeText(text);
+                $el.innerText = '¡Copiado!';
+                setTimeout(() => $el.innerText = 'Copiar', 1200);
+            } catch (e) {}
+        },
+        showShadow: false
+    }"
+    class="relative bg-white rounded shadow ring-1 ring-gray-200"
+    @scroll.passive.window="
+        const tbl = $el.querySelector('[data-table-scroll]');
+        if (!tbl) return;
+        $nextTick(() => { showShadow = tbl.scrollTop > 0; });
+    "
+>
+    <!-- Barra de utilidades -->
+    <div class="flex flex-wrap items-center gap-3 p-3 border-b bg-gray-50/70 rounded-t">
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-500">Densidad</span>
+            <button
+                @click="dense=false"
+                :class="dense ? 'bg-white text-gray-600' : 'bg-indigo-600 text-white'"
+                class="px-2 py-1 text-xs rounded border border-indigo-200"
+            >Cómoda</button>
+            <button
+                @click="dense=true"
+                :class="dense ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'"
+                class="px-2 py-1 text-xs rounded border border-indigo-200"
+            >Compacta</button>
         </div>
-    @else
-        @if ($selectedProfesor)
-            <p class="mt-4 text-gray-600">No se encuentran materias asignadas para el profesor seleccionado.</p>
-        @endif
-    @endif
+
+        <div class="ml-auto flex items-center gap-2">
+            <span class="text-xs text-gray-500">Columnas:</span>
+            <label class="inline-flex items-center gap-1 text-xs">
+                <input type="checkbox" class="rounded" x-model="showCols.modalidad"> Modalidad
+            </label>
+            <label class="inline-flex items-center gap-1 text-xs">
+                <input type="checkbox" class="rounded" x-model="showCols.cuatrimestre"> Cuatrimestre
+            </label>
+            <label class="inline-flex items-center gap-1 text-xs">
+                <input type="checkbox" class="rounded" x-model="showCols.licenciatura"> Licenciatura
+            </label>
+        </div>
+    </div>
+
+    <div class="max-h-[480px] overflow-auto" data-table-scroll>
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50 sticky top-0 z-10"
+                   :class="showShadow ? 'shadow-sm shadow-gray-200' : ''">
+                <tr>
+                    <th class="px-3" :class="dense ? 'py-1.5' : 'py-2.5'">
+                        <span class="text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">#</span>
+                    </th>
+                    <th class="px-3" :class="dense ? 'py-1.5' : 'py-2.5'">
+                        <span class="text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">Materia</span>
+                    </th>
+                    <th class="px-3" :class="dense ? 'py-1.5' : 'py-2.5'" x-show="showCols.modalidad">
+                        <span class="text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">Modalidad</span>
+                    </th>
+                    <th class="px-3" :class="dense ? 'py-1.5' : 'py-2.5'" x-show="showCols.cuatrimestre">
+                        <span class="text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">Cuatrimestre</span>
+                    </th>
+                    <th class="px-3" :class="dense ? 'py-1.5' : 'py-2.5'" x-show="showCols.licenciatura">
+                        <span class="text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">Licenciatura</span>
+                    </th>
+                    <th class="px-3" :class="dense ? 'py-1.5' : 'py-2.5'">
+                        <span class="text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">Lista de</span>
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody class="bg-white divide-y divide-gray-100">
+                @forelse($this->materiasFiltradas as $i => $row)
+                    <tr class="group hover:bg-indigo-50/40 transition-colors"
+                        x-data="{ open:false }">
+                        <!-- # -->
+                        <td class="px-3 align-top"
+                            :class="dense ? 'py-1.5 text-xs' : 'py-2.5 text-sm'">
+                            <div class="flex items-start gap-2">
+                                <button
+                                    @click="open = !open"
+                                    class="mt-0.5 inline-flex items-center justify-center h-5 w-5 rounded border border-gray-300 text-gray-600 group-hover:border-indigo-400 group-hover:text-indigo-600 transition"
+                                    :aria-expanded="open"
+                                    :title="open ? 'Contraer' : 'Expandir'"
+                                >
+                                    <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+                                    <svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 9a1 1 0 000 2h12a1 1 0 100-2H4z" clip-rule="evenodd"/></svg>
+                                </button>
+                                <span>{{ $i + 1 }}</span>
+                            </div>
+                        </td>
+
+                        <!-- Materia (con highlight + copiar) -->
+                        <td class="px-3 align-top"
+                            :class="dense ? 'py-1.5' : 'py-2.5'">
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-900 text-center"
+                                      x-html="highlight(@js($row->materia))"></span>
+                                <button
+                                    class="text-[11px] px-1.5 py-0.5 border rounded text-gray-600 hover:border-gray-400 hover:text-gray-800 transition"
+                                    @click="copy(@js($row->materia), $el)"
+                                    x-data
+                                    x-init="$el.setAttribute('title','Copiar')"
+                                >Copiar</button>
+                            </div>
+                            <div class="mt-1">
+                                <!-- badge modalidad -->
+                                <template x-if="@js($row->modalidad) === 'SEMIESCOLARIZADA'">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">Semiescolarizada</span>
+                                </template>
+                                <template x-if="@js($row->modalidad) === 'ESCOLARIZADA'">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">Escolarizada</span>
+                                </template>
+                            </div>
+                        </td>
+
+                        <!-- Modalidad -->
+                        <td class="px-3 align-top text-center" x-show="showCols.modalidad"
+                            :class="dense ? 'py-1.5 text-xs' : 'py-2.5 text-sm'">
+                            <span x-html="highlight(@js($row->modalidad))"></span>
+                        </td>
+
+                        <!-- Cuatrimestre -->
+                        <td class="px-3 align-top text-center" x-show="showCols.cuatrimestre"
+                            :class="dense ? 'py-1.5 text-xs' : 'py-2.5 text-sm'">
+                            {{ $row->cuatrimestre }}
+                        </td>
+
+                        <!-- Licenciatura -->
+                        <td class="px-3 align-top text-center" x-show="showCols.licenciatura"
+                            :class="dense ? 'py-1.5 text-xs' : 'py-2.5 text-sm'">
+                            <span x-html="highlight(@js($row->licenciatura))"></span>
+                        </td>
+
+                        <!-- Acciones -->
+                        <td class="px-3 align-top"
+                            :class="dense ? 'py-1.5' : 'py-2.5'">
+                            @php
+                                $firstGen = $row->generaciones ? \Illuminate\Support\Str::of($row->generaciones)->explode(',')->first() : null;
+                            @endphp
+
+                            <a target="_blank" href="{{ route('admin.pdf.documentacion.lista_asistencia', [
+                                'asignacion_materia' => $row->asignacion_materia_id,
+                                'licenciatura_id' => $row->licenciatura_id,
+                                'cuatrimestre_id' => $row->cuatrimestre,
+                                'generacion_id' => $firstGen,
+                                'modalidad_id' => $row->modalidad_id,
+                                'periodo' => $periodo_id,
+                            ]) }}"
+                               class="inline-block px-3 py-1 text-white text-[11px] font-semibold rounded bg-indigo-500 hover:bg-indigo-600 shadow-sm">
+                                Asistencia
+                            </a>
+
+                            <a target="_blank" href="{{ route('admin.pdf.documentacion.lista_evaluacion', [
+                                'asignacion_materia' => $row->asignacion_materia_id,
+                                'licenciatura_id' => $row->licenciatura_id,
+                                'cuatrimestre_id' => $row->cuatrimestre,
+                                'generacion_id' => $firstGen,
+                                'modalidad_id' => $row->modalidad_id,
+                                'periodo' => $periodo_id,
+                            ]) }}"
+                               class="inline-block ml-2 px-3 py-1 text-white text-[11px] font-semibold rounded bg-cyan-500 hover:bg-cyan-600 shadow-sm">
+                                Evaluación
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Detalle expandible -->
+                    <tr x-show="open" x-collapse>
+                        <td colspan="6" class="bg-gray-50 px-6 py-3 text-sm text-gray-700">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-xs font-semibold text-gray-500">Generaciones:</span>
+                                @php
+                                    $gens = $row->generaciones
+                                        ? \Illuminate\Support\Str::of($row->generaciones)->explode(',')->filter()->unique()->values()
+                                        : collect();
+                                @endphp
+                                @forelse($gens as $g)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-blue-100 text-blue-700">Gen {{ $g }}</span>
+                                @empty
+                                    <span class="text-xs text-gray-500">Sin registros de horario por generación.</span>
+                                @endforelse
+                            </div>
+
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <!-- Acciones duplicadas en el detalle -->
+                                <a target="_blank" href="{{ route('admin.pdf.documentacion.lista_asistencia', [
+                                    'asignacion_materia' => $row->asignacion_materia_id,
+                                    'licenciatura_id' => $row->licenciatura_id,
+                                    'cuatrimestre_id' => $row->cuatrimestre,
+                                    'generacion_id' => $firstGen,
+                                    'modalidad_id' => $row->modalidad_id,
+                                    'periodo' => $periodo_id,
+                                ]) }}"
+                                   class="inline-flex items-center gap-1 px-3 py-1 text-white text-[11px] font-semibold rounded bg-indigo-500 hover:bg-indigo-600 shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M13 7H7v6h6V7z"/><path fill-rule="evenodd" d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V8.414A2 2 0 0016.586 7L13 3.414A2 2 0 0011.586 3H5zm8 12H7V7h6v8z" clip-rule="evenodd"/></svg>
+                                    Lista de asistencia
+                                </a>
+                                <a target="_blank" href="{{ route('admin.pdf.documentacion.lista_evaluacion', [
+                                    'asignacion_materia' => $row->asignacion_materia_id,
+                                    'licenciatura_id' => $row->licenciatura_id,
+                                    'cuatrimestre_id' => $row->cuatrimestre,
+                                    'generacion_id' => $firstGen,
+                                    'modalidad_id' => $row->modalidad_id,
+                                    'periodo' => $periodo_id,
+                                ]) }}"
+                                   class="inline-flex items-center gap-1 px-3 py-1 text-white text-[11px] font-semibold rounded bg-cyan-500 hover:bg-cyan-600 shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 00-1 1v1H6a2 2 0 00-2 2v1h12V6a2 2 0 00-2-2h-2V3a1 1 0 10-2 0v1H9V3a1 1 0 00-1-1z"/><path d="M4 9h12v5a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"/></svg>
+                                    Lista de evaluación
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="px-3 py-6 text-center text-sm text-gray-500">
+                            No hay materias asignadas (ajusta el periodo o el filtro).
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 
-    </div>
-@else
-    @if ($selectedProfesor)
-        <p class="mt-4 text-gray-600">No se encuentran materias asignadas para el profesor seleccionado.</p>
+            </div>
+        </div>
+    @else
+        <div class="p-4 rounded border border-dashed text-gray-600">
+            Selecciona un profesor para habilitar la búsqueda y ver sus materias con horario.
+        </div>
     @endif
-@endif
-
-
-
 
 </div>
