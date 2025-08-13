@@ -28,6 +28,8 @@ class HorarioEscolarizada extends Component
     public $generaciones = [];
     public $cuatrimestres = [];
 
+
+
     public function mount($modalidad, $licenciatura)
     {
         $this->licenciatura = Licenciatura::where('slug', $licenciatura)->firstOrFail();
@@ -180,6 +182,7 @@ class HorarioEscolarizada extends Component
             'materias' => $this->materias,
             'generaciones' => $this->generaciones,
             'cuatrimestres' => $this->cuatrimestres,
+
         ]);
     }
 }

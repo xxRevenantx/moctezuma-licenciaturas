@@ -1,5 +1,5 @@
+{{-- HORARIO ESCOLARIZADA --}}
 <div>
-
        @php
 function isColorLight($hexColor) {
     $hexColor = str_replace('#', '', $hexColor);

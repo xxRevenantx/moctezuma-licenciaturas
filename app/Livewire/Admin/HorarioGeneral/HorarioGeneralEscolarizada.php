@@ -2,160 +2,224 @@
 
 namespace App\Livewire\Admin\HorarioGeneral;
 
+use App\Models\AsignacionMateria;
+use App\Models\Dia;
 use App\Models\Horario;
 use Livewire\Component;
-use Illuminate\Support\Collection;
-use Carbon\Carbon;
+use Livewire\Attributes\On;
 
 class HorarioGeneralEscolarizada extends Component
 {
-    public $horarios;
-    public $columnasUnicas;
-    public $horasUnicas;
+    public $licenciaturas = [];
+    public $generaciones = [];
+    public $cuatrimestres = [];
+
+    public $filtroLicenciatura = null;
+    public $filtroGeneracion   = null;
+    public $filtroCuatrimestre = null;
     public $busqueda = '';
-    public $filtroLicenciatura = '';
-    public $filtroCuatrimestre = '';
-    public $filtroGeneracion = '';
-    public $cuatrimestresDisponibles = [];
-    public $generacionesDisponibles = [];
+
     public $modalidadId = 1;
+
+    public $horas = [];
+    public $dias = [];
+    public $materias = [];   // opciones del <select>
+    public $horario = [];    // matriz [dia_id][hora] = asignacion_materia_id
 
     public function mount()
     {
-        $this->horarios = collect();
-        $this->columnasUnicas = collect();
-        $this->horasUnicas = collect();
+        // Catálogo de licenciaturas disponibles en horario (modalidad escolarizada = 1)
+        $this->licenciaturas = Horario::where('modalidad_id', 1)
+            ->with('licenciatura')
+            ->get()
+            ->pluck('licenciatura')
+            ->unique('id')
+            ->values();
+
+        $this->horas = [
+            "8:00am-9:00am","9:00am-10:00am","10:00am-10:30am",
+            "10:30am-11:30am","11:30am-12:30pm","12:30pm-1:30pm",
+            "1:30pm-2:30pm","2:30pm-3:30pm",
+        ];
+
+        $this->dias = Dia::where('dia', '!=', 'Sábado')->orderBy('id')->get();
+        $this->materias = collect();
+        $this->llenarHorarioEnBlanco();
     }
 
-    public function updatedBusqueda()
+    private function llenarHorarioEnBlanco(): void
     {
-        $this->actualizarDatos();
+        $this->horario = [];
+        foreach ($this->dias as $dia) {
+            foreach ($this->horas as $hora) {
+                $this->horario[$dia->id][$hora] = "0";
+            }
+        }
     }
 
-    public function updatedFiltroLicenciatura()
+    /** ===== REACCIONES A LOS SELECTS ===== */
+
+    public function updatedFiltroLicenciatura(): void
     {
-        $this->filtroGeneracion = '';
-        $this->filtroCuatrimestre = '';
-        $this->generacionesDisponibles = [];
-        $this->cuatrimestresDisponibles = [];
-        $this->horarios = collect();
-        $this->columnasUnicas = collect();
-        $this->horasUnicas = collect();
+        $this->reset(['filtroGeneracion','filtroCuatrimestre']);
+        $this->generaciones = collect();
+        $this->cuatrimestres = [];
+        $this->materias = collect();
+        $this->llenarHorarioEnBlanco();
 
         if (!$this->filtroLicenciatura) return;
 
-        $this->generacionesDisponibles = Horario::where('modalidad_id', $this->modalidadId)
+        $this->generaciones = Horario::where('modalidad_id', $this->modalidadId)
             ->where('licenciatura_id', $this->filtroLicenciatura)
             ->with('generacion')
             ->get()
             ->pluck('generacion')
+            ->filter()
             ->unique('id')
             ->sortBy('generacion')
             ->values();
+
+        $this->intentarCargarHorario();
     }
 
-    public function updatedFiltroGeneracion()
+    public function updatedFiltroGeneracion(): void
     {
-        $this->filtroCuatrimestre = '';
-        $this->cuatrimestresDisponibles = [];
-        $this->horarios = collect();
-        $this->columnasUnicas = collect();
-        $this->horasUnicas = collect();
+        $this->reset(['filtroCuatrimestre']);
+        $this->cuatrimestres = [];
+        $this->materias = collect();
+        $this->llenarHorarioEnBlanco();
 
         if (!$this->filtroLicenciatura || !$this->filtroGeneracion) return;
 
-        $this->cuatrimestresDisponibles = Horario::where('modalidad_id', $this->modalidadId)
+        $this->cuatrimestres = Horario::where('modalidad_id', $this->modalidadId)
             ->where('licenciatura_id', $this->filtroLicenciatura)
             ->where('generacion_id', $this->filtroGeneracion)
             ->pluck('cuatrimestre_id')
+            ->filter()
             ->unique()
             ->sort()
             ->values()
             ->toArray();
+
+        $this->intentarCargarHorario();
     }
 
-    public function updatedFiltroCuatrimestre()
+    public function updatedFiltroCuatrimestre(): void
     {
-        if (!$this->filtroLicenciatura || !$this->filtroGeneracion || !$this->filtroCuatrimestre) {
-            $this->horarios = collect();
-            $this->columnasUnicas = collect();
-            $this->horasUnicas = collect();
-            return;
-        }
+        $this->materias = collect();
+        $this->llenarHorarioEnBlanco();
 
-        $this->actualizarDatos();
+        $this->intentarCargarHorario();
     }
 
-    public function actualizarDatos()
-    {
-        if (!$this->filtroLicenciatura || !$this->filtroCuatrimestre || !$this->filtroGeneracion) {
-            $this->horarios = collect();
-            $this->columnasUnicas = collect();
-            $this->horasUnicas = collect();
-            return;
-        }
+    /** ===== BUSCADOR ===== */
 
-        $query = Horario::with('asignacionMateria.materia', 'asignacionMateria.profesor', 'licenciatura', 'generacion')
-            ->where('modalidad_id', $this->modalidadId)
+    public function updatedBusqueda(): void
+    {
+        // Solo recargar si ya están seleccionados los 3 filtros
+        if ($this->filtroLicenciatura && $this->filtroGeneracion && $this->filtroCuatrimestre) {
+            $this->cargarHorario();
+        }
+    }
+
+    /** ===== CARGAS PRINCIPALES ===== */
+
+    private function intentarCargarHorario(): void
+    {
+        if ($this->filtroLicenciatura && $this->filtroGeneracion && $this->filtroCuatrimestre) {
+            $this->cargarMaterias();   // dejamos la lista completa para edición
+            $this->cargarHorario();    // la búsqueda se aplica aquí
+        }
+    }
+
+    private function cargarMaterias(): void
+    {
+        $this->materias = AsignacionMateria::with(['materia','profesor'])
             ->where('licenciatura_id', $this->filtroLicenciatura)
+            ->where('modalidad_id', $this->modalidadId)
             ->where('cuatrimestre_id', $this->filtroCuatrimestre)
-            ->where('generacion_id', $this->filtroGeneracion);
-
-        if ($this->busqueda) {
-            $query->where(function ($q) {
-                $q->whereHas('asignacionMateria.profesor', function ($sub) {
-                    $sub->where('nombre', 'like', '%' . $this->busqueda . '%');
-                })->orWhereHas('asignacionMateria.materia', function ($sub) {
-                    $sub->where('nombre', 'like', '%' . $this->busqueda . '%');
-                });
-            });
-        }
-
-        $this->horarios = $query->get();
-
-        $this->columnasUnicas = $this->horarios
-            ->pluck('dia_id')
-            ->unique()
-            ->sort()
-            ->map(fn ($dia) => [
-                'dia_id' => $dia,
-                'etiqueta' => $this->nombreDia($dia)
-            ])
-            ->values();
-
-        $this->horasUnicas = $this->horarios->pluck('hora')
-            ->unique()
-            ->sortBy(function ($hora) {
-                $inicio = explode('-', $hora)[0];
-                return Carbon::createFromFormat('g:ia', $inicio)->format('H:i');
-            })
-            ->values();
+            ->get();
     }
 
-    public function render()
+    public function cargarHorario(): void
     {
-        return view('livewire.admin.horario-general.horario-general-escolarizada', [
-            'horarios' => $this->horarios,
-            'columnasUnicas' => $this->columnasUnicas,
-            'horasUnicas' => $this->horasUnicas,
-            'licenciaturasDisponibles' => Horario::where('modalidad_id', $this->modalidadId)->with('licenciatura')->get()->pluck('licenciatura')->unique('id')->values(),
-            'cuatrimestresDisponibles' => $this->cuatrimestresDisponibles,
-            'generacionesDisponibles' => $this->generacionesDisponibles,
-            'modalidadId' => $this->modalidadId,
+        $this->llenarHorarioEnBlanco();
+
+        if (!$this->filtroLicenciatura || !$this->filtroGeneracion || !$this->filtroCuatrimestre) {
+            return;
+        }
+
+        $term = trim((string)$this->busqueda);
+
+        $horariosBD = Horario::with(['asignacionMateria.materia','asignacionMateria.profesor'])
+            ->where('licenciatura_id', $this->filtroLicenciatura)
+            ->where('modalidad_id', $this->modalidadId)
+            ->where('generacion_id', $this->filtroGeneracion)
+            ->where('cuatrimestre_id', $this->filtroCuatrimestre)
+            ->when($term !== '', function ($q) use ($term) {
+                $q->where(function ($sub) use ($term) {
+                    // Materia: nombre o clave
+                    $sub->whereHas('asignacionMateria.materia', function ($mq) use ($term) {
+                        $mq->where('nombre', 'like', "%{$term}%")
+                           ->orWhere('clave', 'like', "%{$term}%");
+                    })
+                    // Profesor: nombre o apellidos
+                    ->orWhereHas('asignacionMateria.profesor', function ($pq) use ($term) {
+                        $pq->where('nombre', 'like', "%{$term}%")
+                           ->orWhere('apellido_paterno', 'like', "%{$term}%")
+                           ->orWhere('apellido_materno', 'like', "%{$term}%");
+                    });
+                });
+            })
+            ->get();
+
+        foreach ($horariosBD as $h) {
+            $this->horario[$h->dia_id][$h->hora] = (string)($h->asignacion_materia_id ?? "0");
+        }
+    }
+
+    /** ===== EDITAR CELDAS ===== */
+
+    public function actualizarHorario($dia_id, $hora, $materia_id): void
+    {
+        $materia_id = (empty($materia_id) || $materia_id == "0") ? null : $materia_id;
+
+        $criteria = [
+            'licenciatura_id' => $this->filtroLicenciatura,
+            'modalidad_id'    => $this->modalidadId,
+            'generacion_id'   => $this->filtroGeneracion,
+            'cuatrimestre_id' => $this->filtroCuatrimestre,
+            'dia_id'          => $dia_id,
+            'hora'            => $hora,
+        ];
+
+        if (is_null($materia_id)) {
+            Horario::where($criteria)->delete();
+        } else {
+            Horario::updateOrCreate($criteria, ['asignacion_materia_id' => $materia_id]);
+        }
+
+        $this->cargarHorario();
+
+        $this->dispatch('swal', [
+            'icon' => 'success',
+            'title' => 'Horario actualizado correctamente',
+            'position' => 'top-end',
         ]);
     }
 
-    private function nombreDia($id)
+    #[On('refresh-tabla')]
+    public function render()
     {
-        return match((int) $id) {
-            1 => 'Lunes',
-            2 => 'Martes',
-            3 => 'Miércoles',
-            4 => 'Jueves',
-            5 => 'Viernes',
-            6 => 'Sábado',
-            7 => 'Domingo',
-            default => 'Desconocido'
-        };
+        return view('livewire.admin.horario-general.horario-general-escolarizada', [
+            'licenciaturas' => $this->licenciaturas,
+            'generaciones'  => $this->generaciones,
+            'cuatrimestres' => $this->cuatrimestres,
+            'dias'          => $this->dias,
+            'horas'         => $this->horas,
+            'materias'      => $this->materias,
+            'modalidadId'   => $this->modalidadId,
+            'horario'       => $this->horario,
+        ]);
     }
 }

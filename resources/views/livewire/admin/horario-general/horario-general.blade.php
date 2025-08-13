@@ -5,7 +5,8 @@
     </div>
 
 
-    <div x-data="{ openAccordion: false }" x-cloak class="mb-4">
+
+    <div x-data="{ openAccordion: true }" x-cloak class="mb-4">
                 <button
                     @click="openAccordion = !openAccordion"
                     class="w-full flex justify-between items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-semibold rounded focus:outline-none"
@@ -24,7 +25,7 @@
 
 
 
-         <div x-data="{ openAccordion: false }" x-cloak class="mb-4">
+         <div x-data="{ openAccordion: true }" x-cloak class="mb-4">
 
 
 
