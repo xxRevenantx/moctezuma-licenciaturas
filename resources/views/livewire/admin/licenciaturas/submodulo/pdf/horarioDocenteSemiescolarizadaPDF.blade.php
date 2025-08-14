@@ -7,7 +7,7 @@
 
     <style>
 
-        @page { margin: 16px 40px 36px 40px; }
+        @page { margin: 6px 40px 36px 40px; }
 
         /* Fuentes (opcional Calibri local) */
         @font-face {
@@ -39,8 +39,8 @@
         }
         .titulo { font-size: 18px; font-weight: 700; margin: 0; }
         .subtitulo { margin: 4px 0 0 0; font-size: 12px; color:#334155; font-weight: 600; }
-        .logo-left  { position:absolute; top:20px; left: 40px; height:50px; }
-        .logo-right { position:absolute; top:20px; right:40px; height:50px; }
+        .logo-left  { position:absolute; top:30px; left: 40px; height:50px; }
+        .logo-right { position:absolute; top:30px; right:40px; height:50px; }
 
         /* ===== Watermark ===== */
         .watermark {
@@ -211,8 +211,7 @@
 
     {{-- Barra institucional --}}
     <div class="brand-bar">
-        <h1 class="titulo">CENTRO UNIVERSITARIO MOCTEZUMA</h1>
-        <p class="subtitulo">HORARIO DE CLASES — MODALIDAD {{ mb_strtoupper($modalidad->nombre ?? 'Semiescolarizada') }}</p>
+        <h1 class="titulo">CENTRO UNIVERSITARIO MOCTEZUMA <br>HORARIO DE CLASES — MODALIDAD {{ mb_strtoupper($modalidad->nombre ?? 'Semiescolarizada') }}</h1>
     </div>
 
     @php
@@ -303,32 +302,34 @@
     {{-- Cabecera con meta + QR + foto --}}
     <div class="header-grid">
         <div class="header-col col-left">
-            <table class="meta">
-                <tr>
-                    <td style="font-size: 16px" class="etiqueta">DOCENTE: {{ mb_strtoupper(trim($profesor->nombre.' '.$profesor->apellido_paterno.' '.$profesor->apellido_materno)) }}</td>
-                </tr>
+           @php
+        // Helper para determinar si el color es oscuro
+        function isDark($hexColor) {
+            $hexColor = ltrim($hexColor, '#');
+            if (strlen($hexColor) === 3) {
+                $hexColor = $hexColor[0].$hexColor[0].$hexColor[1].$hexColor[1].$hexColor[2].$hexColor[2];
+            }
+            $r = hexdec(substr($hexColor, 0, 2));
+            $g = hexdec(substr($hexColor, 2, 2));
+            $b = hexdec(substr($hexColor, 4, 2));
+            // Luminosidad relativa
+            $lum = (0.299 * $r + 0.587 * $g + 0.114 * $b);
+            return $lum < 128;
+        }
+        $bgColor = $profesor->color;
+        $textColor = isDark($bgColor) ? '#fff' : '#0f172a';
+    @endphp
+    <table class="meta">
+        <tr>
+            <td style="font-size: 16px; background:{{ $bgColor }}; color:{{ $textColor }};">
+                <strong>DOCENTE:</strong>
+                {{ mb_strtoupper(trim($profesor->nombre.' '.$profesor->apellido_paterno.' '.$profesor->apellido_materno)) }}
+            </td>
+        </tr>
+    </table>
+        </div>
 
 
-
-            </table>
-        </div>
-        <div class="header-col col-mid">
-            @if(!empty($qrPng))
-                <div class="qr-box">
-                    <img src="data:image/png;base64,{{ $qrPng }}" alt="QR">
-                </div>
-                <div class="folio">Escanéame para verificar</div>
-            @endif
-        </div>
-        <div class="header-col col-right">
-            @if(!empty($fotoDocente))
-                <div class="foto-box">
-                    <img src="data:image/png;base64,{{ $fotoDocente }}" alt="Foto docente">
-                </div>
-                <div class="folio">Foto del docente</div>
-            @endif
-            <div class="folio">Folio: <strong>{{ $folio ?? ('HSEM-'.$docId) }}</strong></div>
-        </div>
     </div>
 
     {{-- Tabla principal --}}
@@ -336,10 +337,10 @@
         <table>
             <thead>
                 <tr>
-                    <th class="col-hora" style="font-size: 14px">Hora(s)</th>
-                    <th class="col-mat" style="font-size: 14px"> Materia</th>
-                    <th class="col-clave" style="font-size: 14px" >Cuatrimestre</th>
-                    <th class="col-lic"  style="font-size: 14px">Licenciatura</th>
+                    <th class="col-hora" style="font-size: 14px; background:#cbd5e1; color:#0f172a">Hora(s)</th>
+                    <th class="col-mat" style="font-size: 14px; background:#cbd5e1; color:#0f172a"> Materia</th>
+                    <th class="col-clave" style="font-size: 14px; background:#cbd5e1; color:#0f172a" >Cuatrimestre</th>
+                    <th class="col-lic"  style="font-size: 14px; background:#cbd5e1; color:#0f172a">Licenciatura</th>
                 </tr>
             </thead>
             <tbody>
@@ -441,7 +442,6 @@
             Col. {{ $escuela->colonia }}, C.P. {{ $escuela->codigo_postal }},
             {{ $escuela->ciudad }}, {{ $escuela->estado }}. Tel. {{ $escuela->telefono }}
         </p>
-        <p>Folio: {{ $folio ?? ('HSEM-'.$docId) }} &nbsp;•&nbsp; ID: {{ $docId }} &nbsp;•&nbsp; Generado por: {{ $generadoPor }}</p>
         <p><strong>Fecha de expedición:</strong> {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }} </p>
     </footer>
 

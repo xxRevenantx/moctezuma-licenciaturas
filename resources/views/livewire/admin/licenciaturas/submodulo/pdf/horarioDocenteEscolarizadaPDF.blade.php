@@ -178,7 +178,7 @@
             <tbody>
                 @forelse ($horasPresentes as $horaFila)
                     <tr>
-                        <td class="col-hora"><span class="chip" style="font-size:12px">{{ $horaFila }}</span></td>
+                        <td class="col-hora"><span class="chip" style="font-size:13px">{{ $horaFila }}</span></td>
 
                         @foreach ($diasPresentes as $diaCol)
                             @php $items = $grid[$horaFila][$diaCol] ?? []; @endphp

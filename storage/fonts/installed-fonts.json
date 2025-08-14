@@ -1,13 +1,13 @@
 {
     "calibri": {
-        "normal": "C:\\xampp\\htdocs\\laravel\\moctezuma-licenciaturas\\storage\\fonts\/calibri_normal_2c1556b63bef6ef5ac209c93a57a532a",
-        "bold": "calibri_bold_47fd2601abb8f97dbbe5e65022a696a0"
+        "normal": "C:\\xampp4\\htdocs\\laravel\\moctezuma-licenciaturas\\storage\\fonts\/calibri_normal_a8bc9b65fa7fd5b76d8c364cc2b9f915",
+        "bold": "calibri_bold_11478bfa70bc3406b998cbd99abb3ac1"
     },
     "great-vibes": {
         "normal": "great_vibes_normal_a8485aec53b605476229aa6acf783cbf"
     },
     "greatvibes": {
-        "normal": "greatvibes_normal_a8485aec53b605476229aa6acf783cbf"
+        "normal": "greatvibes_normal_d155a7cbe770d947a784576db227ab1b"
     },
     "raleway": {
         "bold": "raleway_bold_c72333518ef3429993f0e7f428118f77",
