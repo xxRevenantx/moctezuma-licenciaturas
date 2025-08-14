@@ -2,204 +2,449 @@
 <html lang="es">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Horario Semiescolarizada | {{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}</title>
 
     <style>
-        @page { margin: 10px 45px 20px 45px; }
-        body {
-            font-family: 'figtree', sans-serif;
-            margin: 0 auto;
-            font-size: 14px;
-            color: #111827;
-        }
 
-        .titulo {
-            font-weight: bold;
-            color: #4a5568;
-            text-align: center;
-            font-size: 22px;
-            margin-top: 50px;
-            padding: 10px 0;
-            border-top: 2px solid #4a5568;
-            border-bottom: 2px solid #4a5568;
-            display: inline-block;
-        }
+        @page { margin: 16px 40px 36px 40px; }
 
-        .subtitulo {
-            text-align: center;
-            font-size: 16px;
-            padding: 3px 0;
-            margin: 0;
-            font-weight: bold;
+        /* Fuentes (opcional Calibri local) */
+        @font-face {
+            font-family: 'calibri';
+            font-style: normal;
+            src: url('{{ storage_path('fonts/calibri/calibri.ttf') }}') format('truetype');
         }
-
-        .meta {
-            width: 100%;
-            margin: 12px 0 6px 0;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .meta td {
-            padding: 4px 6px;
-            vertical-align: middle;
-        }
-        .meta .et { color:#374151; font-weight:600; width: 110px; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 8px 0;
-        }
-        th, td {
-            padding: 8px 10px;
-            text-align: left;
-        }
-        th {
-            border: 1px solid #2d2d2d;
-            background: #638acd;
-            color: #ffffff;
+        @font-face {
+            font-family: 'calibri';
             font-weight: 700;
-            text-align: center;
-            text-transform: uppercase;
-            font-size: 12px;
+            src: url('{{ storage_path('fonts/calibri/calibri-bold.ttf') }}') format('truetype');
         }
-        td {
-            border: 1px solid #8a8a8a;
+
+        body {
+            font-family: calibri, DejaVu Sans, Arial, Helvetica, sans-serif;
+            color: #0f172a;
             font-size: 12px;
         }
 
-        .w-idx { width: 40px; text-align:center; }
-        .w-hora { width: 140px; text-align:center; white-space: nowrap; }
-        .w-dia  { width: 120px; text-align:center; }
-        .w-mat  { width: auto; }
-        .w-lic  { width: 220px; }
+        /* ===== Encabezado / marcas ===== */
+        .brand-bar {
+            width:100%;
+            border-top: 3px solid #0ea5e9;
+            border-bottom: 3px solid #0ea5e9;
+            padding: 10px 0 6px 0;
+            text-align:center;
+            margin-top: 10px;
+            letter-spacing: .5px;
+        }
+        .titulo { font-size: 18px; font-weight: 700; margin: 0; }
+        .subtitulo { margin: 4px 0 0 0; font-size: 12px; color:#334155; font-weight: 600; }
+        .logo-left  { position:absolute; top:20px; left: 40px; height:50px; }
+        .logo-right { position:absolute; top:20px; right:40px; height:50px; }
 
+        /* ===== Watermark ===== */
         .watermark {
             position: fixed;
-            top: 68%;
-            left: 50%;
+            top: 58%; left: 50%;
             transform: translate(-50%, -50%);
             width: 100%;
-            z-index: -1;
-            opacity: 0.08;
+            text-align: center;
+            opacity: .06; z-index: -1;
+        }
+        .watermark img { width: 80%; }
+
+        /* ===== Cabecera de documento (meta / QR / foto) ===== */
+        .header-grid {
+            width:100%;
+            display: table;
+            margin: 10px 0 8px 0;
+            table-layout: fixed;
+        }
+        .header-col { display: table-cell; vertical-align: top; }
+        .col-left   { width: 62%; padding-right: 10px; }
+        .col-mid    { width: 18%; text-align:center; }
+        .col-right  { width: 20%; text-align:center; }
+
+        .meta {
+            width:100%;
+            border-collapse: separate;
+            border-spacing: 0 6px;
+        }
+        .meta td {
+            padding: 6px 10px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 11px;
+        }
+        .meta .etiqueta { width: 130px; color:#334155; font-weight:700; }
+
+        .qr-box, .foto-box {
+            display:inline-block;
+            border:1px solid #e5e7eb;
+            background:#f8fafc;
+            border-radius: 10px;
+            padding: 6px;
+        }
+        .qr-box img { width: 120px; height: 120px; }
+        .foto-box img { width: 120px; height: 120px; object-fit: cover; }
+
+        .folio {
+            margin-top: 6px;
+            font-size: 10px;
+            color:#475569;
+        }
+
+        /* ===== Tabla principal “estilo tarjeta” ===== */
+        .table-wrap {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            background: #0ea5e9;
+            color: #fff;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: .5px;
+            padding: 8px 10px;
             text-align: center;
         }
-        .watermark img { width: 70%; }
-
-        img.img1 { position: absolute; top: 10px; left: 10px; }
-        img.img2 { position: absolute; top: 10px; right: 10px; }
-
-        footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            text-align: center;
+        tbody td {
+            border-top: 1px solid #e5e7eb;
+            padding: 8px 10px;
+            vertical-align: middle;
+            background: #ffffff;
             font-size: 12px;
-            width: 100%;
-            border-top: 1px solid #4a5568;
-            border-bottom: 1px solid #4a5568;
-            padding: 6px 0;
         }
-        footer p { margin: 0; padding: 0; }
+        tbody tr:nth-child(odd) td { background:#fcfcfd; }
+
+        /* Fila separadora por día */
+        .day-sep td {
+            background:#f1f5f9;
+            color:#0f172a;
+            font-weight:700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            border-top:1px solid #cbd5e1;
+            border-bottom:1px solid #cbd5e1;
+            padding:6px 10px;
+        }
+
+        /* ===== Chips / Badges ===== */
+        .chip {
+            display:inline-block; padding:3px 8px;
+            border-radius:999px; background:#f1f5f9; color:#0f172a;
+            font-size:10px; border:1px solid #e2e8f0; white-space:nowrap;
+        }
+        .chip-strong { font-weight:700; background:#e2e8f0; }
+        .badge {
+            display:inline-block; padding:2px 8px;
+            border-radius:999px; font-size:10px; font-weight:700;
+            background:#dbeafe; color:#1e3a8a; border:1px solid #bfdbfe; white-space:nowrap;
+        }
+        .badge-warn { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+        .tag-lic {
+            display:inline-block; padding:2px 8px;
+            border-radius:999px; background:#ecfeff; color:#155e75;
+            border:1px solid #a5f3fc; font-size:10px; white-space:nowrap;
+        }
+        .tag-grupo { background:#fef9c3; color:#854d0e; border-color:#fef08a; }
+        .tag-mod   { background:#e0e7ff; color:#3730a3; border-color:#c7d2fe; }
+
+        /* ===== Columnas ===== */
+        .col-dia   { width: 105px; text-align:center; }
+        .col-hora  { width: 170px; text-align:center; }
+        .col-mat   { width: auto; }
+        .col-clave { width: 90px; text-align:center; }
+        .col-grupo { width: 110px; text-align:center; }
+        .col-aula  { width: 90px; text-align:center; }
+        .col-lic   { width: 170px; text-align:center; }
+        .col-estado{ width: 120px; text-align:center; }
+
+        /* ===== Resúmenes ===== */
+        .summary {
+            margin-top:10px; border:1px solid #e5e7eb; border-radius:10px; padding:10px;
+            background:#f8fafc;
+        }
+        .summary h4 { margin:0 0 6px 0; font-size:13px; text-transform:uppercase; color:#334155; }
+        .summary .item { display:inline-block; margin:2px 6px 2px 0; font-size: 13px }
+
+        /* ===== Leyenda colores ===== */
+        .legend { margin-top:8px; font-size:13px; color:#475569; }
+        .legend .swatch {
+            display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle;
+            border:1px solid #cbd5e1;
+        }
+
+        /* ===== Observaciones / Firmas ===== */
+        .note-box, .firmas {
+            margin-top: 12px; border:1px solid #e5e7eb; border-radius:10px; padding:10px; background:#ffffff;
+        }
+        .note-box h4, .firmas h4 { margin:0 0 8px 0; font-size:12px; text-transform:uppercase; color:#334155; }
+        .obs { min-height: 54px; border:1px dashed #cbd5e1; padding:6px; color:#64748b; }
+        .firmas .row { display:table; width:100%; table-layout:fixed; margin-top:18px; }
+        .firmas .col { display:table-cell; width:33.3%; text-align:center; vertical-align:bottom; }
+        .line { border-top:1px solid #0f172a; margin:0 18px 4px 18px; }
+
+        /* ===== Footer ===== */
+        footer {
+            position: fixed;
+            bottom: 1px; left: 0; right: 0;
+            text-align: center; font-size: 10px; color:#334155;
+            padding: 6px 0 0 0; border-top: 1px solid #94a3b8;
+        }
+        footer p { margin: 0px 0; line-height: 14px; font-size: 13px}
     </style>
 </head>
 <body>
 
     {{-- Marca de agua --}}
     <div class="watermark">
-        <img src="{{ public_path('storage/letra.png') }}" alt="Watermark">
+        <img src="{{ public_path('storage/letra.png') }}" alt="Marca de agua">
     </div>
 
-    {{-- Encabezado / Título --}}
-    <div style="text-align:center;">
-        <img class="img1" src="{{ public_path('storage/letra2.jpg') }}" alt="Logo" height="100" width="100">
+    {{-- Logos opcionales --}}
+    <img class="logo-left"  src="{{ public_path('storage/logo.png') }}" alt="Logo">
+    {{-- <img class="logo-right" src="{{ public_path('storage/otro_logo.png') }}" alt="Logo"> --}}
+
+    {{-- Barra institucional --}}
+    <div class="brand-bar">
         <h1 class="titulo">CENTRO UNIVERSITARIO MOCTEZUMA</h1>
+        <p class="subtitulo">HORARIO DE CLASES — MODALIDAD {{ mb_strtoupper($modalidad->nombre ?? 'Semiescolarizada') }}</p>
     </div>
-    <p class="subtitulo">HORARIO DE CLASES</p>
 
-    {{-- Datos del docente --}}
-    <table class="meta">
-        <tr>
-            <td>Docente:</td>
-            <td>
-                {{ mb_strtoupper(trim($profesor->nombre.' '.$profesor->apellido_paterno.' '.$profesor->apellido_materno)) }}
-            </td>
-        </tr>
-        <tr>
-            <td>Modalidad:</td>
-            <td>{{ $modalidad->nombre ?? 'Semiescolarizada' }}</td>
-        </tr>
-        <tr>
-            <td>Fecha:</td>
-            <td>{{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}</td>
-        </tr>
-    </table>
-
-    {{-- Tabla principal --}}
     @php
-        // Asegura colección y orden ASC por hora de inicio (ej. "8:00am-9:00am")
+        use Carbon\Carbon;
+
+        // --- Preparación de datos ---
         $coleccion = collect($registros ?? []);
-        $ordenados = $coleccion->sortBy(function ($r) {
+
+        // Orden por día (Lunes..Domingo) y por hora de inicio
+        $ordenDia = ['Lunes'=>1,'Martes'=>2,'Miércoles'=>3,'Miercoles'=>3,'Jueves'=>4,'Viernes'=>5,'Sábado'=>6,'Sabado'=>6,'Domingo'=>7];
+        $ordenados = $coleccion->sortBy(function($r) use($ordenDia){
+            $dia = optional($r->dia)->dia ?? 'Z';
+            $rank = $ordenDia[$dia] ?? 99;
             $ini = strtolower(trim(explode('-', $r->hora)[0] ?? ''));
-            // strtotime entiende 8:00am, 1:30pm, etc.
-            return strtotime($ini) ?: 0;
+            $t = strtotime($ini) ?: 0;
+            return sprintf('%02d-%06d', $rank, $t);
         })->values();
 
-        // Función pequeña para nombre de licenciatura
-        $licName = function($r) {
+        // Color por licenciatura (determinístico)
+        $palette = ['#38bdf8','#fbbf24','#a78bfa','#34d399','#f472b6','#f59e0b','#60a5fa','#22d3ee','#fb7185','#84cc16'];
+        $licColors = [];
+        $getLic = function($r){
             return optional($r->licenciatura)->nombre
                 ?? optional(optional($r->asignacionMateria)->materia?->licenciatura)->nombre
                 ?? 'N/A';
         };
+        foreach ($ordenados as $r) {
+            $ln = $getLic($r);
+            if (!isset($licColors[$ln])) {
+                $idx = abs(crc32($ln)) % max(1,count($palette));
+                $licColors[$ln] = $palette[$idx];
+            }
+        }
+
+        // Resúmenes
+        $resumenDia = [];            // ['Lunes' => horasDecimal]
+        $resumenMateria = [];        // ['Nombre (CLAVE)' => horasDecimal]
+        $totalHoras = 0;
+
+        // Ayudas de tiempo
+        $minutos = function($range){
+            [$ini, $fin] = array_map('trim', explode('-', strtolower($range)));
+            $a = Carbon::parse($ini); $b = Carbon::parse($fin);
+            return max(0, $a->diffInMinutes($b));
+        };
+
+        // Detección de solapes por día
+        $histDia = [];   // ['Lunes' => [['ini'=>m, 'fin'=>m], ...]]
+
+        foreach ($ordenados as $r) {
+            $dia = optional($r->dia)->dia ?? '—';
+            $mins = $minutos($r->hora);
+            $hdec = $mins / 60;
+            $resumenDia[$dia] = ($resumenDia[$dia] ?? 0) + $hdec;
+            $totalHoras += $hdec;
+
+            $mat = optional(optional($r->asignacionMateria)->materia);
+            $clave = $mat->clave ?? '';
+            $keyMat = ($mat->nombre ?? '—').($clave ? " ({$clave})" : '');
+            $resumenMateria[$keyMat] = ($resumenMateria[$keyMat] ?? 0) + $hdec;
+
+            // Solapes
+            $a = Carbon::parse(strtolower(trim(explode('-', $r->hora)[0] ?? '')));
+            $b = Carbon::parse(strtolower(trim(explode('-', $r->hora)[1] ?? '')));
+            $ini = $a->hour*60 + $a->minute;
+            $fin = $b->hour*60 + $b->minute;
+            $histDia[$dia][] = ['ini'=>$ini,'fin'=>$fin];
+        }
+
+        // Helper duración como texto
+        $duracionTxt = function($range){
+            try {
+                [$ini, $fin] = array_map('trim', explode('-', strtolower($range)));
+                $a = Carbon::parse($ini); $b = Carbon::parse($fin);
+                $m = $a->diffInMinutes($b);
+                return $m % 60 === 0 ? ($m/60).' h' : number_format($m/60, 1).' h';
+            } catch (\Throwable $e) {
+                return '1 h';
+            }
+        };
+
+        // Documento / trazabilidad
+        $docSeed = ($profesor->id ?? '0').'|'.($modalidad->id ?? '0').'|'.($ordenados->count()).'|'.(now()->format('YmdHi'));
+        $docId = strtoupper(substr(sha1($docSeed), 0, 10));
+        $generadoPor = $generadoPor ?? (auth()->user()->name ?? 'Sistema');
     @endphp
 
-    <table>
-        <thead>
-            <tr>
-                <th class="w-hora">Hora(s)</th>      {{-- <- antes de Materia --}}
-                <th class="w-mat">Materia</th>
-                <th class="w-lic">Licenciatura</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($ordenados as $idx => $h)
-                @php
-                    $mat  = optional($h->asignacionMateria)->materia;
-                    $clave = $mat->clave ?? null;
-                @endphp
+    {{-- Cabecera con meta + QR + foto --}}
+    <div class="header-grid">
+        <div class="header-col col-left">
+            <table class="meta">
                 <tr>
-                    <td class="w-hora" style="text-align:center;">{{ $h->hora }}</td>
-                    <td class="w-mat">
-                        {{ $mat->nombre ?? '—' }}
-                        @if($clave)
-                            <span style="font-size:10px;color:#6b7280;"> ({{ $clave }})</span>
-                        @endif
-                    </td>
-                    <td class="w-lic">{{ $licName($h) }}</td>
+                    <td style="font-size: 16px" class="etiqueta">DOCENTE: {{ mb_strtoupper(trim($profesor->nombre.' '.$profesor->apellido_paterno.' '.$profesor->apellido_materno)) }}</td>
                 </tr>
-            @empty
+
+
+
+            </table>
+        </div>
+        <div class="header-col col-mid">
+            @if(!empty($qrPng))
+                <div class="qr-box">
+                    <img src="data:image/png;base64,{{ $qrPng }}" alt="QR">
+                </div>
+                <div class="folio">Escanéame para verificar</div>
+            @endif
+        </div>
+        <div class="header-col col-right">
+            @if(!empty($fotoDocente))
+                <div class="foto-box">
+                    <img src="data:image/png;base64,{{ $fotoDocente }}" alt="Foto docente">
+                </div>
+                <div class="folio">Foto del docente</div>
+            @endif
+            <div class="folio">Folio: <strong>{{ $folio ?? ('HSEM-'.$docId) }}</strong></div>
+        </div>
+    </div>
+
+    {{-- Tabla principal --}}
+    <div class="table-wrap">
+        <table>
+            <thead>
                 <tr>
-                    <td colspan="5" style="text-align:center;">Sin registros para este docente.</td>
+                    <th class="col-hora" style="font-size: 14px">Hora(s)</th>
+                    <th class="col-mat" style="font-size: 14px"> Materia</th>
+                    <th class="col-clave" style="font-size: 14px" >Cuatrimestre</th>
+                    <th class="col-lic"  style="font-size: 14px">Licenciatura</th>
                 </tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @php $ultimoDia = null; @endphp
+                @forelse ($ordenados as $r)
+                    @php
+                        $dia = optional($r->dia)->dia ?? '—';
+                        $mat = optional(optional($r->asignacionMateria)->materia);
+                        $clave = $mat->clave ?? '—';
+                        $lic = $getLic($r);
+                        $licColor = $licColors[$lic] ?? '#e2e8f0';
+                        $dur = $duracionTxt($r->hora);
+
+                        // Estado: pendiente si no hay aula
+                        $estado = empty($r->aula) ? 'Pendiente de aula' : 'Confirmado';
+
+                        // Solape (simple): si hay intersección con alguno del mismo día
+                        $a = Carbon::parse(strtolower(trim(explode('-', $r->hora)[0] ?? '')));
+                        $b = Carbon::parse(strtolower(trim(explode('-', $r->hora)[1] ?? '')));
+                        $ini = $a->hour*60 + $a->minute; $fin = $b->hour*60 + $b->minute;
+                        $conf = false;
+                        if (!empty($histDia[$dia])) {
+                            foreach ($histDia[$dia] as $slot) {
+                                if ($ini < $slot['fin'] && $fin > $slot['ini'] && !($ini==$slot['ini'] && $fin==$slot['fin'])) { $conf = true; break; }
+                            }
+                        }
+                    @endphp
+
+                    {{-- Separador por día --}}
+                    @if($ultimoDia !== $dia)
+                        <tr class="day-sep"><td colspan="8">{{ $dia }}</td></tr>
+                        @php $ultimoDia = $dia; @endphp
+                    @endif
+
+                    <tr>
+
+                        <td class="col-hora">
+                            <div style="display:flex; gap:6px; align-items:center; justify-content:center;">
+                                <span style=" font-size:14px" class="chip">{{ $r->hora }}</span>
+                            </div>
+                        </td>
+                        <td class="col-mat" style="vertical-align: middle; text-align: center;">
+                            <div style="font-weight:700; display: inline-flex; align-items: center; justify-content: center; font-size:14px">
+                                {{ $mat->nombre ?? '—' }}
+                                <span class="chip" style="margin-left:8px; ">{{ $clave }}</span>
+                            </div>
+                        </td>
+                        <td class="col-clave">
+
+                            <div style="display:flex; gap:6px; align-items:center; justify-content:center;">
+                                <span style=" font-size:14px" class="chip"> {{ $mat->cuatrimestre->cuatrimestre ?? '—' }}°</span>
+                            </div>
+                        </td>
+
+                        <td class="col-lic">
+                            <span class="tag-lic" style="border-color:{{ $licColor }}; color:#0f172a; background:#ffffff;">
+                                <span style="font-size:14px; display:inline-block;width:8px;height:8px;border-radius:2px;background:{{ $licColor }};vertical-align:middle;margin-right:6px;"></span>
+                                {{ $lic }}
+                            </span>
+                        </td>
+
+                    </tr>
+                @empty
+                    <tr><td colspan="8" style="text-align:center; padding:16px; color:#64748b;">Sin registros para este docente.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- Resúmenes --}}
+
+
+    {{-- Leyenda de colores por licenciatura --}}
+    <div class="legend">
+        <strong>Leyenda de colores:</strong>
+        @foreach($licColors as $ln => $col)
+            <span style="margin-left:10px;">
+                <span class="swatch" style="background:{{ $col }}"></span>{{ $ln }}
+            </span>
+        @endforeach
+    </div>
+
+
+    <div class="summary">
+        <h4>Resumen por materia</h4>
+        @foreach($resumenMateria as $m => $h)
+            <span class="item chip">{{ $m }} — {{ number_format($h, 1) }} h</span>
+        @endforeach
+    </div>
+
+
+
+
 
     <footer>
-        <p>{{ $escuela->nombre }} — C.C.T. {{ $escuela->CCT }}</p>
+        <p><strong>{{ $escuela->nombre }}</strong> — C.C.T. {{ $escuela->CCT }}</p>
         <p>
             C. {{ $escuela->calle }} No. {{ $escuela->no_exterior }},
             Col. {{ $escuela->colonia }}, C.P. {{ $escuela->codigo_postal }},
-            Cd. {{ $escuela->ciudad }}, {{ $escuela->estado }}.
+            {{ $escuela->ciudad }}, {{ $escuela->estado }}. Tel. {{ $escuela->telefono }}
         </p>
-        <p>Tel. {{ $escuela->telefono }}</p>
-        <p style="font-weight:bold">Fecha de expedición: {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }}</p>
+        <p>Folio: {{ $folio ?? ('HSEM-'.$docId) }} &nbsp;•&nbsp; ID: {{ $docId }} &nbsp;•&nbsp; Generado por: {{ $generadoPor }}</p>
+        <p><strong>Fecha de expedición:</strong> {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }} </p>
     </footer>
+
+
 </body>
 </html>

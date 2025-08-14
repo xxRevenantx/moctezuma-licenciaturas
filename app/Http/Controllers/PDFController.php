@@ -1085,8 +1085,6 @@ public function credencial_profesor_estudiante(Request $request)
     }
 
 // HORARIO DOCENTE SEMIESCOLARIZADA
-
-// HORARIO DOCENTE SEMIESCOLARIZADA (PDF)
 public function horario_docente_semiescolarizada(Request $request)
 {
     $profesor_id  = (int) $request->input('profesor_id');
@@ -1124,5 +1122,43 @@ public function horario_docente_semiescolarizada(Request $request)
     return $pdf->stream($nombreArchivo);
 }
 
+// HORARIO DOCENTE ESCOLARIZADA (PDF)
+public function horario_docente_escolarizada(Request $request)
+{
+    $profesor_id  = (int) $request->input('profesor_id');
+    $modalidad_id = (int) $request->input('modalidad_id', 1); // 1 = Escolarizada
+
+    $profesor  = Profesor::findOrFail($profesor_id);
+    $modalidad = Modalidad::findOrFail($modalidad_id);
+    $escuela   = Escuela::first();
+
+    $registros = Horario::with([
+            'asignacionMateria.materia.licenciatura',
+            'asignacionMateria.profesor',
+            'licenciatura',
+            'dia',
+        ])
+        ->where('modalidad_id', $modalidad_id)
+        ->whereHas('asignacionMateria', fn($q) => $q->where('profesor_id', $profesor_id))
+        // 8:00am-9:00am -> ordena por hora de inicio ASC
+        ->orderByRaw("STR_TO_DATE(LOWER(TRIM(SUBSTRING_INDEX(hora,'-',1))), '%h:%i%p') ASC")
+        ->get();
+
+    $data = compact('profesor', 'modalidad', 'escuela', 'registros');
+
+    $pdf = Pdf::loadView(
+            'livewire.admin.licenciaturas.submodulo.pdf.horarioDocenteEscolarizadaPDF',
+            $data
+        )->setPaper('letter', 'landscape');
+
+    $nombreArchivo = sprintf(
+        'HORARIO_DOCENTE_ESCOLARIZADA_%s_%s_%s.pdf',
+        $profesor->nombre,
+        $profesor->apellido_paterno,
+        $profesor->apellido_materno
+    );
+
+    return $pdf->stream($nombreArchivo);
+}
 
 }

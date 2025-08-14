@@ -178,13 +178,29 @@
     </table>
 </div>
 
-  {{-- Materias del Profesor y Horas Totales --}}
 
-  {{-- MATERIAS DEL PROFESOR Y HORAS TOTALES (SEMIESCOLARIZADA) --}}
+{{-- MATERIAS DEL PROFESOR Y HORAS TOTALES (SEMIESCOLARIZADA) --}}
 <div class="mt-8">
     <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
         Materias del Profesor y Horas Totales
     </h4>
+
+    {{-- Helper contraste (por si no existe) --}}
+    @php
+        if (!function_exists('esColorOscuro')) {
+            function esColorOscuro($hexColor) {
+                $hexColor = ltrim($hexColor ?: '#ffffff', '#');
+                if (strlen($hexColor) == 3) {
+                    $hexColor = $hexColor[0].$hexColor[0].$hexColor[1].$hexColor[1].$hexColor[2].$hexColor[2];
+                }
+                $r = hexdec(substr($hexColor, 0, 2));
+                $g = hexdec(substr($hexColor, 2, 2));
+                $b = hexdec(substr($hexColor, 4, 2));
+                $l = (0.299*$r + 0.587*$g + 0.114*$b);
+                return $l < 128;
+            }
+        }
+    @endphp
 
     {{-- Loader mientras recalcula --}}
     <div
@@ -208,8 +224,17 @@
         class="overflow-x-auto"
     >
         @php
-            // Construir agrupación por profesor a partir de $horarios (resultado ya filtrado por búsqueda)
-            $porProfesor = [];     // [prof_id|'sin' => ['profesor' => Obj|array, 'color' => str, 'materias' => [materia_id => ['nombre','clave']], 'horas' => int]]
+            /**
+             * $horarios: colección ya filtrada (cada item tiene: dia_id, hora, asignacionMateria->materia/profesor, etc.)
+             * $horas: arreglo con el orden deseado de horas (si existe en el componente)
+             */
+
+            // Mapa para ordenar horas (si $horas está disponible)
+            $ordenHoras = isset($horas) && is_array($horas) ? array_values($horas) : [];
+            $posHora = $ordenHoras ? array_flip($ordenHoras) : [];
+
+            // Agrupar por profesor, y dentro: materias con conteo y slots (día/hora)
+            $porProfesor = []; // [prof_id|'sin' => ['profesor'=>Obj,'color'=>hex,'horas'=>int,'materias'=>[mat_id=>['nombre','clave','licenciatura','count','slots'=>[['dia','hora'],...]]]]]
 
             foreach ($horarios as $h) {
                 $asig = $h->asignacionMateria ?? null;
@@ -219,62 +244,79 @@
                 $pid = $prof?->id ?? 'sin';
                 if (!isset($porProfesor[$pid])) {
                     $porProfesor[$pid] = [
-                        'profesor' => $prof
-                            ? $prof
-                            : (object)['nombre' => 'Sin asignar', 'apellido_paterno' => '', 'apellido_materno' => ''],
-                        'color'    => $prof?->color ?? '#e5e7eb', // gris claro si no hay profesor
-                        'materias' => [],
+                        'profesor' => $prof ? $prof : (object)['nombre' => 'Sin asignar', 'apellido_paterno' => '', 'apellido_materno' => ''],
+                        'color'    => $prof?->color ?? '#e5e7eb',
                         'horas'    => 0,
+                        'materias' => [],
                     ];
                 }
 
-                // Contar slot horario
+                // Sumar slot (hora) del profesor
                 $porProfesor[$pid]['horas']++;
 
-                // Registrar materia única
+                // Registrar materia y su desglose por horas
                 if ($mat) {
-                    $porProfesor[$pid]['materias'][$mat->id] = [
-                        'nombre' => $mat->nombre,
-                        'clave'  => $mat->clave,
-                        'licenciatura' => $mat->licenciatura?->nombre ?? 'N/A',
-                        'licenciatura_id' => $mat->licenciatura?->id ?? 'N/A',
-
+                    if (!isset($porProfesor[$pid]['materias'][$mat->id])) {
+                        $porProfesor[$pid]['materias'][$mat->id] = [
+                            'nombre'        => $mat->nombre,
+                            'clave'         => $mat->clave,
+                            'licenciatura'  => $mat->licenciatura->nombre ?? 'N/A',
+                            'count'         => 0,
+                            'slots'         => [], // [['dia'=>'Lunes','hora'=>'8:00am-9:00am'], ...]
+                        ];
+                    }
+                    $porProfesor[$pid]['materias'][$mat->id]['count']++;
+                    $porProfesor[$pid]['materias'][$mat->id]['slots'][] = [
+                        'dia'  => $h->dia->dia ?? ('Día '.$h->dia_id),
+                        'hora' => $h->hora,
                     ];
                 }
             }
 
-            // Ordenar por apellido paterno (los "sin asignar" al final)
-           // Ordenar por NOMBRE (ASC). "sin" al final
-uksort($porProfesor, function ($a, $b) use ($porProfesor) {
-    if ($a === 'sin' && $b === 'sin') return 0;
-    if ($a === 'sin') return 1;
-    if ($b === 'sin') return -1;
+            // Ordenar profesores por nombre (los "sin" al final)
+            uksort($porProfesor, function ($a, $b) use ($porProfesor) {
+                if ($a === 'sin' && $b === 'sin') return 0;
+                if ($a === 'sin') return 1;
+                if ($b === 'sin') return -1;
 
-    $na = trim(($porProfesor[$a]['profesor']->nombre ?? '') . ' ' .
-               ($porProfesor[$a]['profesor']->apellido_paterno ?? '') . ' ' .
-               ($porProfesor[$a]['profesor']->apellido_materno ?? ''));
+                $na = trim(($porProfesor[$a]['profesor']->nombre ?? '').' '.
+                           ($porProfesor[$a]['profesor']->apellido_paterno ?? '').' '.
+                           ($porProfesor[$a]['profesor']->apellido_materno ?? ''));
+                $nb = trim(($porProfesor[$b]['profesor']->nombre ?? '').' '.
+                           ($porProfesor[$b]['profesor']->apellido_paterno ?? '').' '.
+                           ($porProfesor[$b]['profesor']->apellido_materno ?? ''));
 
-    $nb = trim(($porProfesor[$b]['profesor']->nombre ?? '') . ' ' .
-               ($porProfesor[$b]['profesor']->apellido_paterno ?? '') . ' ' .
-               ($porProfesor[$b]['profesor']->apellido_materno ?? ''));
-
-    $na = mb_strtolower($na, 'UTF-8');
-    $nb = mb_strtolower($nb, 'UTF-8');
-
-    return $na <=> $nb; // ASC
-});
-
+                return mb_strtolower($na, 'UTF-8') <=> mb_strtolower($nb, 'UTF-8');
+            });
 
             $totalHoras = array_sum(array_map(fn($x) => $x['horas'], $porProfesor));
+
+            // Formatear chips por día manteniendo orden de horas
+            $formatearChips = function(array $slots) use ($posHora) {
+                $porDia = [];
+                foreach ($slots as $s) {
+                    $porDia[$s['dia']][] = $s['hora'];
+                }
+                $chips = [];
+                foreach ($porDia as $dia => $horasDia) {
+                    if ($posHora) {
+                        usort($horasDia, fn($a, $b) => ($posHora[$a] ?? 999) <=> ($posHora[$b] ?? 999));
+                    } else {
+                        sort($horasDia);
+                    }
+                    $chips[] = ['dia' => $dia, 'horas' => $horasDia];
+                }
+                return $chips;
+            };
         @endphp
 
         @if(count($porProfesor))
-                    <table class="min-w-full border border-gray-200 rounded-lg shadow-sm bg-white dark:bg-gray-800">
+            <table class="min-w-full border border-gray-200 rounded-lg shadow-sm bg-white dark:bg-gray-800">
                 <thead class="bg-gray-100 dark:bg-gray-700">
                     <tr>
                         <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">#</th>
                         <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Profesor</th>
-                        <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Materias (únicas)</th>
+                        <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Materia (horas) y desglose por día</th>
                         <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Total de Horas</th>
                         <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Horario</th>
                     </tr>
@@ -286,26 +328,47 @@ uksort($porProfesor, function ($a, $b) use ($porProfesor) {
                             $p = $data['profesor'];
                             $profColor = $data['color'] ?? '#e5e7eb';
                             $txtColor = esColorOscuro($profColor) ? '#ffffff' : '#222222';
-                            $nombreCompleto = trim(($p->nombre ?? '') . ' ' . ($p->apellido_paterno ?? '') . ' ' . ($p->apellido_materno ?? ''));
+                            $nombreCompleto = trim(($p->nombre ?? '').' '.($p->apellido_paterno ?? '').' '.($p->apellido_materno ?? ''));
                         @endphp
-                        <tr>
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 border-b text-center">{{ $i++ }}</td>
-                            <td class="px-4 py-2 text-sm border-b ">
+                        <tr class="align-middle">
+                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 border-b text-center align-middle">{{ $i++ }}</td>
+                            <td class="px-4 py-2 text-sm border-b text-center align-middle">
                                 <span class="inline-block px-2 py-1 rounded" style="background-color: {{ $profColor }}; color: {{ $txtColor }};">
                                     {{ $nombreCompleto ?: 'Sin asignar' }}
                                 </span>
                             </td>
-                            <td class="px-4 py-2 text-sm border-b text-gray-900 dark:text-gray-100">
+
+                            {{-- Materias con conteo y chips por día/hora --}}
+                            <td class="px-4 py-2 text-sm border-b text-gray-900 dark:text-gray-100 align-middle">
                                 @if(count($data['materias']))
-                                    <ul class="list-disc pl-4 text-left inline-block">
+                                    <ul class="space-y-2">
                                         @foreach ($data['materias'] as $m)
-                                            <li>
-                                                {{ $m['nombre'] }}
-                                                <span class="text-xs text-gray-500">({{ $m['clave'] }})</span>
-                                                <span class="text-xs text-gray-500">({{ $m['licenciatura'] }})</span>
+                                            @php
+                                                $chips = $formatearChips($m['slots']);
+                                            @endphp
+                                            <li class="rounded-md border border-gray-200 dark:border-gray-700 p-2">
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <div class="font-medium">
+                                                        {{ $m['nombre'] }}
+                                                        <span class="text-xs text-gray-500">({{ $m['clave'] }})</span>
+                                                        <span class="text-xs text-gray-500">({{ $m['licenciatura'] }})</span>
+                                                    </div>
+                                                    <span class="inline-flex items-center text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+                                                        {{ $m['count'] }} h
+                                                    </span>
+                                                </div>
 
-
-
+                                                {{-- Chips por día con horas específicas --}}
+                                                @if(count($chips))
+                                                    <div class="mt-2 flex flex-wrap gap-1">
+                                                        @foreach ($chips as $c)
+                                                            <span class="inline-flex items-center text-[11px] px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                                                                <strong class="mr-1">{{ $c['dia'] }}:</strong>
+                                                                {{ implode(', ', $c['horas']) }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
                                             </li>
                                         @endforeach
                                     </ul>
@@ -314,44 +377,37 @@ uksort($porProfesor, function ($a, $b) use ($porProfesor) {
                                 @endif
                             </td>
 
-
-
-                            <td class="px-4 py-2 text-sm text-center border-b text-gray-700 dark:text-gray-200">
+                            <td class="px-4 py-2 text-sm text-center border-b text-gray-700 dark:text-gray-200 align-middle">
                                 {{ $data['horas'] }}
                                 <div class="text-xs text-gray-500">Total de horas</div>
                             </td>
 
-                                                        {{-- NUEVA CELDA: botón para reporte de horas del docente --}}
-                            <td class="px-4 py-2 text-sm text-center border-b">
+                            {{-- Botón reporte PDF por docente (semiescolarizada) --}}
+                            <td class="px-4 py-2 text-sm text-center border-b align-middle">
                                 @if($pid !== 'sin')
                                     <form action="{{ route('admin.pdf.horario-docente-semiescolarizada') }}" method="GET" target="_blank">
                                         <input type="hidden" name="profesor_id" value="{{ $pid }}">
                                         <input type="hidden" name="modalidad_id" value="2">
-                                        {{-- (Opcional) Si quieres acotar por rango/periodo, agrega más hidden aquí --}}
                                         <button type="submit"
                                                 class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded">
                                             <flux:icon.file-text />
-                                           Horario
+                                            Horario
                                         </button>
                                     </form>
                                 @else
                                     <span class="text-gray-400 text-xs italic">No disponible</span>
                                 @endif
                             </td>
-
-
                         </tr>
                     @endforeach
 
-                    {{-- Ajusta el colspan a 5 (ahora hay 5 columnas) --}}
-                    <tr>
-                        <td colspan="5" class="px-4 py-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-300 border-b">
+                    <tr class="align-middle">
+                        <td colspan="5" class="px-4 py-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-300 border-b align-middle">
                             Total global de horas: {{ $totalHoras }}
                         </td>
                     </tr>
                 </tbody>
             </table>
-
         @else
             <div class="text-center text-gray-500 mt-4">
                 No hay datos para mostrar.

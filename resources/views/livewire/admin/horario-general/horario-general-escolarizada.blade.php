@@ -197,7 +197,8 @@
 
 
 
-        {{-- MATERIAS DEL PROFESOR Y HORAS TOTALES --}}
+
+{{-- MATERIAS DEL PROFESOR Y HORAS TOTALES --}}
 <div class="mt-8">
     <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
         Materias del Profesor y Horas Totales
@@ -225,36 +226,68 @@
         class="overflow-x-auto"
     >
         @php
-            // Agrupar materias por profesor (catálogo completo de materias disponibles)
-            $profesoresMaterias = [];                // [prof_id => ['profesor' => Obj, 'materias' => [AsignacionMateria,...]]]
+            // === Mapas de apoyo
+            $diasMap = collect($dias)->keyBy('id'); // [dia_id => Dia]
+            // === Agrupar catálogo de materias por profesor
+            $profesoresMaterias = []; // [prof_id => ['profesor'=>Obj,'materias'=>[AsignacionMateria,...]]]
             foreach ($materias as $m) {
-                if (isset($m->profesor) && $m->profesor) {
+                if (($m->profesor ?? null) && ($m->materia ?? null)) {
                     $pid = $m->profesor->id;
-                    if (!isset($profesoresMaterias[$pid])) {
-                        $profesoresMaterias[$pid] = ['profesor' => $m->profesor, 'materias' => []];
-                    }
+                    $profesoresMaterias[$pid] ??= ['profesor' => $m->profesor, 'materias' => []];
                     $profesoresMaterias[$pid]['materias'][] = $m;
                 }
             }
 
-            // Materias y horas realmente colocadas en la matriz de horario
-            $profesoresMateriasEnHorario = [];       // [prof_id => [asignacion_materia_id => AsignacionMateria]]
-            $profesoresHorasEnHorario    = [];       // [prof_id => slots_totales]
+            // === Recorrer la matriz de horario para:
+            // 1) horas totales por profesor
+            // 2) desglose por materia -> conteo y slots (día/hora)
+            $profesoresHorasEnHorario = [];       // [prof_id => total_slots]
+            $desgloseMateria = [];                // [materia_id => ['count'=>n,'slots'=>[['dia'=>Dia,'hora'=>string]], 'prof_id'=>id]]
 
             foreach ($horario as $diaId => $horasDia) {
                 foreach ($horasDia as $horaTxt => $asignacionId) {
                     if (!empty($asignacionId) && $asignacionId !== "0") {
                         $mat = $materias->firstWhere('id', $asignacionId);
-                        if ($mat && isset($mat->profesor) && $mat->profesor) {
+                        if ($mat && ($mat->profesor ?? null)) {
                             $pid = $mat->profesor->id;
-                            $profesoresMateriasEnHorario[$pid][$mat->id] = $mat;
+
+                            // horas por profesor
                             $profesoresHorasEnHorario[$pid] = ($profesoresHorasEnHorario[$pid] ?? 0) + 1;
+
+                            // desglose por materia
+                            $desgloseMateria[$mat->id] ??= ['count' => 0, 'slots' => [], 'prof_id' => $pid];
+                            $desgloseMateria[$mat->id]['count']++;
+                            $desgloseMateria[$mat->id]['slots'][] = [
+                                'dia'  => $diasMap[$diaId]->dia ?? ('Día '.$diaId),
+                                'hora' => $horaTxt,
+                            ];
                         }
                     }
                 }
             }
 
             $totalHoras = array_sum($profesoresHorasEnHorario);
+
+            // Utilidad para agrupar slots por día y mantener orden de horas declarado en $horas
+            $ordenHoras = array_values($horas);
+            $posHora = array_flip($ordenHoras); // "8:00am-9:00am" => índice
+            $formatearSlots = function(array $slots) use ($posHora) {
+                // Agrupa por día
+                $porDia = [];
+                foreach ($slots as $s) {
+                    $porDia[$s['dia']][] = $s['hora'];
+                }
+                // Ordena horas según $horas y renderiza chips
+                $chips = [];
+                foreach ($porDia as $dia => $horasDia) {
+                    usort($horasDia, fn($a,$b) => ($posHora[$a] ?? 999) <=> ($posHora[$b] ?? 999));
+                    $chips[] = [
+                        'dia' => $dia,
+                        'horas' => $horasDia
+                    ];
+                }
+                return $chips; // [{dia:'Lunes', horas:['8:00...','9:00...']}, ...]
+            };
         @endphp
 
         <table class="min-w-full border border-gray-200 rounded-lg shadow-sm bg-white dark:bg-gray-800 table-striped">
@@ -262,8 +295,9 @@
                 <tr>
                     <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">#</th>
                     <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Profesor</th>
-                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Materias</th>
+                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Materia (horas) y desglose por día</th>
                     <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Total de Horas</th>
+                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Horario</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -276,32 +310,73 @@
                         $textColor = esColorDark($profesorColor) ? '#ffffff' : '#222222';
                         $horasProf = $profesoresHorasEnHorario[$profesor->id] ?? 0;
                     @endphp
-                    <tr>
-                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 border-b text-center">{{ $i++ }}</td>
-                        <td class="px-4 py-2 text-sm border-b text-center">
+                    <tr class="align-middle">
+                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 border-b text-center align-middle">{{ $i++ }}</td>
+                        <td class="px-4 py-2 text-sm border-b text-center align-middle">
                             <span class="inline-block px-2 py-1 rounded"
                                   style="background-color: {{ $profesorColor }}; color: {{ $textColor }};">
                                 {{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}
                             </span>
                         </td>
-                        <td class="px-4 py-2 text-sm text-center border-b text-gray-900 dark:text-gray-100">
-                            <ul class="list-disc pl-4 text-left inline-block">
+                        <td class="px-4 py-2 text-sm border-b text-gray-900 dark:text-gray-100 align-middle">
+                            <ul class="space-y-2">
                                 @foreach ($materiasDelProfesor as $m)
-                                    <li>
-                                        {{ $m->materia->nombre }}
-                                        <span class="text-xs text-gray-500">({{ $m->materia->clave }})</span>
-                                        @if(isset($profesoresMateriasEnHorario[$profesor->id][$m->id]))
-                                            <span class="ml-2 inline-block text-[10px] px-2 py-0.5 rounded bg-green-100 text-green-800">
-                                                en horario
-                                            </span>
+                                    @php
+                                        $enHorario = isset($desgloseMateria[$m->id]);
+                                        $count = $enHorario ? $desgloseMateria[$m->id]['count'] : 0;
+                                        $chips = $enHorario ? $formatearSlots($desgloseMateria[$m->id]['slots']) : [];
+                                    @endphp
+                                    <li class="rounded-md border border-gray-200 dark:border-gray-700 p-2 align-middle">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="font-medium">
+                                                {{ $m->materia->nombre }}
+                                                <span class="text-xs text-gray-500">({{ $m->materia->clave }})</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                @if($enHorario)
+                                                    <span class="inline-flex items-center text-[10px] px-2 py-0.5 rounded bg-green-100 text-green-800">
+                                                        en horario
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center text-[10px] px-2 py-0.5 rounded bg-yellow-100 text-yellow-800">
+                                                        sin horas
+                                                    </span>
+                                                @endif
+                                                <span class="inline-flex items-center text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+                                                    {{ $count }} h
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Chips por día con horas específicas --}}
+                                        @if($enHorario)
+                                            <div class="mt-2 flex flex-wrap gap-1">
+                                                @foreach ($chips as $c)
+                                                    <span class="inline-flex items-center text-[11px] px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                                                        <strong class="mr-1">{{ $c['dia'] }}:</strong>
+                                                        {{ implode(', ', $c['horas']) }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
                                         @endif
                                     </li>
                                 @endforeach
                             </ul>
                         </td>
-                        <td class="px-4 py-2 text-sm text-center border-b text-gray-700 dark:text-gray-200">
+                        <td class="px-4 py-2 text-sm text-center border-b text-gray-700 dark:text-gray-200 align-middle">
                             {{ $horasProf }}
                             <div class="text-xs text-gray-500">Total de horas</div>
+                        </td>
+                        <td class="px-4 py-2 text-sm text-center border-b text-gray-700 dark:text-gray-200 align-middle">
+                           <form action="{{ route('admin.pdf.horario-docente-escolarizada') }}" method="GET" target="_blank">
+                                        <input type="hidden" name="profesor_id" value="{{ $profesor->id }}">
+                                        <input type="hidden" name="modalidad_id" value="1">
+                                        <button type="submit"
+                                                class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded">
+                                            <flux:icon.file-text />
+                                            Horario
+                                        </button>
+                                    </form>
                         </td>
                     </tr>
                 @endforeach
@@ -315,6 +390,7 @@
         </table>
     </div>
 </div>
+
 
     </div>
 </div>

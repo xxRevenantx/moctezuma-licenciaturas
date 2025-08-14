@@ -177,15 +177,7 @@
                         <td class="px-3 align-top"
                             :class="dense ? 'py-1.5 text-xs' : 'py-2.5 text-sm'">
                             <div class="flex items-start gap-2">
-                                <button
-                                    @click="open = !open"
-                                    class="mt-0.5 inline-flex items-center justify-center h-5 w-5 rounded border border-gray-300 text-gray-600 group-hover:border-indigo-400 group-hover:text-indigo-600 transition"
-                                    :aria-expanded="open"
-                                    :title="open ? 'Contraer' : 'Expandir'"
-                                >
-                                    <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
-                                    <svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 9a1 1 0 000 2h12a1 1 0 100-2H4z" clip-rule="evenodd"/></svg>
-                                </button>
+
                                 <span>{{ $i + 1 }}</span>
                             </div>
                         </td>
@@ -196,12 +188,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="text-gray-900 text-center"
                                       x-html="highlight(@js($row->materia))"></span>
-                                <button
-                                    class="text-[11px] px-1.5 py-0.5 border rounded text-gray-600 hover:border-gray-400 hover:text-gray-800 transition"
-                                    @click="copy(@js($row->materia), $el)"
-                                    x-data
-                                    x-init="$el.setAttribute('title','Copiar')"
-                                >Copiar</button>
+
                             </div>
                             <div class="mt-1">
                                 <!-- badge modalidad -->
@@ -247,7 +234,7 @@
                                 'modalidad_id' => $row->modalidad_id,
                                 'periodo' => $periodo_id,
                             ]) }}"
-                               class="inline-block px-3 py-1 text-white text-[11px] font-semibold rounded bg-indigo-500 hover:bg-indigo-600 shadow-sm">
+                               class="inline-block px-3 py-1 text-white  font-semibold rounded bg-indigo-500 hover:bg-indigo-600 shadow-sm">
                                 Asistencia
                             </a>
 
@@ -259,7 +246,7 @@
                                 'modalidad_id' => $row->modalidad_id,
                                 'periodo' => $periodo_id,
                             ]) }}"
-                               class="inline-block ml-2 px-3 py-1 text-white text-[11px] font-semibold rounded bg-cyan-500 hover:bg-cyan-600 shadow-sm">
+                               class="inline-block ml-2 px-3 py-1 text-white font-semibold rounded bg-cyan-500 hover:bg-cyan-600 shadow-sm">
                                 Evaluación
                             </a>
                         </td>

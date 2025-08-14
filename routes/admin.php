@@ -108,6 +108,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Horario docente
     Route::get('/horario-docente-semiescolarizada', [PDFController::class, 'horario_docente_semiescolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.horario-docente-semiescolarizada');
+    Route::get('/horario-docente-escolarizada', [PDFController::class, 'horario_docente_escolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.horario-docente-escolarizada');
 
     Route::get('/horario-general-semiescolarizada', [PDFController::class, 'horario_general_semiescolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.horario-general-semiescolarizada');
 
