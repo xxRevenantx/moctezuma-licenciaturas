@@ -4,230 +4,263 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Horario Semiescolarizada | Lic. {{ $licenciatura_nombre->nombre }} | Gen. {{ $generacion->generacion }}</title>
 
-    <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <title>Horario SemiEscolarizado</title>
+    <style>
+        /* Márgenes de página (reservan espacio para header/footer fijos) */
+        @page { margin: 10px 45px 110px 45px; }
+
+        /* Calibri para igualar el diseño anterior */
+        @font-face {
+            font-family: 'calibri';
+            src: url('{{ storage_path('fonts/calibri/calibri.ttf') }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'calibri';
+            font-weight: 700;
+            src: url('{{ storage_path('fonts/calibri/calibri-bold.ttf') }}') format('truetype');
+        }
+        body { font-family: calibri, DejaVu Sans, Arial, Helvetica, sans-serif; color:#0f172a; font-size:12px; }
+
+        /* Header & Footer (fijos) */
+        header { position: fixed; top: 0; left: 0; right: 0; height: 112px; padding: 8px 0 6px 0; }
+        footer {
+            position: fixed; bottom: 1px; left: 0; right: 0;
+            text-align: center; font-size: 11px; color: #334155;
+            padding: 6px 0 0; border-top:1px solid #94a3b8;
+        }
+        footer p{ margin:0; line-height:14px; font-size:13px; }
+        .container{ width:100%; }
+
+        /* Barra de marca (idéntico look & feel) */
+        .brand-bar{ width:100%; border-top:3px solid #0ea5e9; border-bottom:3px solid #0ea5e9; padding:10px 0 6px; text-align:center; letter-spacing:.5px;}
+        .titulo{ font-size:18px; font-weight:700; margin:0; line-height:20px; }
+        .subtitulo{ margin:4px 0 0; font-size:14px; color:#334155; }
+        .logo-left{ position:absolute; top:18px; left:40px; height:50px; }
+        .logo-right{ position:absolute; top:18px; right:40px; height:50px; }
+
+        /* Marca de agua */
+        .watermark{ position:fixed; top:58%; left:50%; transform:translate(-50%,-50%); width:100%; text-align:center; opacity:.06; z-index:-1; }
+        .watermark img{ width:80%; }
+
+        /* Chips / etiquetas */
+        .chip{ display:inline-block; padding:3px 5px; border-radius:999px; background:#f1f5f9; color:#0f172a; font-size:11px; border:1px solid #e2e8f0; white-space:nowrap; }
+        .tag{ display:inline-block; padding:2px 8px; border-radius:999px; background:#ecfeff; color:#155e75; border:1px solid #a5f3fc; font-size:10px; white-space:nowrap; }
+
+        /* Tabla base */
+        .table-wrap{ border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
+        table{ width:100%; border-collapse:collapse; }
+        thead th{ background:#cbd5e1; color:#0f172a; text-transform:uppercase; font-size:12px; letter-spacing:.5px; padding:8px 10px; text-align:center; }
+        tbody td{ border-top:1px solid #e5e7eb; padding:8px 8px; vertical-align:middle; background:#fff; font-size:12px; }
+        tbody tr:nth-child(odd) td{ background:#fcfcfd; }
+
+        /* Receso */
+        .receso-time { font-weight:700; text-align:center; background:#e5e7eb; }
+        .receso-cell { font-weight:700; text-align:center; color:#0f172a; background:repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6 6px,#e5e7eb 6px,#e5e7eb 12px); letter-spacing:6px; }
+
+        /* Bloques de resumen */
+        .summary{ margin-top:10px; border:1px solid #e5e7eb; border-radius:10px; padding:10px; background:#f8fafc; }
+        .summary h4{ margin:0 0 6px; font-size:13px; text-transform:uppercase; color:#334155; }
+        .summary .item{ display:inline-block; margin:2px 6px 2px 0; font-size:13px; }
+
+        .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
+        .muted{ color:#64748b; }
+    </style>
 </head>
-<style>
+<body>
+@php
+    use Carbon\Carbon;
 
-      @page { margin:10px 45px 20px 45px; }
-        body {
-        /* width: 21.59cm;
-        height: 27.94cm; */
-        /* padding: 20px; */
-        font-family: 'figtree', sans-serif;
-        margin: auto;
-        font-size: 15px;
+    /* === Helpers de tiempo para receso dinámico === */
+    $parseTime = function($t) { $t = trim(strtolower($t)); return Carbon::createFromFormat('g:ia', $t); };
+    $parseRange = function($range) use ($parseTime) {
+        [$ini, $fin] = array_map('trim', explode('-', strtolower($range)));
+        return [$parseTime($ini), $parseTime($fin)];
+    };
 
+    $receso_inicio = $receso_inicio ?? '10:00am';
+    $receso_fin    = $receso_fin    ?? '10:30am';
+
+    $shouldInsertRecesoAfter = function($horaActual) use ($parseRange,$receso_inicio){
+        try {
+            [$ini,$fin] = $parseRange($horaActual);
+            $recesoIni = Carbon::createFromFormat('g:ia', strtolower($receso_inicio));
+            return $fin->format('H:i') === $recesoIni->format('H:i');
+        } catch (\Throwable $e) { return false; }
+    };
+
+    /* Total semanal (grupo) */
+    $totalMin = 0;
+    foreach ($horario as $h) {
+        if (!isset($h->hora) || empty($h->hora)) continue;
+        [$ini,$fin] = $parseRange($h->hora);
+        $totalMin += $ini->diffInMinutes($fin);
     }
+    $fmtHoras = function($min){ $h=intdiv($min,60); $m=$min%60; return sprintf('%02d:%02d',$h,$m); };
+    $totalSem = $fmtHoras($totalMin);
 
-    .fecha {
-        font-size: 16px;
-        font-weight: bold;
-    }
+    /* ====== AGRUPAR POR PROFESOR (materias únicas + horas totales) ====== */
+    $profesores = []; // [prof_id|'sin' => ['nombre'=>string,'materias'=>[mat_id=>['nombre','clave']], 'min'=>int]]
+    foreach ($horario as $h) {
+        $am = $h->asignacionMateria ?? null;
+        $prof = $am?->profesor;
+        $mat  = $am?->materia;
 
+        $pid = $prof->id ?? 'sin';
+        $nombreProf = trim(($prof->nombre ?? 'Sin asignar').' '.($prof->apellido_paterno ?? '').' '.($prof->apellido_materno ?? ''));
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 10px 0;
-    }
-
-    th, td {
-
-        padding: 8px;
-        text-align: left;
-        text-transform: uppercase
-    }
-    td{
-         border: 1px solid #8a8a8a;
-        text-align: left;
-    }
-
-    th {
-         border: 1px solid #2d2d2d;
-        background: #638acd;
-        font-weight: bold;
-        text-align: center;
-        color: white;
-    }
-
-
-    p.nota {
-        font-size: 14px;
-        color: red;
-    }
-
-    footer {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        text-align: center;
-        font-size: 12px;
-        width: 100%;
-
-        border-top: 1px solid #4a5568;
-        border-bottom: 1px solid #4a5568;
-
-    }
-    footer p{
-        margin: 0;
-        padding: 0;
-    }
-    .sm{
-        font-size: 8px;
-    }
-
-
-     .titulo {
-            font-weight: bold;
-            color: #4a5568; /* Color similar al de la imagen */
-            text-align: center;
-            font-size: 24px;
-            margin-top: 50px;
-            padding: 10px 0;
-            border-top: 2px solid #4a5568;
-            border-bottom: 2px solid #4a5568;
-            display: inline-block;
+        if (!isset($profesores[$pid])) {
+            $profesores[$pid] = ['nombre' => $nombreProf ?: 'Sin asignar', 'materias' => [], 'min' => 0];
         }
 
+        if ($mat) {
+            $matId = $mat->id ?? spl_object_id($mat);
+            $profesores[$pid]['materias'][$matId] = [
+                'nombre' => $mat->nombre ?? '—',
+                'clave'  => $mat->clave ?? '—',
+            ];
+        }
 
-    p.subtitulo{
-        text-align: center;
-        font-size: 16px;
-         padding: 3px 0;
-        margin: 0;
-        font-weight: bold;
+        if (!empty($h->hora)) {
+            [$ini,$fin] = $parseRange($h->hora);
+            $profesores[$pid]['min'] += $ini->diffInMinutes($fin);
+        }
     }
 
-    img.img1 {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-    }
+    /* Ordenar profesores alfabéticamente (Sin asignar al final) */
+    uksort($profesores, function($a,$b) use ($profesores){
+        if ($a === 'sin' && $b === 'sin') return 0;
+        if ($a === 'sin') return 1;
+        if ($b === 'sin') return -1;
+        return mb_strtolower($profesores[$a]['nombre'],'UTF-8') <=> mb_strtolower($profesores[$b]['nombre'],'UTF-8');
+    });
+@endphp
 
-    img.img2 {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-    }
-
-    .watermark {
-        position: fixed;
-        top: 70%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        opacity: 0.1;
-        text-align: center;
-    }
-
-    .fechaImpresion{
-        position: absolute;
-        bottom: 40px;
-        left: 250px;
-        text-align: center;
-        font-size: 12px;
-        width: 100%;
-    }
-
-</style>
-<body>
-        <div class="watermark">
-            <img src="{{ public_path('storage/letra.png') }}" alt="Watermark">
+<!-- HEADER -->
+<header>
+    <img class="logo-left"  src="{{ public_path('storage/letra2.jpg') }}" alt="Escudo">
+    <img class="logo-right" src="{{ public_path('storage/licenciaturas/'.$licenciatura_nombre->imagen) }}" alt="Licenciatura">
+    <div class="brand-bar">
+        <h1 class="titulo">CENTRO UNIVERSITARIO MOCTEZUMA</h1>
+        <p class="subtitulo">HORARIO DE CLASES — LICENCIATURA EN {{ mb_strtoupper($licenciatura_nombre->nombre) }}</p>
+        <div style="margin-top:6px;">
+            <span class="chip">Modalidad: Semiescolarizada</span>
+            <span class="chip">Generación: {{ $generacion->generacion }}</span>
+            <span class="chip">Cuatrimestre: {{ $cuatrimestre }}°</span>
+            <span class="chip">Total semanal: {{ $totalSem }} h</span>
         </div>
-         <div style="text-align: center;">
-             <img class="img1" src="{{ public_path('storage/letra2.jpg') }}" alt="Logo" height="100px" width="100">
-            <h1 class="titulo">CENTRO UNIVERSITARIO MOCTEZUMA</h1>
-            <img class="img2" src="{{ public_path('storage/licenciaturas/'.$licenciatura_nombre->imagen) }}" alt="Logo Licenciatura"  height="100px" width="100">
+    </div>
+</header>
+
+<!-- FOOTER -->
+<footer>
+    <p><strong>{{ $escuela->nombre }}</strong> — C.C.T. {{ $escuela->CCT }}</p>
+    <p>
+        C. {{ $escuela->calle }} No. {{ $escuela->no_exterior }},
+        Col. {{ $escuela->colonia }}, C.P. {{ $escuela->codigo_postal }},
+        {{ $escuela->ciudad }}, {{ $escuela->estado }} · Tel. {{ $escuela->telefono }}
+    </p>
+    <p><strong>Fecha de expedición:</strong> {{ \Carbon\Carbon::now('America/Mexico_City')->format('d/m/Y H:i:s') }}</p>
+</footer>
+
+<!-- Marca de agua -->
+<div class="watermark">
+    <img src="{{ public_path('storage/letra.png') }}" alt="Marca de agua">
+</div>
+
+<!-- CONTENIDO -->
+<main>
+    <div class="container" style="margin-top:130px">
+
+        <!-- TABLA HORARIO LINEAL -->
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:160px;">Hora</th>
+                        <th>Materia</th>
+                        <th style="width:140px;">Clave</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($horario as $h)
+                        <tr>
+                            <td class="mono" style="text-align:center;">{{ strtoupper($h->hora) }}</td>
+                            <td style="text-align:center;">
+                                <div style="font-weight:700; font-size:14px;">
+                                    {{ $h->asignacionMateria->materia->nombre }}
+                                </div>
+                                @php
+                                    $tipo = $h->tipo ?? null;   /* Teoría | Práctica | Lab | Virtual */
+                                    $aula = $h->aula ?? null;
+                                @endphp
+                                <div style="margin-top:2px;">
+                                    @if($tipo)<span class="tag">{{ strtoupper($tipo) }}</span>@endif
+                                    @if($aula)<span class="tag" style="margin-left:4px;">Aula: {{ $aula }}</span>@endif
+                                </div>
+                            </td>
+                            <td class="mono" style="text-align:center;">{{ $h->asignacionMateria->materia->clave }}</td>
+                        </tr>
+
+                        {{-- RECESO DINÁMICO --}}
+                        @if ($shouldInsertRecesoAfter($h->hora))
+                            <tr>
+                                <td class="receso-time mono">{{ strtoupper($receso_inicio.'-'.$receso_fin) }}</td>
+                                <td class="receso-cell" colspan="2">RECESO</td>
+                            </tr>
+                        @endif
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-        <p style="font-size: 25px" class="subtitulo">HORARIO DE CLASES</p>
-        <p style="text-transform: uppercase" class="subtitulo">LICENCIATURA EN {{$licenciatura_nombre->nombre}}</p>
-        <p class="subtitulo">GENERACIÓN: {{$generacion->generacion}}</p>
 
-        <div style="background: #88AC2E; color: white; text-align: center; padding: 5px; font-weight: bold; font-size: 16px; margin-top: 10px;">
-            {{$cuatrimestre}}° CUATRIMESTRE | SEMIESCOLARIZADA
+        <!-- ASIGNACIÓN DE PROFESORES (AGRUPADA) -->
+        <div class="summary">
+            <h4>Asignación de profesores</h4>
+            <table style="width:100%; border-collapse:separate; border-spacing:0 6px;">
+                <thead>
+                    <tr>
+                        <th style="background:#cbd5e1; color:#0f172a; border:1px solid #e5e7eb;">#</th>
+                        <th style="background:#cbd5e1; color:#0f172a; border:1px solid #e5e7eb;">Profesor</th>
+                        <th style="background:#cbd5e1; width:50px; color:#0f172a; border:1px solid #e5e7eb;">Materias</th>
+                        <th style=" background:#cbd5e1; color:#0f172a; border:1px solid #e5e7eb;">Horas/Sem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php $i=1; @endphp
+                    @forelse ($profesores as $pid => $data)
+                        <tr>
+                            <td class="mono" style="text-align:center; border:1px solid #e5e7eb; background:#fff;">{{ $i++ }}</td>
+                            <td style="border:1px solid #e5e7eb; background:#fff;">
+                                {{ $data['nombre'] }}
+                            </td>
+                            <td style="border:1px solid #e5e7eb; background:#fff;">
+                                @if(count($data['materias']))
+                                    <div>
+                                        @foreach ($data['materias'] as $m)
+                                            <span class="chip">{{ $m['nombre'] }} <span class="mono">({{ $m['clave'] }})</span></span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="muted">Sin materias</span>
+                                @endif
+                            </td>
+                            <td class="mono" style="text-align:center; border:1px solid #e5e7eb; background:#fff;">
+                                {{ $fmtHoras($data['min']) }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" style="text-align:center; color:#64748b; border:1px solid #e5e7eb; background:#fff;">Sin datos</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
-      <table class="min-w-full text-xs text-left">
-    <thead class="bg-gray-200 dark:bg-gray-700">
-        <tr>
-            <th class="px-2 py-1" style="width:150px">Hora</th>
-            <th class="px-2 py-1">Materia</th>
-            <th class="px-2 py-1">Clave</th>
-        </tr>
-    </thead>
-    <tbody>
-        @php
-            $inserted = false;
-        @endphp
-        @foreach ($horario as $h)
-            <tr class="border-b dark:border-gray-600">
-                <td class="px-2 py-1">{{ $h->hora }}</td>
-                <td class="px-2 py-1">{{ $h->asignacionMateria->materia->nombre }}</td>
-                <td class="px-2 py-1">{{ $h->asignacionMateria->materia->clave }}</td>
-            </tr>
-            @if (!$inserted && $h->hora == '9:00am-10:00am')
-                <tr class="border-b dark:border-gray-600">
-                    <td class="px-2 py-1" style="background: #d4d4d4">10:00am-10:30am</td>
-                    <td class="px-2 py-1" style="background: #d4d4d4; text-align:center; letter-spacing: 60px">RECESO</td>
-                    <td class="px-2 py-1" style="background: #d4d4d4">-----</td>
-                </tr>
-                @php $inserted = true; @endphp
-            @endif
-        @endforeach
-    </tbody>
-</table>
-
-{{-- PROFESORES --}}
-
-
-<h1 style="text-align: center; font-size:20px; margin-top:30px">ASIGNACIÓN DE PROFESORES</h1>
-
-<hr>
-
-<table class="min-w-full text-xs text-left mb-4" style="margin-top: 20px; text-transform: uppercase; font-size:13px">
-    <thead >
-        <tr>
-            <th class="px-2 py-1" style="background: #d4d4d4; color: black">#</th>
-            <th class="px-2 py-1" style="background: #d4d4d4; color: black">Clave</th>
-            <th class="px-2 py-1" style="background: #d4d4d4; color: black">Materia</th>
-            <th class="px-2 py-1" style="background: #d4d4d4; color: black">Profesor</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach ($horario as $h)
-
-            <tr class="border-b dark:border-gray-600">
-                <td class="px-2 py-1">
-                    {{ $loop->iteration }}
-                </td>
-                <td class="px-2 py-1">{{$h->asignacionMateria->materia->clave}}</td>
-                <td class="px-2 py-1">
-                    {{ $h->asignacionMateria->materia->nombre }}
-                </td>
-                <td class="px-2 py-1">
-                    {{  $h->asignacionMateria->profesor->nombre }} {{  $h->asignacionMateria->profesor->apellido_paterno }} {{  $h->asignacionMateria->profesor->apellido_materno }}
-                </td>
-            </tr>
-        @endforeach
-    </tbody>
-</table>
-
-
-
-
-
-
-    <footer>
-        <p>{{$escuela->nombre}} C.C.T. {{$escuela->CCT}}</p>
-        <p>C. {{$escuela->calle}} No. {{$escuela->no_exterior}}, Col. {{$escuela->colonia}}, C.P. {{$escuela->codigo_postal}}, Cd. {{$escuela->ciudad}}, {{$escuela->estado}}.</p>
-        <p>Tel. {{$escuela->telefono}}</p>
-        <p style="font-weight: bold">Fecha de expedición: {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }}</p>
-    </footer>
+        <div class="summary">
+            <div class="item"><strong>Total semanal del grupo:</strong> {{ $totalSem }} h</div>
+        </div>
+    </div>
+</main>
 
 </body>
 </html>

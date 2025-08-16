@@ -14,9 +14,9 @@ class HorarioGeneralEscolarizada extends Component
     public $generaciones = [];
     public $cuatrimestres = [];
 
-    public $filtroLicenciatura = null;
-    public $filtroGeneracion   = null;
-    public $filtroCuatrimestre = null;
+    public $licenciatura_id = null;
+    public $filtrar_generacion   = null;
+    public $filtrar_cuatrimestre = null;
     public $busqueda = '';
 
     public $modalidadId = 1;
@@ -59,18 +59,18 @@ class HorarioGeneralEscolarizada extends Component
 
     /** ===== REACCIONES A LOS SELECTS ===== */
 
-    public function updatedFiltroLicenciatura(): void
+    public function updatedLicenciaturaId(): void
     {
-        $this->reset(['filtroGeneracion','filtroCuatrimestre']);
+        $this->reset(['filtrar_generacion','filtrar_cuatrimestre']);
         $this->generaciones = collect();
         $this->cuatrimestres = [];
         $this->materias = collect();
         $this->llenarHorarioEnBlanco();
 
-        if (!$this->filtroLicenciatura) return;
+        if (!$this->licenciatura_id) return;
 
         $this->generaciones = Horario::where('modalidad_id', $this->modalidadId)
-            ->where('licenciatura_id', $this->filtroLicenciatura)
+            ->where('licenciatura_id', $this->licenciatura_id)
             ->with('generacion')
             ->get()
             ->pluck('generacion')
@@ -82,18 +82,18 @@ class HorarioGeneralEscolarizada extends Component
         $this->intentarCargarHorario();
     }
 
-    public function updatedFiltroGeneracion(): void
+    public function updatedFiltrarGeneracion(): void
     {
-        $this->reset(['filtroCuatrimestre']);
+        $this->reset(['filtrar_cuatrimestre']);
         $this->cuatrimestres = [];
         $this->materias = collect();
         $this->llenarHorarioEnBlanco();
 
-        if (!$this->filtroLicenciatura || !$this->filtroGeneracion) return;
+        if (!$this->licenciatura_id || !$this->filtrar_generacion) return;
 
         $this->cuatrimestres = Horario::where('modalidad_id', $this->modalidadId)
-            ->where('licenciatura_id', $this->filtroLicenciatura)
-            ->where('generacion_id', $this->filtroGeneracion)
+            ->where('licenciatura_id', $this->licenciatura_id)
+            ->where('generacion_id', $this->filtrar_generacion)
             ->pluck('cuatrimestre_id')
             ->filter()
             ->unique()
@@ -104,7 +104,7 @@ class HorarioGeneralEscolarizada extends Component
         $this->intentarCargarHorario();
     }
 
-    public function updatedFiltroCuatrimestre(): void
+    public function updatedFiltrarCuatrimestre(): void
     {
         $this->materias = collect();
         $this->llenarHorarioEnBlanco();
@@ -117,7 +117,7 @@ class HorarioGeneralEscolarizada extends Component
     public function updatedBusqueda(): void
     {
         // Solo recargar si ya están seleccionados los 3 filtros
-        if ($this->filtroLicenciatura && $this->filtroGeneracion && $this->filtroCuatrimestre) {
+        if ($this->licenciatura_id && $this->filtrar_generacion && $this->filtrar_cuatrimestre) {
             $this->cargarHorario();
         }
     }
@@ -126,7 +126,7 @@ class HorarioGeneralEscolarizada extends Component
 
     private function intentarCargarHorario(): void
     {
-        if ($this->filtroLicenciatura && $this->filtroGeneracion && $this->filtroCuatrimestre) {
+        if ($this->licenciatura_id && $this->filtrar_generacion && $this->filtrar_cuatrimestre) {
             $this->cargarMaterias();   // dejamos la lista completa para edición
             $this->cargarHorario();    // la búsqueda se aplica aquí
         }
@@ -135,9 +135,9 @@ class HorarioGeneralEscolarizada extends Component
     private function cargarMaterias(): void
     {
         $this->materias = AsignacionMateria::with(['materia','profesor'])
-            ->where('licenciatura_id', $this->filtroLicenciatura)
+            ->where('licenciatura_id', $this->licenciatura_id)
             ->where('modalidad_id', $this->modalidadId)
-            ->where('cuatrimestre_id', $this->filtroCuatrimestre)
+            ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
             ->get();
     }
 
@@ -145,17 +145,17 @@ class HorarioGeneralEscolarizada extends Component
     {
         $this->llenarHorarioEnBlanco();
 
-        if (!$this->filtroLicenciatura || !$this->filtroGeneracion || !$this->filtroCuatrimestre) {
+        if (!$this->licenciatura_id || !$this->filtrar_generacion || !$this->filtrar_cuatrimestre) {
             return;
         }
 
         $term = trim((string)$this->busqueda);
 
         $horariosBD = Horario::with(['asignacionMateria.materia','asignacionMateria.profesor'])
-            ->where('licenciatura_id', $this->filtroLicenciatura)
+            ->where('licenciatura_id', $this->licenciatura_id)
             ->where('modalidad_id', $this->modalidadId)
-            ->where('generacion_id', $this->filtroGeneracion)
-            ->where('cuatrimestre_id', $this->filtroCuatrimestre)
+            ->where('generacion_id', $this->filtrar_generacion)
+            ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
             ->when($term !== '', function ($q) use ($term) {
                 $q->where(function ($sub) use ($term) {
                     // Materia: nombre o clave
@@ -185,10 +185,10 @@ class HorarioGeneralEscolarizada extends Component
         $materia_id = (empty($materia_id) || $materia_id == "0") ? null : $materia_id;
 
         $criteria = [
-            'licenciatura_id' => $this->filtroLicenciatura,
+            'licenciatura_id' => $this->licenciatura_id,
             'modalidad_id'    => $this->modalidadId,
-            'generacion_id'   => $this->filtroGeneracion,
-            'cuatrimestre_id' => $this->filtroCuatrimestre,
+            'generacion_id'   => $this->filtrar_generacion,
+            'cuatrimestre_id' => $this->filtrar_cuatrimestre,
             'dia_id'          => $dia_id,
             'hora'            => $hora,
         ];

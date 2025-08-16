@@ -1,5 +1,5 @@
-<div x-data="{ open: false }">
-
+{{-- resources/views/livewire/admin/horario-general/horario-general-escolarizada.blade.php --}}
+<div x-data="{ open:false }">
     @php
         // Utilidad para contraste de color (texto legible sobre fondo)
         function esColorDark($hexColor) {
@@ -15,383 +15,382 @@
         }
     @endphp
 
-
-
-
-    <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Horario Escolarizada</h2>
-
-
-
-    {{-- Filtros --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {{-- Licenciatura --}}
-        <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-white mb-1">Licenciatura</label>
-            <flux:select wire:model.live="filtroLicenciatura" class="w-full border-gray-300 rounded shadow-sm">
-                <flux:select.option value="">-- Selecciona --</flux:select.option>
-                @foreach($licenciaturas as $lic)
-                    <flux:select.option value="{{ $lic->id }}">{{ $lic->nombre }}</flux:select.option>
-                @endforeach
-            </flux:select>
-        </div>
-
-        {{-- Generación (se llena en cascada según licenciatura) --}}
-        <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-white mb-1">Generación</label>
-            <flux:select wire:model.live="filtroGeneracion" class="w-full border-gray-300 rounded shadow-sm">
-                <flux:select.option value="">-- Selecciona --</flux:select.option>
-                @foreach($generaciones as $generacion)
-                    <flux:select.option value="{{ $generacion->id }}">{{ $generacion->generacion }}</flux:select.option>
-                @endforeach
-            </flux:select>
-        </div>
-
-        {{-- Cuatrimestre (se llena según licenciatura + generación) --}}
-        <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-white mb-1">Cuatrimestre</label>
-            <flux:select wire:model.live="filtroCuatrimestre" class="w-full border-gray-300 rounded shadow-sm">
-                <flux:select.option value="">-- Selecciona --</flux:select.option>
-                @foreach($cuatrimestres as $cuatrimestreId)
-                    <flux:select.option value="{{ $cuatrimestreId }}">{{ $cuatrimestreId }}°</flux:select.option>
-                @endforeach
-            </flux:select>
-        </div>
+    <!-- Encabezado -->
+    <div class="mb-4">
+        <h2 class="text-2xl md:text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
+            Horario Escolarizada
+        </h2>
+        <p class="text-sm text-neutral-500 dark:text-neutral-400">
+            Configura filtros, visualiza y exporta el horario.
+        </p>
     </div>
 
-    {{-- Loader global --}}
-    <div wire:loading.flex class="justify-center items-center py-10">
-        <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-        </svg>
-    </div>
+    <!-- Card: Filtros -->
+    <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm p-4 md:p-5 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Licenciatura -->
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">Licenciatura</label>
+                <flux:select wire:model.live="licenciatura_id" class="w-full">
+                    <flux:select.option value="">-- Selecciona --</flux:select.option>
+                    @foreach($licenciaturas as $lic)
+                        <flux:select.option value="{{ $lic->id }}">{{ $lic->nombre }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
 
-            {{-- Buscador --}}
+            <!-- Generación -->
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">Generación</label>
+                <flux:select wire:model.live="filtrar_generacion" class="w-full">
+                    <flux:select.option value="">-- Selecciona --</flux:select.option>
+                    @foreach($generaciones as $generacion)
+                        <flux:select.option value="{{ $generacion->id }}">{{ $generacion->generacion }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+
+            <!-- Cuatrimestre -->
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">Cuatrimestre</label>
+                <flux:select wire:model.live="filtrar_cuatrimestre" class="w-full">
+                    <flux:select.option value="">-- Selecciona --</flux:select.option>
+                    @foreach($cuatrimestres as $cuatrimestreId)
+                        <flux:select.option value="{{ $cuatrimestreId }}">{{ $cuatrimestreId }}°</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+        </div>
+
+        <!-- Loader global de filtros -->
+        <div wire:loading.flex class="justify-center items-center py-8">
+            <svg class="animate-spin h-8 w-8 text-indigo-600 dark:text-indigo-400 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+            <span class="text-sm text-neutral-600 dark:text-neutral-300">Cargando…</span>
+        </div>
+
+        <!-- Buscador -->
+        <div class="mt-4">
             <flux:input
                 label="Buscar por profesor o materia"
                 wire:model.live="busqueda"
                 placeholder="Ej. Matemáticas o Juan Pérez"
-                class="w-full my-3"
+                class="w-full"
             />
+        </div>
 
-    {{-- Botón PDF + modal (blur + bloqueo scroll) --}}
-
-            <div
-                x-data="{
-                    open: false,
-                    pdfUrl: '',
-                    base: @js(route('admin.pdf.horario-escolarizada')),
-                    // sincroniza con Livewire
-                    filtroLicenciatura: @entangle('filtroLicenciatura').live,
-                    filtroGeneracion:   @entangle('filtroGeneracion').live,
-                    filtroCuatrimestre: @entangle('filtroCuatrimestre').live,
-                    modalidad_id: @js($modalidadId),
-                    abrir() {
-                        if (!this.filtroLicenciatura || !this.filtroGeneracion || !this.filtroCuatrimestre) return;
-                        const params = new URLSearchParams({
-                            licenciatura_id: this.filtroLicenciatura,
-                            generacion_id:   this.filtroGeneracion,
-                            cuatrimestre_id: this.filtroCuatrimestre,
-                            modalidad_id:    this.modalidad_id,
-                        });
-                        this.pdfUrl = `${this.base}?${params.toString()}`;
-                        this.open = true;
-                    }
-                }"
-                x-effect="document.body.classList.toggle('overflow-hidden', open)"
-                x-init="document.addEventListener('keydown', e => { if (open && e.key === 'Escape') open = false })"
-                class="mb-3"
+        <!-- Botón PDF + Modal (con Alpine; sin :disabled de Blade) -->
+        <div
+            x-data="{
+                openPdf:false,
+                pdfUrl:'',
+                base:@js(route('admin.pdf.horario-escolarizada')),
+                // Estados sincronizados con Livewire
+                licenciatura_id:@entangle('licenciatura_id').live,
+                filtrar_generacion:@entangle('filtrar_generacion').live,
+                filtrar_cuatrimestre:@entangle('filtrar_cuatrimestre').live,
+                modalidad_id:@js($modalidadId ?? null),
+                get listo(){ return !!(this.licenciatura_id && this.filtrar_generacion && this.filtrar_cuatrimestre); },
+                abrir(){
+                    if(!this.listo) return;
+                    const params=new URLSearchParams({
+                        licenciatura_id:this.licenciatura_id,
+                        filtrar_generacion:this.filtrar_generacion,
+                        filtrar_cuatrimestre:this.filtrar_cuatrimestre,
+                        modalidad_id:this.modalidad_id ?? ''
+                    });
+                    this.pdfUrl=`${this.base}?${params.toString()}`;
+                    this.openPdf=true;
+                }
+            }"
+            x-effect="document.body.classList.toggle('overflow-hidden', openPdf)"
+            class="mt-4"
+        >
+            <x-button
+                x-on:click="abrir()"
+                x-bind:disabled="!listo"
+                variant="primary"
+                type="button"
+                class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg"
             >
-                <x-button
-                    x-on:click="abrir()"
-                    x-bind:disabled="!(filtroLicenciatura && filtroGeneracion && filtroCuatrimestre)"
-                    variant="primary"
-                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                    <div class="flex items-center gap-1">
-                        <flux:icon.download />
-                        <span>Horario PDF</span>
-                    </div>
-                </x-button>
+                <flux:icon.download />
+                <span>Horario PDF</span>
+            </x-button>
 
-                <div
-                    x-show="open"
-                    x-transition.opacity
-                    x-cloak
-                    class="fixed inset-0 z-50 bg-black/40 backdrop-blur-md flex justify-center items-center"
-                    style="display:none"
-                    @click.self="open=false"
-                    @keydown.escape.window="open=false"
-                    tabindex="0"
-                >
-                    <div class="bg-white rounded-lg p-4 w-full max-w-7xl shadow-lg relative">
-                        <iframe :src="pdfUrl" class="w-full h-[80vh] rounded"></iframe>
-                        <button @click="open=false" class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded px-3 py-1">Cerrar</button>
+            <!-- Modal PDF -->
+            <div
+                x-cloak
+                x-show="openPdf"
+                x-transition.opacity
+                @click.self="openPdf=false"
+                @keydown.escape.window="openPdf=false"
+                class="fixed inset-0 z-[120] grid place-items-center bg-black/40 dark:bg-black/50 backdrop-blur-sm p-4"
+            >
+                <div class="relative w-full max-w-7xl rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-2xl">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+                        <h3 class="text-sm md:text-base font-semibold text-neutral-900 dark:text-neutral-100">Vista previa · PDF del horario</h3>
+                        <button @click="openPdf=false"
+                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white">
+                            <span class="sr-only">Cerrar</span>
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.7 2.88 18.3 9.17 12 2.88 5.71 4.29 4.3l6.3 6.29 6.29-6.3z"/></svg>
+                        </button>
+                    </div>
+                    <div class="p-3">
+                        <iframe :src="pdfUrl" class="w-full h-[75vh] rounded-lg border border-neutral-200 dark:border-neutral-800"></iframe>
                     </div>
                 </div>
             </div>
-
-
-
-    {{-- Tabla editable (se muestra cuando hay filtros completos) --}}
-    <div
-        wire:loading.remove
-        wire:target="filtroLicenciatura, filtroGeneracion, filtroCuatrimestre, busqueda"
-    >
-        @if($horario && count($horario))
-            <table class="min-w-full border-collapse border border-gray-200 table-striped">
-                <thead class="bg-gray-100 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Hora</th>
-                        @foreach ($dias as $dia)
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">{{ $dia->dia }}</th>
-                        @endforeach
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                    @foreach ($horas as $hora)
-                        <tr>
-                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-b">{{ $hora }}</td>
-                            @foreach ($dias as $dia)
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 border-b">
-                                    <select
-                                        wire:key="select-{{ $dia->id }}-{{ $hora }}"
-                                        wire:model="horario.{{ $dia->id }}.{{ $hora }}"
-                                        wire:change="actualizarHorario('{{ $dia->id }}', '{{ $hora }}', $event.target.value)"
-                                        class="w-full px-2 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-white dark:border-gray-600 transition"
-                                    >
-                                        <option value="0" {{ empty($horario[$dia->id][$hora]) || $horario[$dia->id][$hora] == 0 ? 'selected' : '' }}>--Selecciona una opción--</option>
-                                        @foreach ($materias as $mat)
-                                            <option value="{{ (string)$mat->id }}" {{ (isset($horario[$dia->id][$hora]) && $horario[$dia->id][$hora] == (string)$mat->id) ? 'selected' : '' }}>
-                                                {{ $mat->materia->nombre }} ({{ $mat->materia->clave }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-
-                                    {{-- Profesor --}}
-                                    @if(isset($horario[$dia->id][$hora]) && $horario[$dia->id][$hora] && $horario[$dia->id][$hora] != 0)
-                                        @php
-                                            $materiaSeleccionada = $materias->firstWhere('id', $horario[$dia->id][$hora]);
-                                            $profesor = $materiaSeleccionada && isset($materiaSeleccionada->profesor) ? $materiaSeleccionada->profesor : null;
-                                            $profesorColor = $profesor->color ?? '#f3f4f6';
-                                            $textoClaro = !esColorDark($profesorColor);
-                                            $textColor = $textoClaro ? '#222222' : '#ffffff';
-                                        @endphp
-                                        @if($profesor)
-                                            <div class="mt-1 text-xs" style="background-color: {{ $profesorColor }}; color: {{ $textColor }}; padding: 0.25rem; border-radius: 0.375rem;">
-                                                Profesor: {{ $profesor->nombre ?? 'Sin asignar' }} {{ $profesor->apellido_paterno ?? '' }} {{ $profesor->apellido_materno ?? '' }}
-                                            </div>
-                                        @else
-                                            <div class="mt-1 text-xs text-gray-400 italic">Sin profesor asignado</div>
-                                        @endif
-                                    @endif
-                                </td>
-                            @endforeach
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @else
-            <div class="text-center text-gray-500 mt-8">Selecciona licenciatura, generación y cuatrimestre para ver/editar el horario.</div>
-        @endif
-
-
-
-
-{{-- MATERIAS DEL PROFESOR Y HORAS TOTALES --}}
-<div class="mt-8">
-    <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-        Materias del Profesor y Horas Totales
-    </h4>
-
-    {{-- Loader mientras recalcula --}}
-    <div
-        wire:loading.delay
-        wire:target="actualizarHorario, filtroGeneracion, filtroCuatrimestre, filtroLicenciatura, busqueda"
-        class="w-full flex flex-col items-center justify-center gap-3 p-6 border border-dashed border-gray-300 rounded-lg bg-white dark:bg-gray-800 text-center"
-    >
-        <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4z"></path>
-        </svg>
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
-            Recalculando materias y horas del profesorado…
-        </span>
+        </div>
     </div>
 
-    {{-- Contenido real --}}
+    <!-- Tabla editable -->
     <div
         wire:loading.remove
-        wire:target="actualizarHorario, filtroGeneracion, filtroCuatrimestre, filtroLicenciatura, busqueda"
-        class="overflow-x-auto"
+        wire:target="licenciatura_id, filtrar_generacion, filtrar_cuatrimestre, busqueda, actualizarHorario, cargarHorario"
     >
-        @php
-            // === Mapas de apoyo
-            $diasMap = collect($dias)->keyBy('id'); // [dia_id => Dia]
-            // === Agrupar catálogo de materias por profesor
-            $profesoresMaterias = []; // [prof_id => ['profesor'=>Obj,'materias'=>[AsignacionMateria,...]]]
-            foreach ($materias as $m) {
-                if (($m->profesor ?? null) && ($m->materia ?? null)) {
-                    $pid = $m->profesor->id;
-                    $profesoresMaterias[$pid] ??= ['profesor' => $m->profesor, 'materias' => []];
-                    $profesoresMaterias[$pid]['materias'][] = $m;
+        @if($horario && count($horario))
+            <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-neutral-50 dark:bg-neutral-700 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Hora</th>
+                                @foreach ($dias as $dia)
+                                    <th class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">{{ $dia->dia }}</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($horas as $hora)
+                                <tr class="odd:bg-neutral-50/60 dark:odd:bg-neutral-800/60">
+                                    <td class="px-4 py-3 whitespace-nowrap font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                        {{ $hora }}
+                                    </td>
+                                    @foreach ($dias as $dia)
+                                        <td class="px-4 py-3 align-top border-b border-neutral-200 dark:border-neutral-700">
+                                            <select
+                                                wire:key="select-{{ $dia->id }}-{{ $hora }}"
+                                                wire:model="horario.{{ $dia->id }}.{{ $hora }}"
+                                                wire:change="actualizarHorario('{{ $dia->id }}', '{{ $hora }}', $event.target.value)"
+                                                class="w-full px-3 py-2 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100
+                                                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                            >
+                                                <option value="0" {{ empty($horario[$dia->id][$hora]) || $horario[$dia->id][$hora] == 0 ? 'selected' : '' }}>--Selecciona una opción--</option>
+                                                @foreach ($materias as $mat)
+                                                    <option value="{{ (string)$mat->id }}" {{ (isset($horario[$dia->id][$hora]) && $horario[$dia->id][$hora] == (string)$mat->id) ? 'selected' : '' }}>
+                                                        {{ $mat->materia->nombre }} ({{ $mat->materia->clave }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+
+                                            {{-- Profesor chip --}}
+                                            @if(isset($horario[$dia->id][$hora]) && $horario[$dia->id][$hora] && $horario[$dia->id][$hora] != 0)
+                                                @php
+                                                    $materiaSeleccionada = $materias->firstWhere('id', $horario[$dia->id][$hora]);
+                                                    $profesor = $materiaSeleccionada->profesor ?? null;
+                                                    $profesorColor = $profesor->color ?? '#f3f4f6';
+                                                    $textoClaro = !esColorDark($profesorColor);
+                                                    $textColor = $textoClaro ? '#222222' : '#ffffff';
+                                                @endphp
+                                                @if($profesor)
+                                                    <div class="mt-2 text-xs rounded-md px-2 py-1"
+                                                         style="background-color: {{ $profesorColor }}; color: {{ $textColor }};">
+                                                        Profesor: {{ $profesor->nombre ?? 'Sin asignar' }} {{ $profesor->apellido_paterno ?? '' }} {{ $profesor->apellido_materno ?? '' }}
+                                                    </div>
+                                                @else
+                                                    <div class="mt-1 text-xs text-neutral-400 italic">Sin profesor asignado</div>
+                                                @endif
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @else
+            <div class="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm p-8 text-center text-neutral-600 dark:text-neutral-300">
+                Selecciona <strong>licenciatura</strong>, <strong>generación</strong> y <strong>cuatrimestre</strong> para ver/editar el horario.
+            </div>
+        @endif
+    </div>
+
+    <!-- Materias del Profesor y Horas Totales -->
+    <div class="mt-8">
+        <h4 class="text-lg md:text-xl font-semibold text-neutral-900 dark:text-white mb-4">
+            Materias del Profesor y Horas Totales
+        </h4>
+
+        <!-- Loader mientras recalcula -->
+        <div
+            wire:loading.delay
+            wire:target="actualizarHorario, cargarHorario, licenciatura_id, filtrar_generacion, filtrar_cuatrimestre, busqueda"
+            class="w-full flex flex-col items-center justify-center gap-3 p-6 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 text-center"
+        >
+            <svg class="animate-spin h-8 w-8 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4z"></path>
+            </svg>
+            <span class="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                Recalculando materias y horas del profesorado…
+            </span>
+        </div>
+
+        <!-- Contenido real -->
+        <div
+            wire:loading.remove
+            wire:target="actualizarHorario, cargarHorario, licenciatura_id, filtrar_generacion, filtrar_cuatrimestre, busqueda"
+            class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden"
+        >
+            @php
+                // === Mapas y agrupaciones ===
+                $diasMap = collect($dias)->keyBy('id');
+
+                $profesoresMaterias = [];
+                foreach ($materias as $m) {
+                    if (($m->profesor ?? null) && ($m->materia ?? null)) {
+                        $pid = $m->profesor->id;
+                        $profesoresMaterias[$pid] ??= ['profesor' => $m->profesor, 'materias' => []];
+                        $profesoresMaterias[$pid]['materias'][] = $m;
+                    }
                 }
-            }
 
-            // === Recorrer la matriz de horario para:
-            // 1) horas totales por profesor
-            // 2) desglose por materia -> conteo y slots (día/hora)
-            $profesoresHorasEnHorario = [];       // [prof_id => total_slots]
-            $desgloseMateria = [];                // [materia_id => ['count'=>n,'slots'=>[['dia'=>Dia,'hora'=>string]], 'prof_id'=>id]]
+                $profesoresHorasEnHorario = [];
+                $desgloseMateria = [];
 
-            foreach ($horario as $diaId => $horasDia) {
-                foreach ($horasDia as $horaTxt => $asignacionId) {
-                    if (!empty($asignacionId) && $asignacionId !== "0") {
-                        $mat = $materias->firstWhere('id', $asignacionId);
-                        if ($mat && ($mat->profesor ?? null)) {
-                            $pid = $mat->profesor->id;
+                foreach ($horario as $diaId => $horasDia) {
+                    foreach ($horasDia as $horaTxt => $asignacionId) {
+                        if (!empty($asignacionId) && $asignacionId !== "0") {
+                            $mat = $materias->firstWhere('id', $asignacionId);
+                            if ($mat && ($mat->profesor ?? null)) {
+                                $pid = $mat->profesor->id;
+                                $profesoresHorasEnHorario[$pid] = ($profesoresHorasEnHorario[$pid] ?? 0) + 1;
 
-                            // horas por profesor
-                            $profesoresHorasEnHorario[$pid] = ($profesoresHorasEnHorario[$pid] ?? 0) + 1;
-
-                            // desglose por materia
-                            $desgloseMateria[$mat->id] ??= ['count' => 0, 'slots' => [], 'prof_id' => $pid];
-                            $desgloseMateria[$mat->id]['count']++;
-                            $desgloseMateria[$mat->id]['slots'][] = [
-                                'dia'  => $diasMap[$diaId]->dia ?? ('Día '.$diaId),
-                                'hora' => $horaTxt,
-                            ];
+                                $desgloseMateria[$mat->id] ??= ['count' => 0, 'slots' => [], 'prof_id' => $pid];
+                                $desgloseMateria[$mat->id]['count']++;
+                                $desgloseMateria[$mat->id]['slots'][] = [
+                                    'dia'  => $diasMap[$diaId]->dia ?? ('Día '.$diaId),
+                                    'hora' => $horaTxt,
+                                ];
+                            }
                         }
                     }
                 }
-            }
 
-            $totalHoras = array_sum($profesoresHorasEnHorario);
+                $totalHoras = array_sum($profesoresHorasEnHorario);
 
-            // Utilidad para agrupar slots por día y mantener orden de horas declarado en $horas
-            $ordenHoras = array_values($horas);
-            $posHora = array_flip($ordenHoras); // "8:00am-9:00am" => índice
-            $formatearSlots = function(array $slots) use ($posHora) {
-                // Agrupa por día
-                $porDia = [];
-                foreach ($slots as $s) {
-                    $porDia[$s['dia']][] = $s['hora'];
-                }
-                // Ordena horas según $horas y renderiza chips
-                $chips = [];
-                foreach ($porDia as $dia => $horasDia) {
-                    usort($horasDia, fn($a,$b) => ($posHora[$a] ?? 999) <=> ($posHora[$b] ?? 999));
-                    $chips[] = [
-                        'dia' => $dia,
-                        'horas' => $horasDia
-                    ];
-                }
-                return $chips; // [{dia:'Lunes', horas:['8:00...','9:00...']}, ...]
-            };
-        @endphp
+                $ordenHoras = array_values($horas);
+                $posHora = array_flip($ordenHoras);
+                $formatearSlots = function(array $slots) use ($posHora) {
+                    $porDia = [];
+                    foreach ($slots as $s) {
+                        $porDia[$s['dia']][] = $s['hora'];
+                    }
+                    $chips = [];
+                    foreach ($porDia as $dia => $horasDia) {
+                        usort($horasDia, fn($a,$b) => ($posHora[$a] ?? 999) <=> ($posHora[$b] ?? 999));
+                        $chips[] = ['dia' => $dia, 'horas' => $horasDia];
+                    }
+                    return $chips;
+                };
+            @endphp
 
-        <table class="min-w-full border border-gray-200 rounded-lg shadow-sm bg-white dark:bg-gray-800 table-striped">
-            <thead class="bg-gray-100 dark:bg-gray-700">
-                <tr>
-                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">#</th>
-                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Profesor</th>
-                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Materia (horas) y desglose por día</th>
-                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Total de Horas</th>
-                    <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider border-b">Horario</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                @php $i = 1; @endphp
-                @foreach ($profesoresMaterias as $profData)
-                    @php
-                        $profesor = $profData['profesor'];
-                        $materiasDelProfesor = $profData['materias'];
-                        $profesorColor = $profesor->color ?? '#f3f4f6';
-                        $textColor = esColorDark($profesorColor) ? '#ffffff' : '#222222';
-                        $horasProf = $profesoresHorasEnHorario[$profesor->id] ?? 0;
-                    @endphp
-                    <tr class="align-middle">
-                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 border-b text-center align-middle">{{ $i++ }}</td>
-                        <td class="px-4 py-2 text-sm border-b text-center align-middle">
-                            <span class="inline-block px-2 py-1 rounded"
-                                  style="background-color: {{ $profesorColor }}; color: {{ $textColor }};">
-                                {{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-2 text-sm border-b text-gray-900 dark:text-gray-100 align-middle">
-                            <ul class="space-y-2">
-                                @foreach ($materiasDelProfesor as $m)
-                                    @php
-                                        $enHorario = isset($desgloseMateria[$m->id]);
-                                        $count = $enHorario ? $desgloseMateria[$m->id]['count'] : 0;
-                                        $chips = $enHorario ? $formatearSlots($desgloseMateria[$m->id]['slots']) : [];
-                                    @endphp
-                                    <li class="rounded-md border border-gray-200 dark:border-gray-700 p-2 align-middle">
-                                        <div class="flex items-center justify-between gap-2">
-                                            <div class="font-medium">
-                                                {{ $m->materia->nombre }}
-                                                <span class="text-xs text-gray-500">({{ $m->materia->clave }})</span>
-                                            </div>
-                                            <div class="flex items-center gap-2">
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-neutral-50 dark:bg-neutral-700">
+                        <tr>
+                            <th class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">#</th>
+                            <th class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Profesor</th>
+                            <th class="px-4 py-3 font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Materia (horas) y desglose por día</th>
+                            <th class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Total de Horas</th>
+                            <th class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Horario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php $i = 1; @endphp
+                        @foreach ($profesoresMaterias as $profData)
+                            @php
+                                $profesor = $profData['profesor'];
+                                $materiasDelProfesor = $profData['materias'];
+                                $profesorColor = $profesor->color ?? '#f3f4f6';
+                                $textColor = esColorDark($profesorColor) ? '#ffffff' : '#222222';
+                                $horasProf = $profesoresHorasEnHorario[$profesor->id] ?? 0;
+                            @endphp
+                            <tr class="odd:bg-neutral-50/60 dark:odd:bg-neutral-800/60">
+                                <td class="px-4 py-3 text-center font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">{{ $i++ }}</td>
+                                <td class="px-4 py-3 text-center border-b border-neutral-200 dark:border-neutral-700">
+                                    <span class="inline-block px-2 py-1 rounded-md"
+                                          style="background-color: {{ $profesorColor }}; color: {{ $textColor }};">
+                                        {{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700">
+                                    <ul class="space-y-2">
+                                        @foreach ($materiasDelProfesor as $m)
+                                            @php
+                                                $enHorario = isset($desgloseMateria[$m->id]);
+                                                $count = $enHorario ? $desgloseMateria[$m->id]['count'] : 0;
+                                                $chips = $enHorario ? $formatearSlots($desgloseMateria[$m->id]['slots']) : [];
+                                            @endphp
+                                            <li class="rounded-lg border border-neutral-200 dark:border-neutral-700 p-2">
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <div class="font-medium text-neutral-900 dark:text-neutral-100">
+                                                        {{ $m->materia->nombre }}
+                                                        <span class="text-xs text-neutral-500">({{ $m->materia->clave }})</span>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        @if($enHorario)
+                                                            <span class="inline-flex items-center text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">en horario</span>
+                                                        @else
+                                                            <span class="inline-flex items-center text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-700">sin horas</span>
+                                                        @endif
+                                                        <span class="inline-flex items-center text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">{{ $count }} h</span>
+                                                    </div>
+                                                </div>
+
                                                 @if($enHorario)
-                                                    <span class="inline-flex items-center text-[10px] px-2 py-0.5 rounded bg-green-100 text-green-800">
-                                                        en horario
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center text-[10px] px-2 py-0.5 rounded bg-yellow-100 text-yellow-800">
-                                                        sin horas
-                                                    </span>
+                                                    <div class="mt-2 flex flex-wrap gap-1">
+                                                        @foreach ($chips as $c)
+                                                            <span class="inline-flex items-center text-[11px] px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200">
+                                                                <strong class="mr-1">{{ $c['dia'] }}:</strong>
+                                                                {{ implode(', ', $c['horas']) }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
                                                 @endif
-                                                <span class="inline-flex items-center text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                                                    {{ $count }} h
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {{-- Chips por día con horas específicas --}}
-                                        @if($enHorario)
-                                            <div class="mt-2 flex flex-wrap gap-1">
-                                                @foreach ($chips as $c)
-                                                    <span class="inline-flex items-center text-[11px] px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                                                        <strong class="mr-1">{{ $c['dia'] }}:</strong>
-                                                        {{ implode(', ', $c['horas']) }}
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                        @endif
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </td>
-                        <td class="px-4 py-2 text-sm text-center border-b text-gray-700 dark:text-gray-200 align-middle">
-                            {{ $horasProf }}
-                            <div class="text-xs text-gray-500">Total de horas</div>
-                        </td>
-                        <td class="px-4 py-2 text-sm text-center border-b text-gray-700 dark:text-gray-200 align-middle">
-                           <form action="{{ route('admin.pdf.horario-docente-escolarizada') }}" method="GET" target="_blank">
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </td>
+                                <td class="px-4 py-3 text-center font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                    {{ $horasProf }}
+                                    <div class="text-[11px] text-neutral-500">Total de horas</div>
+                                </td>
+                                <td class="px-4 py-3 text-center border-b border-neutral-200 dark:border-neutral-700">
+                                    <form action="{{ route('admin.pdf.horario-docente-escolarizada') }}" method="GET" target="_blank">
                                         <input type="hidden" name="profesor_id" value="{{ $profesor->id }}">
                                         <input type="hidden" name="modalidad_id" value="1">
                                         <button type="submit"
-                                                class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded">
+                                                class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg">
                                             <flux:icon.file-text />
                                             Horario
                                         </button>
                                     </form>
-                        </td>
-                    </tr>
-                @endforeach
+                                </td>
+                            </tr>
+                        @endforeach
 
-                <tr>
-                    <td colspan="4" class="px-4 py-2 text-center text-sm font-semibold text-blue-700 dark:text-blue-300 border-b">
-                        Total global de horas: {{ $totalHoras }}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+                        <tr>
+                            <td colspan="5" class="px-4 py-4 text-center text-sm font-semibold text-indigo-700 dark:text-indigo-300 border-t border-neutral-200 dark:border-neutral-700">
+                                Total global de horas: {{ $totalHoras }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
-
-
-    </div>
-</div>
-

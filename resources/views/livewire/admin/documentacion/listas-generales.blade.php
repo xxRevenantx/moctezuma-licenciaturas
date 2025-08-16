@@ -214,5 +214,8 @@
 
 
 </div>
+
 <livewire:admin.licenciaturas.submodulo.matricula-editar>
+
+
 </div>

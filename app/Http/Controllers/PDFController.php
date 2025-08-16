@@ -150,6 +150,7 @@ class PDFController extends Controller
     // HORARIO ESCOLARIZADA
     public function horario_escolarizada(Request $request)
     {
+
         $licenciatura = $request->licenciatura_id;
         $modalidad = $request->modalidad_id;
         $filtrar_generacion = $request->filtrar_generacion;
