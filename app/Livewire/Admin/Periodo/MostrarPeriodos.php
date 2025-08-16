@@ -18,137 +18,99 @@ class MostrarPeriodos extends Component
     use WithFileUploads;
     use WithPagination;
 
+    // Si usas Tailwind para la paginación
+    protected string $paginationTheme = 'tailwind';
+
     public $search = '';
 
-    public $archivo;
+    public $filtrar_cuatrimestre = null;
+    public $filtrar_generacion   = null;
+    public $filtrar_mes          = null;
+    public $filtar_inicio_periodo = null; // YYYY-MM-DD
+    public $filtar_termino_periodo = null; // YYYY-MM-DD
 
+    public $perPage = 20;
 
-    public $filtrar_cuatrimestre;
-    public $filtrar_generacion;
-    public $filtrar_mes;
-    public $filtar_inicio_periodo;
-    public $filtar_termino_periodo;
+    // (Opcional) conserva filtros en la URL.
+    protected $queryString = [
+        'search'                => ['except' => ''],
+        'filtrar_cuatrimestre'  => ['except' => ''],
+        'filtrar_generacion'    => ['except' => ''],
+        'filtrar_mes'           => ['except' => ''],
+        'filtar_inicio_periodo' => ['except' => ''],
+        'filtar_termino_periodo'=> ['except' => ''],
+        'page'                  => ['except' => 1],
+    ];
 
-
-
-    public function getPeriodosProperty()
+    /**
+     * Query base reutilizable (listado y export).
+     */
+    private function buildQuery()
     {
-        $query = Periodo::with(['cuatrimestre', 'generacion', 'mes']);
+        $q = Periodo::query()->with(['cuatrimestre','generacion','mes']);
 
-        if ($this->filtrar_cuatrimestre) {
-            $query->where('cuatrimestre_id', $this->filtrar_cuatrimestre);
-        }
+        // Filtros
+        $q->when($this->filtrar_cuatrimestre, fn($qq, $v) => $qq->where('cuatrimestre_id', $v));
+        $q->when($this->filtrar_generacion,   fn($qq, $v) => $qq->where('generacion_id',   $v));
+        $q->when($this->filtrar_mes,          fn($qq, $v) => $qq->where('mes_id',          $v));
 
-        if ($this->filtrar_generacion) {
-            $query->where('generacion_id', $this->filtrar_generacion);
-        }
+        $q->when($this->filtar_inicio_periodo, fn($qq, $v) => $qq->whereDate('inicio_periodo',  $v));
+        $q->when($this->filtar_termino_periodo, fn($qq, $v) => $qq->whereDate('termino_periodo', $v));
 
-        if ($this->filtrar_mes) {
-            $query->where('mes_id', $this->filtrar_mes);
-        }
-
-        if ($this->filtar_inicio_periodo) {
-            $query->where('inicio_periodo', 'like', '%' . $this->filtar_inicio_periodo . '%');
-        }
-
-        if ($this->filtar_termino_periodo) {
-            $query->where('termino_periodo', 'like', '%' . $this->filtar_termino_periodo . '%');
-        }
-
-
-
-
-        if ($this->search) {
-            $query->where('ciclo_escolar', 'like', '%' . $this->search . '%')
-                ->orWhereHas('cuatrimestre', function ($query) {
-                    $query->where('cuatrimestre', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('generacion', function ($query) {
-                    $query->where('generacion', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('mes', function ($query) {
-                    $query->where('meses', 'like', '%' . $this->search . '%');
-                });
-        }
-
-        // Ensure that the 'status' column in the 'generacion' table is true
-        $query->whereHas('generacion', function ($query) {
-            $query->where('activa', "true");
+        // Búsqueda (AGRUPADA para que no se “coma” los filtros)
+        $q->when($this->search, function ($qq, $v) {
+            $qq->where(function ($sub) use ($v) {
+                $sub->where('ciclo_escolar', 'like', "%{$v}%")
+                    ->orWhereHas('cuatrimestre', fn($s) => $s->where('cuatrimestre', 'like', "%{$v}%"))
+                    ->orWhereHas('generacion',  fn($s) => $s->where('generacion',   'like', "%{$v}%"))
+                    ->orWhereHas('mes',         fn($s) => $s->where('meses',        'like', "%{$v}%"));
+            });
         });
 
-        return $query
-            ->orderBy('order', 'asc')
-            ->orderBy('cuatrimestre_id', 'asc')
-            ->paginate(20);
+        // Solo generaciones activas (si es booleano, usa true/1; si es string, deja "true")
+        $q->whereHas('generacion', fn($qq) => $qq->where('activa', true));
+
+        return $q->orderBy('order', 'asc')->orderBy('cuatrimestre_id', 'asc');
     }
 
-
-      // Este método se ejecuta cuando se cambia el valor del campo de búsqueda
-      public function updatedSearch()
-      {
-        //   $this->resetFilters();
-          $this->resetPage();
-      }
-
-      // Estos métodos se ejecutan cuando cambian los filtros
-        public function updatedFiltrarCuatrimestre()
-        {
-
-            $this->resetPage();
-        }
-        public function updatedFiltrarGeneracion()
-        {
-
-            $this->resetPage();
-        }
-        public function updatedFiltrarMes()
-        {
-
-            $this->resetPage();
-        }
-
-
-
-      // Este método reinicia todos los filtros
-      protected function resetFilters()
-      {
-            $this->filtrar_cuatrimestre = "";
-            $this->filtrar_generacion = "";
-            $this->filtrar_mes = "";
-
-      }
-
-      public function limpiarFiltros(){
-        $this->resetFilters();
-        $this->search = '';
-        $this->filtar_inicio_periodo = '';
-        $this->filtar_termino_periodo = '';
-        $this->resetPage();
-      }
-
-      // ORDENAR POR ID
-
-      public function ordenarId()
-      {
-        $this->resetPage();
-        $this->filtrar_cuatrimestre = null;
-        $this->filtrar_generacion = null;
-        $this->filtrar_mes = null;
-        $this->filtar_inicio_periodo = null;
-        $this->filtar_termino_periodo = null;
-      }
-
-
-      // Este método se ejecuta cuando se cambia el valor de un filtro
-      public function updating($property)
+    /**
+     * Computado para la vista.
+     */
+    public function getPeriodosProperty()
     {
-        if (in_array($property, ['filtrar_cuatrimestre', 'filtrar_generacion', 'filtrar_mes', 'search'])) {
-            $this->resetPage();
-        }
+        return $this->buildQuery()->paginate($this->perPage);
     }
 
+    // ---- Reset de página en cambios ----
+    public function updatedSearch()               { $this->resetPage(); }
+    public function updatedFiltrarCuatrimestre()  { $this->resetPage(); }
+    public function updatedFiltrarGeneracion()    { $this->resetPage(); }
+    public function updatedFiltrarMes()           { $this->resetPage(); }
+    public function updatedFiltarInicioPeriodo()  { $this->resetPage(); }
+    public function updatedFiltarTerminoPeriodo() { $this->resetPage(); }
 
+    // (Compat) si prefieres un genérico:
+    // public function updating($name, $value) { $this->resetPage(); }
 
+    // --------- Acciones ----------
+    public function limpiarFiltros()
+    {
+        $this->reset([
+            'search',
+            'filtrar_cuatrimestre',
+            'filtrar_generacion',
+            'filtrar_mes',
+            'filtar_inicio_periodo',
+            'filtar_termino_periodo',
+        ]);
+        $this->resetPage();
+    }
+
+    public function ordenarId()
+    {
+        // Si solo quieres “limpiar” para ver todo
+        $this->limpiarFiltros();
+    }
 
     public function eliminarPeriodo($id)
     {
@@ -158,59 +120,35 @@ class MostrarPeriodos extends Component
             $periodo->delete();
 
             $this->dispatch('swal', [
-            'title' => '¡Periodo eliminado correctamente!',
-            'icon' => 'success',
-            'position' => 'top-end',
+                'title'    => '¡Periodo eliminado correctamente!',
+                'icon'     => 'success',
+                'position' => 'top-end',
             ]);
+            // Tras eliminar, recargar página correcta si la actual quedó vacía
+            if ($this->periodos->isEmpty() && $this->page > 1) {
+                $this->previousPage();
+            }
         }
     }
 
     public function exportarPeriodos()
     {
-
-        $periodosFiltrados = Periodo::with(['cuatrimestre', 'generacion', 'mes'])
-            ->where(function ($query) {
-                if ($this->filtrar_cuatrimestre) {
-                    $query->where('cuatrimestre_id', $this->filtrar_cuatrimestre);
-                }
-
-                if ($this->filtrar_generacion) {
-                    $query->where('generacion_id', $this->filtrar_generacion);
-                }
-
-                if ($this->filtrar_mes) {
-                    $query->where('mes_id', $this->filtrar_mes);
-                }
-
-                if ($this->filtar_inicio_periodo) {
-                    $query->where('inicio_periodo', 'like', '%' . $this->filtar_inicio_periodo . '%');
-                }
-
-                if ($this->filtar_termino_periodo) {
-                    $query->where('termino_periodo', 'like', '%' . $this->filtar_termino_periodo . '%');
-                }
-            })
-            ->whereHas('generacion', function ($query) {
-                $query->where('activa', "true");
-            })
-            ->get();
-
-    return Excel::download(new PeriodoExport($periodosFiltrados), 'periodos_filtrados.xlsx');
+        $periodosFiltrados = $this->buildQuery()->get();
+        return Excel::download(new PeriodoExport($periodosFiltrados), 'periodos_filtrados.xlsx');
     }
-
 
     #[On('refreshPeriodos')]
     public function render()
     {
         $cuatrimestres = Cuatrimestre::all();
-        $generaciones = Generacion::where('activa', 'true')->get();
-        $meses = Mes::all();
+        $generaciones  = Generacion::where('activa', true)->get();
+        $meses         = Mes::all();
 
-        return view('livewire.admin.periodo.mostrar-periodos',[
-            'periodos' => $this->periodos,
+        return view('livewire.admin.periodo.mostrar-periodos', [
+            'periodos'      => $this->periodos,
             'cuatrimestres' => $cuatrimestres,
-            'generaciones' => $generaciones,
-            'meses' => $meses,
+            'generaciones'  => $generaciones,
+            'meses'         => $meses,
         ]);
     }
 }
