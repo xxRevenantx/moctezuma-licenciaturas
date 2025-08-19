@@ -1,151 +1,203 @@
-<div x-data="{ show: @entangle('open') }"
+<div
+    x-data="{ show: @entangle('open'), searchOpen: false }"
+    x-cloak
+    x-trap.noscroll="show"
+    x-show="show"
+    @keydown.escape.window="show=false; $wire.cerrarModal()"
+    class="fixed inset-0 z-50 flex items-center justify-center"
+    aria-live="polite"
+>
+    <!-- Overlay -->
+    <div
+        class="absolute inset-0 bg-neutral-900/70 backdrop-blur-sm"
         x-show="show"
-        x-cloak
-        x-transition:enter="transition ease-out duration-100"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-100"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        @keydown.escape.window="show = false; $wire.cerrarModal()"
-        class="fixed inset-0 bg-gray-50 dark:bg-neutral-800 z-50 flex items-center justify-center ">
+        x-transition.opacity
+        @click.self="show=false; $wire.cerrarModal()"
+    ></div>
 
+    <!-- Modal -->
+    <div
+        class="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-4 sm:mx-6 bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden"
+        role="dialog" aria-modal="true" aria-labelledby="titulo-modal-constancia"
+        x-show="show"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+        x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+        wire:ignore.self
+    >
+        <!-- Top accent -->
+        <div class="h-1 w-full bg-gradient-to-r from-blue-600 via-sky-400 to-indigo-600"></div>
 
-       {{-- <div @click.away="show = false;  $wire.cerrarModal()" class="relative"> --}}
-       <div class="relative">
-           <button @click="show = false" class="absolute text-2xl top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-500">
-               &times;
-           </button>
-           <form wire:submit.prevent="actualizarConstancia">
-
-                    <flux:field>
-                        <div class="flex flex-col items-center justify-center gap-5 mb-4 ">
-
-                            <div class="w-120 border-2 border-gray-50  dark:bg-neutral-800 shadow-md rounded-3xl p-7 space-y-5">
-                                <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white text-center">Editar Constancia</h2>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                                <form wire:submit.prevent="guardarConstancia"  class="mb-4">
-                    <div class="grid  md:grid-cols-1 gap-4 " >
-
-                        <flux:input readonly variant="filled"  label="No. de control" wire:model.live="no_constancia"  placeholder="No." />
-
-
-                        <flux:input
-                        label="Buscar alumno"
-                        wire:model.live.debounce.500ms="query"
-                        name="alumno_id"
-                        id="query"
-                        type="text"
-                        placeholder="Buscar alumno por nombre, matrícula o CURP:"
-                        @focus="open = true"
-                        @input="open = true"
-                        @blur="setTimeout(() => open = false, 150)"
-                        wire:keydown.arrow-down="selectIndexDown"
-                        wire:keydown.arrow-up="selectIndexUp"
-                        wire:keydown.enter="selectAlumno({{ $selectedIndex }})"
-                        autocomplete="off"
-                    />
-
-                        <flux:select wire:model="tipo_constancia" label="Tipo de documento" placeholder="Selecciona un tipo de documento" class="w-full">
-                                <flux:select.option value="1">Constancia de Estudios</flux:select.option>
-                                <flux:select.option value="2">Constancia de Relaciones Exteriores</flux:select.option>
-
-                            </flux:select>
-
-                        <flux:input
-                            label="Fecha de expedición"
-                            type="date"
-                            wire:model="fecha_expedicion"
-                            placeholder="Selecciona una fecha"
-                            class="w-full"
-                        />
-
-                        </div>
-                </form>
-
-
-            @if (!empty($alumnos))
-                <ul
-                    x-show="open"
-                    x-transition
-                    x-cloak
-                    class="absolute w-full bg-white border mt-1 rounded shadow z-10 max-h-60 overflow-auto dark:bg-gray-800 dark:text-white"
-                    style="display: none"
-                >
-                    @forelse ($alumnos as $index => $alumno)
-                        <li
-                            class="p-2 cursor-pointer {{ $selectedIndex === $index ? 'bg-blue-200' : '' }}"
-                            wire:click="selectAlumno({{ $index }})"
-                            @mouseenter="open = true"
-                        >
-                            <p class="font-bold text-indigo-600">
-                                {{ $alumno['apellido_paterno'] ?? '' }} {{ $alumno['apellido_materno'] ?? '' }} {{ $alumno['nombre'] ?? '' }}
-                            </p>
-                            <p class="text-gray-700">
-                                Matrícula: {{ $alumno['matricula'] ?? '' }} | CURP: {{ $alumno['CURP'] ?? '' }}
-                            </p>
-                        </li>
-                    @empty
-                        <li class="p-2">No se encontraron alumnos.</li>
-                    @endforelse
-                </ul>
-            @endif
-
-            @if ($selectedAlumno)
-                <div class="mt-4 p-4 border rounded bg-gray-50 dark:bg-gray-800 dark:text-white">
-                    <p class="font-bold">
-                        {{ $selectedAlumno['apellido_paterno'] ?? '' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} {{ $selectedAlumno['nombre'] ?? '' }}
-                    </p>
-                    <p>Matrícula: {{ $selectedAlumno['matricula'] ?? '' }}</p>
-                    <p>CURP: {{ $selectedAlumno['CURP'] ?? '' }}</p>
-                    <p>Folio: {{ $selectedAlumno["folio"] ?? '----' }}</p>
-                    <p>Licenciatura: {{ $selectedAlumno['licenciatura']['nombre'] ?? '----' }}</p>
-                </div>
-            @else
-               <div class="mt-4 p-4 border rounded bg-gray-50 dark:bg-gray-800 dark:text-white">
-                    <p class="font-bold">
-                        {{ $alumno['apellido_paterno'] ?? '' }} {{ $alumno['apellido_materno'] ?? '' }} {{ $alumno['nombre'] ?? '' }}
-                    </p>
-                    <p>Matrícula: {{ $alumno['matricula'] ?? '' }}</p>
-                    <p>CURP: {{ $alumno['CURP'] ?? '' }}</p>
-                    <p>Folio: {{ $alumno["folio"] ?? '----' }}</p>
-                    <p>Licenciatura: {{ $alumno['licenciatura']['nombre'] ?? '----' }}</p>
-                </div>
-
-            @endif
-
-
-                    </div>
-
-
-
-                    <div class="mt-6 flex justify-end gap-2">
-                                <div class="flex items-center">
-                                    <flux:button variant="primary" type="submit" class="w-full cursor-pointer">{{ __('Actualizar') }}</flux:button>
-                                </div>
-                                <div class="flex items-center">
-                                <flux:button  @click="show = false; $wire.cerrarModal()" class="w-full cursor-pointer">{{ __('Cancelar') }}</flux:button>
-                                </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                    </flux:field>
-
-                    </form>
+        <!-- Header -->
+        <div class="px-5 sm:px-6 pt-4 pb-3 flex items-start justify-between gap-3">
+            <div>
+                <h2 id="titulo-modal-constancia" class="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white">
+                    Editar constancia
+                </h2>
+                <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                    Actualiza los datos y guarda los cambios.
+                </p>
             </div>
 
+            <button
+                type="button"
+                class="inline-flex items-center justify-center rounded-xl p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:text-white dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                @click="show=false; $wire.cerrarModal()"
+                aria-label="Cerrar"
+            >
+                &times;
+            </button>
+        </div>
 
+        <!-- Body -->
+        <form wire:submit.prevent="actualizarConstancia" class="px-5 sm:px-6 pb-5">
+            <flux:field>
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+                        <div class="p-4 sm:p-6 space-y-5">
 
+                            <!-- Campos -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <flux:input
+                                    readonly
+                                    variant="filled"
+                                    label="No. de control"
+                                    wire:model.live="no_constancia"
+                                    placeholder="No."
+                                />
 
+                                <!-- Autocomplete Alumno -->
+                                <div class="relative">
+                                    <flux:input
+                                        label="Buscar alumno"
+                                        wire:model.live.debounce.500ms="query"
+                                        name="alumno_id"
+                                        id="query"
+                                        type="text"
+                                        placeholder="Nombre, matrícula o CURP"
+                                        autocomplete="off"
+                                        @focus="searchOpen = true"
+                                        @input="searchOpen = true"
+                                        @blur="setTimeout(() => searchOpen = false, 150)"
+                                        wire:keydown.arrow-down="selectIndexDown"
+                                        wire:keydown.arrow-up="selectIndexUp"
+                                        wire:keydown.enter="selectAlumno({{ $selectedIndex }})"
+                                    />
 
+                                    @if (!empty($alumnos))
+                                        <ul
+                                            x-show="searchOpen"
+                                            x-transition
+                                            x-cloak
+                                            class="absolute z-20 mt-1 w-full max-h-60 overflow-auto rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-lg"
+                                            style="display: none"
+                                            role="listbox"
+                                        >
+                                            @forelse ($alumnos as $index => $alumno)
+                                                <li
+                                                    class="p-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 {{ $selectedIndex === $index ? 'bg-blue-50 dark:bg-neutral-800' : '' }}"
+                                                    wire:click="selectAlumno({{ $index }})"
+                                                    @mouseenter="searchOpen = true"
+                                                    role="option"
+                                                >
+                                                    <p class="font-semibold text-blue-700 dark:text-blue-300 truncate">
+                                                        {{ $alumno['apellido_paterno'] ?? '' }} {{ $alumno['apellido_materno'] ?? '' }} {{ $alumno['nombre'] ?? '' }}
+                                                    </p>
+                                                    <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                                                        Matrícula: {{ $alumno['matricula'] ?? '' }} · CURP: {{ $alumno['CURP'] ?? '' }}
+                                                    </p>
+                                                </li>
+                                            @empty
+                                                <li class="p-2 text-sm text-neutral-600 dark:text-neutral-300">No se encontraron alumnos.</li>
+                                            @endforelse
+                                        </ul>
+                                    @endif
+                                </div>
 
+                                <flux:select wire:model="tipo_constancia" label="Tipo de documento" placeholder="Selecciona un tipo de documento" class="w-full">
+                                    <flux:select.option value="1">Constancia de Estudios</flux:select.option>
+                                    <flux:select.option value="2">Constancia de Relaciones Exteriores</flux:select.option>
+                                </flux:select>
 
+                                <flux:input
+                                    label="Fecha de expedición"
+                                    type="date"
+                                    wire:model="fecha_expedicion"
+                                    placeholder="Selecciona una fecha"
+                                    class="w-full"
+                                />
+                            </div>
 
-       </div>
-   </div>
+                            <!-- Tarjeta alumno -->
+                            <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 p-4">
+                                @if ($selectedAlumno)
+                                    <div class="space-y-1 text-sm">
+                                        <p class="font-semibold text-neutral-900 dark:text-white">
+                                            {{ $selectedAlumno['apellido_paterno'] ?? '' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} {{ $selectedAlumno['nombre'] ?? '' }}
+                                        </p>
+                                        <p class="text-neutral-700 dark:text-neutral-300">Matrícula: <span class="font-mono">{{ $selectedAlumno['matricula'] ?? '' }}</span></p>
+                                        <p class="text-neutral-700 dark:text-neutral-300">CURP: <span class="font-mono">{{ $selectedAlumno['CURP'] ?? '' }}</span></p>
+                                        <p class="text-neutral-700 dark:text-neutral-300">Folio: {{ $selectedAlumno['folio'] ?? '----' }}</p>
+                                        <p class="text-neutral-700 dark:text-neutral-300">Licenciatura: {{ $selectedAlumno['licenciatura']['nombre'] ?? '----' }}</p>
+                                    </div>
+                                @else
+                                    <div class="space-y-1 text-sm">
+                                        <p class="font-semibold text-neutral-900 dark:text-white">
+                                            {{ $alumno['apellido_paterno'] ?? '' }} {{ $alumno['apellido_materno'] ?? '' }} {{ $alumno['nombre'] ?? '' }}
+                                        </p>
+                                        <p class="text-neutral-700 dark:text-neutral-300">Matrícula: <span class="font-mono">{{ $alumno['matricula'] ?? '' }}</span></p>
+                                        <p class="text-neutral-700 dark:text-neutral-300">CURP: <span class="font-mono">{{ $alumno['CURP'] ?? '' }}</span></p>
+                                        <p class="text-neutral-700 dark:text-neutral-300">Folio: {{ $alumno['folio'] ?? '----' }}</p>
+                                        <p class="text-neutral-700 dark:text-neutral-300">Licenciatura: {{ $alumno['licenciatura']['nombre'] ?? '----' }}</p>
+                                    </div>
+                                @endif
+                            </div>
 
+                            <!-- Acciones -->
+                            <div class="flex flex-col sm:flex-row justify-end gap-2 pt-1">
+                                <flux:button
+                                    variant="primary"
+                                    type="submit"
+                                    class="w-full sm:w-auto cursor-pointer"
+                                    wire:loading.attr="disabled"
+                                    wire:target="actualizarConstancia"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M5 12h14M12 5v14"/></svg>
+                                        {{ __('Actualizar') }}
+                                    </div>
+                                </flux:button>
+
+                                <flux:button
+                                    type="button"
+                                    class="w-full sm:w-auto cursor-pointer"
+                                    @click="show=false; $wire.cerrarModal()"
+                                >
+                                    {{ __('Cancelar') }}
+                                </flux:button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </flux:field>
+
+            <!-- Loader interno al guardar -->
+            <div
+                wire:loading.flex
+                wire:target="actualizarConstancia"
+                class="absolute inset-0 z-20 items-center justify-center bg-white/70 dark:bg-neutral-900/70 backdrop-blur rounded-2xl"
+            >
+                <div class="flex items-center gap-3 rounded-xl bg-white dark:bg-neutral-900 px-4 py-3 ring-1 ring-neutral-200 dark:ring-neutral-800 shadow">
+                    <svg class="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                    <span class="text-sm text-neutral-800 dark:text-neutral-200">Guardando cambios…</span>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>

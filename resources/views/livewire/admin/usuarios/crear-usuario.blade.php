@@ -115,6 +115,8 @@
                 @error('rol')<p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
               </div>
 
+               <!-- Divider -->
+            <div class="mt-6 border-t border-gray-200 dark:border-neutral-800"></div>
               <!-- Acciones -->
               <div class="mt-6 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
                 <button
@@ -128,7 +130,7 @@
                 <flux:button
                   variant="primary"
                   type="submit"
-                  class="min-w-[150px] cursor-pointer"
+                  class="cursor-pointer"
                   wire:loading.attr="disabled"
                   wire:target="guardarUsuario"
                 >
@@ -139,6 +141,7 @@
                   </span>
                 </flux:button>
               </div>
+
             </flux:field>
           </div>
         </div>

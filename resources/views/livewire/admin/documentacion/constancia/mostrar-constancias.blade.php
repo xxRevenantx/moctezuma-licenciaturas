@@ -1,119 +1,269 @@
-<div>
+<div
+    x-data ="{
+        destroyConstancia(id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: 'La constancia se eliminará de forma permanente',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#2563EB',
+                cancelButtonColor: '#EF4444',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Sí, eliminar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('eliminarConstancia', id);
+                }
+            })
+        }
+    }"
+    class="space-y-5"
+>
+    <!-- Encabezado -->
+    <div class="flex flex-col gap-1">
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Constancias</h1>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Consulta, descarga, edita o elimina constancias emitidas.</p>
+    </div>
 
-    <div x-data ="{
-        destroyConstancia(id, nombre) {
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: `La constancia se eliminará de forma permanente`,
-                    icon: 'info',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    cancelButtonText: 'cancelar',
-                    confirmButtonText: 'Sí, eliminar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        @this.call('eliminarConstancia', id);
+    <!-- Card contenedor -->
+    <div class="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow">
+        <div class="h-1 w-full bg-gradient-to-r from-blue-600 via-sky-400 to-indigo-600"></div>
 
-                    }
-                })
-            }
-    }">
+        <!-- Toolbar -->
+        <div class="p-4 sm:p-5 lg:p-6">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="w-full sm:max-w-md">
+                    <label for="buscar-const" class="sr-only">Buscar constancia</label>
+                    <flux:input
+                        id="buscar-const"
+                        type="text"
+                        wire:model.live="search"
+                        placeholder="Buscar por folio, matrícula o alumno…"
+                        icon="magnifying-glass"
+                        class="w-full"
+                    />
+                </div>
 
-
-        <div class="overflow-x-auto">
-            <h3 class="mt-5">Buscar Constancia:</h3>
-            <flux:input type="text" wire:model.live="search" placeholder="Buscar constancia..." icon="magnifying-glass"  class="p-2 mb-4  w-full" />
-
-            {{-- <flux:input wire:model.live="search"  placeholder="Search..." icon="magnifying-glass" kbd="⌘K" /> --}}
-
-
-            <div class="flex space-x-4 mb-4 justify-between">
-
-
-            </div>
-            <table class="min-w-full border-collapse border border-gray-200 table-striped">
-            <thead>
-                <tr>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Folio</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Matrícula</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre del alumno</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Tipo de constancia</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Fecha de expedición</th>
-                <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if($constancias->isEmpty())
-                <tr>
-                    <td colspan="7" class="border px-4 py-2 text-center">No hay constancias disponibles.</td>
-                </tr>
-                @else
-                @foreach($constancias as $key => $constancia)
-                    <tr>
-                    <td class="border px-4 py-2 text-center">{{ $key+1 }}</td>
-                    <td class="border px-4 py-2 text-center">
-                        @if ($constancia->no_constancia < 9)
-                            0{{ $constancia->no_constancia }}
-                        @else
-                          {{ $constancia->no_constancia }}
-
-                        @endif
-                    </td>
-                    <td class="border px-4 py-2 text-center">{{ $constancia->alumno->matricula }}</td>
-                    <td class="border px-4 py-2 text-center">{{ $constancia->alumno->nombre }} {{ $constancia->alumno->apellido_paterno }} {{ $constancia->alumno->apellido_materno }}</td>
-                    <td class="border px-4 py-2 text-center">
-                        @if ($constancia->tipo_constancia == 1)
-                            Constancia de Estudios
-                        @else
-                           Constancia de Relaciones Exteriores
-                        @endif
-                    </td>
-                    <td class="border px-4 py-2 text-center">{{ \Carbon\Carbon::parse($constancia->fecha_expedicion)->format('d/m/Y') }}</td>
-
-
-                    <td class="border px-4 py-2 text-center">
-                        <div class="flex gap-x-2">
-
-                         <form action="{{ route('admin.pdf.documentacion.constancia') }}" method="GET" target="_blank" class="mb-4">
-                            <input type="hidden" name="constancia_id" value="{{ $constancia->id }}">
-                            <flux:button variant="primary" type="submit"
-                                   class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded cursor-pointer">
-                            <flux:icon.download />
-                             </flux:button>
-                        </form>
-
-
-                        <flux:button variant="primary"
-                            @click="Livewire.dispatch('abrirConstancia', { id: {{ $constancia->id }} })"
-                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">
-                            <flux:icon.pencil />
-                        </flux:button>
-
-                        <flux:button variant="danger"
-
-                            @click="destroyConstancia({{ $constancia->id }}, '{{ $constancia->nombre }}')"
-                            class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
-                            <flux:icon.trash  />
-                        </flux:button>
+                <!-- Resumen / contador -->
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:flex items-center gap-2 rounded-lg border border-gray-200 dark:border-neutral-800 px-3 py-1.5 bg-gray-50 dark:bg-neutral-800/60">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            Resultados:
+                            <strong>{{ method_exists($constancias, 'total') ? $constancias->total() : $constancias->count() }}</strong>
+                        </span>
                     </div>
-
-                    </td>
-                    </tr>
-                @endforeach
-                @endif
-            </tbody>
-            </table>
+                </div>
+            </div>
         </div>
-        <div class="mt-4">
-            {{ $constancias->links() }}
+
+        <div class="px-4 pb-4 sm:px-5 sm:pb-6 lg:px-6">
+            <div class="relative">
+                <!-- Loader -->
+                <div
+                    wire:loading.delay
+                    wire:target="search, eliminarConstancia"
+                    class="absolute inset-0 z-10 grid place-items-center rounded-xl bg-white/70 dark:bg-neutral-900/70 backdrop-blur"
+                    aria-live="polite"
+                    aria-busy="true"
+                >
+                    <div class="flex items-center gap-3 rounded-xl bg-white dark:bg-neutral-900 px-4 py-3 ring-1 ring-gray-200 dark:ring-neutral-800 shadow">
+                        <svg class="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        </svg>
+                        <span class="text-sm text-gray-700 dark:text-gray-200">Cargando…</span>
+                    </div>
+                </div>
+
+                <!-- Tabla (desktop) -->
+                <div class="hidden md:block overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+                    <div class="overflow-x-auto max-h-[65vh]">
+                        <table class="min-w-full text-sm">
+                            <thead class="sticky top-0 z-10 bg-gray-50/95 dark:bg-neutral-900/95 backdrop-blur text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-neutral-800">
+                                <tr>
+                                    <th class="px-4 py-3 text-center font-semibold">ID</th>
+                                    <th class="px-4 py-3 text-center font-semibold">Folio</th>
+                                    <th class="px-4 py-3 text-center font-semibold">Matrícula</th>
+                                    <th class="px-4 py-3 text-left font-semibold">Nombre del alumno</th>
+                                    <th class="px-4 py-3 text-center font-semibold">Tipo de constancia</th>
+                                    <th class="px-4 py-3 text-center font-semibold whitespace-nowrap">Fecha de expedición</th>
+                                    <th class="px-4 py-3 text-center font-semibold">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-neutral-800">
+                                @if($constancias->isEmpty())
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
+                                            <div class="mx-auto w-full max-w-md">
+                                                <div class="rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 p-6">
+                                                    <div class="mb-1 text-base font-semibold">No hay constancias disponibles</div>
+                                                    <p class="text-sm">Ajusta tu búsqueda o revisa los filtros.</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @else
+                                    @foreach($constancias as $key => $constancia)
+                                        <tr class="transition-colors hover:bg-gray-50/70 dark:hover:bg-neutral-800/50">
+                                            <td class="px-4 py-3 text-center text-gray-800 dark:text-gray-200">{{ $key+1 }}</td>
+                                            <td class="px-4 py-3 text-center font-mono text-gray-900 dark:text-white whitespace-nowrap">
+                                                {{ str_pad($constancia->no_constancia, 2, '0', STR_PAD_LEFT) }}
+                                            </td>
+                                            <td class="px-4 py-3 text-center font-mono text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                                                {{ $constancia->alumno->matricula }}
+                                            </td>
+                                            <td class="px-4 py-3 text-gray-900 dark:text-white">
+                                                <div class="font-medium truncate">
+                                                    {{ $constancia->alumno->nombre }} {{ $constancia->alumno->apellido_paterno }} {{ $constancia->alumno->apellido_materno }}
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3 text-center">
+                                                @if ($constancia->tipo_constancia == 1)
+                                                    <span class="inline-flex items-center gap-1 rounded-full border border-sky-300/60 bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 dark:border-sky-700/50">
+                                                        <span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>
+                                                        Estudios
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700/50">
+                                                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                                        Rel. Exteriores
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-3 text-center text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                                                {{ \Carbon\Carbon::parse($constancia->fecha_expedicion)->format('d/m/Y') }}
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <form action="{{ route('admin.pdf.documentacion.constancia') }}" method="GET" target="_blank">
+                                                        <input type="hidden" name="constancia_id" value="{{ $constancia->id }}">
+                                                        <flux:button
+                                                            variant="primary"
+                                                            type="submit"
+                                                            class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                            title="Descargar PDF"
+                                                            aria-label="Descargar PDF"
+                                                        >
+                                                            <flux:icon.download />
+                                                        </flux:button>
+                                                    </form>
+
+                                                    <flux:button
+                                                        variant="primary"
+                                                        class="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white"
+                                                        @click="Livewire.dispatch('abrirConstancia', { id: {{ $constancia->id }} })"
+                                                        title="Editar"
+                                                        aria-label="Editar"
+                                                    >
+                                                        <flux:icon.pencil />
+                                                    </flux:button>
+
+                                                    <flux:button
+                                                        variant="danger"
+                                                        class="cursor-pointer bg-rose-600 hover:bg-rose-700 text-white"
+                                                        @click="destroyConstancia({{ $constancia->id }})"
+                                                        title="Eliminar"
+                                                        aria-label="Eliminar"
+                                                    >
+                                                        <flux:icon.trash />
+                                                    </flux:button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tarjetas (mobile) -->
+                <div class="md:hidden space-y-3">
+                    @if($constancias->isEmpty())
+                        <div class="rounded-xl border border-dashed border-gray-300 dark:border-neutral-700 p-6 text-center">
+                            <div class="mb-1 font-semibold text-gray-700 dark:text-gray-200">No hay constancias</div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Ajusta tu búsqueda.</p>
+                        </div>
+                    @else
+                        @foreach($constancias as $key => $constancia)
+                            <div class="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                            <span>#{{ $key+1 }}</span>
+                                            <span class="font-mono">Folio: {{ str_pad($constancia->no_constancia, 2, '0', STR_PAD_LEFT) }}</span>
+                                            <span class="font-mono">Mat: {{ $constancia->alumno->matricula }}</span>
+                                        </div>
+                                        <div class="mt-1 font-semibold text-gray-900 dark:text-white truncate">
+                                            {{ $constancia->alumno->nombre }} {{ $constancia->alumno->apellido_paterno }} {{ $constancia->alumno->apellido_materno }}
+                                        </div>
+                                        <div class="mt-2">
+                                            @if ($constancia->tipo_constancia == 1)
+                                                <span class="inline-flex items-center gap-1 rounded-full border border-sky-300/60 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 dark:border-sky-700/50">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>
+                                                    Estudios
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700/50">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                                    Rel. Exteriores
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                            Fecha: {{ \Carbon\Carbon::parse($constancia->fecha_expedicion)->format('d/m/Y') }}
+                                        </div>
+                                    </div>
+
+                                    <div class="shrink-0 flex flex-col gap-2">
+                                        <form action="{{ route('admin.pdf.documentacion.constancia') }}" method="GET" target="_blank">
+                                            <input type="hidden" name="constancia_id" value="{{ $constancia->id }}">
+                                            <flux:button
+                                                variant="primary"
+                                                type="submit"
+                                                class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                title="Descargar PDF"
+                                                aria-label="Descargar PDF"
+                                            >
+                                                <flux:icon.download />
+                                            </flux:button>
+                                        </form>
+
+                                        <flux:button
+                                            variant="primary"
+                                            class="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white"
+                                            @click="Livewire.dispatch('abrirConstancia', { id: {{ $constancia->id }} })"
+                                            title="Editar"
+                                            aria-label="Editar"
+                                        >
+                                            <flux:icon.pencil />
+                                        </flux:button>
+
+                                        <flux:button
+                                            variant="danger"
+                                            class="cursor-pointer bg-rose-600 hover:bg-rose-700 text-white"
+                                            @click="destroyConstancia({{ $constancia->id }})"
+                                            title="Eliminar"
+                                            aria-label="Eliminar"
+                                        >
+                                            <flux:icon.trash />
+                                        </flux:button>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+
+            <!-- Paginación -->
+            <div class="mt-5">
+                {{ $constancias->links() }}
+            </div>
         </div>
     </div>
 
-
-    {{-- MODAL PARA EDITAR --}}
-    <livewire:admin.documentacion.constancia.editar-constancia  />
-
-
+    <!-- Modal editar -->
+    <livewire:admin.documentacion.constancia.editar-constancia />
 </div>
