@@ -248,9 +248,18 @@
                                         </td>
                                         <td class="border px-4 py-2 text-center">
                                             <flux:button variant="primary" @click="Livewire.dispatch('abrirAsignacion', { id: {{ $asignacion->id }} })"
-                                                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">Editar</flux:button>
+                                                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded cursor-pointer">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                              d="M16.862 4.487l1.688-1.688a1.875 1.875 0 112.652 2.652L6.75 19.9 3 21l1.1-3.75L16.862 4.487Z"/>
+                  </svg></flux:button>
                                             <flux:button variant="danger" @click="destroyAsignacion({{ $asignacion->id }})"
-                                                class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">Eliminar</flux:button>
+                                                class="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-6 0a1 1 0 001 1h6a1 1 0 001-1m-8 0V4a2 2 0 012-2h2a2 2 0 012 2v0"/>
+                    </svg>
+                                            </flux:button>
                                         </td>
                                     </tr>
                                 @endforeach

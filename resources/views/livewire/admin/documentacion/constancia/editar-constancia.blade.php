@@ -3,29 +3,39 @@
     x-cloak
     x-trap.noscroll="show"
     x-show="show"
+    x-effect="document.body.classList.toggle('overflow-hidden', show)"
     @keydown.escape.window="show=false; $wire.cerrarModal()"
     class="fixed inset-0 z-50 flex items-center justify-center"
     aria-live="polite"
 >
-    <!-- Overlay -->
+    <!-- Overlay (modal-pro) -->
     <div
-        class="absolute inset-0 bg-neutral-900/70 backdrop-blur-sm"
-        x-show="show"
-        x-transition.opacity
-        @click.self="show=false; $wire.cerrarModal()"
-    ></div>
-
-    <!-- Modal -->
-    <div
-        class="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-4 sm:mx-6 bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden"
-        role="dialog" aria-modal="true" aria-labelledby="titulo-modal-constancia"
+        class="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm"
         x-show="show"
         x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @click.self="show=false; $wire.cerrarModal()"
+        aria-hidden="true"
+    ></div>
+
+    <!-- Modal (modal-pro) -->
+    <div
+        class="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-4 sm:mx-6 bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-constancia"
+        x-show="show"
+        x-transition:enter="transition ease-out duration-250"
         x-transition:enter-start="opacity-0 scale-95 translate-y-2"
         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
         x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+        tabindex="-1"
         wire:ignore.self
     >
         <!-- Top accent -->
@@ -33,7 +43,7 @@
 
         <!-- Header -->
         <div class="px-5 sm:px-6 pt-4 pb-3 flex items-start justify-between gap-3">
-            <div>
+            <div class="min-w-0">
                 <h2 id="titulo-modal-constancia" class="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white">
                     Editar constancia
                 </h2>
@@ -48,7 +58,9 @@
                 @click="show=false; $wire.cerrarModal()"
                 aria-label="Cerrar"
             >
-                &times;
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 11-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clip-rule="evenodd"/>
+                </svg>
             </button>
         </div>
 
@@ -58,7 +70,6 @@
                 <div class="grid grid-cols-1 gap-4">
                     <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
                         <div class="p-4 sm:p-6 space-y-5">
-
                             <!-- Campos -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <flux:input
@@ -90,9 +101,14 @@
                                     @if (!empty($alumnos))
                                         <ul
                                             x-show="searchOpen"
-                                            x-transition
+                                            x-transition:enter="transition ease-out duration-150"
+                                            x-transition:enter-start="opacity-0 scale-95"
+                                            x-transition:enter-end="opacity-100 scale-100"
+                                            x-transition:leave="transition ease-in duration-100"
+                                            x-transition:leave-start="opacity-100 scale-100"
+                                            x-transition:leave-end="opacity-0 scale-95"
                                             x-cloak
-                                            class="absolute z-20 mt-1 w-full max-h-60 overflow-auto rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-lg"
+                                            class="absolute z-20 mt-1 w-full max-h-60 overflow-auto rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl"
                                             style="display: none"
                                             role="listbox"
                                         >
@@ -166,7 +182,7 @@
                                     wire:target="actualizarConstancia"
                                 >
                                     <div class="flex items-center gap-2">
-                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M5 12h14M12 5v14"/></svg>
+
                                         {{ __('Actualizar') }}
                                     </div>
                                 </flux:button>
@@ -184,7 +200,7 @@
                 </div>
             </flux:field>
 
-            <!-- Loader interno al guardar -->
+            <!-- Loader interno -->
             <div
                 wire:loading.flex
                 wire:target="actualizarConstancia"

@@ -25,8 +25,9 @@
         <p class="text-sm text-gray-600 dark:text-gray-400">Consulta, descarga, edita o elimina constancias emitidas.</p>
     </div>
 
-    <!-- Card contenedor -->
+    <!-- Card contenedor (listado-pro) -->
     <div class="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow">
+        <!-- Top accent -->
         <div class="h-1 w-full bg-gradient-to-r from-blue-600 via-sky-400 to-indigo-600"></div>
 
         <!-- Toolbar -->
@@ -141,9 +142,10 @@
                                                         <flux:button
                                                             variant="primary"
                                                             type="submit"
-                                                            class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                            class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white focus-visible:ring-2 focus-visible:ring-indigo-500"
                                                             title="Descargar PDF"
                                                             aria-label="Descargar PDF"
+                                                            wire:loading.attr="disabled"
                                                         >
                                                             <flux:icon.download />
                                                         </flux:button>
@@ -151,22 +153,28 @@
 
                                                     <flux:button
                                                         variant="primary"
-                                                        class="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white"
+                                                        class="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white focus-visible:ring-2 focus-visible:ring-amber-500"
                                                         @click="Livewire.dispatch('abrirConstancia', { id: {{ $constancia->id }} })"
                                                         title="Editar"
                                                         aria-label="Editar"
                                                     >
-                                                        <flux:icon.pencil />
+                                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M16.862 4.487l1.688-1.688a1.875 1.875 0 112.652 2.652L6.75 19.9 3 21l1.1-3.75L16.862 4.487Z"/>
+                                            </svg>
                                                     </flux:button>
 
                                                     <flux:button
                                                         variant="danger"
-                                                        class="cursor-pointer bg-rose-600 hover:bg-rose-700 text-white"
+                                                        class="cursor-pointer bg-rose-600 hover:bg-rose-700 text-white focus-visible:ring-2 focus-visible:ring-rose-500"
                                                         @click="destroyConstancia({{ $constancia->id }})"
                                                         title="Eliminar"
                                                         aria-label="Eliminar"
                                                     >
-                                                        <flux:icon.trash />
+                                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-6 0a1 1 0 001 1h6a1 1 0 001-1m-8 0V4a2 2 0 012-2h2a2 2 0 012 2v0"/>
+                                            </svg>
                                                     </flux:button>
                                                 </div>
                                             </td>
@@ -222,7 +230,7 @@
                                             <flux:button
                                                 variant="primary"
                                                 type="submit"
-                                                class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white focus-visible:ring-2 focus-visible:ring-indigo-500"
                                                 title="Descargar PDF"
                                                 aria-label="Descargar PDF"
                                             >
@@ -232,22 +240,29 @@
 
                                         <flux:button
                                             variant="primary"
-                                            class="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white"
+                                            class="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white focus-visible:ring-2 focus-visible:ring-amber-500"
                                             @click="Livewire.dispatch('abrirConstancia', { id: {{ $constancia->id }} })"
                                             title="Editar"
                                             aria-label="Editar"
                                         >
-                                            <flux:icon.pencil />
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M16.862 4.487l1.688-1.688a1.875 1.875 0 112.652 2.652L6.75 19.9 3 21l1.1-3.75L16.862 4.487Z"/>
+                                            </svg>
+
                                         </flux:button>
 
                                         <flux:button
                                             variant="danger"
-                                            class="cursor-pointer bg-rose-600 hover:bg-rose-700 text-white"
+                                            class="cursor-pointer bg-rose-600 hover:bg-rose-700 text-white focus-visible:ring-2 focus-visible:ring-rose-500"
                                             @click="destroyConstancia({{ $constancia->id }})"
                                             title="Eliminar"
                                             aria-label="Eliminar"
                                         >
-                                            <flux:icon.trash />
+                                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-6 0a1 1 0 001 1h6a1 1 0 001-1m-8 0V4a2 2 0 012-2h2a2 2 0 012 2v0"/>
+                                            </svg>
                                         </flux:button>
                                     </div>
                                 </div>

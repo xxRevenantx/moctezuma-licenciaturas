@@ -173,7 +173,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                               d="M16.862 4.487l1.688-1.688a1.875 1.875 0 112.652 2.652L6.75 19.9 3 21l1.1-3.75L16.862 4.487Z"/>
                                                     </svg>
-                                                    <span>Editar</span>
+
                                                 </div>
                                             </flux:button>
 
@@ -187,7 +187,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-6 0a1 1 0 001 1h6a1 1 0 001-1m-8 0V4a2 2 0 012-2h2a2 2 0 012 2v0"/>
                                                     </svg>
-                                                    <span>Eliminar</span>
+
                                                 </div>
                                             </flux:button>
                                         </div>
@@ -250,7 +250,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                       d="M16.862 4.487l1.688-1.688a1.875 1.875 0 112.652 2.652L6.75 19.9 3 21l1.1-3.75L16.862 4.487Z"/>
                                             </svg>
-                                            <span>Editar</span>
+
                                         </div>
                                     </flux:button>
 
@@ -264,7 +264,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-6 0a1 1 0 001 1h6a1 1 0 001-1m-8 0V4a2 2 0 012-2h2a2 2 0 012 2v0"/>
                                             </svg>
-                                            <span>Eliminar</span>
+
                                         </div>
                                     </flux:button>
                                 </div>
