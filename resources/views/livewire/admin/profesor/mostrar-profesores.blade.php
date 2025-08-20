@@ -31,7 +31,9 @@
     <!-- Encabezado -->
     <div class="flex flex-col gap-1">
         <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Profesores</h1>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Busca, filtra, exporta y edita profesores. Selecciona varios para activar/inactivar en bloque.</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+            Busca, filtra, exporta y edita profesores. Selecciona varios para activar/inactivar en bloque.
+        </p>
     </div>
 
     <!-- Contenedor listado -->
@@ -56,7 +58,7 @@
 
                 <!-- Buscador -->
                 <div class="lg:col-span-6">
-                   <flux:label>Buscar profesor</flux:label>
+                    <flux:label>Buscar profesor</flux:label>
                     <flux:input
                         id="buscar-profesor"
                         type="text"
@@ -190,7 +192,7 @@
                         <!-- Tabla (desktop) -->
                         <div class="hidden md:block overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
                             <div class="overflow-x-auto max-h-[70vh]">
-                                <table class="min-w-full text-sm">
+                                <table class="min-w-full text-sm" wire:key="tabla-profesores">
                                     <thead class="sticky top-0 z-10 bg-gray-50/95 dark:bg-neutral-900/95 backdrop-blur text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-neutral-800">
                                         <tr>
                                             <th class="px-4 py-3 text-center font-semibold">
@@ -210,7 +212,7 @@
                                     </thead>
                                     <tbody class="divide-y divide-gray-100 dark:divide-neutral-800">
                                         @foreach ($profesores as $key => $profesor)
-                                            <tr class="transition-colors hover:bg-gray-50/70 dark:hover:bg-neutral-800/50 {{ in_array($profesor->id, $selected) ? 'bg-blue-50 dark:bg-[#0b2940]/60' : '' }}">
+                                            <tr wire:key="row-{{ $profesor->id }}" class="transition-colors hover:bg-gray-50/70 dark:hover:bg-neutral-800/50 {{ in_array($profesor->id, $selected) ? 'bg-blue-50 dark:bg-[#0b2940]/60' : '' }}">
                                                 <td class="px-4 py-3 text-center">
                                                     <input type="checkbox" wire:model.live="selected" value="{{ $profesor->id }}" aria-label="Seleccionar profesor {{ $profesor->id }}" />
                                                 </td>
@@ -259,9 +261,8 @@
                                                             aria-label="Editar"
                                                         >
                                                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                              d="M16.862 4.487l1.688-1.688a1.875 1.875 0 112.652 2.652L6.75 19.9 3 21l1.1-3.75L16.862 4.487Z"/>
-                  </svg>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.688-1.688a1.875 1.875 0 112.652 2.652L6.75 19.9 3 21l1.1-3.75L16.862 4.487Z"/>
+                                                            </svg>
                                                         </flux:button>
                                                     </div>
                                                 </td>
@@ -331,10 +332,9 @@
                                                     title="Editar"
                                                     aria-label="Editar"
                                                 >
-                                                   <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                              d="M16.862 4.487l1.688-1.688a1.875 1.875 0 112.652 2.652L6.75 19.9 3 21l1.1-3.75L16.862 4.487Z"/>
-                  </svg>
+                                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.688-1.688a1.875 1.875 0 112.652 2.652L6.75 19.9 3 21l1.1-3.75L16.862 4.487Z"/>
+                                                    </svg>
                                                 </flux:button>
                                             </div>
                                         </div>
@@ -360,6 +360,10 @@
         </div>
     </div>
 
-    <!-- Modal editar -->
-    <livewire:admin.profesor.editar-profesor />
+    <!-- MONTA EL MODAL FUERA DEL CONTEXTO DEL LISTADO -->
+   {{-- AISLAR EL MODAL DEL PADRE --}}
+<div wire:ignore>
+    <livewire:admin.profesor.editar-profesor :wire:key="'editar-profesor-modal'" />
+</div>
+
 </div>

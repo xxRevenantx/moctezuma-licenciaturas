@@ -1,5 +1,6 @@
 <div x-data="{ open:false }" x-cloak>
     @php
+        // Helper de contraste (evita redeclaración si se incluye varias veces)
         if (!function_exists('esColorOscuro')) {
             function esColorOscuro($hexColor) {
                 $hexColor = ltrim($hexColor ?: '#ffffff', '#');
@@ -10,7 +11,7 @@
                 $g = hexdec(substr($hexColor, 2, 2));
                 $b = hexdec(substr($hexColor, 4, 2));
                 $l = (0.299*$r + 0.587*$g + 0.114*$b);
-                return $l < 128;
+                return $l < 128; // true si el fondo es oscuro
             }
         }
     @endphp
@@ -24,6 +25,8 @@
             class="w-full md:w-1/2"
         />
     </div>
+
+
 
     {{-- Sin resultados --}}
     @if ($horarios->isEmpty())
@@ -103,50 +106,21 @@
                                                    $h->licenciatura_id === $col['licenciatura_id'];
                                         });
 
-                                        $materiaObj  = optional(optional($item)->asignacionMateria)->materia;
+                                        $materia     = optional(optional($item)->asignacionMateria)->materia?->nombre;
                                         $profesorObj = optional(optional($item)->asignacionMateria)->profesor;
-
                                         $profesor    = $profesorObj
                                             ? trim($profesorObj->nombre.' '.$profesorObj->apellido_paterno.' '.$profesorObj->apellido_materno)
                                             : null;
-
-                                        $color = optional($profesorObj)->color ?? '#ffffff';
-                                        $txt   = esColorOscuro($color) ? '#ffffff' : '#111827';
-
-                                        $colKey = $col['licenciatura_id'].'|'.$col['cuatrimestre_id'];
-                                        $slotKey = $hora.'|'.$col['licenciatura_id'].'|'.$col['cuatrimestre_id'];
-                                        $selectedMateriaId = $materiaObj?->id;
+                                        $color = optional(optional($item)->asignacionMateria)->profesor?->color ?? '#ffffff';
+                                        $txt   = esColorOscuro($color) ? '#ffffff' : '#111827'; // blanco o slate-900
                                     @endphp
 
                                     <td class="px-3 py-2 text-sm text-center align-middle border-b border-neutral-200 dark:border-neutral-700"
                                         style="background-color: {{ $color }}; color: {{ $txt }};">
-                                        <div class="space-y-1">
-                                            <div class="text-[11px] opacity-80">Materia</div>
-
-                                            <select
-                                                wire:key="slot-{{ md5($slotKey) }}"
-                                                class="w-full text-xs px-2 py-1 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white/80 dark:bg-neutral-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                style="color: {{ $txt }};"
-                                                wire:change="cambiarMateriaProfesor('{{ $slotKey }}', $event.target.value)"
-                                            >
-                                                <option value="">— Selecciona materia —</option>
-                                                @foreach(($materiasPorColumna[$colKey] ?? []) as $opt)
-                                                    <option value="{{ $opt['id'] }}" @selected($selectedMateriaId == $opt['id'])>
-                                                        {{ $opt['nombre'] }} @if(!empty($opt['clave'])) ({{ $opt['clave'] }}) @endif
-                                                    </option>
-                                                @endforeach
-                                            </select>
-
-                                            @if($profesor)
-                                                <div class="text-xs italic font-semibold">{{ $profesor }}</div>
-                                            @else
-                                                <div class="text-[11px] opacity-60 italic">Sin profesor asignado</div>
-                                            @endif
-
-                        <div wire:loading wire:target="cambiarMateriaProfesor" class="text-[11px] opacity-80">
-                            Guardando…
-                        </div>
-                                        </div>
+                                        @if ($item)
+                                            <div class="font-medium">{{ $materia }}</div>
+                                            <div class="text-xs italic font-semibold">{{ $profesor }}</div>
+                                        @endif
                                     </td>
                                 @endforeach
                             </tr>
@@ -162,9 +136,10 @@
                 Materias del Profesor y Horas Totales
             </h4>
 
+            <!-- Loader recalculo -->
             <div
                 wire:loading.delay
-                wire:target="busqueda,cambiarMateriaProfesor"
+                wire:target="busqueda"
                 class="w-full flex flex-col items-center justify-center gap-3 p-6 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 text-center"
             >
                 <svg class="animate-spin h-8 w-8 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -177,7 +152,8 @@
             </div>
 
             @php
-                $ordenHoras = is_iterable($horasUnicas) ? collect($horasUnicas)->values()->all() : [];
+                // Preparación de datos para la tabla de profesores
+                $ordenHoras = isset($horas) && is_array($horas) ? array_values($horas) : [];
                 $posHora = $ordenHoras ? array_flip($ordenHoras) : [];
                 $porProfesor = [];
                 foreach ($horarios as $h) {
@@ -213,6 +189,7 @@
                         ];
                     }
                 }
+                // Orden alfabético (los 'sin' van al final)
                 uksort($porProfesor, function($a,$b) use ($porProfesor){
                     if ($a==='sin' && $b==='sin') return 0;
                     if ($a==='sin') return 1;
@@ -238,7 +215,7 @@
 
             <div
                 wire:loading.remove
-                wire:target="busqueda,cambiarMateriaProfesor"
+                wire:target="busqueda"
                 class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden"
             >
                 @if(count($porProfesor))
