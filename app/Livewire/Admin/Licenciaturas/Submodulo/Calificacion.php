@@ -83,11 +83,12 @@ class Calificacion extends Component
 
         // dd($correo);
 
-        Mail::to("prueba@prueba.com")->queue(new \App\Mail\CalificacionMail($calificaciones, $escuela, $inscripcion, $licenciatura, $generacion, $cuatrimestre, $ciclo_escolar, $periodo));
+        Mail::to("prueba@prueba.com")->send(new \App\Mail\CalificacionMail($calificaciones, $escuela, $inscripcion, $licenciatura, $generacion, $cuatrimestre, $ciclo_escolar, $periodo));
+        // Mail::to("prueba@prueba.com")->queue(new \App\Mail\CalificacionMail($calificaciones, $escuela, $inscripcion, $licenciatura, $generacion, $cuatrimestre, $ciclo_escolar, $periodo));
 
         $this->dispatch('swal', [
             'icon' => 'success',
-            'title' => 'Correo encolado correctamente. Se enviará en unos segundos.',
+            'title' => 'Correo enviado correctamente.',
             'position' => 'top-end',
         ]);
 
