@@ -77,27 +77,27 @@ class CalificacionMail extends Mailable implements ShouldQueue
     public function attachments(): array
 {
     // Generar PDF con DomPDF usando una vista Blade
-    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.boletaCalificacionPDF', [
-        'calificaciones' => $this->calificaciones,
-        'escuela' => $this->escuela,
-        'inscripcion' => $this->inscripcion,
-        'licenciatura' => $this->licenciatura,
-        'generacion' => $this->generacion,
-        'cuatrimestre' => $this->cuatrimestre,
-        'ciclo_escolar' => $this->ciclo_escolar,
-        'periodo' => $this->periodo,
-    ])->setPaper('letter', 'portrait');
+    // $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.boletaCalificacionPDF', [
+    //     'calificaciones' => $this->calificaciones,
+    //     'escuela' => $this->escuela,
+    //     'inscripcion' => $this->inscripcion,
+    //     'licenciatura' => $this->licenciatura,
+    //     'generacion' => $this->generacion,
+    //     'cuatrimestre' => $this->cuatrimestre,
+    //     'ciclo_escolar' => $this->ciclo_escolar,
+    //     'periodo' => $this->periodo,
+    // ])->setPaper('letter', 'portrait');
 
 
-    // Guardar el PDF temporalmente
-    $pdfPath = storage_path('app/temp_calificacion_' . $this->inscripcion->id . '.pdf');
-    $pdf->save($pdfPath);
+    // // Guardar el PDF temporalmente
+    // $pdfPath = storage_path('app/temp_calificacion_' . $this->inscripcion->id . '.pdf');
+    // $pdf->save($pdfPath);
 
-    // Devolver el PDF como Attachment
-    return [
-        Attachment::fromPath($pdfPath)
-            ->as('CALIFICACIONES_' . $this->cuatrimestre->cuatrimestre . '°_CUATRIMESTRE_' . $this->inscripcion->nombre . '_' . $this->inscripcion->apellido_paterno . '_' . $this->inscripcion->apellido_materno . '.pdf')
-            ->withMime('application/pdf'),
-    ];
+    // // Devolver el PDF como Attachment
+    // return [
+    //     Attachment::fromPath($pdfPath)
+    //         ->as('CALIFICACIONES_' . $this->cuatrimestre->cuatrimestre . '°_CUATRIMESTRE_' . $this->inscripcion->nombre . '_' . $this->inscripcion->apellido_paterno . '_' . $this->inscripcion->apellido_materno . '.pdf')
+    //         ->withMime('application/pdf'),
+    // ];
 }
 }
