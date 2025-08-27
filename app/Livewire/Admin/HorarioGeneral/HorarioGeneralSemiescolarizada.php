@@ -42,6 +42,7 @@ public function render()
         ->map(fn ($item) => [
             'cuatrimestre_id' => $item->cuatrimestre_id,
             'licenciatura_id' => $item->licenciatura_id,
+            'generacion_id' => $item->generacion_id,
             'etiqueta' => "Cuat. {$item->cuatrimestre_id} - Lic. {$item->licenciatura->nombre}"
         ])
         ->sortBy(fn ($col) => sprintf('%03d-%03d', $col['licenciatura_id'], $col['cuatrimestre_id']))

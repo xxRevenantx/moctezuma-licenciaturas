@@ -44,7 +44,8 @@ class CrearPeriodo extends Component
     }
 
 
-    public function crearPeriodo(){
+    public function crearNuevoPeriodo(){
+
         $this->validate([
             'ciclo_escolar' => 'required|string|max:9',
             'cuatrimestre_id' => 'required|exists:cuatrimestres,id',

@@ -3,6 +3,9 @@
     <!-- Acento superior -->
     <div class="h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"></div>
 
+
+
+
     <flux:navbar
       class="p-3 sm:p-4 flex flex-wrap items-stretch justify-start md:justify-center gap-2 sm:gap-3 lg:gap-4"
       role="navigation"

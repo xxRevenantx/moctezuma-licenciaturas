@@ -349,6 +349,7 @@ public function render()
         $alumnos = Inscripcion::where('licenciatura_id', $this->licenciatura->id)
             ->where('modalidad_id', $this->modalidad->id)
             ->where('generacion_id', $this->filtrar_generacion)
+            ->where('status', 'true')
             ->where(function ($query) {
                 $query->where('nombre', 'like', '%' . $this->search . '%')
                     ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')

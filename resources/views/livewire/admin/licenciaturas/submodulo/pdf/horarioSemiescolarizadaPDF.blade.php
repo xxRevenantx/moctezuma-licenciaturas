@@ -8,7 +8,7 @@
 
     <style>
         /* Márgenes de página (reservan espacio para header/footer fijos) */
-        @page { margin: 10px 45px 110px 45px; }
+        @page { margin: 10px 45px 0px 45px; }
 
         /* Calibri para igualar el diseño anterior */
         @font-face {
@@ -25,9 +25,9 @@
         /* Header & Footer (fijos) */
         header { position: fixed; top: 0; left: 0; right: 0; height: 112px; padding: 8px 0 6px 0; }
         footer {
-            position: fixed; bottom: 1px; left: 0; right: 0;
+            position: fixed; bottom: 20px; left: 0; right: 0;
             text-align: center; font-size: 11px; color: #334155;
-            padding: 6px 0 0; border-top:1px solid #94a3b8;
+            padding: 0px 0 0; border-top:1px solid #94a3b8;
         }
         footer p{ margin:0; line-height:14px; font-size:13px; }
         .container{ width:100%; }
@@ -51,7 +51,7 @@
         .table-wrap{ border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
         table{ width:100%; border-collapse:collapse; }
         thead th{ background:#cbd5e1; color:#0f172a; text-transform:uppercase; font-size:12px; letter-spacing:.5px; padding:8px 10px; text-align:center; }
-        tbody td{ border-top:1px solid #e5e7eb; padding:8px 8px; vertical-align:middle; background:#fff; font-size:12px; }
+        tbody td{ border-top:1px solid #e5e7eb; padding:3px 3px; vertical-align:middle; background:#fff; font-size:12px; }
         tbody tr:nth-child(odd) td{ background:#fcfcfd; }
 
         /* Receso */
@@ -152,16 +152,7 @@
     </div>
 </header>
 
-<!-- FOOTER -->
-<footer>
-    <p><strong>{{ $escuela->nombre }}</strong> — C.C.T. {{ $escuela->CCT }}</p>
-    <p>
-        C. {{ $escuela->calle }} No. {{ $escuela->no_exterior }},
-        Col. {{ $escuela->colonia }}, C.P. {{ $escuela->codigo_postal }},
-        {{ $escuela->ciudad }}, {{ $escuela->estado }} · Tel. {{ $escuela->telefono }}
-    </p>
-    <p><strong>Fecha de expedición:</strong> {{ \Carbon\Carbon::now('America/Mexico_City')->format('d/m/Y H:i:s') }}</p>
-</footer>
+
 
 <!-- Marca de agua -->
 <div class="watermark">
@@ -231,14 +222,14 @@
                     @forelse ($profesores as $pid => $data)
                         <tr>
                             <td class="mono" style="text-align:center; border:1px solid #e5e7eb; background:#fff;">{{ $i++ }}</td>
-                            <td style="border:1px solid #e5e7eb; background:#fff;">
+                            <td style="border:1px solid #e5e7eb; background:#fff; width: 150px;">
                                 {{ $data['nombre'] }}
                             </td>
-                            <td style="border:1px solid #e5e7eb; background:#fff;">
+                            <td style="border:1px solid #e5e7eb; background:#fff; width: 150px;">
                                 @if(count($data['materias']))
                                     <div>
                                         @foreach ($data['materias'] as $m)
-                                            <span class="chip">{{ $m['nombre'] }} <span class="mono">({{ $m['clave'] }})</span></span>
+                                            <span class="chip">{{ $m['nombre'] }} <span class="mono">({{ $m['clave'] }})</span></span> <br>
                                         @endforeach
                                     </div>
                                 @else
@@ -260,6 +251,17 @@
             <div class="item"><strong>Total semanal del grupo:</strong> {{ $totalSem }} h</div>
         </div>
     </div>
+
+    <!-- FOOTER -->
+<footer>
+    <p><strong>{{ $escuela->nombre }}</strong> — C.C.T. {{ $escuela->CCT }}</p>
+    <p>
+        C. {{ $escuela->calle }} No. {{ $escuela->no_exterior }},
+        Col. {{ $escuela->colonia }}, C.P. {{ $escuela->codigo_postal }},
+        {{ $escuela->ciudad }}, {{ $escuela->estado }} · Tel. {{ $escuela->telefono }}
+    </p>
+    <p><strong>Fecha de expedición:</strong> {{ \Carbon\Carbon::now('America/Mexico_City')->format('d/m/Y H:i:s') }}</p>
+</footer>
 </main>
 
 </body>

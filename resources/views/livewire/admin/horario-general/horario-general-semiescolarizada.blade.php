@@ -85,8 +85,36 @@
                         <tr>
                             <th class="px-3 py-2 text-left font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Hora</th>
                             @foreach($columnasUnicas as $col)
+
                                 <th class="px-3 py-2 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
                                     {{ $col['etiqueta'] }}
+
+                                   {{-- Botón atractivo que lanza el modal de PDF --}}
+                                        <flux:button
+                                            variant="primary"
+                                            class="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600
+                                                hover:from-sky-600 hover:via-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl
+                                                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                            @click.prevent="$dispatch('open-pdf-modal', {
+                                                url: '{{ route('admin.pdf.horario-semiescolarizada', [
+                                                    'licenciatura_id'   => $col['licenciatura_id'],
+                                                    'modalidad_id'      => 2,
+                                                    'filtrar_generacion'=> $col['generacion_id'],
+                                                    'filtrar_cuatrimestre' => $col['cuatrimestre_id'],
+                                                ]) }}',
+                                                title: 'Horario (Semiescolarizada)'
+                                            })"
+                                        >
+                                            {{-- Ícono de documento/PDF --}}
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M7 7v10a2 2 0 002 2h6m0 0l4-4m-4 4V7a2 2 0 00-2-2H7m6 0l4 4" />
+                                            </svg>
+                                            <span>Ver PDF</span>
+                                        </flux:button>
+
+
+
                                 </th>
                             @endforeach
                         </tr>
@@ -315,4 +343,106 @@
             </div>
         </div>
     @endif
+
+
+    {{-- Modal de Preview PDF (reutilizable) --}}
+<div
+    x-data="{ open:false, url:'', title:'', loaded:false }"
+    x-on:open-pdf-modal.window="
+        open = true;
+        url = $event.detail.url;
+        title = $event.detail.title || 'Documento PDF';
+        loaded = false;
+        document.documentElement.classList.add('overflow-hidden');
+    "
+    x-on:keydown.escape.window="
+        open = false;
+        document.documentElement.classList.remove('overflow-hidden');
+    "
+    x-cloak
+    aria-live="polite"
+>
+    {{-- Overlay --}}
+    <div
+        x-show="open"
+        x-transition.opacity.duration.200ms
+        class="fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm"
+        @click="open=false; document.documentElement.classList.remove('overflow-hidden')"
+        aria-hidden="true"
+    ></div>
+
+    {{-- Panel --}}
+    <section
+        x-show="open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-6 sm:translate-y-0 sm:scale-95 blur-sm"
+        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100 blur-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+        x-transition:leave-end="opacity-0 translate-y-6 sm:translate-y-0 sm:scale-95"
+        class="fixed inset-0 z-[90] grid place-items-center p-4"
+        role="dialog" aria-modal="true" :aria-label="title"
+    >
+        <div class="relative w-full max-w-5xl rounded-2xl shadow-2xl ring-1 ring-black/5
+                    bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700">
+
+            {{-- Top bar --}}
+            <header class="flex items-center justify-between px-5 py-3
+                           bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 text-white rounded-t-2xl">
+                <h3 class="text-base sm:text-lg font-semibold truncate" x-text="title"></h3>
+
+                <div class="flex items-center gap-2">
+                    <a :href="url" target="_blank" rel="noopener"
+                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25">
+                        {{-- Icono abrir en nueva pestaña --}}
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M14 3h7m0 0v7m0-7L10 14"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M5 7v12a2 2 0 002 2h12"/>
+                        </svg>
+                        <span class="text-sm font-medium">Abrir</span>
+                    </a>
+
+
+
+                    <button type="button" class="ml-1 p-1.5 rounded-lg hover:bg-white/20"
+                            @click="open=false; document.documentElement.classList.remove('overflow-hidden')"
+                            aria-label="Cerrar">
+                        {{-- Icono cerrar --}}
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            {{-- Contenido --}}
+            <div class="relative p-4">
+                {{-- Loader mientras carga el PDF --}}
+                <div x-show="!loaded" class="absolute inset-0 grid place-items-center">
+                    <div class="flex flex-col items-center gap-2 text-neutral-600 dark:text-neutral-300">
+                        <svg class="animate-spin h-6 w-6" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                        </svg>
+                        <span class="text-sm">Cargando documento…</span>
+                    </div>
+                </div>
+
+                {{-- Iframe del PDF --}}
+                <iframe
+                    :src="url"
+                    class="w-full h-[80vh] rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white"
+                    @load="loaded = true"
+                ></iframe>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
 </div>

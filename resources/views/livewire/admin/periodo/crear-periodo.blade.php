@@ -1,6 +1,6 @@
-<style>[x-cloak]{ display:none !important; }</style>
-
 <div class="w-full  mx-auto px-3 ">
+    <style>[x-cloak]{ display:none !important; }</style>
+
   <!-- Encabezado -->
   <div class="mb-2">
     <h1 class="text-2xl sm:text-3xl font-bold text-neutral-800 dark:text-white">Crear Periodos Escolares</h1>
@@ -47,7 +47,7 @@
 
 
 
-      <form wire:submit.prevent="crearPeriodo" class="p-4 sm:p-6">
+      <form wire:submit.prevent="crearNuevoPeriodo" class="p-4 sm:p-6">
 
                   <!-- Ayuda / notas (opcional) -->
             <div class="lg:col-span-2 mb-3">
@@ -87,7 +87,7 @@
               variant="filled"
               readonly
               type="text"
-              wire:model="mesesPeriodo"
+              wire:model.live="mesesPeriodo"
               :label="__('Meses')"
               placeholder="—"
             />
@@ -127,9 +127,9 @@
                   type="submit"
                   class="w-full sm:w-auto cursor-pointer inline-flex items-center gap-2"
                   wire:loading.attr="disabled"
-                  wire:target="crearPeriodo"
+                  wire:target="crearNuevoPeriodo"
                 >
-                  <span wire:loading wire:target="crearPeriodo" class="inline-block w-4 h-4 rounded-full border-2 border-white/70 border-t-transparent animate-spin"></span>
+                  <span wire:loading wire:target="crearNuevoPeriodo" class="inline-block w-4 h-4 rounded-full border-2 border-white/70 border-t-transparent animate-spin"></span>
                   <span>{{ __('Guardar') }}</span>
                 </flux:button>
 
@@ -145,6 +145,7 @@
           </div>
         </flux:field>
       </form>
+
     </div>
   </div>
 </div>
