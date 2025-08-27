@@ -41,6 +41,12 @@
         </div>
     </div>
 
+
+    {{-- PANEL DE CALIFICACIONES Y BARRA DE PROGRESO --}}
+
+    <livewire:admin.progreso.panel-progreso-calificaciones />
+
+
     {{-- 2) TARJETAS RESUMEN SUPERIOR --}}
     <div class="grid gap-4 sm:grid-cols-2">
         {{-- Profesores activos --}}

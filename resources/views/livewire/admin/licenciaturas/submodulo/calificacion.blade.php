@@ -27,7 +27,6 @@
     }"
     class="space-y-6"
 >
-
     {{-- ======= TOOLBAR / FILTROS ======= --}}
     <div class="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white/80 dark:bg-neutral-900/80 shadow-sm overflow-hidden">
         <div class="h-1.5 w-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600"></div>
@@ -86,7 +85,6 @@
 
     {{-- ======= LISTADO / TABLA ======= --}}
     <div class="relative rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-sm overflow-hidden">
-
         {{-- Overlay loader (filtros) --}}
         <div wire:loading.flex wire:target="filtrar_generacion, filtrar_cuatrimestre"
              class="absolute inset-0 z-20 backdrop-blur-sm bg-white/40 dark:bg-black/30 items-center justify-center">
@@ -102,20 +100,17 @@
         <div class="p-3 sm:p-4">
             @if($filtrar_generacion && $filtrar_cuatrimestre)
 
-                            {{-- Filtros aplicados (diseño pro + responsive, misma estructura) --}}
+                {{-- Filtros aplicados --}}
                 <div class="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 mb-4
                             rounded-2xl border border-neutral-200 dark:border-neutral-700
                             bg-gradient-to-br from-white via-neutral-50 to-white
                             dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-900
                             shadow-sm overflow-hidden">
 
-                    {{-- Barra decorativa superior --}}
                     <div class="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600"></div>
 
-                    {{-- Izquierda: resumen de filtros --}}
                     <div class="text-sm">
                         <div class="flex items-center gap-2 text-neutral-700 dark:text-neutral-200">
-                            {{-- Icono filtros --}}
                             <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
                                         bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -130,7 +125,6 @@
                             @if($filtrar_generacion)
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold
                                             bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                                    {{-- Icono generación --}}
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -143,7 +137,6 @@
                             @if($filtrar_cuatrimestre)
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold
                                             bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                                    {{-- Icono cuatrimestre --}}
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12z"/>
@@ -151,14 +144,9 @@
                                     Cuatrimestre: {{ $filtrar_cuatrimestre }}
                                 </span>
                             @endif
-
-                            @if(!$filtrar_generacion && !$filtrar_cuatrimestre)
-                                <span class="text-neutral-500 dark:text-neutral-400">Sin filtros aplicados</span>
-                            @endif
                         </div>
                     </div>
 
-                    {{-- Derecha: acción (PDF) --}}
                     <form method="GET"
                         action="{{ route('admin.pdf.documentacion.calificaciones_generales') }}"
                         target="_blank"
@@ -180,148 +168,132 @@
                             </div>
                         </x-button>
                     </form>
-
-                    {{-- Brillos sutiles --}}
-                    <div class="pointer-events-none absolute -left-10 -bottom-10 h-24 w-24 rounded-full bg-sky-400/10 blur-2xl"></div>
-                    <div class="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-indigo-500/10 blur-2xl"></div>
                 </div>
 
+                {{-- ======= PERIODO ======= --}}
+                @if($periodo)
+                    @php
+                        $inicio  = Carbon\Carbon::parse($periodo->inicio_periodo);
+                        $termino = $periodo->termino_periodo ? Carbon\Carbon::parse($periodo->termino_periodo) : null;
+                        $hoy     = Carbon\Carbon::now();
 
+                        if ($termino) {
+                            if ($hoy->lt($inicio))      { $estado = ['Próximo',    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300']; }
+                            elseif ($hoy->lte($termino)){ $estado = ['En curso',   'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300']; }
+                            else                        { $estado = ['Finalizado', 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300']; }
+                        } else {
+                            $estado = $hoy->lt($inicio)
+                                ? ['Próximo',  'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300']
+                                : ['En curso', 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'];
+                        }
 
-                        @php
+                        $progress = null;
+                        if ($termino) {
+                            $totalDays   = max(1, $inicio->diffInDays($termino));
+                            $elapsedDays = min($totalDays, max(0, $inicio->diffInDays($hoy)));
+                            $progress    = round(($elapsedDays / $totalDays) * 100);
+                        }
+                    @endphp
 
+                    <div class="p-5 sm:p-6 mb-4 rounded-2xl border border-neutral-200 dark:border-neutral-700
+                                bg-gradient-to-br from-white via-neutral-50 to-white
+                                dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-900
+                                shadow-md overflow-hidden">
 
-                            $inicio  =  Carbon\Carbon::parse($periodo->inicio_periodo);
-                            $termino = $periodo->termino_periodo ?  Carbon\Carbon::parse($periodo->termino_periodo) : null;
-                            $hoy     =  Carbon\Carbon::now();
-
-                            // Estado del periodo
-                            if ($termino) {
-                                if ($hoy->lt($inicio))      { $estado = ['Próximo',    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300']; }
-                                elseif ($hoy->lte($termino)){ $estado = ['En curso',   'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300']; }
-                                else                        { $estado = ['Finalizado', 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300']; }
-                            } else {
-                                $estado = $hoy->lt($inicio)
-                                    ? ['Próximo',  'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300']
-                                    : ['En curso', 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'];
-                            }
-
-                            // Progreso (si hay término)
-                            $progress = null;
-                            if ($termino) {
-                                $totalDays   = max(1, $inicio->diffInDays($termino));
-                                $elapsedDays = min($totalDays, max(0, $inicio->diffInDays($hoy)));
-                                $progress    = round(($elapsedDays / $totalDays) * 100);
-                            }
-                        @endphp
-
-                        <div class="p-5 sm:p-6 mb-4 rounded-2xl border border-neutral-200 dark:border-neutral-700
-                                    bg-gradient-to-br from-white via-neutral-50 to-white
-                                    dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-900
-                                    shadow-md overflow-hidden">
-
-                            {{-- Header con icono y estado --}}
-                            <div class="flex items-center justify-between gap-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white
-                                                grid place-items-center shadow">
-                                        {{-- Icono calendario --}}
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h2 class="text-base sm:text-lg font-extrabold uppercase tracking-wide
-                                                text-neutral-800 dark:text-neutral-100">
-                                            Periodo Cuatrimestral
-                                        </h2>
-                                        <p class="text-xs text-neutral-500 dark:text-neutral-400">
-                                            Información vigente del periodo académico
-                                        </p>
-                                    </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white grid place-items-center shadow">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12z"/>
+                                    </svg>
                                 </div>
-
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $estado[1] }}">
-                                    {{ $estado[0] }}
-                                </span>
-                            </div>
-
-                            {{-- Tarjetas de datos --}}
-                            <div class="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                                {{-- Ciclo escolar --}}
-                                <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm hover:shadow-md transition">
-                                    <div class="flex items-center gap-2 text-xs uppercase text-neutral-500 dark:text-neutral-400">
-                                        <span class="inline-block h-2 w-2 rounded-full bg-sky-500"></span> Ciclo escolar
-                                    </div>
-                                    <div class="mt-1 text-lg font-semibold text-neutral-800 dark:text-neutral-100">
-                                        {{ $periodo->ciclo_escolar }}
-                                    </div>
-                                </div>
-
-                                {{-- Periodo escolar --}}
-                                <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm hover:shadow-md transition">
-                                    <div class="flex items-center gap-2 text-xs uppercase text-neutral-500 dark:text-neutral-400">
-                                        <span class="inline-block h-2 w-2 rounded-full bg-indigo-500"></span> Periodo escolar
-                                    </div>
-                                    <div class="mt-1 text-lg font-semibold text-neutral-800 dark:text-neutral-100">
-                                        {{ $periodo->mes->meses }}
-                                    </div>
-                                </div>
-
-                                {{-- Inicio --}}
-                                <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm hover:shadow-md transition">
-                                    <div class="flex items-center gap-2 text-xs uppercase text-neutral-500 dark:text-neutral-400">
-                                        <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span> Inicio de periodo
-                                    </div>
-                                    <div class="mt-1 text-lg font-semibold text-neutral-800 dark:text-neutral-100">
-                                        {{ $inicio->format('d/m/Y') }}
-                                    </div>
-                                </div>
-
-                                {{-- Término --}}
-                                <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm hover:shadow-md transition">
-                                    <div class="flex items-center gap-2 text-xs uppercase text-neutral-500 dark:text-neutral-400">
-                                        <span class="inline-block h-2 w-2 rounded-full bg-rose-500"></span> Término de periodo
-                                    </div>
-                                    <div class="mt-1 text-lg font-semibold text-neutral-800 dark:text-neutral-100">
-                                        @if($termino)
-                                            {{ $termino->format('d/m/Y') }}
-                                        @else
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
-                                                        bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
-                                                No asignado
-                                            </span>
-                                        @endif
-                                    </div>
+                                <div>
+                                    <h2 class="text-base sm:text-lg font-extrabold uppercase tracking-wide text-neutral-800 dark:text-neutral-100">
+                                        Periodo Cuatrimestral
+                                    </h2>
+                                    <p class="text-xs text-neutral-500 dark:text-neutral-400">Información vigente del periodo académico</p>
                                 </div>
                             </div>
 
-                            {{-- Línea de tiempo / Progreso --}}
-                            <div class="mt-6">
-                                @if(!is_null($progress))
-                                    <div class="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
-                                        <span>{{ $inicio->format('d/m/Y') }}</span>
-                                        <span>{{ $termino->format('d/m/Y') }}</span>
-                                    </div>
-                                    <div class="mt-2 h-2 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
-                                        <div class="h-full rounded-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600"
-                                            style="width: {{ $progress }}%"></div>
-                                    </div>
-                                    <div class="mt-1 text-right text-xs text-neutral-500 dark:text-neutral-400">
-                                        Avance {{ $progress }}%
-                                    </div>
-                                @else
-                                    <div class="h-2 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
-                                        <div class="w-1/3 h-full animate-pulse bg-gradient-to-r from-sky-500/40 via-blue-600/40 to-indigo-600/40"></div>
-                                    </div>
-                                    <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                        Término no asignado
-                                    </div>
-                                @endif
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $estado[1] }}">
+                                {{ $estado[0] }}
+                            </span>
+                        </div>
+
+                        <div class="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm hover:shadow-md transition">
+                                <div class="flex items-center gap-2 text-xs uppercase text-neutral-500 dark:text-neutral-400">
+                                    <span class="inline-block h-2 w-2 rounded-full bg-sky-500"></span> Ciclo escolar
+                                </div>
+                                <div class="mt-1 text-lg font-semibold text-neutral-800 dark:text-neutral-100">
+                                    {{ $periodo->ciclo_escolar }}
+                                </div>
+                            </div>
+
+                            <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm hover:shadow-md transition">
+                                <div class="flex items-center gap-2 text-xs uppercase text-neutral-500 dark:text-neutral-400">
+                                    <span class="inline-block h-2 w-2 rounded-full bg-indigo-500"></span> Periodo escolar
+                                </div>
+                                <div class="mt-1 text-lg font-semibold text-neutral-800 dark:text-neutral-100">
+                                    {{ $periodo->mes->meses }}
+                                </div>
+                            </div>
+
+                            <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm hover:shadow-md transition">
+                                <div class="flex items-center gap-2 text-xs uppercase text-neutral-500 dark:text-neutral-400">
+                                    <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span> Inicio de periodo
+                                </div>
+                                <div class="mt-1 text-lg font-semibold text-neutral-800 dark:text-neutral-100">
+                                    {{ $inicio->format('d/m/Y') }}
+                                </div>
+                            </div>
+
+                            <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm hover:shadow-md transition">
+                                <div class="flex items-center gap-2 text-xs uppercase text-neutral-500 dark:text-neutral-400">
+                                    <span class="inline-block h-2 w-2 rounded-full bg-rose-500"></span> Término de periodo
+                                </div>
+                                <div class="mt-1 text-lg font-semibold text-neutral-800 dark:text-neutral-100">
+                                    @if($termino)
+                                        {{ $termino->format('d/m/Y') }}
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+                                                    bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
+                                            No asignado
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
 
+                        <div class="mt-6">
+                            @if(!is_null($progress))
+                                <div class="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
+                                    <span>{{ $inicio->format('d/m/Y') }}</span>
+                                    <span>{{ $termino->format('d/m/Y') }}</span>
+                                </div>
+                                <div class="mt-2 h-2 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600"
+                                        style="width: {{ $progress }}%"></div>
+                                </div>
+                                <div class="mt-1 text-right text-xs text-neutral-500 dark:text-neutral-400">
+                                    Avance {{ $progress }}%
+                                </div>
+                            @else
+                                <div class="h-2 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
+                                    <div class="w-1/3 h-full animate-pulse bg-gradient-to-r from-sky-500/40 via-blue-600/40 to-indigo-600/40"></div>
+                                </div>
+                                <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                                    Término no asignado
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @else
+                    <div class="p-5 sm:p-6 mb-4 rounded-2xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200">
+                        No hay periodo asignado para esta generación/cuatrimestre.
+                    </div>
+                @endif
 
                 {{-- Buscador --}}
                 <div class="px-1 sm:px-2">
@@ -342,13 +314,13 @@
                 </div>
             </div>
 
-            {{-- ======= TABLA ATRACTIVA ======= --}}
+            {{-- ======= TABLA ======= --}}
             <div class="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-700">
                 <table class="min-w-[1100px] w-full bg-white dark:bg-neutral-900 text-sm">
-                    {{-- Encabezado pegajoso con estilo --}}
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gradient-to-r from-sky-50 to-indigo-50 dark:from-neutral-800 dark:to-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
                             <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-700 dark:text-neutral-200 uppercase tracking-wider w-14">#</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-700 dark:text-neutral-200 uppercase tracking-wider w-40 whitespace-nowrap">F/L</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-700 dark:text-neutral-200 uppercase tracking-wider w-40 whitespace-nowrap">Matrícula</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-neutral-700 dark:text-neutral-200 uppercase tracking-wider w-64">Alumno</th>
 
@@ -383,35 +355,41 @@
                             @php $sum = 0; $count = 0; @endphp
 
                             <tr class="odd:bg-white even:bg-neutral-50 dark:odd:bg-neutral-900 dark:even:bg-neutral-800/60 hover:bg-sky-50/60 dark:hover:bg-neutral-800 transition">
-                                {{-- # --}}
                                 <td class="px-4 py-3 text-neutral-600 dark:text-neutral-300">{{ $index + 1 }}</td>
 
-                                {{-- Matrícula --}}
+                                <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100 whitespace-nowrap">
+                                    @if($alumno->foraneo === "true")
+                                        <flux:badge color="orange">Foraneo</flux:badge>
+                                    @else
+                                        <flux:badge color="indigo">Local</flux:badge>
+                                    @endif
+                                </td>
+
                                 <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100 whitespace-nowrap">
                                     {{ $alumno->matricula }}
                                 </td>
 
-                                {{-- Alumno --}}
                                 <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100 ">
                                     {{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}
                                 </td>
 
-                                {{-- Calificaciones por materia --}}
                                 @foreach ($materias as $materia)
                                     @php
                                         $valor = $calificaciones[$alumno->id][$materia->id] ?? null;
 
-                                        // Contadores de avance
-                                        if ((is_numeric($valor) && $valor > 0) || (is_string($valor) && strtoupper(trim($valor)) === 'NP')) {
+                                        $esNP           = is_string($valor) && strtoupper(trim($valor)) === 'NP';
+                                        $esNumeroValido = is_numeric($valor) && (float)$valor >= 5 && (float)$valor <= 10;
+
+                                        if ($esNumeroValido || $esNP) {
                                             $calificaciones_introducidas++;
                                         }
 
-                                        if (is_numeric($valor) && $valor > 0) {
-                                            $sum += $valor; $count++; $global_sum += $valor; $global_count++;
+                                        if ($esNumeroValido) {
+                                            $sum += (float)$valor; $count++;
+                                            $global_sum += (float)$valor; $global_count++;
                                         }
 
-                                        // Estilo del input si hay valor o NP
-                                        $tieneValor = (is_numeric($valor) && $valor > 0) || (is_string($valor) && strtoupper(trim($valor)) === 'NP');
+                                        $tieneValor = $esNumeroValido || $esNP;
                                         $inputRing  = $tieneValor ? 'ring-1 ring-emerald-400/60' : 'ring-0';
                                     @endphp
 
@@ -420,28 +398,25 @@
                                             <input
                                                 type="text"
                                                 inputmode="decimal"
-                                                pattern="^([0-9]{1,2}|100|np|NP)?$"
-                                                title="Ingresa 0-100 o NP"
-                                                placeholder="0–10 o NP"
+                                                pattern="^(10|[5-9](\.[0-9]+)?)$|^(np|NP)$"
+                                                title="Ingresa un número entre 5 y 10 (puede llevar decimales) o NP"
+                                                placeholder="5–10 o NP"
                                                 class="w-full text-center rounded-lg border border-neutral-300 dark:border-neutral-600
                                                        bg-white dark:bg-neutral-800 px-2 py-2 focus:outline-none
-                                                       focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500
-                                                       {{ $inputRing }}"
-                                                wire:model.blur="calificaciones.{{ $alumno->id }}.{{ $materia->id }}"
+                                                       focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500 {{ $inputRing }}"
+                                                wire:model.live.debounce.300ms="calificaciones.{{ $alumno->id }}.{{ $materia->id }}"
                                             />
-
                                         </div>
                                     </td>
                                 @endforeach
 
-                                {{-- Promedio (chip por color) --}}
                                 @php
                                     $avg = $count ? round($sum / $count, 2) : null;
                                     $chipClass = 'bg-neutral-200 text-neutral-800';
-                                    if ($avg !== null) {
-                                        if ($avg >= 90)      $chipClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
-                                        elseif ($avg >= 70) $chipClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
-                                        else                $chipClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+                                    if (!is_null($avg)) {
+                                        if     ($avg >= 9) $chipClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+                                        elseif ($avg >= 7) $chipClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+                                        else               $chipClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
                                     }
                                 @endphp
                                 <td class="px-4 py-3">
@@ -450,10 +425,8 @@
                                     </span>
                                 </td>
 
-                                {{-- Acciones --}}
                                 <td class="px-4 py-3">
-                                    <div class="flex flex-wrap justify-center gap-2">
-                                        {{-- PDF alumno --}}
+                                    <div class="flex justify-center gap-2">
                                         <form action="{{ route('admin.pdf.documentacion.calificacion_alumno') }}" method="GET" target="_blank" class="m-0">
                                             <x-button type="submit" variant="primary"
                                                       class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">
@@ -468,7 +441,6 @@
                                             <input type="hidden" name="cuatrimestre_id" value="{{ $filtrar_cuatrimestre }}">
                                         </form>
 
-                                        {{-- Enviar alumno --}}
                                         <x-button variant="primary"
                                                   class="bg-green-600 hover:bg-green-700 text-white rounded-lg"
                                                   @click="enviarCalificacion({{ $alumno->id }}, '{{ $filtrar_cuatrimestre }}', '{{ $filtrar_generacion }}', '{{ $modalidad->id }}')">
@@ -483,15 +455,14 @@
                         @endforeach
                     </tbody>
 
-                    {{-- Pie con promedio global --}}
                     @if($filtrar_generacion && $filtrar_cuatrimestre)
                         @php
                             $globalAvg = $global_count ? round($global_sum / $global_count, 2) : null;
                             $globalChip = 'bg-neutral-200 text-neutral-800';
-                            if ($globalAvg !== null) {
-                                if ($globalAvg >= 90)      $globalChip = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
-                                elseif ($globalAvg >= 70) $globalChip = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
-                                else                      $globalChip = 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+                            if (!is_null($globalAvg)) {
+                                if     ($globalAvg >= 9) $globalChip = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+                                elseif ($globalAvg >= 7) $globalChip = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+                                else                     $globalChip = 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
                             }
                         @endphp
                         <tfoot class="bg-neutral-50 dark:bg-neutral-800/60">
