@@ -1,27 +1,104 @@
 <div
-    x-data="{ loader: false }"
-    x-init="
-        window.addEventListener('recargar-pagina', () => {
-            loader = true;
-            setTimeout(() => window.location.reload(), 300);
-        });
-    "
+  x-data="{
+    loader:false,
+    phraseIndex:0,
+    phrases:[
+      'Buscando disponibilidad…',
+      'Reservando espacio en el horario…',
+      'Aplicando cambios…',
+      'Casi listo…'
+    ],
+  }"
+  x-init="
+    window.addEventListener('recargar-pagina', () => { loader = true; setTimeout(() => window.location.reload(), 300); });
+    setInterval(() => {
+      if (loader || ($wire.__instance && $wire.__instance.__isLoading && $wire.__instance.__lastAction === 'asignarProfesor')) {
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+      }
+    }, 1200);
+  "
 >
 
-   <!-- Loader Alpine/Livewire -->
-    <div
-        x-show="loader || $wire.__instance && $wire.__instance.__isLoading && $wire.__instance.__lastAction === 'asignarProfesor'"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 bg-opacity-30"
-        style="display: none;"
-    >
-        <div class="bg-white rounded-xl p-6 shadow-lg flex flex-col items-center">
-            <svg class="animate-spin h-10 w-10 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-            </svg>
-            <span class="text-blue-700 font-semibold text-lg">Asignando profesor...</span>
+
+<!-- LOADER ELEGANTE SIN FONDO NEGRO -->
+<div
+  x-show="loader || ($wire.__instance && $wire.__instance.__isLoading && $wire.__instance.__lastAction === 'asignarProfesor')"
+  x-transition.opacity.duration.250ms
+  class="fixed inset-0 z-50 flex items-center justify-center pointer-events-auto"
+  style="display:none"
+  role="status" aria-live="assertive" aria-busy="true"
+>
+  <!-- Fondo sutil (sin oscurecer): patrón + halo radial -->
+  <div class="absolute inset-0 -z-10 loader-bg pointer-events-none"></div>
+
+  <!-- Marco con borde degradado -->
+  <div class="relative p-[2px] rounded-2xl bg-gradient-to-tr from-indigo-500 via-fuchsia-500 to-cyan-400 shadow-2xl ring-1 ring-black/5">
+    <div class="relative isolate rounded-2xl bg-white/90 dark:bg-neutral-900/80 backdrop-blur-md px-8 py-7 flex flex-col items-center gap-4 min-w-[320px]"
+         x-transition.scale.origin.center.duration.200ms>
+
+      <!-- Aro degradado animado + brillo -->
+      <div class="relative">
+        <div class="h-16 w-16 rounded-full animate-spin-smooth bg-conic"></div>
+        <div class="absolute inset-1 rounded-full bg-white/95 dark:bg-neutral-900/90 shadow-inner"></div>
+        <div class="absolute -inset-1 rounded-full blur-xl opacity-30 bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-cyan-400"></div>
+        <!-- Ícono -->
+        <svg class="absolute inset-0 m-auto h-7 w-7 text-indigo-600 dark:text-indigo-300 animate-pulse"
+             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+
+      <!-- Título con gradiente -->
+      <p class="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-cyan-500">
+        Asignando profesor…
+      </p>
+
+      <!-- Frase rotativa -->
+      <p x-text="phrases[phraseIndex]"
+         class="text-sm text-neutral-600 dark:text-neutral-300 text-center"></p>
+
+      <!-- Barra indeterminada con shimmer -->
+      <div class="w-full mt-1">
+        <div class="h-1.5 w-64 rounded-full bg-neutral-200/80 dark:bg-neutral-700/60 overflow-hidden">
+          <div class="h-full w-1/3 rounded-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-cyan-400 animate-slide-x"></div>
         </div>
+      </div>
     </div>
+  </div>
+</div>
+
+<!-- Utilidades del loader -->
+<style>
+  /* Fondo sutil: grid de puntitos + halo radial claro (sin oscurecer) */
+  .loader-bg{
+    --dot: rgba(100,116,139,.22); /* slate-500/22 */
+    background:
+      radial-gradient(circle at 50% 40%, rgba(99,102,241,.25), rgba(99,102,241,0) 40%),
+      radial-gradient(circle at 70% 70%, rgba(6,182,212,.18), rgba(6,182,212,0) 42%),
+      radial-gradient(circle at 30% 75%, rgba(236,72,153,.18), rgba(236,72,153,0) 45%),
+      radial-gradient(#0000 1.9px, var(--dot) 2px) 0 0/16px 16px;
+  }
+
+  /* Aro con conic-gradient + máscara para anillo */
+  .bg-conic{
+    background: conic-gradient(#6366f1, #a855f7, #06b6d4, #6366f1);
+    -webkit-mask: radial-gradient(farthest-side, #0000 60%, #000 61%);
+            mask: radial-gradient(farthest-side, #0000 60%, #000 61%);
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,.2));
+  }
+  .animate-spin-smooth{ animation: spin 1.1s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  /* Barra indeterminada */
+  .animate-slide-x{ animation: slide 1.25s ease-in-out infinite; }
+  @keyframes slide{
+    0%   { transform: translateX(-110%); }
+    50%  { transform: translateX(20%); }
+    100% { transform: translateX(110%); }
+  }
+</style>
+
+
 
     @php
 function isColorLight($hexColor) {
@@ -76,15 +153,21 @@ function isColorLight($hexColor) {
           {{ $materias->links() }}
     </div>
 
-    <div wire:loading.flex wire:target="asignarProfesor" class="justify-center items-center fixed top-0 left-0 w-full h-full bg-black bg-opacity-30 z-50">
-    <div class="bg-white rounded-xl p-6 shadow-lg flex flex-col items-center">
-        <svg class="animate-spin h-10 w-10 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-        </svg>
-        <span class="text-blue-700 font-semibold text-lg">Asignando profesor...</span>
-    </div>
+  <div wire:loading.flex wire:target="asignarProfesor"
+     class="fixed inset-0 z-50 flex items-center justify-center
+            backdrop-blur-md backdrop-saturate-150
+            bg-white/20 dark:bg-neutral-900/10">
+  <div class="bg-white/90 dark:bg-neutral-900/90 rounded-2xl p-6 shadow-2xl ring-1 ring-black/5 flex flex-col items-center">
+    <svg class="animate-spin h-10 w-10 text-indigo-500 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+    </svg>
+    <span class="text-indigo-600 dark:text-indigo-300 font-semibold text-base">Asignando profesor…</span>
+  </div>
 </div>
+
+
+
      <table class="min-w-full border-collapse border border-gray-200 table-striped">
             <thead>
                 <tr>

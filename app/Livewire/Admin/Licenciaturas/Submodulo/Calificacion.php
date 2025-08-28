@@ -77,8 +77,8 @@ class Calificacion extends Component
             ]);
             return;
         }
-
-        Mail::to("prueba@prueba.com")->send(new CalificacionMail(
+        // dd($correo);
+        Mail::to($correo)->send(new CalificacionMail(
             $calificaciones, $escuela, $inscripcion, $licenciatura, $generacionObj, $cuatrimestreObj, $ciclo_escolar, $periodo
         ));
 

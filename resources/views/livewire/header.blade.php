@@ -74,6 +74,22 @@
               </button>
             </li>
 
+            {{-- ALUMNOS CON CALIFICACIÓN MENOR O IGUAL A 6 O NP --}}
+            <li class="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-700/40 transition">
+              <button type="button" class="w-full text-left"
+                      wire:click.prevent="openModal('bajos')"
+                      wire:loading.attr="disabled"
+                      @click.stop="open=false">
+                <div class="flex items-start gap-3">
+                  <span class="mt-1 w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                  <div class="flex-1">
+                    <p class="font-medium text-neutral-900 dark:text-neutral-100">Alumnos con ≤ 6 o NP</p>
+                    <p class="text-sm text-neutral-600 dark:text-neutral-300">Total: <span class="font-semibold">{{ $bajos }}</span> ({{ $porcBajos }}%)</p>
+                  </div>
+                </div>
+              </button>
+            </li>
+
             <li class="p-3">
               <div class="flex items-start gap-3">
                 <span class="mt-1 w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -148,9 +164,19 @@
       <!-- Header -->
       <div class="px-4 sm:px-5 py-4 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700 bg-gradient-to-r from-white to-neutral-50 dark:from-neutral-800 dark:to-neutral-800/60">
         <h3 id="alumnos-modal-title" class="text-base sm:text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          @if($modalTipo === 'con') Alumnos con matrícula @else Alumnos sin matrícula @endif
+          @if($modalTipo === 'con')
+            Alumnos con matrícula
+          @elseif($modalTipo === 'sin')
+            Alumnos sin matrícula
+          @else
+            Alumnos con ≤ 6 o NP
+          @endif
+
+          @php
+            $grupoTotal = $modalTipo === 'con' ? $conPrefijo : ($modalTipo === 'sin' ? $sinPrefijo : $bajos);
+          @endphp
           <span class="ml-2 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
-            (mostrando {{ min(($modalTipo==='con'?$conPrefijo:$sinPrefijo), $modalLimit) }} de {{ $modalTipo==='con' ? $conPrefijo : $sinPrefijo }})
+            (mostrando {{ min($grupoTotal, $modalLimit) }} de {{ $grupoTotal }})
           </span>
         </h3>
         <button class="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 transition"
@@ -187,7 +213,7 @@
             <span>Mostrando</span>
             <span class="font-semibold text-neutral-700 dark:text-neutral-200">{{ $this->alumnos->count() }}</span>
             <span>de</span>
-            @php $totalGrupo = $modalTipo === 'con' ? $conPrefijo : $sinPrefijo; @endphp
+            @php $totalGrupo = $modalTipo === 'con' ? $conPrefijo : ($modalTipo === 'sin' ? $sinPrefijo : $bajos); @endphp
             <span class="font-semibold text-neutral-700 dark:text-neutral-200">{{ $totalGrupo }}</span>
             <span>registros</span>
           </div>
@@ -196,95 +222,178 @@
         <!-- Tabla -->
         <div class="overflow-x-auto rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-700 shadow-sm"
              wire:loading.class="opacity-50" wire:target="loadMore,search">
-          <table class="min-w-full text-sm">
-            <thead class="sticky top-0 z-10 bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-700 dark:to-violet-700 text-white shadow">
-              <tr>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">#</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase sticky left-0 z-30 bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-700 dark:to-violet-700 border-r border-white/20">Matrícula</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Nombre</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Apellido P.</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Apellido M.</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Licenciatura</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Cuatrimestre</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Generación</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Modalidad</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">F/L</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Registrado</th>
-                <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Acciones</th>
-              </tr>
-            </thead>
+          {{-- ===================== TABLA: MATERIAS CON ≤6 O NP (solo en modal "bajos") ===================== --}}
+{{-- ===================== TABLA: MATERIAS CON ≤6 O NP (solo en modal "bajos") ===================== --}}
+@if($modalTipo === 'bajos')
+  <div class="mt-6">
+    <div class="mb-3 flex items-center justify-between">
+      <h4 class="text-sm sm:text-base font-semibold text-neutral-900 dark:text-neutral-100">
+        Materias con calificación ≤ 6 o NP
+      </h4>
 
-            <tbody class="divide-y divide-neutral-100 dark:divide-neutral-700">
-              @forelse($this->alumnos as $key => $al)
-                <tr class="group odd:bg-neutral-50/60 dark:odd:bg-neutral-800/40 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors">
-                  <td class="px-3 py-2 align-middle">
-                    <span class="block font-medium text-neutral-900 dark:text-neutral-100">{{ $key+1 }}</span>
-                  </td>
-                  <td class="px-3 py-2 align-middle sticky left-0 z-20 bg-white dark:bg-neutral-800 group-odd:bg-neutral-50/60 dark:group-odd:bg-neutral-800/40 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/20 border-r border-neutral-200 dark:border-neutral-700">
-                    <span class="inline-block px-2 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-700/70 font-mono text-[13px] text-neutral-800 dark:text-neutral-100">
-                      {{ $al->matricula ?? '—' }}
-                    </span>
-                  </td>
-                  <td class="px-3 py-2 align-middle max-w-[220px]"><span class="block font-medium text-neutral-900 dark:text-neutral-100 truncate" title="{{ $al->nombre }}">{{ $al->nombre }}</span></td>
-                  <td class="px-3 py-2 align-middle max-w-[180px]"><span class="block truncate" title="{{ $al->apellido_paterno }}">{{ $al->apellido_paterno }}</span></td>
-                  <td class="px-3 py-2 align-middle max-w-[180px]"><span class="block truncate" title="{{ $al->apellido_materno }}">{{ $al->apellido_materno }}</span></td>
-                  <td class="px-3 py-2 align-middle">
-                    @php $lic = optional($al->licenciatura)->nombre; $rvoe = optional($al->licenciatura)->RVOE; @endphp
-                    <span class="inline-flex items-center px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:ring-emerald-800/60 text-[12px] truncate max-w-[220px]" title="{{ $lic }}">
-                      @if ($lic) {{$lic}} / {{ $rvoe }} @else — @endif
-                    </span>
-                  </td>
-                  <td class="px-3 py-2 align-middle">
-                    @php $cua = optional($al->cuatrimestre)->cuatrimestre; @endphp
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-200 dark:ring-indigo-800/60 text-[12px]">
-                      {{ $cua ? $cua.'º' : '—' }}
-                    </span>
-                  </td>
-                  <td class="px-3 py-2 align-middle">
-                    @php $gen = optional($al->generacion)->generacion; @endphp
-                    <span class="inline-flex items-center px-2 py-1 rounded-md bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200 dark:bg-neutral-700/60 dark:text-neutral-200 dark:ring-neutral-600/60 text-[12px]">
-                      {{ $gen ?? '—' }}
-                    </span>
-                  </td>
-                  <td class="px-3 py-2 align-middle">
-                    @php $mod  = optional($al->modalidad)->nombre; $chip = $this->modalidadChip($mod); @endphp
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-[12px] {{ $chip }}">{{ $mod ?? '—' }}</span>
-                  </td>
-                  <td class="px-3 py-2 align-middle">
-                    @if($al->foraneo === 'true') <flux:badge color="red">Foráneo</flux:badge>
-                    @else <flux:badge color="blue">Local</flux:badge> @endif
-                  </td>
-                  <td class="px-3 py-2 align-middle">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-700/70 dark:text-neutral-200 text-[12px]">
-                      {{ optional($al->created_at)->format('d/m/Y') }}
-                    </span>
-                  </td>
-                  <td class="px-3 py-2 align-middle">
-                    <flux:button variant="primary" square
-                      @click="Livewire.dispatch('abrirEstudiante', { id: {{ $al->id }} })"
-                      class="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-yellow-600">
-                      <flux:icon.pencil-square />
-                    </flux:button>
-                  </td>
-                </tr>
-              @empty
-                <tr><td colspan="11" class="px-3 py-8 text-center text-neutral-500">Sin registros.</td></tr>
-              @endforelse
-            </tbody>
+      <flux:button wire:click="exportarReprobados" variant="primary"  class="bg-green-700 hover:bg-green-800 focus:ring-4 dark:text-white">
+                    <div class="flex items-center gap-1">
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                      </svg>
 
-            <tbody wire:loading wire:target="loadMore,search" class="divide-y divide-transparent">
-              @for ($i = 0; $i < 5; $i++)
-                <tr>
-                  <td class="px-3 py-2 sticky left-0 z-20 bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700">
-                    <div class="h-3 w-24 rounded bg-neutral-200 dark:bg-neutral-700 animate-pulse"></div>
+                        <span>Exportar</span>
+                        </div>
+                </flux:button>
+      <div class="text-xs text-neutral-500 dark:text-neutral-400">
+        (Se agrupa por alumno; una fila por cada materia con calificación baja/NP)
+      </div>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-700 shadow-sm"
+         wire:loading.class="opacity-50" wire:target="loadMore,search">
+      <table class="min-w-full text-sm">
+        <thead class="sticky top-0 z-10 bg-gradient-to-r from-rose-600 to-red-600 dark:from-rose-700 dark:to-red-700 text-white shadow">
+          <tr>
+            <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">#</th>
+            <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase sticky left-0 z-30 bg-gradient-to-r from-rose-600 to-red-600 dark:from-rose-700 dark:to-red-700 border-r border-white/20">Matrícula</th>
+            <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Nombre</th>
+            <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Licenciatura</th>
+            <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Cuatrimestre Actual</th>
+            <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Materia</th>
+            <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Cuatrimestre Materia</th>
+            <th class="px-3 py-3 text-left text-[11px] tracking-wider uppercase">Calificación</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-neutral-100 dark:divide-neutral-700">
+          @php $k = 0; @endphp
+          @forelse($this->alumnos as $al)
+            @php
+              // Filtra calificaciones bajas según tu esquema: columna 'calificacion'
+              $cals = collect($al->calificaciones ?? [])->filter(function($c) {
+                $raw = $c->calificacion;
+                if (is_null($raw)) return false;
+                $u = strtoupper((string)$raw);
+                $isCode = in_array($u, ['NP','N/P','N.P.','NA']);
+                $isNum  = is_numeric($raw) && floatval($raw) <= 6;
+                return $isCode || $isNum;
+              })->values();
+              $rowspan = $cals->count();
+            @endphp
+
+            @if($rowspan > 0)
+              @foreach($cals as $idx => $cal)
+                @php
+                  $k++;
+                  $lic = optional($al->licenciatura)->nombre;
+                  $rvoe = optional($al->licenciatura)->RVOE;
+                  $cua = optional($al->cuatrimestre)->cuatrimestre;
+
+                  // 🔴 Nombre correcto de la materia: calificacion -> asignacionMateria -> materia -> nombre
+                  $materiaNombre = optional(optional($cal->asignacionMateria)->materia)->nombre ?? '—';
+
+                  $cuatrimestreMateria  = optional($cal->asignacionMateria)->cuatrimestre->cuatrimestre ?? '—';
+                  $valor         = $cal->calificacion;
+                  $u             = strtoupper((string)$valor);
+                  $isCode        = in_array($u, ['NP','N/P','N.P.','NA']);
+                  $isNum         = is_numeric($valor) && floatval($valor) <= 6;
+
+                  $badgeClass = $isCode
+                                ? 'bg-rose-100 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/20 dark:text-rose-200 dark:ring-rose-800/60'
+                                : 'bg-red-100 text-red-700 ring-1 ring-red-200 dark:bg-red-900/20 dark:text-red-200 dark:ring-red-800/60';
+
+                  $obs = $cal->observaciones ?? $cal->comentarios ?? null;
+                @endphp
+
+                <tr class="group odd:bg-neutral-50/60 dark:odd:bg-neutral-800/40 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
+                  {{-- # --}}
+                  @if($idx === 0)
+                    <td class="px-3 py-2 align-middle" rowspan="{{ $rowspan }}">
+                      <span class="block font-medium text-neutral-900 dark:text-neutral-100">{{ $idx + 1 }}</span>
+                    </td>
+                  @endif
+
+                  {{-- Matrícula --}}
+                  @if($idx === 0)
+                    <td class="px-3 py-2 align-middle sticky left-0 z-20 bg-white dark:bg-neutral-800 group-odd:bg-neutral-50/60 dark:group-odd:bg-neutral-800/40 group-hover:bg-rose-50 dark:group-hover:bg-rose-900/20 border-r border-neutral-200 dark:border-neutral-700"
+                        rowspan="{{ $rowspan }}">
+                      <span class="inline-block px-2 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-700/70 font-mono text-[13px] text-neutral-800 dark:text-neutral-100">
+                        {{ $al->matricula ?? '—' }}
+                      </span>
+                    </td>
+                  @endif
+
+                  {{-- Nombre --}}
+                  @if($idx === 0)
+                    <td class="px-3 py-2 align-middle max-w-[240px]" rowspan="{{ $rowspan }}">
+                      <span class="block font-medium text-neutral-900 dark:text-neutral-100 truncate" title="{{ $al->nombre }} {{ $al->apellido_paterno }} {{ $al->apellido_materno }}">
+                        {{ $al->nombre }} {{ $al->apellido_paterno }} {{ $al->apellido_materno }}
+                      </span>
+                    </td>
+                  @endif
+
+                  {{-- Licenciatura --}}
+                  @if($idx === 0)
+                    <td class="px-3 py-2 align-middle" rowspan="{{ $rowspan }}">
+                      <span class="inline-flex items-center px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:ring-emerald-800/60 text-[12px] truncate max-w-[220px]" title="{{ $lic }}">
+                        @if ($lic) {{$lic}} / {{ $rvoe }} @else — @endif
+                      </span>
+                    </td>
+                  @endif
+
+                  {{-- Cuatrimestre Actual --}}
+                  @if($idx === 0)
+                    <td class="px-3 py-2 align-middle" rowspan="{{ $rowspan }}">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-200 dark:ring-indigo-800/60 text-[12px]">
+                        {{ $cua ? $cua.'º' : '—' }}
+                      </span>
+                    </td>
+                  @endif
+
+                  {{-- Materia (¡ya visible!) --}}
+                  <td class="px-3 py-2 align-middle max-w-[280px]">
+                    <span class="block truncate" title="{{ $materiaNombre }}">{{ $materiaNombre }}</span>
                   </td>
-                  @for ($j = 0; $j < 10; $j++)
-                    <td class="px-3 py-2"><div class="h-3 w-full max-w-[160px] rounded bg-neutral-200 dark:bg-neutral-700 animate-pulse"></div></td>
-                  @endfor
+
+                  {{-- Cuatrimestre --}}
+                  <td class="px-3 py-2 align-middle">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200 dark:bg-neutral-700/60 dark:text-neutral-200 dark:ring-neutral-600/60 text-[12px]">
+                      {{ $cuatrimestreMateria }}
+                    </span>
+                  </td>
+
+                  {{-- Calificación (badge rojo) --}}
+                  <td class="px-3 py-2 align-middle">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] {{ $badgeClass }}">
+                      {{ $isNum ? number_format((float)$valor, 1) : $u }}
+                    </span>
+                  </td>
+
                 </tr>
+              @endforeach
+            @endif
+          @empty
+            <tr>
+              <td colspan="9" class="px-3 py-8 text-center text-neutral-500">Sin registros.</td>
+            </tr>
+          @endforelse
+        </tbody>
+
+        {{-- Skeleton mientras carga --}}
+        <tbody wire:loading wire:target="loadMore,search" class="divide-y divide-transparent">
+          @for ($i = 0; $i < 5; $i++)
+            <tr>
+              @for ($j = 0; $j < 9; $j++)
+                <td class="px-3 py-2">
+                  <div class="h-3 w-full max-w-[160px] rounded bg-neutral-200 dark:bg-neutral-700 animate-pulse"></div>
+                </td>
               @endfor
-            </tbody>
-          </table>
+            </tr>
+          @endfor
+        </tbody>
+      </table>
+    </div>
+  </div>
+@endif
+{{-- ===================== /TABLA: MATERIAS CON ≤6 O NP ===================== --}}
+
+
         </div>
 
         <!-- Overlay local para loadMore/search -->
@@ -294,7 +403,7 @@
           <span class="ml-3 text-sm font-medium text-neutral-800 dark:text-neutral-100">Cargando…</span>
         </div>
 
-        @php $totalGrupo = $modalTipo === 'con' ? $conPrefijo : $sinPrefijo; @endphp
+        @php $totalGrupo = $modalTipo === 'con' ? $conPrefijo : ($modalTipo === 'sin' ? $sinPrefijo : $bajos); @endphp
         @if($totalGrupo > $modalLimit)
           <div class="mt-4 flex justify-center">
             <button wire:click="loadMore" wire:loading.attr="disabled" wire:target="loadMore"
