@@ -26,9 +26,7 @@
         .muted{ color:#6b7280; } .mb-6{ margin-bottom:12px; } .mb-8{ margin-bottom:14px; }
         .mb-10{ margin-bottom:18px; } .chip{ display:inline-block; padding:2px 6px; border-radius:10px; border:1px solid #d1d5db; background:#f9fafb; font-weight:700; }
 
-        /* ===== Encabezado ===== */
-        .encabezado { margin-bottom:4px; }
-        .encabezado img{ width:100%; }
+
 
         .title{
             text-align:center; font-weight:700; letter-spacing:.5px;
@@ -43,10 +41,10 @@
         .meta .v{ font-weight:700; font-size:11px; }
 
         /* ===== Cards resumen compactas ===== */
-        .cards td{ width:25%; padding:6px; }
+        .cards td{ width:25%; padding:0px; }
         .card{ border:1px solid #e5e7eb; }
-        .card .head{ background:#f3f4f6; font-weight:700; text-align:center; padding:3px 4px; }
-        .card .body{ text-align:center; padding:6px 4px; font-size:12px; font-weight:700; }
+        .card .head{ background:#f3f4f6; font-weight:700; text-align:center; padding:0px 4px; }
+        .card .body{ text-align:center; padding:0px 4px; font-size:12px; font-weight:700; }
 
         /* ===== Columnas para lista de materias ===== */
         .columns{ display:flex; gap:10px; }
@@ -56,7 +54,7 @@
         .grades thead th{
             background:#0ea5e9; color:#fff; font-weight:700; padding:0px 5px; font-size:9px; letter-spacing:.3px;
         }
-        .grades tbody td{ border-bottom:1px solid #eef2f7; padding:3px 5px; font-size:9px; }
+        .grades tbody td{ border-bottom:1px solid #eef2f7; padding:0px 5px; font-size:9px; }
         .grades tbody tr:nth-child(even){ background:#fbfdff; }
         .col-idx{ width:20px; text-align:center; }
         .col-clave{ width:58px; text-align:center; }
@@ -80,6 +78,11 @@
 
         /* Evitar cortes feos */
         tr, td, th{ page-break-inside:avoid; }
+
+
+             /* ===== Encabezado ===== */
+        .encabezado { margin-bottom:4px; width: 100% }
+        .encabezado img{ width:70%; }
     </style>
 </head>
 <body>
@@ -237,87 +240,50 @@
     <div class="columns">
         {{-- Columna A --}}
         <div class="col">
-            <table class="grades">
-                <thead>
-                    <tr class="uppercase">
-                        <th class="col-idx">#</th>
-                        <th class="col-clave">Clave</th>
-                        <th class="col-cred">Créd.</th>
-                        <th class="col-cuat">Cuat.</th>
-                        <th class="col-name">Asignatura</th>
-                        <th class="col-score">Calif.</th>
-                        <th class="col-type">Tipo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach($colA as $r)
-                    @php
-                        $isNP  = ($r->calificacion === 'NP');
-                        $isRep = (is_numeric($r->calificacion) && $r->calificacion < 6);
-                        $isOK  = (is_numeric($r->calificacion) && $r->calificacion >= 6);
-                        $badge = $isOK ? 'score score--ok' : ($isNP ? 'score score--np' : ($isRep ? 'score score--rep' : 'score'));
-                    @endphp
-                    <tr>
-                        <td class="col-idx">{{ $idxA++ }}</td>
-                        <td class="col-clave">{{ $r->clave }}</td>
-                        <td class="col-cred">{{ $r->creditos }}</td>
-                        <td class="col-cuat">{{ $r->cuatri }}</td>
-                        <td class="col-name">{{ $r->nombre }}</td>
-                        <td class="col-score">
-                            @if(!is_null($r->calificacion))
-                                <span class="{{ $badge }}">{{ $r->calificacion }}</span>
-                            @else
-                                <span class="chip">EN PROCESO</span>
-                            @endif
-                        </td>
-                        <td class="col-type">{{ $r->tipo }}</td>
-                    </tr>
-                @endforeach
-                </tbody>
-            </table>
+            {{-- ===== Tabla en una sola columna ===== --}}
+<table class="grades">
+    <thead>
+        <tr class="uppercase">
+            <th class="col-idx">#</th>
+            <th class="col-clave">Clave</th>
+            <th class="col-cred">Créd.</th>
+            <th class="col-cuat">Cuat.</th>
+            <th class="col-name">Asignatura</th>
+            <th class="col-score">Calif.</th>
+            <th class="col-type">Tipo</th>
+        </tr>
+    </thead>
+    <tbody>
+    @php $idx = 1; @endphp
+    @foreach($rows as $r)
+        @php
+            $isNP  = ($r->calificacion === 'NP');
+            $isRep = (is_numeric($r->calificacion) && $r->calificacion < 6);
+            $isOK  = (is_numeric($r->calificacion) && $r->calificacion >= 6);
+            $badge = $isOK ? 'score score--ok' : ($isNP ? 'score score--np' : ($isRep ? 'score score--rep' : 'score'));
+        @endphp
+        <tr>
+            <td class="col-idx" style="line-height: 9px">{{ $idx++ }}</td>
+            <td class="col-clave" style="line-height: 9px">{{ $r->clave }}</td>
+            <td class="col-cred" style="line-height: 9px">{{ $r->creditos }}</td>
+            <td class="col-cuat" style="line-height: 9px">{{ $r->cuatri }}</td>
+            <td class="col-name" style="line-height: 9px">{{ $r->nombre }}</td>
+            <td class="col-score" style="line-height: 9px">
+                @if(!is_null($r->calificacion))
+                  {{ $r->calificacion }}
+                @else
+                    <span class="chip">EN PROCESO</span>
+                @endif
+            </td>
+            <td class="col-type" style="line-height: 0px">{{ $r->tipo }}</td>
+        </tr>
+    @endforeach
+    </tbody>
+</table>
+
         </div>
 
-        {{-- Columna B --}}
-        <div class="col">
-            <table class="grades">
-                <thead>
-                    <tr class="uppercase">
-                        <th class="col-idx">#</th>
-                        <th class="col-clave">Clave</th>
-                        <th class="col-cred">Créd.</th>
-                        <th class="col-cuat">Cuat.</th>
-                        <th class="col-name">Asignatura</th>
-                        <th class="col-score">Calif.</th>
-                        <th class="col-type">Tipo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach($colB as $r)
-                    @php
-                        $isNP  = ($r->calificacion === 'NP');
-                        $isRep = (is_numeric($r->calificacion) && $r->calificacion < 6);
-                        $isOK  = (is_numeric($r->calificacion) && $r->calificacion >= 6);
-                        $badge = $isOK ? 'score score--ok' : ($isNP ? 'score score--np' : ($isRep ? 'score score--rep' : 'score'));
-                    @endphp
-                    <tr>
-                        <td class="col-idx">{{ $idxB++ }}</td>
-                        <td class="col-clave">{{ $r->clave }}</td>
-                        <td class="col-cred">{{ $r->creditos }}</td>
-                        <td class="col-cuat">{{ $r->cuatri }}</td>
-                        <td class="col-name">{{ $r->nombre }}</td>
-                        <td class="col-score">
-                            @if(!is_null($r->calificacion))
-                                <span class="{{ $badge }}">{{ $r->calificacion }}</span>
-                            @else
-                                <span class="chip">EN PROCESO</span>
-                            @endif
-                        </td>
-                        <td class="col-type">{{ $r->tipo }}</td>
-                    </tr>
-                @endforeach
-                </tbody>
-            </table>
-        </div>
+
     </div>
 
     {{-- ===== Footer ===== --}}

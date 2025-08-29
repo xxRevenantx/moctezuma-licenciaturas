@@ -131,14 +131,7 @@ class MatriculaEditar extends Component
             $this->generacion_id = $estudiante->generacion_id;
             $this->cuatrimestre_id = $estudiante->cuatrimestre_id;
             $this->modalidad_id = $estudiante->modalidad_id;
-            $this->CURP_documento = $estudiante->CURP_documento == "true" ? true : false;
-            $this->certificado_estudios = $estudiante->certificado_estudios == "true" ? true : false;
-            $this->acta_nacimiento = $estudiante->acta_nacimiento == "true" ? true : false;
-            $this->comprobante_domicilio = $estudiante->comprobante_domicilio == "true" ? true : false;
-            $this->certificado_medico = $estudiante->certificado_medico == "true" ? true : false;
-            $this->fotos_infantiles = $estudiante->fotos_infantiles == "true" ? true : false;
             $this->foto = $estudiante->foto;
-            $this->otros = $estudiante->otros;
             $this->foraneo = $estudiante->foraneo == "true" ? true : false;
             $this->pais = $estudiante->pais;
             $this->status = $estudiante->status == "true" ? true : false;
@@ -352,14 +345,7 @@ class MatriculaEditar extends Component
                 'generacion_id' => $this->generacion_id,
                 'cuatrimestre_id' => $this->cuatrimestre_id,
                 'modalidad_id' => $this->modalidad_id,
-                'CURP_documento' => $this->CURP_documento ? "true" : "false",
-                'certificado_estudios' => $this->certificado_estudios ? "true" : "false",
-                'acta_nacimiento' => $this->acta_nacimiento ? "true" : "false",
-                'comprobante_domicilio' => $this->comprobante_domicilio ? "true" : "false",
-                'certificado_medico' => $this->certificado_medico ? "true" : "false",
-                'fotos_infantiles' => $this->fotos_infantiles ? "true" : "false",
                  'foto' => $this->foto_nueva ? $datos['foto'] : $this->foto,
-                'otros' => trim($this->otros),
                 'foraneo' => $this->foraneo ? "true" : "false",
                 'estatus' => $this->status ? "true" : "false",
                 'fecha_baja' => $this->fecha_baja,
@@ -371,7 +357,7 @@ class MatriculaEditar extends Component
 
           $this->dispatch('refreshNavbar');
 
-        $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente','licenciatura_id','generacion_id','cuatrimestre_id','modalidad_id','CURP_documento','certificado_estudios','acta_nacimiento', 'comprobante_domicilio','certificado_medico','fotos_infantiles','foto_nueva','otros','foraneo','status', 'fecha_baja']);
+        $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente','licenciatura_id','generacion_id','cuatrimestre_id','modalidad_id','foto_nueva','foraneo','status', 'fecha_baja']);
 
          $this->dispatch('swal', [
               'title' => 'Estudiante actualizado correctamente!',
