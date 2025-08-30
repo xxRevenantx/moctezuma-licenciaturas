@@ -229,7 +229,7 @@ function isColorLight($hexColor) {
                         @foreach ($profesores as $profesor)
                             <option value="{{ $profesor->id }}"
                                 @if(($profesor_seleccionado[$materia->id] ?? '') == $profesor->id) selected @endif>
-                                {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }} {{ $profesor->nombre }}
+                                {{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}
                             </option>
                         @endforeach
                     </select>

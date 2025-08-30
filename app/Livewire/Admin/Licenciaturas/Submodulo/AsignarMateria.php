@@ -119,20 +119,17 @@ public function asignarProfesor($materia_id, $profesor_id)
 }
 
 
-
-
-
-
      public function mount($licenciatura, $modalidad, $submodulo)
     {
 
         $this->licenciatura = Licenciatura::where('slug', $licenciatura)->firstOrFail();
         $this->modalidad = Modalidad::where('slug', $modalidad)->firstOrFail();
 
-        $this->profesores = Profesor::orderBy('Apellido_paterno', 'asc')
-            ->orderBy('Apellido_materno', 'asc')
-            ->orderBy('Nombre', 'asc')
+        $this->profesores = Profesor::orderBy('nombre', 'asc')
+            ->orderBy('apellido_paterno', 'asc')
+            ->orderBy('apellido_materno', 'asc')
             ->get();
+
 
 
 
