@@ -5,6 +5,11 @@
         <p class="text-sm text-gray-600 dark:text-gray-400">Genera constancias para alumnos registrados.</p>
     </div>
 
+    {{-- ELABORACIÓN DE CONSTANCIAS --}}
+
+    {{-- <livewire:admin.template.constancia-template /> --}}
+
+
     <!-- Card / Formulario -->
     <div class="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow">
         <!-- Franja superior decorativa -->

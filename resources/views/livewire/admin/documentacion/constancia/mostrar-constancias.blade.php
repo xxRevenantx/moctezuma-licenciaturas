@@ -19,11 +19,7 @@
     }"
     class="space-y-5"
 >
-    <!-- Encabezado -->
-    <div class="flex flex-col gap-1">
-        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Constancias</h1>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Consulta, descarga, edita o elimina constancias emitidas.</p>
-    </div>
+
 
     <!-- Card contenedor (listado-pro) -->
     <div class="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow">
