@@ -8,7 +8,7 @@
 
     <style>
         /* Márgenes de página (reservan espacio para header/footer fijos) */
-        @page { margin: 10px 45px 110px 45px; }
+        @page { margin: 10px 45px 10px 45px; }
 
         /* Calibri como en el diseño base */
         @font-face {
@@ -260,32 +260,6 @@
             <div class="item" style="margin-top:6px;"><strong>Total semanal del grupo:</strong> {{ $grupoHorasStr }} h</div>
         </div>
 
-        <!-- CARGA POR PROFESOR -->
-        <div class="summary">
-            <h4>Carga por profesor (horas/semana)</h4>
-            <table style="width:100%; border-collapse:separate; border-spacing:0 6px;">
-                <thead>
-                <tr>
-                    <th style="width:30px; background:#cbd5e1; color:#0f172a; border:1px solid #e5e7eb;">#</th>
-                    <th style="background:#cbd5e1; color:#0f172a; border:1px solid #e5e7eb;">Profesor</th>
-                    <th style="width:140px; background:#cbd5e1; color:#0f172a; border:1px solid #e5e7eb;">Horas/Sem</th>
-                </tr>
-                </thead>
-                <tbody>
-                @php $pidx=1; @endphp
-                @foreach ($cargasProfesor as $row)
-                    <tr>
-                        <td class="mono" style="text-align:center; border:1px solid #e5e7eb; background:#fff;">{{ $pidx++ }}</td>
-                        <td style="border:1px solid #e5e7eb; background:#fff;">{{ $row['nombre'] ?? '—' }}</td>
-                        <td class="mono" style="text-align:center; border:1px solid #e5e7eb; background:#fff;">{{ $minutosAHoras($row['min'] ?? 0) }}</td>
-                    </tr>
-                @endforeach
-                @if(empty($cargasProfesor))
-                    <tr><td colspan="3" style="text-align:center; color:#64748b; border:1px solid #e5e7eb; background:#fff;">Sin datos de carga por profesor.</td></tr>
-                @endif
-                </tbody>
-            </table>
-        </div>
 
         <!-- HISTORIAL (opcional) -->
         @if (!empty($historial ?? []))
@@ -312,10 +286,7 @@
             </div>
         @endif
 
-        <!-- Auditoría ligera -->
-        <div class="legend" style="margin-top:8px;">
-            Documento: <span class="mono">{{ $folio }}</span> ({{ $version }})
-        </div>
+
     </div>
 </main>
 
