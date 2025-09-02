@@ -199,7 +199,7 @@ class PDFController extends Controller
             'dias' => $dias,
             'materias' => $materias,
         ];
-              $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.horarioEscolarizadaPDF', $data)->setPaper('letter', 'portrait');
+              $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.horarioEscolarizadaPDF', $data)->setPaper('legal', 'portrait');
              return $pdf->stream("HORARIO_DE_CLASES_GEN_".$generacion->generacion."_".$filtrar_cuatrimestre."°CUATRIMESTRE.pdf");
     }
 
@@ -700,7 +700,91 @@ public function horario_general_semiescolarizada()
 
 
  // LISTA DE ASISTENCIAS
-    public function lista_asistencia(Request $request){
+    public function lista_asistencia_escolarizada(Request $request){
+        $materia_id = $request->asignacion_materia;
+        $licenciatura_id = $request->licenciatura_id;
+        $cuatrimestre_id = $request->cuatrimestre_id;
+        $generacion_id = $request->generacion_id;
+        $modalidad_id = $request->modalidad_id;
+        $periodo =  $request->periodo;
+
+
+        if (!$periodo) {
+            abort(404, 'Periodo no encontrado');
+        }
+        // Obtén el periodo y genera los días del mes.
+        $periodo = explode('-', $periodo); // Ejemplo: ['5', '8'] para Mayo-Agosto
+
+        $meses = [
+            '1' => 'Enero', '2' => 'Febrero', '3' => 'Marzo', '4' => 'Abril', '5' => 'Mayo', '6' => 'Junio',
+            '7' => 'Julio', '8' => 'Agosto', '9' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
+        ];
+
+        $generacion = Generacion::find($generacion_id);
+        $licenciatura = Licenciatura::find($licenciatura_id);
+
+       // Genera días hábiles (lunes a viernes) dentro del periodo
+        $fechas = [];
+        $anioActual = (int) date('Y');
+
+        for ($mes = (int)$periodo[0]; $mes <= (int)$periodo[1]; $mes++) {
+            $fechas[$mes] = [];
+            $diasEnMes = cal_days_in_month(CAL_GREGORIAN, $mes, $anioActual);
+
+            for ($dia = 1; $dia <= $diasEnMes; $dia++) {
+                $fechaStr = sprintf('%04d-%02d-%02d', $anioActual, $mes, $dia);
+                $n = (int) date('N', strtotime($fechaStr)); // 1=Lun ... 7=Dom
+
+                if ($n >= 1 && $n <= 5) { // Lunes a viernes
+                    $fechas[$mes][] = $dia;
+                }
+            }
+        }
+
+
+
+          $materia = AsignacionMateria::with(['materia', 'profesor'])
+            ->where('id', $materia_id)
+            ->first();
+
+            $alumnos = Inscripcion::where('licenciatura_id', $licenciatura_id)
+                ->where('cuatrimestre_id', $cuatrimestre_id)
+                ->where('generacion_id', $generacion_id)
+                ->where('modalidad_id', $modalidad_id)
+                ->where('status', 'true')
+                ->where('foraneo', 'false') // Filtrar por alumnos no foráneos
+                ->orderBy('apellido_paterno', 'asc')
+                ->orderBy('apellido_materno', 'asc')
+                ->orderBy('nombre', 'asc')
+                ->get();
+
+
+        if (!$materia) {
+            abort(404, 'Materia no encontrada');
+        }
+
+
+         $data = [
+            'escuela' => Escuela::all()->first(),
+            'materia' => $materia,
+            'alumnos' => $alumnos,
+            'periodo' => $periodo,
+             'fechas' => $fechas, // Añadimos las fechas generadas
+             'meses' => $meses,
+             'generacion' => $generacion,
+
+         ];
+
+         $exportacion = $licenciatura->nombre . '_' . $materia->materia->slug . '_' . $generacion->generacion . '_' . $cuatrimestre_id.'°_Cuatrimestre';
+
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-asistencia-escolarizadaPDF', $data)
+              ->setPaper('letter', 'landscape');
+
+        return $pdf->stream("LISTA_ASISTENCIA_ESCOLARIZADO".$exportacion.".pdf");
+    }
+
+    //LISTA DE ASISTENCIAS SEMIESCOLARIZADA
+    public function lista_asistencia_semiescolarizada(Request $request){
         $materia_id = $request->asignacion_materia;
         $licenciatura_id = $request->licenciatura_id;
         $cuatrimestre_id = $request->cuatrimestre_id;
@@ -774,7 +858,7 @@ public function horario_general_semiescolarizada()
 
          $exportacion = $licenciatura->nombre . '_' . $materia->materia->slug . '_' . $generacion->generacion . '_' . $cuatrimestre_id.'°_Cuatrimestre';
 
-    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-asistenciaPDF', $data)
+    $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-asistencia-semiescolarizadaPDF', $data)
               ->setPaper('letter', 'landscape'); ;
 
         return $pdf->stream("LISTA_ASISTENCIA_".$exportacion.".pdf");

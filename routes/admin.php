@@ -125,7 +125,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/etiquetas', [PDFController::class, 'etiquetas'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.etiquetas');
 
 
-    Route::get('/lista-asistencia', [PDFController::class, 'lista_asistencia'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_asistencia');
+    Route::get('/lista-asistencia-escolarizada', [PDFController::class, 'lista_asistencia_escolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_asistencia_escolarizada');
+    Route::get('/lista-asistencia-semiescolarizada', [PDFController::class, 'lista_asistencia_semiescolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_asistencia_semiescolarizada');
     Route::get('/lista-evaluacion', [PDFController::class, 'lista_evaluacion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_evaluacion');
 
     // CALIFICACIONES DEL ALUMNO
