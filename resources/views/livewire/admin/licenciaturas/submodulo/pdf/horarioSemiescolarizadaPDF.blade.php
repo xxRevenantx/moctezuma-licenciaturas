@@ -99,6 +99,22 @@
     $fmtHoras = function($min){ $h=intdiv($min,60); $m=$min%60; return sprintf('%02d:%02d',$h,$m); };
     $totalSem = $fmtHoras($totalMin);
 
+
+    /* ====== ORDENAR HORARIO POR HORA INICIAL (ascendente) ====== */
+$horarioOrdenado = collect($horario)
+    ->filter(function($h){
+        return isset($h->hora) && trim((string)$h->hora) !== '';
+    })
+    ->sortBy(function($h) use ($parseRange){
+        try {
+            [$ini, $fin] = $parseRange($h->hora);
+            return $ini->timestamp;             // clave de orden: hora inicial (Unix)
+        } catch (\Throwable $e) {
+            return PHP_INT_MAX;                 // los inválidos se van al final
+        }
+    })
+    ->values();
+
     /* ====== AGRUPAR POR PROFESOR (materias únicas + horas totales) ====== */
     $profesores = []; // [prof_id|'sin' => ['nombre'=>string,'materias'=>[mat_id=>['nombre','clave']], 'min'=>int]]
     foreach ($horario as $h) {
@@ -174,7 +190,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($horario as $h)
+                    @foreach ($horarioOrdenado as $h)
                         <tr>
                             <td class="mono" style="text-align:center;">{{ strtoupper($h->hora) }}</td>
                             <td style="text-align:center;">
@@ -182,7 +198,7 @@
                                     {{ $h->asignacionMateria->materia->nombre }}
                                 </div>
                                 @php
-                                    $tipo = $h->tipo ?? null;   /* Teoría | Práctica | Lab | Virtual */
+                                    $tipo = $h->tipo ?? null;
                                     $aula = $h->aula ?? null;
                                 @endphp
                                 <div style="margin-top:2px;">
@@ -202,6 +218,7 @@
                         @endif
                     @endforeach
                 </tbody>
+
             </table>
         </div>
 
