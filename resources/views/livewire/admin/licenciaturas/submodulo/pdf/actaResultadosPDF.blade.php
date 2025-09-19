@@ -292,7 +292,7 @@
             <td colspan="3" style="text-align: center; border:none;   text-transform: uppercase;">
                    {{ $directora->nombre }} {{ $directora->apellido_paterno }} {{ $directora->apellido_materno }}
                 <div style="border-top:2px solid #000; width:25%; margin: 0 auto 2px auto;"></div>
-                <span style="font-weight:bold;">NOMBRE Y FIRMA<br>DIRECTOR(A) DE CONTROL ESCOLAR</span>
+                <span style="font-weight:bold;">NOMBRE Y FIRMA<br>CONTROL ESCOLAR</span>
             </td>
         </tr>
     </table>

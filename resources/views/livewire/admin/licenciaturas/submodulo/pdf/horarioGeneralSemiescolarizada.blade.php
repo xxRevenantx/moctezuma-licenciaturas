@@ -7,15 +7,23 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <title>Horario General Semiescolarizada</title>
     <style>
-        @page { margin: 10px 10px 10px 10px; }
-        body { font-family: 'figtree', sans-serif; font-size: 12px; color:#111; }
-        h2 { margin: 0 0 10px 0; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #000; padding: 6px 4px; text-align: center; }
-        th { background-color: #eee; font-weight: 700; }
-        .left { text-align: left; }
-        .page-break { page-break-before: always; }
-    </style>
+  @page { margin: 10px 14px; }
+  body { font-family: 'figtree', sans-serif; font-size: 11px; color:#111; }
+  h2 { margin: 0 0 8px 0; line-height: 1.25; }
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+  th, td { border: 1px solid #000; padding: 6px 4px; text-align: center; word-wrap: break-word; }
+  th { background-color: #eee; font-weight: 700; }
+  .left { text-align: left; }
+  .page-break { page-break-before: always; }
+  /* Cabeceras pegajosas por página (cuando hay saltos) */
+  thead { display: table-header-group; }
+  tfoot { display: table-row-group; }
+  tr { page-break-inside: avoid; }
+  /* Tipos un poco más compactos dentro de celdas de horario */
+  .hora { font-weight: 700; }
+  .materia { font-size: 10px; font-weight: 700; line-height: 1.15; }
+  .prof { font-size: 9px; line-height: 1.1; }
+</style>
 </head>
 <body>
 
@@ -58,12 +66,12 @@
                             $l = (0.299*$r + 0.587*$g + 0.114*$b);
                             $textoColor = $l > 186 ? '#000000' : '#FFFFFF';
                         @endphp
-                        <td style="background-color: {{ $color }}; color: {{ $textoColor }}">
+                        <td style="background-color: {{ $color }}; color: {{ $textoColor }}; min-height: 34px;">
                             @if ($item)
-                                <div><strong>{{ $materia }}</strong></div>
-                                <div style="font-size: 10px">{{ $profesor }}</div>
+                                <div class="materia">{{ $materia }}</div>
+                                <div class="prof">{{ $profesor }}</div>
                             @endif
-                        </td>
+                            </td>
                     @endforeach
                 </tr>
             @endforeach

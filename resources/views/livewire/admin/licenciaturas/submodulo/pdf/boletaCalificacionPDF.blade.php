@@ -261,7 +261,7 @@
     <div class="resumen avoid-break">
         <span class="lbl">Leyenda:</span>
         <span class="score ok">≥ 6 Aprobada</span>
-        <span class="score rep"> < 6 Reprobada</span>
+        <span class="score rep"> &lt; 6 Reprobada</span>
         <span class="score np">NP No presentó</span>
     </div>
 

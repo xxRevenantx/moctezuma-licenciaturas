@@ -199,7 +199,7 @@ class PDFController extends Controller
             'dias' => $dias,
             'materias' => $materias,
         ];
-              $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.horarioEscolarizadaPDF', $data)->setPaper('legal', 'portrait');
+              $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.horarioEscolarizadaPDF', $data)->setPaper('letter', 'portrait');
              return $pdf->stream("HORARIO_DE_CLASES_GEN_".$generacion->generacion."_".$filtrar_cuatrimestre."°CUATRIMESTRE.pdf");
     }
 
@@ -238,6 +238,7 @@ class PDFController extends Controller
     $alumnos = Inscripcion::with('calificaciones')
         ->where('generacion_id', $generacion_id)
         ->where('licenciatura_id', $licenciatura_id)
+        ->where('status', 'true')
         ->orderBy('apellido_paterno', 'asc')
         ->orderBy('apellido_materno', 'asc')
         ->orderBy('nombre', 'asc')
@@ -638,16 +639,12 @@ public function horario_general_semiescolarizada()
         })
         ->values();
 
-    // === Resumen: Materias del Profesor y Horas Totales ===
-    // Agrupar por profesor (incluye "sin asignar")
     $resumenDocentes = $horarios
         ->groupBy(function ($h) {
             return optional(optional($h->asignacionMateria)->profesor)->id ?: 'sin';
         })
-        ->map(function ($items, $profId) {
+        ->map(function ($items) {
             $prof = optional(optional($items->first()->asignacionMateria)->profesor);
-
-            // Materias únicas por docente (por ID de materia)
             $materias = $items->map(function ($i) {
                     $m = optional(optional($i->asignacionMateria)->materia);
                     if (!$m) return null;
@@ -669,33 +666,32 @@ public function horario_general_semiescolarizada()
             );
 
             return [
-                'nombre'      => $nombre,
+                'nombre'      => preg_replace('/\s+/', ' ', $nombre),
                 'color'       => $prof->color ?? '#e5e7eb',
                 'materias'    => $materias,
-                'total_horas' => $items->count(),   // slots de horario asignados
+                'total_horas' => $items->count(),
             ];
         })
-        // Orden ASC por nombre del profesor (natural y case-insensitive)
         ->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)
         ->values();
 
-    $totalGeneralHoras = $resumenDocentes->sum('total_horas');
-
     $data = [
-        'horarios'            => $horarios,
-        'columnasUnicas'      => $columnasUnicas,
-        'horasUnicas'         => $horasUnicas,
-        'resumenDocentes'     => $resumenDocentes,
-        'totalGeneralHoras'   => $totalGeneralHoras,
+        'horarios'          => $horarios,
+        'columnasUnicas'    => $columnasUnicas,
+        'horasUnicas'       => $horasUnicas,
+        'resumenDocentes'   => $resumenDocentes,
+        'totalGeneralHoras' => $resumenDocentes->sum('total_horas'),
     ];
 
+    // Doble carta horizontal (17x11) — orientación portrait para mantener 1224x792 sin rotar
     $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
         'livewire.admin.licenciaturas.submodulo.pdf.horarioGeneralSemiescolarizada',
         $data
-    )->setPaper('legal', 'landscape');
+    )->setPaper([0, 0, 1224, 792], 'portrait');
 
     return $pdf->stream('horario_general-semiescolarizada.pdf');
 }
+
 
 
 
