@@ -44,7 +44,7 @@
 
     {{-- Info profesor seleccionado --}}
     @if($selectedProfesor)
-        <div class="p-4 bg-gray-900 rounded text-gray-100">
+        <div class="p-4 bg-gray-100 dark:bg-gray-900 rounded text-gray-900 dark:text-gray-100">
             <p class="font-semibold">
             Nombre del profesor: {{ $selectedProfesor['nombre'] }} {{ $selectedProfesor['apellido_paterno'] }} {{ $selectedProfesor['apellido_materno'] }}
             </p>
@@ -143,7 +143,7 @@
         </div>
     </div>
 
-    <div class="max-h-[480px] overflow-auto bg-gray-900" data-table-scroll>
+    <div class="max-h-[480px] overflow-auto bg-gray-100 dark:bg-gray-900" data-table-scroll>
         <table class="min-w-full divide-y divide-gray-700">
             <thead class="bg-gray-800 sticky top-0 z-10"
                    :class="showShadow ? 'shadow-sm shadow-gray-900' : ''">
@@ -169,15 +169,15 @@
                 </tr>
             </thead>
 
-            <tbody class="bg-gray-900 divide-y divide-gray-800">
+            <tbody class="bg-gray-100 dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800 text-gray-900 dark:text-gray-100">
                 @forelse($this->materiasFiltradas as $i => $row)
-                    <tr class="group hover:bg-indigo-900/40 transition-colors"
+                    <tr class="group hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
                         x-data="{ open:false }">
                         <!-- # -->
                         <td class="px-3 align-top"
                             :class="dense ? 'py-1.5 text-xs' : 'py-2.5 text-sm'">
                             <div class="flex items-start gap-2">
-                                <span class="text-gray-200">{{ $i + 1 }}</span>
+                                <span class="text-gray-400 dark:text-gray-200">{{ $i + 1 }}</span>
                             </div>
                         </td>
 
@@ -185,16 +185,16 @@
                         <td class="px-3 align-top"
                             :class="dense ? 'py-1.5' : 'py-2.5'">
                             <div class="flex items-center gap-2">
-                                <span class="text-gray-100 text-center"
+                                <span class="text-gray-800 dark:text-gray-100 text-center"
                                       x-html="highlight(@js($row->materia))"></span>
                             </div>
                             <div class="mt-1">
                                 <!-- badge modalidad -->
                                 <template x-if="@js($row->modalidad) === 'SEMIESCOLARIZADA'">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-900 text-purple-100">Semiescolarizada</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100">Semiescolarizada</span>
                                 </template>
                                 <template x-if="@js($row->modalidad) === 'ESCOLARIZADA'">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-900 text-emerald-100">Escolarizada</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100">Escolarizada</span>
                                 </template>
                             </div>
                         </td>
@@ -202,19 +202,19 @@
                         <!-- Modalidad -->
                         <td class="px-3 align-top text-center" x-show="showCols.modalidad"
                             :class="dense ? 'py-1.5 text-xs' : 'py-2.5 text-sm'">
-                            <span class="text-gray-100" x-html="highlight(@js($row->modalidad))"></span>
+                            <span class="text-gray-700 dark:text-gray-100" x-html="highlight(@js($row->modalidad))"></span>
                         </td>
 
                         <!-- Cuatrimestre -->
                         <td class="px-3 align-top text-center" x-show="showCols.cuatrimestre"
                             :class="dense ? 'py-1.5 text-xs' : 'py-2.5 text-sm'">
-                            <span class="text-gray-100">{{ $row->cuatrimestre }}</span>
+                            <span class="text-gray-700 dark:text-gray-100">{{ $row->cuatrimestre }}</span>
                         </td>
 
                         <!-- Licenciatura -->
                         <td class="px-3 align-top text-center" x-show="showCols.licenciatura"
                             :class="dense ? 'py-1.5 text-xs' : 'py-2.5 text-sm'">
-                            <span class="text-gray-100" x-html="highlight(@js($row->licenciatura))"></span>
+                            <span class="text-gray-700 dark:text-gray-100" x-html="highlight(@js($row->licenciatura))"></span>
                         </td>
 
                         <!-- Acciones -->
@@ -250,8 +250,6 @@
                                 </a>
                             @endif
 
-
-
                             <a target="_blank" href="{{ route('admin.pdf.documentacion.lista_evaluacion', [
                                 'asignacion_materia' => $row->asignacion_materia_id,
                                 'licenciatura_id' => $row->licenciatura_id,
@@ -268,16 +266,16 @@
 
                     <!-- Detalle expandible -->
                     <tr x-show="open" x-collapse>
-                        <td colspan="6" class="bg-gray-800 px-6 py-3 text-sm text-gray-200">
+                        <td colspan="6" class="bg-gray-50 dark:bg-gray-800 px-6 py-3 text-sm text-gray-700 dark:text-gray-200">
                             <div class="flex flex-wrap items-center gap-2">
-                                <span class="text-xs font-semibold text-gray-400">Generaciones:</span>
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Generaciones:</span>
                                 @php
                                     $gens = $row->generaciones
                                         ? \Illuminate\Support\Str::of($row->generaciones)->explode(',')->filter()->unique()->values()
                                         : collect();
                                 @endphp
                                 @forelse($gens as $g)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-blue-900 text-blue-100">Gen {{ $g }}</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100">Gen {{ $g }}</span>
                                 @empty
                                     <span class="text-xs text-gray-400">Sin registros de horario por generación.</span>
                                 @endforelse
@@ -310,7 +308,6 @@
                                     Asistencia
                                 </a>
                             @endif
-
 
                                 <a target="_blank" href="{{ route('admin.pdf.documentacion.lista_evaluacion', [
                                     'asignacion_materia' => $row->asignacion_materia_id,

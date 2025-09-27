@@ -270,19 +270,19 @@
     </table>
 
 
-<div style="width:100%; margin-top: 60px;">
+<div style="width:100%; margin-top: 100px;">
     <table style="width:100%; border: none; font-size:15px">
         <tr>
             <td style="width:45%; text-align: center; border: none; text-transform: uppercase;">
                 {{ $rector->nombre }} {{ $rector->apellido_paterno }} {{ $rector->apellido_materno }}
                 <div style="border-top:2px solid #000; width:80%; margin: 0 auto 2px auto;"></div>
-                <span style="font-weight:bold;">NOMBRE Y FIRMA<br>R E C T O R (A)</span>
+                <span style="font-weight:bold; line-height:10px">NOMBRE Y FIRMA<br>R E C T O R (A)</span>
             </td>
             <td style="width:10%; border:none;"></td>
             <td style="width:45%; text-align: center; border: none;  text-transform: uppercase;">
                 {{ $profesor ?? "----" }}
                 <div style="border-top:2px solid #000; width:80%; margin: 0 auto 2px auto;"></div>
-                <span style="font-weight:bold;">NOMBRE Y FIRMA DEL PROFESOR(A)<br>&nbsp;</span>
+                <span style="font-weight:bold; line-height:10px">NOMBRE Y FIRMA DEL PROFESOR(A)<br>&nbsp;</span>
             </td>
         </tr>
         <tr>
@@ -292,7 +292,7 @@
             <td colspan="3" style="text-align: center; border:none;   text-transform: uppercase;">
                    {{ $directora->nombre }} {{ $directora->apellido_paterno }} {{ $directora->apellido_materno }}
                 <div style="border-top:2px solid #000; width:25%; margin: 0 auto 2px auto;"></div>
-                <span style="font-weight:bold;">NOMBRE Y FIRMA<br>CONTROL ESCOLAR</span>
+                <span style="font-weight:bold; line-height:10px">NOMBRE Y FIRMA<br>CONTROL ESCOLAR</span>
             </td>
         </tr>
     </table>

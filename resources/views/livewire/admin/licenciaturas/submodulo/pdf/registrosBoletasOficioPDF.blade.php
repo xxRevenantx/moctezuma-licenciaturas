@@ -142,7 +142,8 @@
             calle Francisco I. Madero Ote. 800, Col. Esquipulas de la localidad de Ciudad Altamirano,
             municipio de Pungarabato del estado de Guerrero, y de acuerdo a mis facultades concedidas,
             de manera atenta y respetuosa me dirijo a usted para solicitar la <b>validación y certificación de
-            los registros de escolaridad y actas de resultados</b> correspondientes a la
+            los registros de escolaridad y actas de resultados de evaluación
+            </b>correspondientes a la
             <b>GENERACIÓN {{ $generacion->generacion }}</b>. A continuación se anexan las licenciaturas correspondientes a la
             generación solicitada:
             <ul style="margin-top: -10px; line-height:20px">
