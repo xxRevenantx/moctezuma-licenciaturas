@@ -159,6 +159,7 @@
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">L o F</th>
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foto</th>
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Matrícula</th>
+                    <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Folio</th>
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">CURP</th>
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre</th>
                     <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Género</th>
@@ -213,6 +214,7 @@
                 @endif
             </td>
             <td class="border px-4 py-2">{{ $estudiante->matricula }}</td>
+            <td class="border px-4 py-2">{{ $estudiante->folio }}</td>
             <td class="border px-4 py-2">{{ $estudiante->CURP }}</td>
             <td class="border px-4 py-2">{{ $estudiante->apellido_paterno }} {{ $estudiante->apellido_materno }} {{ $estudiante->nombre }}</td>
             <td class="border px-4 py-2 text-center">
