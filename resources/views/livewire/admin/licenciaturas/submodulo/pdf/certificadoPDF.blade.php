@@ -38,7 +38,7 @@
 
      .encabezado {
         text-align: center;
-        margin-top: 30px;
+        margin-top: 15px;
         font-size: 16px;
     }
     .img_encabezado {
@@ -119,7 +119,7 @@
                     </tr>
 
            </table>
-            <p  style="text-align:right; font-size:13.5px; margin-top:-5px">MATRÍCULA: <b><u>{{$alumno->matricula}}</u></b></p>
+            <p  style="text-align:right; font-size:13.5px; margin-top:-3px">MATRÍCULA: <b><u>{{$alumno->matricula}}</u></b></p>
 
 
             @if ($alumno->licenciatura_id == 6)
@@ -389,7 +389,7 @@
                                             @endphp
 
                                             <tr>
-                                                <td style="text-align:left; font-size:11px; border-left:1px solid #000;line-height:12px; text-transform:uppercase;
+                                                <td style="text-align:left; font-size:11px; border-left:1px solid #000;line-height:7px; text-transform:uppercase;
                                                  padding-left:10px; padding-top:0; padding-bottom:0; margin:0;  ">
                                                  {{$materia->nombre}}</td>
                                               <td style="text-align:center; font-size:11px; line-height:12px; text-transform:uppercase;
@@ -464,7 +464,7 @@
      $promedio = $cuenta > 0 ? floor($suma / $cuenta * 10) / 10 : '';
 @endphp
 
-<p style="text-align:justify; font-size:13px; margin:0; text-transform:uppercase">EL PRESENTE CERTIFICADO DE AMPARA <u><b>{{ $materiasCalificablesEnLetras }}</b></u> ASIGNATURAS, LAS CUALES CUBREN ÍNTEGRAMENTE EL PLAN DE ESTUDIOS DE LA LICENCIATURA <b>{{$licenciatura->nombre}}</b>
+<p style="text-align:justify; font-size:13px; margin:0; text-transform:uppercase; line-height:12px;">EL PRESENTE CERTIFICADO DE AMPARA <u><b>{{ $materiasCalificablesEnLetras }}</b></u> ASIGNATURAS, LAS CUALES CUBREN ÍNTEGRAMENTE EL PLAN DE ESTUDIOS DE LA LICENCIATURA <b>{{$licenciatura->nombre}}</b>
         CON UN TOTAL DE <b>{{ $creditosMateriasCalificables }}</b> CRÉDITOS Y UN PROMEDIO GENERAL DE APROVECHAMIENTO DE <b>{{ $promedio }}</b> LA ESCALA DE CALIFICACIONES ES DE (5 A 10) Y LA MÍNIMA APROBATORIA ES DE 6 (SEIS).
  </p>
 
