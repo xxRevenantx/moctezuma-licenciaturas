@@ -101,14 +101,18 @@
 
 </style>
 <body>
+
+
+
+
     @php
 
-    $nombreRector = "{$rector->nombre} {$rector->apellido_paterno} {$rector->apellido_materno}";
-    $nombreDirectora = "{$directora->nombre} {$directora->apellido_paterno} {$directora->apellido_materno}";
+        $nombreRector = "{$rector->nombre} {$rector->apellido_paterno} {$rector->apellido_materno}";
+        $nombreDirectora = "{$directora->nombre} {$directora->apellido_paterno} {$directora->apellido_materno}";
 
-    $nombreJefe = "{$jefe->titulo}{$jefe->nombre} {$jefe->apellido_paterno} {$jefe->apellido_materno}";
-    $nombreSubjefe = "{$subjefe->titulo}{$subjefe->nombre} {$subjefe->apellido_paterno} {$subjefe->apellido_materno}";
-@endphp
+        $nombreJefe = "{$jefe->titulo}{$jefe->nombre} {$jefe->apellido_paterno} {$jefe->apellido_materno}";
+        $nombreSubjefe = "{$subjefe->titulo}{$subjefe->nombre} {$subjefe->apellido_paterno} {$subjefe->apellido_materno}";
+    @endphp
 
         <div class="fondo">
             <img src="{{ public_path('storage/membrete_oficios.jpg') }}" alt="fondo" style="width: 100%; height: 100%;">

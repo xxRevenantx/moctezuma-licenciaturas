@@ -106,7 +106,7 @@
 
                     <tr>
 
-                    <td style="width:218px; margin-top:40px"></td>
+                    <td style="width:217px; margin-top:40px"></td>
                     <td>
                     <p  style="margin: 50px 0 0 0; font-size:15px; margin:0">CERTIFICA QUE: <b style="font-size:15px;"><u>{{$alumno->nombre}} {{$alumno->apellido_paterno}} {{$alumno->apellido_materno}}</u></b> </p><br>
                     <p style="font-size:13.5px; margin-top:-20px">CON CLAVE ÚNICA DE REGISTRO DE POBLACIÓN (CURP): <b><u>{{$alumno->CURP}}</u></b> <br>
@@ -461,10 +461,10 @@
 
     $suma = $calificaciones->sum();
     $cuenta = $calificaciones->count();
-     $promedio = $cuenta > 0 ? floor($suma / $cuenta * 10) / 10 : '';
+    $promedio = $cuenta > 0 ? number_format(floor($suma / $cuenta * 10) / 10, 1) : '';
 @endphp
 
-<p style="text-align:justify; font-size:13px; margin:0; text-transform:uppercase; line-height:12px;">EL PRESENTE CERTIFICADO DE AMPARA <u><b>{{ $materiasCalificablesEnLetras }}</b></u> ASIGNATURAS, LAS CUALES CUBREN ÍNTEGRAMENTE EL PLAN DE ESTUDIOS DE LA LICENCIATURA <b>{{$licenciatura->nombre}}</b>
+<p style="text-align:justify; font-size:13px; margin:0; text-transform:uppercase; line-height:12px;">EL PRESENTE CERTIFICADO AMPARA <u><b>{{ count($materiasCalificables)}}</b></u> ASIGNATURAS, LAS CUALES CUBREN ÍNTEGRAMENTE EL PLAN DE ESTUDIOS DE LA <b> LICENCIATURA EN {{$licenciatura->nombre}}</b>
         CON UN TOTAL DE <b>{{ $creditosMateriasCalificables }}</b> CRÉDITOS Y UN PROMEDIO GENERAL DE APROVECHAMIENTO DE <b>{{ $promedio }}</b> LA ESCALA DE CALIFICACIONES ES DE (5 A 10) Y LA MÍNIMA APROBATORIA ES DE 6 (SEIS).
  </p>
 
@@ -499,7 +499,8 @@
             }
             $anio = anioALetras($fechaObj->year);
 
-
+        $nombreJefe = "{$jefe->nombre} {$jefe->apellido_paterno} {$jefe->apellido_materno}";
+        $nombreRevisado = "{$revisado->nombre} {$revisado->apellido_paterno} {$revisado->apellido_materno}";
         @endphp
 
         <p style="text-align:justify; font-size:13px; text-transform:uppercase">
@@ -548,10 +549,10 @@
                 <td style="border:1px solid #000; width:250px; height:50px; text-align:center; font-size:16px;border-bottom:1px transparent; border-top:1px transparent"></td>
             </tr>
             <tr>
-                <td style="border:1px solid #000; width:200px; height:20px; font-size:16.5px; text-align:center; border-top:1px transparent; border-bottom:1px transparent; padding:0 10px"><p style="text-align:center;">BERNARDO LÓPEZ BELLO</p></td>
+                <td style="border:1px solid #000; width:200px; height:20px; font-size:16.5px; text-align:center; border-top:1px transparent; border-bottom:1px transparent; padding:0 10px; text-transform:uppercase"><p style="text-align:center;">{{$nombreRevisado}}</p></td>
                 <td style="width:220px;font-size:15px; text-align:center"><br><b>SELLO</b></td>
                 <!-- <td style="border:1px solid #000;  text-align:center; width:200px; height:70px; font-size:16.5px; border-top:1px transparent;">PEDRO PASTOR DEL MORAL</td> -->
-                <td style="border:1px solid #000; width:200px; text-align:center; height:20px; border-top:1px transparent; border-bottom:1px transparent; font-size:16.5px;">FRANCISCO JAVIER MEDINA MARIN</td>
+                <td style="border:1px solid #000; width:200px; text-align:center; height:20px; border-top:1px transparent; border-bottom:1px transparent; font-size:16.5px; text-transform:uppercase">{{$nombreJefe}}</td>
             </tr>
             <tr>
                 <td style="width:200px; height:45px; font-size:16px; text-align:left; border:1px solid #000; border-top:1px transparent; padding:0 10px">FECHA:</td>

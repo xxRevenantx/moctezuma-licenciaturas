@@ -38,7 +38,7 @@
 
      .encabezado {
         text-align: center;
-        margin-top: 30px;
+        margin-top: 10px;
         font-size: 16px;
     }
     .img_encabezado {
@@ -72,7 +72,7 @@
     table.cuatrimestres{
         width: 100%;
          border-collapse: collapse;
-         margin-top: 10px
+         margin-top: 2px
 
     }
     table.cuatrimestres td{
@@ -289,11 +289,11 @@
     <table class="calificaciones">
 
             <tr>
-                     <td style="text-align:center;  font-weight:bold;" rowspan="2">CLAVE</td>
-                    <td style=" width:230px;text-align:center;  font-weight:bold;" rowspan="2">ASIGNATURA</td>
-                    <td style=" width:10px; text-align:center;  font-weight:bold;"; rowspan="2">CAL. <br>FINAL</td>
-                    <td style="text-align:center;  font-weight:bold;" rowspan="2">%.<br> ASIST.</td>
-                    <td style="text-align:center; font-weight:bold" colspan="6">PERIODOS DE REGULARIZACIÓN</td>
+                     <td style="text-align:center; line-height:9px; padding:0; font-weight:bold;" rowspan="2">CLAVE</td>
+                    <td style=" width:230px;text-align:center;  font-weight:bold; line-height:9px; padding:0;" rowspan="2">ASIGNATURA</td>
+                    <td style=" width:10px; text-align:center;  font-weight:bold; line-height:9px; padding:0;" rowspan="2">CAL. <br>FINAL</td>
+                    <td style="text-align:center;  font-weight:bold; line-height:9px; padding:0;" rowspan="2">%.<br> ASIST.</td>
+                    <td style="text-align:center; font-weight:bold; line-height:9px; padding:0;" colspan="6">PERIODOS DE REGULARIZACIÓN</td>
 
                     <td rowspan="{{ count($materias) + 2  }}" style="width: 20px; border:none; padding:0; margin:0"></td>
 
@@ -336,8 +336,8 @@
                             ->first();
                     @endphp
                     <tr>
-                        <td style="text-align: center; height: 10px; padding:0px">{{ $materia->clave }}</td>
-                        <td style="text-transform:uppercase; height: 10px; line-height:9px; font-size:11px; padding-left:5px; margin:0">{{ $materia->nombre }}</td>
+                        <td style="text-align: center; height: 5px; padding:0px">{{ $materia->clave }}</td>
+                        <td style="text-transform:uppercase; height: 5px; line-height:8px; font-size:11px; padding-left:5px; padding-top:0; padding-bottom:0; margin:0">{{ $materia->nombre }}</td>
                         <td
                         style="text-align:center; padding:0px;"
                         >
@@ -384,7 +384,8 @@
                             $suma = $calificaciones->sum();
                             $cuenta = $calificaciones->count();
 
-                             $promedio = $cuenta > 0 ? floor($suma / $cuenta * 10) / 10 : '';
+                            //  $promedio = $cuenta > 0 ? floor($suma / $cuenta * 10) / 10 : '';
+                             $promedio = $cuenta > 0 ? number_format(floor($suma / $cuenta * 10) / 10, 1) : '';
                         @endphp
 
                                         @endforeach

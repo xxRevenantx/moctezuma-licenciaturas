@@ -306,6 +306,9 @@ class PDFController extends Controller
     $jefe =Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
     $subjefe =Directivo::where('identificador', 'subjefe')->where('status', 'true')->first();
 
+    $revisado = Directivo::where('identificador', 'revisado')->where('status', 'true')->first();
+
+
 
    $licenciaturas = AsignarGeneracion::where('generacion_id', $generacion_id)
     ->whereHas('licenciatura', function ($query) {
@@ -384,6 +387,7 @@ class PDFController extends Controller
             'fecha' => $fecha,
             'jefe' => $jefe,
             'subjefe' => $subjefe,
+            'revisado' => $revisado,
             'licenciaturas' => $licenciaturas
             ];
 
@@ -407,6 +411,9 @@ class PDFController extends Controller
            abort(404, 'Alumno no encontrado');
        }
 
+    $jefe =Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
+
+    $revisado = Directivo::where('identificador', 'revisado')->where('status', 'true')->first();
 
     $licenciatura = Licenciatura::find($alumno->licenciatura_id);
     $cuatrimestres = Cuatrimestre::all();
@@ -426,7 +433,7 @@ class PDFController extends Controller
             'rector' => $rector,
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexPDF', $data)->setPaper('legal', 'portrait');
-             return $pdf->stream("KARDEX".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+             return $pdf->stream("KARDEX_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
     }
     else if($documento == 'historial-academico'){
         $data = [
@@ -488,6 +495,8 @@ class PDFController extends Controller
             'fecha' => $fecha,
             'cuatrimestres' => $cuatrimestres,
             'rector' => $rector,
+            'jefe' =>$jefe,
+            'revisado' => $revisado,
             'directora' => $directora
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.certificadoPDF', $data)->setPaper('legal', 'portrait');
