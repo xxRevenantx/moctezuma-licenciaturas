@@ -16,8 +16,8 @@ class DocumentosUnificadosController extends Controller
 
         $matricula = preg_replace('/[^A-Za-z0-9]/', '', (string) $alumno->matricula);
         $curp      = preg_replace('/[^A-Za-z0-9]/', '', (string) $alumno->CURP);
-        $nombreCompletoSlug = Str::slug(trim("{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}"), '_');
-        $nombreCompleto = trim("{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}");
+        $nombreCompletoSlug = strtoupper(trim("{$alumno->nombre}_{$alumno->apellido_paterno}_{$alumno->apellido_materno}"));
+        $nombreCompleto = strtoupper(trim("{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}"));
 
         // Mapeo: carpeta => columna en BD
         $map = [

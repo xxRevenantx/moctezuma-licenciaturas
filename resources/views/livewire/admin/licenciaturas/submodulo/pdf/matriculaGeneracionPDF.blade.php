@@ -143,7 +143,7 @@
                 <tr>
                     <th>#</th>
 
-                    <th>MATRÍCULA</th>
+                    {{-- <th>MATRÍCULA</th> --}}
                     <th>NOMBRE(S)</th>
                     <th>APELLIDO PATERNO</th>
                     <th>APELLIDO MATERNO</th>
@@ -157,7 +157,7 @@
                 @foreach($matricula as $key =>  $student)
                     <tr>
                         <td>{{ $key+1 }}</td>
-                        <td>{{ $student->matricula }}</td>
+                        {{-- <td>{{ $student->matricula }}</td> --}}
                         <td>{{ $student->nombre }}</td>
                         <td>{{ $student->apellido_paterno }}</td>
                         <td>{{ $student->apellido_materno }}</td>
