@@ -1,5 +1,4 @@
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
           <flux:select wire:model="filtrar_generacion" name="generacion" label="Selecciona la generación" class="w-full" required>
             <flux:select.option value="">Selecciona una generación</flux:select.option>
