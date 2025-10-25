@@ -124,6 +124,14 @@
                         Resultados:
                         <strong>{{ method_exists($profesores, 'total') ? $profesores->total() : $profesores->count() }}</strong>
                     </span>
+                    <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        Hombres
+                        <strong>{{ $totalHombres }}</strong>
+                    </span>
+                    <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        Mujeres
+                        <strong>{{ $totalMujeres }}</strong>
+                    </span>
                 </div>
 
                 <div class="flex items-center gap-2">

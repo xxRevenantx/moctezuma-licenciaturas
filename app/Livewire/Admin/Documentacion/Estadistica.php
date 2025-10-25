@@ -30,9 +30,13 @@ class Estadistica extends Component
             'licenciatura_id',
             DB::raw('COUNT(*) as total_inscritos'),
             DB::raw("SUM(CASE WHEN sexo = 'H' THEN 1 ELSE 0 END) as total_masculinos"),
-            DB::raw("SUM(CASE WHEN sexo = 'M' THEN 1 ELSE 0 END) as total_femeninos")
+            DB::raw("SUM(CASE WHEN sexo = 'M' THEN 1 ELSE 0 END) as total_femeninos"),
+            DB::raw("SUM(CASE WHEN egresado = 'true' THEN 1 ELSE 0 END) as total_egresados")
         )
         ->where('status', 'true')
+        ->whereHas('generacion', function ($query) {
+            $query->where('activa', 'true');
+        })
         // Filtra por licenciatura solo si hay selección; si no, trae TODAS
         ->when($this->filtrar_licenciatura, fn ($q) =>
             $q->where('licenciatura_id', $this->filtrar_licenciatura)
@@ -67,6 +71,8 @@ class Estadistica extends Component
 
     // 🟢 Creamos la variable de rango de edad
     $rango_edad = $this->rango_edad ?? 'Todos';
+
+    dd($estadistica);
 
     // 🔸 Pasamos la variable al export
     return Excel::download(new EstadisticaExport($estadistica, $rango_edad), 'estadisticas.xlsx');

@@ -32,6 +32,9 @@ public function render()
                 $q2->where('nombre', 'like', '%' . $this->busqueda . '%');
                 $q2->orWhere('apellido_paterno', 'like', '%' . $this->busqueda . '%');
                 $q2->orWhere('apellido_materno', 'like', '%' . $this->busqueda . '%');
+            })
+            ->orWhereHas('licenciatura', function ($q2) {
+                $q2->where('nombre', 'like', '%' . $this->busqueda . '%');
             });
         });
     })

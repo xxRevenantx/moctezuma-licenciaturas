@@ -28,6 +28,20 @@ class MostrarProfesores extends Component
     public array $selected = [];
     public bool $selectAll = false;
 
+
+    public $totalHombres = 0;
+    public $totalMujeres = 0;
+
+    public function mount()
+    {
+        $this->totalHombres = Profesor::whereHas('user', function($query) {
+            $query->where('CURP', 'like', '__________H%');
+        })->count();
+        $this->totalMujeres = Profesor::whereHas('user', function($query) {
+            $query->where('CURP', 'like', '__________M%');
+        })->count();
+    }
+
     /* -------- eventos de actualización -------- */
     public function updated($name, $value): void
     {
