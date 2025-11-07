@@ -1256,41 +1256,42 @@ public function horario_docente_escolarizada(Request $request)
 
 
     //ALUMNOS DOCUMENTACION
-    public function alumnos_documentacion($licenciatura, $generacion){
 
-        $licenciatura_collect = Licenciatura::findOrFail($licenciatura);
-        $generacion_collect = Generacion::findOrFail($generacion);
+public function alumnos_documentacion(int $licenciatura)
+{
+        $licenciaturaNombre = 'Todas las licenciaturas';
 
-        $alumnos = collect();
+        $query = Inscripcion::query()
+            ->with(['generacion:id,generacion', 'licenciatura:id,nombre']);
 
-        if ($licenciatura != 0 && $generacion != 0) {
-               $alumnos = Inscripcion::where('licenciatura_id', $licenciatura_collect->id)
-            ->where('generacion_id', $generacion_collect->id)
-            ->orderBy('apellido_paterno', 'asc')
-            ->orderBy('apellido_materno', 'asc')
-            ->orderBy('nombre', 'asc')
-            ->get();
-        }
-        else{
-            $alumnos = Inscripcion::orderBy('apellido_paterno', 'asc')
-            ->orderBy('apellido_materno', 'asc')
-            ->orderBy('nombre', 'asc')
-            ->get();
+        if ($licenciatura !== 0) {
+            $lic = Licenciatura::findOrFail($licenciatura);
+            $licenciaturaNombre = $lic->nombre;
+            $query->where('licenciatura_id', $lic->id);
         }
 
+        $alumnos = $query
+            ->orderBy('generacion_id')
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->orderBy('nombre')
+            ->get();
 
+        // Agrupar por etiqueta de generación (ej. "2022-2025"); si no tiene, "Sin generación"
+        $grupos = $alumnos->groupBy(function ($a) {
+            return optional($a->generacion)->generacion ?: 'Sin generación';
+        })->sortKeys();
 
+        $data = [
+            'licenciaturaNombre' => $licenciaturaNombre,
+            'grupos'             => $grupos,
+        ];
 
+        $filename = 'ALUMNOS_DOCUMENTACION_' . strtoupper(str_replace(' ', '_', $licenciaturaNombre)) . '.pdf';
 
-         $data = [
-            'alumnos' => $alumnos,
-         ];
+        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.alumnosDocumentacionPDF', $data)
+            ->setPaper('letter', 'landscape');
 
-         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.alumnosDocumentacionPDF', $data)
-             ->setPaper('letter', 'landscape');
-            return $pdf->stream("ALUMNOS_DOCUMENTACION_".strtoupper($licenciatura_collect->nombre)."_".strtoupper($generacion_collect->generacion).".pdf");
-
-
-    }
-
+        return $pdf->stream($filename);
+}
 }

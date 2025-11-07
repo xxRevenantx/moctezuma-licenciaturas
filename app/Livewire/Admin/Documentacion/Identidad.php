@@ -35,30 +35,8 @@ class Identidad extends Component
             ->get(['id','nombre'])
             ->toArray();
 
-        // Arranca sin generaciones (hasta elegir licenciatura)
-        $this->generaciones = [];
     }
-public function updatedSelectedLicenciatura($licenciaturaId): void
-{
-    $this->selectedGeneracion = null;
 
-    if ($licenciaturaId) {
-        // Trae asignaciones con la relación "generacion" y aplana a un arreglo simple {id, generacion}
-        $this->generaciones = \App\Models\AsignarGeneracion::with(['generacion:id,generacion'])
-            ->where('licenciatura_id', $licenciaturaId)
-            ->get(['id', 'generacion_id']) // necesitamos generacion_id para mapear
-            ->filter(fn ($ag) => $ag->generacion) // evita nulos por integridad
-            ->map(fn ($ag) => [
-                'id'         => $ag->generacion->id,
-                'generacion' => $ag->generacion->generacion,
-            ])
-            ->unique('id')   // evita duplicados si hay varias asignaciones a la misma generación
-            ->values()
-            ->toArray();
-    } else {
-        $this->generaciones = [];
-    }
-}
 
 
     public function updatedQuery(): void
@@ -150,7 +128,6 @@ public function updatedSelectedLicenciatura($licenciaturaId): void
         // Ya no consultes aquí; usa las propiedades cargadas en mount/updated*
         return view('livewire.admin.documentacion.identidad', [
             'licenciaturas' => $this->licenciaturas,
-            'generaciones'  => $this->generaciones,
         ]);
     }
 }

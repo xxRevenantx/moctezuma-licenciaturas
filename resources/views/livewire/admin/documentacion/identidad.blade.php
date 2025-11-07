@@ -20,22 +20,7 @@
       </flux:select>
     </div>
 
-    <!-- Generación (dependiente) -->
-    <!-- Generación (dependiente) -->
-        <div class="flex-1">
-        <flux:select
-            label="Generación"
-            placeholder="{{ $generaciones ? 'Seleccionar generación' : 'Seleccione una licenciatura primero' }}"
-            wire:model.live="selectedGeneracion"
-            class="w-full"
 
-        >
-            <option value="">Todas las generaciones</option>
-            @foreach ($generaciones as $gen)
-            <option value="{{ $gen['id'] }}">{{ $gen['generacion'] }}</option>
-            @endforeach
-        </flux:select>
-        </div>
 
   </div>
 
@@ -44,7 +29,6 @@
     <a
       href="{{ route('admin.pdf.documentacion.alumnos.documentacion', [
             'licenciatura' => $selectedLicenciatura ?: 0,
-            'generacion'   => $selectedGeneracion ?: 0,
         ]) }}"
       target="_blank"
       class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition bg-indigo-100 hover:bg-indigo-200 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300 dark:hover:bg-indigo-900/30 ring-1 ring-indigo-200 dark:ring-indigo-800"

@@ -137,7 +137,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/justificantes/{justificante}', [PDFController::class, 'justificante'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.justificantes');
 
     // PDF DE ALUMNOS QUE NO TIENE DOCUMENTACIÓN
-    Route::get('/alumnos-documentacion/{licenciatura}/{generacion}', [PDFController::class, 'alumnos_documentacion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.alumnos.documentacion');
+    Route::get('/alumnos-documentacion/{licenciatura}', [PDFController::class, 'alumnos_documentacion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.alumnos.documentacion');
 
 
     Route::prefix('licenciaturas')->group(function () {
