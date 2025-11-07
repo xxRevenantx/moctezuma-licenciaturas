@@ -1252,4 +1252,45 @@ public function horario_docente_escolarizada(Request $request)
     return $pdf->stream($nombreArchivo);
 }
 
+
+
+
+    //ALUMNOS DOCUMENTACION
+    public function alumnos_documentacion($licenciatura, $generacion){
+
+        $licenciatura_collect = Licenciatura::findOrFail($licenciatura);
+        $generacion_collect = Generacion::findOrFail($generacion);
+
+        $alumnos = collect();
+
+        if ($licenciatura != 0 && $generacion != 0) {
+               $alumnos = Inscripcion::where('licenciatura_id', $licenciatura_collect->id)
+            ->where('generacion_id', $generacion_collect->id)
+            ->orderBy('apellido_paterno', 'asc')
+            ->orderBy('apellido_materno', 'asc')
+            ->orderBy('nombre', 'asc')
+            ->get();
+        }
+        else{
+            $alumnos = Inscripcion::orderBy('apellido_paterno', 'asc')
+            ->orderBy('apellido_materno', 'asc')
+            ->orderBy('nombre', 'asc')
+            ->get();
+        }
+
+
+
+
+
+         $data = [
+            'alumnos' => $alumnos,
+         ];
+
+         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.alumnosDocumentacionPDF', $data)
+             ->setPaper('letter', 'landscape');
+            return $pdf->stream("ALUMNOS_DOCUMENTACION_".strtoupper($licenciatura_collect->nombre)."_".strtoupper($generacion_collect->generacion).".pdf");
+
+
+    }
+
 }
