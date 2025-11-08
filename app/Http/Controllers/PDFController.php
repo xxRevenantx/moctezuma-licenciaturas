@@ -210,6 +210,9 @@ class PDFController extends Controller
        $generacion_id = $request->generacion;
        $documento = $request->documento;
        $licenciatura_id = $request->licenciatura;
+       $alumnoIds      = array_filter((array) request('alumno_ids')); // []
+
+
 
     $materias = Materia::where('licenciatura_id', $licenciatura_id)
          ->where('calificable', '!=', 'false')

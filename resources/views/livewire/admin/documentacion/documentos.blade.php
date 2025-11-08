@@ -274,33 +274,8 @@
         Para la expedición de Registros de Escolaridad y Actas de Resultados, selecciona la licenciatura, generación y el tipo de documento que deseas descargar.
       </p>
 
-      <form action="{{ route('admin.pdf.documentacion.documento_expedicion') }}" method="GET" target="_blank" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <flux:select name="licenciatura" label="Selecciona la licenciatura" class="w-full" required>
-            <flux:select.option value="">Selecciona una licenciatura</flux:select.option>
-            @foreach($licenciaturas as $licenciatura)
-              <flux:select.option value="{{ $licenciatura->id }}">{{ $licenciatura->nombre }}</flux:select.option>
-            @endforeach
-          </flux:select>
+       <livewire:admin.documentacion.expedicion-documentos />
 
-          <flux:select name="generacion" label="Selecciona la generación" class="w-full" required>
-            <flux:select.option value="">Selecciona una generación</flux:select.option>
-            @foreach($generaciones as $generacion)
-              <flux:select.option value="{{ $generacion->id }}">{{ $generacion->generacion }}</flux:select.option>
-            @endforeach
-          </flux:select>
-
-          <flux:select name="documento" label="Selecciona el tipo de documento" class="w-full" required>
-            <flux:select.option value="">Selecciona un tipo de documento</flux:select.option>
-            <flux:select.option value="registro-escolaridad">Registro de Escolaridad</flux:select.option>
-            <flux:select.option value="acta-resultados">Acta de Resultados</flux:select.option>
-          </flux:select>
-
-          <div class="flex md:items-end">
-            <flux:button label="Descargar" type="submit" variant="primary" class="w-full md:w-auto md:mt-6">Descargar</flux:button>
-          </div>
-        </div>
-      </form>
     </div>
   </div>
   <!-- Expedición SÁBANAS -->

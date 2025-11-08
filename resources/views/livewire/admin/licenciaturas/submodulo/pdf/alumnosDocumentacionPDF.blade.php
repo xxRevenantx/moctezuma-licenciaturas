@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Alumnos sin documentación</title>
+
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="{{ public_path('storage/ok.png') }}" />
+  <title>Documentación de Alumnos</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: Arial, sans-serif; color:#111827; font-size:12px; margin: 18px; }
 
-    .report-title { font-weight: bold; font-size:16px; color:#111827; margin: 0 0 6px 0; }
+    .report-title { font-weight: bold; font-size:16px; color:#111827; margin: 0 0 6px 0; text-align: center; }
     .report-subtitle { font-size:12px; color:#6b7280; margin: 0 0 14px 0; }
 
     table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #e5e7eb; }
@@ -44,7 +47,7 @@
 </head>
 <body>
 
-  <h1 class="report-title">Desde documentación: Alumnos que no tienen documentación</h1>
+  <h1 class="report-title">DOCUMENTACIÓN DE ALUMNOS</h1>
   <p class="report-subtitle">Licenciatura: <strong>{{ $licenciaturaNombre }}</strong></p>
 
   <table>
