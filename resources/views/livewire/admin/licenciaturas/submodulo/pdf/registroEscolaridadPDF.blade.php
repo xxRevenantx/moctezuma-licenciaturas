@@ -313,10 +313,13 @@
                  <td style="text-align:center; font-size:11px">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</td>
                   <td style="font-size:11px; text-align:center;">0</td>
                   <td style="font-size:11px; text-align:center;">R</td>
-                  <td style="font-size:11px">{{$alumno->matricula}}</td>
-                   <td style="font-size:11px">{{$alumno->nombre}}</td>
-                  <td style="font-size:11px">{{$alumno->apellido_paterno}}</td>
-                  <td style="font-size:11px">{{$alumno->apellido_materno}}</td>
+
+                  <td style="font-size:11px; text-align:center">{{$alumno->matricula}}</td>
+                   <td style="font-size:11px;">{{$alumno->nombre}}</td>
+                  <td style="font-size:11px;">{{$alumno->apellido_paterno}}</td>
+                  <td style="font-size:11px;">{{$alumno->apellido_materno}}</td>
+
+
                   <td style="font-size:11px; text-align:center;  border-left:2px double #000;  border-right:2px double #000" >{{$alumno->sexo}}</td>
 
                           @foreach ($materiasUnicas as $materia)
@@ -349,7 +352,9 @@
                   <td style="width:15px; font-size:11px; text-align:center">R</td>
                 </tr>
 
-    @endforeach
+            @endforeach
+
+
             </table>
             @php
                 $fecha1 = \Carbon\Carbon::parse($periodo->inicio_periodo);

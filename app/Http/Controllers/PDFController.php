@@ -206,84 +206,73 @@ class PDFController extends Controller
 
     // Expedicion de registros de escolaridad y actas de resultados
 
-   public function documento_expedicion(Request $request){
-       $generacion_id = $request->generacion;
-       $documento = $request->documento;
-       $licenciatura_id = $request->licenciatura;
-       $alumnoIds      = array_filter((array) request('alumno_ids')); // []
+  public function documento_expedicion(Request $request)
+{
+    $generacion_id   = $request->generacion;
+    $documento       = $request->documento;
+    $licenciatura_id = $request->licenciatura;
 
+    // Recibe alumno_ids[] y los sanea (int, únicos, sin vacíos)
+    $alumnoIds = collect((array) $request->input('alumno_ids', []))
+        ->map(fn($v) => (int) $v)
+        ->filter()          // quita null/0/empty
+        ->unique()
+        ->values()
+        ->all();
 
-
-    $materias = Materia::where('licenciatura_id', $licenciatura_id)
-         ->where('calificable', '!=', 'false')
-         ->orderBy('clave', 'asc')
-         ->get();
-
-         // Validación básica
+    // Validación básica
     if (!$generacion_id || !$documento || !$licenciatura_id) {
         abort(404, 'Faltan parámetros');
     }
 
-    $generacion = Generacion::find($generacion_id);
-    $licenciatura = Licenciatura::find($licenciatura_id);
-    $escuela = Escuela::all()->first();
-    $rector = Directivo::where('identificador', 'rector')->first();
-    $directora = Directivo::where('identificador', 'directora')->first();
+    $materias      = Materia::where('licenciatura_id', $licenciatura_id)
+                        ->where('calificable', '!=', 'false')
+                        ->orderBy('clave', 'asc')
+                        ->get();
 
-    $jefe =Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
+    $generacion    = Generacion::findOrFail($generacion_id);
+    $licenciatura  = Licenciatura::findOrFail($licenciatura_id);
+    $escuela       = Escuela::query()->first();
+    $rector        = Directivo::where('identificador', 'rector')->first();
+    $directora     = Directivo::where('identificador', 'directora')->first();
+    $jefe          = Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
 
-    // PERIODOS ESDOLARES
+    $periodos      = Periodo::where('generacion_id', $generacion_id)->get();
+    $modalidades   = Modalidad::all();
 
-    $periodos = Periodo::where('generacion_id', $generacion_id)
-        ->get();
-
-    // Alumnos por generación y licenciatura
-    $alumnos = Inscripcion::with('calificaciones')
+    // Query base de alumnos por generación y licenciatura
+    $alumnosQuery = Inscripcion::with('calificaciones')
         ->where('generacion_id', $generacion_id)
         ->where('licenciatura_id', $licenciatura_id)
-        ->where('status', 'true')
-        ->orderBy('apellido_paterno', 'asc')
-        ->orderBy('apellido_materno', 'asc')
-        ->orderBy('nombre', 'asc')
-        // ->limit(1)
-        ->get();
+        ->where('status', 'true');
 
-
-        $modalidades = Modalidad::all();
-
-    if($documento == 'acta-resultados'){
-        $data = [
-            'generacion' => $generacion,
-            'escuela' => $escuela,
-            'licenciatura' => $licenciatura,
-            'materias' => $materias,
-            'rector' => $rector,
-            'directora' => $directora,
-            'jefe' => $jefe,
-            'alumnos' => $alumnos,
-
-        ];
-         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.actaResultadosPDF', $data)->setPaper('letter', 'portrait');
-             return $pdf->stream("ACTA_DE_RESULTADOS_GEN_".$generacion->generacion.".pdf");
-
-    }elseif($documento == 'registro-escolaridad'){
-       $data = [
-            'generacion' => $generacion,
-            'escuela' => $escuela,
-            'materias' => $materias,
-            'licenciatura' => $licenciatura,
-            'alumnos' => $alumnos,
-            'periodos' => $periodos,
-            'modalidades' => $modalidades,
-             'rector' => $rector,
-              'jefe' => $jefe,
-
-        ];
-         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.registroEscolaridadPDF', $data)->setPaper('legal', 'landscape');
-             return $pdf->stream("REGISTRO_DE_ESCOLARIDAD_GEN_".$generacion->generacion.".pdf");
+    // Si vienen IDs seleccionados, filtramos por ID de Inscripcion
+    if (!empty($alumnoIds)) {
+        $alumnosQuery->whereIn('id', $alumnoIds);
     }
 
-   }
+    $alumnos = $alumnosQuery
+        ->orderBy('apellido_paterno')
+        ->orderBy('apellido_materno')
+        ->orderBy('nombre')
+        ->get();
+
+    if ($documento === 'acta-resultados') {
+        $data = compact('generacion','escuela','licenciatura','materias','rector','directora','jefe','alumnos');
+        $pdf  = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.actaResultadosPDF', $data)
+                    ->setPaper('letter', 'portrait');
+        return $pdf->stream("ACTA_DE_RESULTADOS_GEN_{$generacion->generacion}.pdf");
+
+    } elseif ($documento === 'registro-escolaridad') {
+        $data = compact('generacion','escuela','materias','licenciatura','alumnos','periodos','modalidades','rector','jefe');
+        $pdf  = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.registroEscolaridadPDF', $data)
+                    ->setPaper('legal', 'landscape');
+        return $pdf->stream("REGISTRO_DE_ESCOLARIDAD_GEN_{$generacion->generacion}.pdf");
+    }
+
+    abort(404, 'Documento no soportado');
+}
+
 
    //EXPEDICIÓN DE SABANAS
 

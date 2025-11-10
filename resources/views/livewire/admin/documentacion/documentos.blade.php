@@ -136,6 +136,24 @@
   <!-- ACCORDIONS -->
   <style>[x-cloak]{ display:none !important; }</style>
 
+  <!-- Titulación -->
+  <div x-data="{ openAccordion:false }" x-cloak class="mb-4">
+    <button
+      @click="openAccordion = !openAccordion"
+      class="w-full flex items-center justify-between rounded-2xl px-4 sm:px-5 py-3 bg-neutral-100 dark:bg-neutral-800/70 text-neutral-800 dark:text-neutral-100 ring-1 ring-neutral-200 dark:ring-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition"
+    >
+      <span class="text-base sm:text-lg font-semibold">Titulación</span>
+      <svg :class="{'rotate-180': openAccordion}" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </button>
+    <div x-show="openAccordion" x-transition
+         class="rounded-b-2xl bg-white dark:bg-neutral-800 shadow-lg ring-1 ring-neutral-200 dark:ring-neutral-700 p-4 sm:p-5">
+      <livewire:admin.documentacion.titulacion />
+    </div>
+  </div>
+
+
   <!-- Identidad -->
   <div x-data="{ openAccordion:false }" x-cloak class="mb-4">
     <button
