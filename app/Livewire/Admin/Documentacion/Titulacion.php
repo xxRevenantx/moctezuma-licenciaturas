@@ -10,11 +10,13 @@ class Titulacion extends Component
 
     public $alumnos;
     public $lugar_registro;
+    public $expedido_en;
 
     public function mount()
     {
         $this->alumnos = Inscripcion::where('status', 'true')->get();
         $this->lugar_registro = 'Chilpancingo de los Bravo, Guerrero';
+        $this->expedido_en = 'Ciudad Altamirano, Guerrero';
     }
 
     public function render()

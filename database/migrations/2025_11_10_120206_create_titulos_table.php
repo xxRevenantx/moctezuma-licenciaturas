@@ -16,8 +16,6 @@ return new class extends Migration
              $table->unsignedBigInteger('alumno_id');
 
 
-            $table->string('grado_titulo', 200);                     // "LICENCIATURA EN ..."
-
             // Fundamento legal del reconocimiento
             $table->string('acuerdo_numero', 50)->nullable();
             $table->date('acuerdo_fecha')->nullable();
