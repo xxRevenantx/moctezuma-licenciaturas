@@ -30,6 +30,7 @@
                     </blockquote>
                 </div> --}}
             </div>
+
             <div class="w-full lg:p-8">
                 <div class="mx-auto shadow-2xl p-6 flex w-full flex-col justify-center space-y-6 sm:w-[400px]">
                     <a href="{{ route('home') }}" class="z-20 flex flex-col items-center gap-2 font-medium lg:hidden" wire:navigate>

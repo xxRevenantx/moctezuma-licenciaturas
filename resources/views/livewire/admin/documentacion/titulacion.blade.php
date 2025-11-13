@@ -1,5 +1,8 @@
 <div>
    <form wire:submit.prevent="guardarTitulo" class="space-y-6">
+
+
+
   {{-- Encabezado --}}
   <div class="rounded-2xl border bg-white dark:bg-neutral-900 p-5">
     <h2 class="text-base font-semibold">Registro de Título</h2>

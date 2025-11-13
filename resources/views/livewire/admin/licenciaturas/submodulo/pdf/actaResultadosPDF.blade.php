@@ -147,7 +147,7 @@
             <tr>
                 <td>REGULARIZACIÓN: _________________</td>
                 <td>TURNO: <u><b>MATUTINO</b></u></td>
-                <td>TOTAL DE ALUMNOS <u><b>{{ $alumnos->count() }}</b></u></td>
+                <td>TOTAL DE ALUMNOS: <u><b>{{ $alumnos->count() }}</b></u></td>
             </tr>
         </table>
 

@@ -1,4 +1,6 @@
 <div class="w-full  mx-auto px-3">
+
+
   <!-- ENCABEZADO -->
   <div class="flex flex-col gap-4">
     <div class="relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-xl">
