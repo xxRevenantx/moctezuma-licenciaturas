@@ -10,7 +10,7 @@ use Livewire\Component;
 class ListaProfesores extends Component
 {
     public $query = '';
-    public $profesores = [];
+    // public $profesores = [];
     public $selectedIndex = 0;
     public $selectedProfesor = null;
 
@@ -22,70 +22,25 @@ class ListaProfesores extends Component
     // ===== Eventos de UI =====
     public function updatedQuery()
     {
-        $this->buscarProfesores();
-    }
-
-    public function buscarProfesores()
-    {
-        if (strlen(trim($this->query)) === 0) {
-            $this->profesores = [];
-            $this->selectedIndex = 0;
+        // Si limpian el select
+        if (empty($this->query)) {
+            $this->selectedProfesor = null;
+            $this->materiasAsignadas = [];
             return;
         }
 
-        $this->profesores = Profesor::with('user')
-            ->where(DB::raw("CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno)"), 'like', '%' . $this->query . '%')
-            ->orWhereHas('user', function ($q) {
-                $q->where('CURP', 'like', '%' . $this->query . '%')
-                  ->orWhere('email', 'like', '%' . $this->query . '%');
-            })
-            ->orderBy('nombre')
-            ->orderBy('apellido_paterno')
-            ->get()
-            ->map(function ($profesor) {
-                return [
-                    'id' => $profesor->id,
-                    'nombre' => $profesor->nombre,
-                    'apellido_paterno' => $profesor->apellido_paterno,
-                    'apellido_materno' => $profesor->apellido_materno,
-                    'CURP' => $profesor->user->CURP ?? '',
-                ];
-            })
-            ->toArray();
+        // Buscar profesor con todas sus relaciones
+        $profesor = Profesor::with(['user'])->find($this->query);
 
-        $this->selectedIndex = 0;
-    }
-
-    public function selectProfesor($index)
-    {
-        if (! isset($this->profesores[$index])) {
-            $this->dispatch('swal', [
-                'title' => 'Profesor no encontrado',
-                'icon' => 'error',
-                'position' => 'top',
-            ]);
-            return;
-        }
-
-        $this->selectedProfesor = $this->profesores[$index];
-        $this->profesores = [];
-        $this->buscador_materia = ''; // limpiar búsqueda
-        $this->cargarMateriasAsignadas();
-    }
-
-    public function selectIndexUp()
-    {
-        if ($this->profesores) {
-            $this->selectedIndex = ($this->selectedIndex - 1 + count($this->profesores)) % count($this->profesores);
+        if ($profesor) {
+            $this->selectedProfesor = $profesor->toArray();
+            $this->cargarMateriasAsignadas();
+        } else {
+            $this->selectedProfesor = null;
+            $this->materiasAsignadas = [];
         }
     }
 
-    public function selectIndexDown()
-    {
-        if ($this->profesores) {
-            $this->selectedIndex = ($this->selectedIndex + 1) % count($this->profesores);
-        }
-    }
 
     // ===== Datos =====
     public function cargarMateriasAsignadas()
@@ -144,9 +99,16 @@ class ListaProfesores extends Component
 
     public function render()
     {
+        $profesores = Profesor::with('user')
+            ->orderBy('nombre')
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->get()
+            ->toArray();
         // Si usas periodos más adelante, deja esto. No se muestra hasta elegir profesor.
         return view('livewire.admin.profesor.lista-profesores', [
             'periodos' => Periodo::orderBy('id', 'desc')->get(),
+            'profesores' => $profesores,
         ]);
     }
 }

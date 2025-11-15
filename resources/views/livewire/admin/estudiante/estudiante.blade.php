@@ -13,7 +13,6 @@
 
   <!-- Buscador + resultados (mantiene tu lógica Livewire/Alpine) -->
   <div x-data="{ open:false }" class="relative">
-
 {{-- Contenedor Alpine para que x-cloak funcione --}}
 <div x-data x-cloak class="relative">
     <!-- Select de búsqueda -->
@@ -38,8 +37,6 @@
         <span class="inline-block w-4 h-4 rounded-full border-2 border-neutral-300 dark:border-neutral-600 border-t-transparent animate-spin"></span>
     </div>
 </div>
-
-
 
   </div>
 
