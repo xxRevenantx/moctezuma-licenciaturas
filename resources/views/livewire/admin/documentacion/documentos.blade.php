@@ -19,61 +19,21 @@
     <form action="{{ route('admin.pdf.documentacion.documento_personal') }}" method="GET" target="_blank"
           class="rounded-2xl bg-white/90 dark:bg-neutral-800/90 shadow-lg ring-1 ring-neutral-200 dark:ring-neutral-700 p-4 sm:p-5">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <!-- Buscador de alumno -->
-        <div class="relative md:col-span-2">
-          <flux:input
-            required
-            label="Buscar alumno"
-            wire:model.live.debounce.500ms="query"
-            name="alumno_id"
-            id="query"
-            type="text"
-            placeholder="Buscar alumno por nombre, matrícula o CURP"
-            @focus="open = true"
-            @input="open = true"
-            @blur="setTimeout(() => open = false, 150)"
-            wire:keydown.arrow-down="selectIndexDown"
-            wire:keydown.arrow-up="selectIndexUp"
-            wire:keydown.enter="selectAlumno({{ $selectedIndex }})"
-            autocomplete="off"
-          />
-          <!-- Spinner de búsqueda (dentro del input) -->
-          <div class="pointer-events-none absolute right-3 top-[50px] sm:top-[46px] -translate-y-1/2" wire:loading wire:target="query">
-            <span class="inline-block w-4 h-4 rounded-full border-2 border-neutral-300 dark:border-neutral-600 border-t-transparent animate-spin"></span>
-          </div>
 
-          <!-- RESULTADOS de búsqueda -->
-          @if (!empty($alumnos))
-            <ul
-              x-show="open"
-              x-transition
-              x-cloak
-              class="absolute z-[2000] mt-1 w-full max-h-64 overflow-auto rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-2xl"
-              role="listbox"
-            >
-              @forelse ($alumnos as $index => $alumno)
-                <li
-                  class="p-3 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 {{ $selectedIndex === $index ? 'bg-indigo-50 dark:bg-indigo-900/20' : '' }}"
-                  wire:click="selectAlumno({{ $index }})"
-                  @mouseenter="open = true"
-                  :aria-selected="{{ $selectedIndex === $index ? 'true' : 'false' }}"
-                  role="option"
-                >
-                  <p class="font-medium text-indigo-600 dark:text-indigo-300">
-                    {{ $alumno['apellido_paterno'] ?? '' }} {{ $alumno['apellido_materno'] ?? '' }} {{ $alumno['nombre'] ?? '' }}
-                  </p>
-                  <p class="text-sm text-neutral-700 dark:text-neutral-300">
-                    Matrícula: <span class="font-semibold">{{ $alumno['matricula'] ?? '' }}</span>
-                    <span class="mx-2 opacity-40">|</span>
-                    CURP: <span class="font-mono">{{ $alumno['CURP'] ?? '' }}</span>
-                  </p>
-                </li>
-              @empty
-                <li class="p-3 text-sm text-neutral-600 dark:text-neutral-300">No se encontraron alumnos.</li>
-              @endforelse
-            </ul>
-          @endif
-        </div>
+
+    <x-searchable-select
+        label="Selecciona al estudiante"
+        placeholder="--Selecciona al estudiante--"
+        wire:model.live="query"   {{-- query ahora es el ID del alumno --}}
+    >
+        @foreach($alumnos as $index => $alumno)
+            <x-searchable-select.option value="{{ $alumno['id'] }}">
+                {{ $alumno['apellido_paterno'] ?? '' }} {{ $alumno['apellido_materno'] ?? '' }} {{ $alumno['nombre'] ?? '' }} - {{ $alumno['matricula'] ?? '' }}
+            </x-searchable-select.option>
+        @endforeach
+    </x-searchable-select>
+
+
 
         <!-- Tipo documento -->
         <flux:select name="tipo_documento" required label="Tipo de documento" placeholder="Selecciona un tipo de documento" class="w-full">

@@ -4,7 +4,8 @@
         ?? null;
 @endphp
 
-<flux:field :label="$label">
+<flux:field >
+    <flux:label>{{ $label }}</flux:label>
     <div
         x-data="{
             open: false,
