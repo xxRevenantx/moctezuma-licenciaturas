@@ -80,8 +80,9 @@ class Documentos extends Component
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
             ->orderBy('nombre')
+            ->get()
+            ->toArray();
 
-            ->get();
 
 
         return view('livewire.admin.documentacion.documentos', [

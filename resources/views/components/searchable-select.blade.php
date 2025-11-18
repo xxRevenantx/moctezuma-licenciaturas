@@ -2,6 +2,17 @@
     $wireModel = $attributes->get('wire:model.live')
         ?? $attributes->get('wire:model')
         ?? null;
+
+    // Permitir pasar name en el componente
+    // <x-searchable-select name="alumno_id" ...>
+    $name = $attributes->get('name');
+
+    // Si no se pasó name, podemos inferir uno a partir del wire:model
+    if (! $name && $wireModel) {
+        // Ej: "form.alumno_id" -> "alumno_id"
+        $parts = explode('.', $wireModel);
+        $name = end($parts);
+    }
 @endphp
 
 <flux:field >
@@ -60,11 +71,12 @@
             </svg>
         </button>
 
-        {{-- Input hidden que Livewire observa --}}
+        {{-- Input hidden que Livewire observa / y que tiene name --}}
         <input
             type="hidden"
             x-ref="hidden"
             {{ $attributes->whereStartsWith('wire:model') }}
+            @if($name) name="{{ $name }}" @endif
             :value="selectedValue"
         />
 
