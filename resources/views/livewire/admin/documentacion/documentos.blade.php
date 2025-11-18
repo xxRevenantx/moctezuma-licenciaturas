@@ -5,7 +5,7 @@
       <div class="h-1.5 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500"></div>
       <div class="bg-white dark:bg-neutral-800 px-4 sm:px-6 py-4">
         <h1 class="text-xl sm:text-2xl font-bold text-neutral-800 dark:text-white">
-          Documentación interna del alumno
+          {{-- Documentación interna del alumno --}}
         </h1>
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
           Genera constancias y gestiona la documentación por alumno, generación o licenciatura.
@@ -25,6 +25,7 @@
         label="Selecciona al estudiante"
         placeholder="--Selecciona al estudiante--"
         wire:model.live="query"   {{-- query ahora es el ID del alumno --}}
+        name="alumno_id"
     >
         @foreach($alumnos as $index => $alumno)
             <x-searchable-select.option value="{{ $alumno['id'] }}">

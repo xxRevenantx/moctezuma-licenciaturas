@@ -394,12 +394,12 @@ class PDFController extends Controller
    // DOCUMENTO PERSONAL
 
   public function documento_personal(Request $request){
-       $matricula = $request->alumno_id;
+       $id = $request->alumno_id;
        $documento = $request->tipo_documento;
        $fecha = $request->fecha_expedicion;
 
        $escuela = Escuela::all()->first();
-       $alumno = Inscripcion::where('matricula', $matricula)->first();
+       $alumno = Inscripcion::where('id', $id)->first();
        if (!$alumno) {
            abort(404, 'Alumno no encontrado');
        }
@@ -426,7 +426,7 @@ class PDFController extends Controller
             'rector' => $rector,
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexPDF', $data)->setPaper('legal', 'portrait');
-             return $pdf->stream("KARDEX_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+             return $pdf->stream("KARDEX_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno['matricula'].".pdf");
     }
     else if($documento == 'historial-academico'){
         $data = [
@@ -440,7 +440,7 @@ class PDFController extends Controller
             'periodos' => $periodos
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.historialAcademicoPDF', $data)->setPaper('legal', 'portrait');
-             return $pdf->stream("HISTORIAL_ACADEMICO_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+             return $pdf->stream("HISTORIAL_ACADEMICO_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno['matricula'].".pdf");
     }
     else if($documento == 'diploma'){
         $data = [
@@ -452,7 +452,7 @@ class PDFController extends Controller
             'directora' => $directora
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.diplomaPDF', $data)->setPaper('letter', 'portrait');
-             return $pdf->stream("DIPLOMA_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+             return $pdf->stream("DIPLOMA_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno['matricula'].".pdf");
     }
     else if($documento == 'carta-de-pasante'){
         $data = [
@@ -464,7 +464,7 @@ class PDFController extends Controller
             'directora' => $directora
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.cartaPasantePDF', $data)->setPaper('letter', 'portrait');
-             return $pdf->stream("CARTA_DE_PASANTE_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+             return $pdf->stream("CARTA_DE_PASANTE_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno['matricula'].".pdf");
     }
 
     else if($documento == 'constancia-de-termino'){
@@ -477,7 +477,7 @@ class PDFController extends Controller
             'directora' => $directora
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciaTerminoPDF', $data)->setPaper('letter', 'portrait');
-             return $pdf->stream("CONSTANCIA_DE_TERMINO_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+             return $pdf->stream("CONSTANCIA_DE_TERMINO_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno['matricula'].".pdf");
     }
 
     else if($documento == 'certificado-de-estudios'){
@@ -493,7 +493,7 @@ class PDFController extends Controller
             'directora' => $directora
         ];
          $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.certificadoPDF', $data)->setPaper('legal', 'portrait');
-             return $pdf->stream("CERTIFICADO_DE_ESTUDIOS_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$matricula.".pdf");
+             return $pdf->stream("CERTIFICADO_DE_ESTUDIOS_".$alumno["nombre"]."_".$alumno["apellido_paterno"]."_".$alumno["apellido_materno"]."_".$alumno['matricula'].".pdf");
     }
     else{
         abort(404, 'Tipo de documento no válido');
