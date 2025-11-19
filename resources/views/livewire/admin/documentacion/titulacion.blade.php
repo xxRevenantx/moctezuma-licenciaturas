@@ -7,6 +7,13 @@
   <div class="rounded-2xl border bg-white dark:bg-neutral-900 p-5">
     <h2 class="text-base font-semibold">Registro de Título</h2>
     <p class="text-sm text-neutral-500 dark:text-neutral-400">Completa la información según el formato oficial.</p>
+
+    <div class="mt-4">
+        <flux:button type="button" href="{{ route('admin.word.acta-examen') }}" target="_blank" variant="primary" size="sm">
+            Acta de examen
+        </flux:button>
+    </div>
+
   </div>
 
   {{-- Relación principal --}}

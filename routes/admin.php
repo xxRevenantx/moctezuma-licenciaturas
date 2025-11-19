@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\PeriodoController;
 use App\Http\Controllers\Admin\SeleccionarModalidadController;
 use App\Http\Controllers\Admin\SubmoduloController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WordController;
 use App\Http\Controllers\CiudadController;
 use App\Http\Controllers\ConstanciaController;
 use App\Http\Controllers\DocumentacionController;
@@ -91,6 +92,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('horario-general', HorarioGeneralController::class)->middleware('can:admin.administracion')->names('admin.horario-general');
     Route::resource('materias', MateriaController::class)->middleware('can:admin.administracion')->names('admin.materia');
 
+
+    // RUTAS WORD
+    Route::get('acta-examen', [WordController::class, 'acta_examen'])->middleware('can:admin.administracion')->name('admin.word.acta-examen');
 
 
     // RUTAS PDF
