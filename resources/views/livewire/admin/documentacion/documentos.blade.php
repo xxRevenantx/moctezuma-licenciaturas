@@ -24,6 +24,7 @@
     <x-searchable-select
         label="Selecciona al estudiante"
         placeholder="--Selecciona al estudiante--"
+        name="alumno_id"
         wire:model.live="query"   {{-- query ahora es el ID del alumno --}}
         name="alumno_id"
     >
