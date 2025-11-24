@@ -20,22 +20,22 @@ class Documentos extends Component
     {
         // Si limpian el select
         if (empty($value)) {
-            $this->selectedAlumno   = null;
+            $this->selectedAlumno = null;
             return;
         }
 
         // Buscar alumno con todas sus relaciones
         $alumno = Inscripcion::with([
-                'licenciatura',
-                'user',
-                'generacion',
-                'modalidad',
-                'cuatrimestre',
-                'ciudadNacimiento',
-                'estadoNacimiento',
-                'ciudad',
-                'estado',
-            ])->find($value);
+            'licenciatura',
+            'user',
+            'generacion',
+            'modalidad',
+            'cuatrimestre',
+            'ciudadNacimiento',
+            'estadoNacimiento',
+            'ciudad',
+            'estado',
+        ])->find($value);
 
         if ($alumno) {
             $this->selectedAlumno = $alumno->toArray();
@@ -43,8 +43,8 @@ class Documentos extends Component
             $this->selectedAlumno = null;
 
             $this->dispatch('swal', [
-                'title'    => 'Alumno no encontrado',
-                'icon'     => 'error',
+                'title' => 'Alumno no encontrado',
+                'icon' => 'error',
                 'position' => 'top',
             ]);
         }
@@ -60,7 +60,7 @@ class Documentos extends Component
             'documento_expedicion' => 'required',
         ]);
 
-    return redirect()->route('admin.pdf.documentacion.documento_expedicion', [
+        return redirect()->route('admin.pdf.documentacion.documento_expedicion', [
             'generacion' => $this->generacion_id,
             'documento' => $this->documento_expedicion,
         ]);
@@ -72,11 +72,17 @@ class Documentos extends Component
     public function render()
     {
         $generaciones = Generacion::all();
-         $alumnos = Inscripcion::with([
-                'licenciatura', 'user', 'generacion', 'modalidad',
-                'cuatrimestre', 'ciudadNacimiento', 'estadoNacimiento',
-                'ciudad', 'estado',
-            ])
+        $alumnos = Inscripcion::with([
+            'licenciatura',
+            'user',
+            'generacion',
+            'modalidad',
+            'cuatrimestre',
+            'ciudadNacimiento',
+            'estadoNacimiento',
+            'ciudad',
+            'estado',
+        ])
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
             ->orderBy('nombre')
