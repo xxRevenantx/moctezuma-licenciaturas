@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\Documentacion;
 
+use App\Models\Generacion;
+use App\Models\Inscripcion;
 use Livewire\Component;
 
 class ActaExamen extends Component
@@ -9,11 +11,51 @@ class ActaExamen extends Component
     public string $fecha = '';
     public array $sinodos = [''];
 
+    public $query = '';
+
+    public $selectedAlumno = null;
+
     protected $rules = [
         'fecha' => 'required|date',
         'sinodos' => 'required|array|min:1',
         'sinodos.*' => 'required|string|max:255',
     ];
+
+    public function updatedQuery($value)
+    {
+        // Si limpian el select
+        if (empty($value)) {
+            $this->selectedAlumno = null;
+            $this->edad = null;
+            $this->fechaNacimiento = null;
+            return;
+        }
+
+        // Buscar alumno con todas sus relaciones
+        $alumno = Inscripcion::with([
+            'licenciatura',
+            'user',
+            'generacion',
+            'modalidad',
+            'cuatrimestre',
+            'ciudadNacimiento',
+            'estadoNacimiento',
+            'ciudad',
+            'estado',
+        ])->find($value);
+
+        if ($alumno) {
+            $this->selectedAlumno = $alumno->toArray();
+        } else {
+            $this->selectedAlumno = null;
+
+            $this->dispatch('swal', [
+                'title' => 'Alumno no encontrado',
+                'icon' => 'error',
+                'position' => 'top',
+            ]);
+        }
+    }
 
     public function addSinodo(): void
     {
@@ -69,6 +111,26 @@ class ActaExamen extends Component
 
     public function render()
     {
-        return view('livewire.admin.documentacion.acta-examen');
+        // Opciones del select (no hace búsqueda, solo lista; la búsqueda la hace el componente Blade)
+        $alumnos = Inscripcion::with([
+            'licenciatura',
+            'user',
+            'generacion',
+            'modalidad',
+            'cuatrimestre',
+            'ciudadNacimiento',
+            'estadoNacimiento',
+            'ciudad',
+            'estado',
+        ])
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->orderBy('nombre')
+
+            ->get()
+            ->toArray();
+
+        $generaciones = Generacion::all();
+        return view('livewire.admin.documentacion.acta-examen', compact('alumnos', 'generaciones'));
     }
 }

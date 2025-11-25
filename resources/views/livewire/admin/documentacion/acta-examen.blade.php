@@ -44,6 +44,7 @@
         {{-- BLOQUE: FECHA DEL EXAMEN --}}
         <div
             class="rounded-3xl bg-white/95 dark:bg-neutral-900/95 shadow-xl ring-1 ring-neutral-200/80 dark:ring-neutral-800 px-5 sm:px-6 py-5 space-y-3">
+
             <div class="flex items-center gap-2">
                 <span
                     class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-300">
@@ -60,22 +61,155 @@
                 </div>
             </div>
 
+            {{-- SKELETON mientras se carga el alumno seleccionado --}}
+            <div wire:loading wire:target="query"
+                class="w-full relative overflow-hidden rounded-3xl bg-white/95 dark:bg-neutral-900/95 shadow-2xl ring-1 ring-neutral-200/80 dark:ring-neutral-800 px-4 sm:px-6 py-4 sm:py-5">
+                <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500">
+                </div>
+
+                <div class="flex items-center gap-4 animate-pulse">
+                    <div class="h-12 w-12 rounded-full bg-neutral-200 dark:bg-neutral-700"></div>
+
+                    <div class="flex-1 space-y-2">
+                        <div class="h-3 w-2/3 rounded bg-neutral-200 dark:bg-neutral-700"></div>
+                        <div class="flex flex-wrap gap-2">
+                            <div class="h-4 w-24 rounded-full bg-neutral-200 dark:bg-neutral-700"></div>
+                            <div class="h-4 w-28 rounded-full bg-neutral-200 dark:bg-neutral-700"></div>
+                            <div class="h-4 w-20 rounded-full bg-neutral-200 dark:bg-neutral-700"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- TARJETA REAL: solo cuando hay alumno seleccionado y NO se está cargando --}}
+            @if ($selectedAlumno)
+                <div wire:loading.remove wire:target="query"
+                    class="relative overflow-hidden rounded-3xl bg-white/95 dark:bg-neutral-900/95 shadow-2xl ring-1 ring-neutral-200/80 dark:ring-neutral-800 px-4 sm:px-6 py-4 sm:py-5">
+                    {{-- Barrita superior decorativa --}}
+                    <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500">
+                    </div>
+
+                    {{-- Fondos difuminados --}}
+                    <div class="pointer-events-none absolute -left-10 top-6 h-24 w-24 rounded-full bg-sky-500/15 blur-3xl">
+                    </div>
+                    <div
+                        class="pointer-events-none absolute -right-10 -bottom-10 h-28 w-28 rounded-full bg-indigo-500/15 blur-3xl">
+                    </div>
+
+                    <div class="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        {{-- Columna izquierda: datos principales --}}
+                        <div class="flex items-start gap-3 sm:gap-4">
+                            {{-- Avatar con iniciales --}}
+                            @if ($selectedAlumno['foto'])
+                                <img src="{{ asset('fotos/' . $selectedAlumno['foto']) }}" alt="{{ $selectedAlumno['nombre'] }}"
+                                    class="w-12 h-12 object-cover rounded-full">
+                            @else
+                                <div
+                                    class="mt-1 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-sm sm:text-base font-semibold text-white shadow-lg">
+                                    {{ mb_substr($selectedAlumno['nombre'] ?? 'A', 0, 1) }}{{ mb_substr($selectedAlumno['apellido_paterno'] ?? 'A', 0, 1) }}
+                                </div>
+                            @endif
+
+                            <div class="space-y-1.5">
+                                {{-- Nombre completo --}}
+                                <p
+                                    class="font-semibold text-neutral-900 dark:text-neutral-50 text-sm sm:text-base leading-snug">
+                                    {{ $selectedAlumno['nombre'] ?? '' }}
+                                    {{ $selectedAlumno['apellido_paterno'] ?? '' }}
+                                    {{ $selectedAlumno['apellido_materno'] ?? '' }}
+                                </p>
+
+                                {{-- Chips de info rápida --}}
+                                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-[13px]">
+                                    <span
+                                        class="inline-flex items-center gap-1 rounded-full bg-neutral-100 text-neutral-800 dark:bg-neutral-800/80 dark:text-neutral-100 px-2.5 py-0.5">
+                                        <span
+                                            class="text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                                            Matrícula
+                                        </span>
+                                        <span class="font-mono text-xs">
+                                            {{ $selectedAlumno['matricula'] ?? '----' }}
+                                        </span>
+                                    </span>
+
+                                    <span
+                                        class="inline-flex items-center gap-1 rounded-full bg-neutral-100 text-neutral-800 dark:bg-neutral-800/80 dark:text-neutral-100 px-2.5 py-0.5">
+                                        <span
+                                            class="text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                                            CURP
+                                        </span>
+                                        <span class="font-mono text-[11px] truncate max-w-[150px] sm:max-w-xs">
+                                            {{ $selectedAlumno['CURP'] ?? '----' }}
+                                        </span>
+                                    </span>
+
+                                    <span
+                                        class="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200/80 dark:bg-indigo-900/20 dark:text-indigo-100 dark:ring-indigo-700/70 px-2.5 py-0.5">
+                                        <span class="text-[10px] uppercase tracking-wide">
+                                            Folio
+                                        </span>
+                                        <span class="font-semibold text-xs">
+                                            {{ $selectedAlumno['folio'] ?? '----' }}
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Columna derecha: info académica --}}
+                        <div
+                            class="flex flex-col items-start sm:items-end gap-1 text-xs sm:text-sm text-neutral-600 dark:text-neutral-300">
+                            <div class="flex flex-col items-start sm:items-end">
+                                <span class="text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                                    Licenciatura
+                                </span>
+                                <span class="font-medium text-neutral-900 dark:text-neutral-50">
+                                    {{ $selectedAlumno['licenciatura']['nombre'] ?? '----' }}
+                                </span>
+                            </div>
+
+                            <div
+                                class="hidden sm:block h-px w-24 bg-gradient-to-r from-transparent via-neutral-300/60 to-transparent dark:via-neutral-700/60">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                 <flux:field>
-                    <flux:input label="Fecha" type="datetime-local" name="fecha" wire:model.defer="fecha" />
-                    @error('fecha')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
-                </flux:field>
-                <flux:field>
-                    <flux:input label="Fecha" type="datetime-local" name="fecha" wire:model.defer="fecha" />
-                    @error('fecha')
+                    <!-- Select de búsqueda -->
+                    <x-searchable-select label="Estudiante" placeholder="--Selecciona al estudiante--"
+                        wire:model.live="query" {{-- query ahora es el ID del alumno --}}>
+                        @foreach($alumnos as $index => $alumno)
+                            @php
+                                $nombreAlumno = $alumno['apellido_paterno'] . ' ' . $alumno['apellido_materno'] . ' ' . $alumno['nombre'] . ' - ' . $alumno['matricula'];
+                            @endphp
+                            <x-searchable-select.option value="{{ $alumno['id'] }}">
+                                {{ $nombreAlumno }}
+                            </x-searchable-select.option>
+                        @endforeach
+                    </x-searchable-select>
+                    @error('query')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </flux:field>
 
+                <flux:field>
+                    <flux:select label="Generación" wire:model="generacion_id">
+                        <option value="">--Selecciona una generación--</option>
+                        @foreach($generaciones as $generacion)
+                            <option value="{{ $generacion->id }}">{{ $generacion->generacion }}</option>
+                        @endforeach
+                    </flux:select>
+                    @error('generacion_id')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </flux:field>
             </div>
         </div>
+
+
 
         {{-- BLOQUE: SÍNODOS DINÁMICOS (COLLAPSE) --}}
         <div x-data="{ openSinodos: true }" class="mb-6">
@@ -139,7 +273,7 @@
                     @foreach($sinodos as $index => $sinodo)
                         <div
                             class="rounded-2xl border border-neutral-200/80 dark:border-neutral-800
-                                                                           bg-neutral-50/70 dark:bg-neutral-900/70 px-3 sm:px-4 py-3 sm:py-3.5">
+                                                                                                                                               bg-neutral-50/70 dark:bg-neutral-900/70 px-3 sm:px-4 py-3 sm:py-3.5">
                             <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 md:gap-4 items-start">
                                 {{-- Campo nombre sínodo --}}
                                 <flux:field>
@@ -179,7 +313,7 @@
                                         <flux:button type="button" size="xs" variant="ghost"
                                             wire:click="removeSinodo({{ $index }})"
                                             class="rounded-full p-1.5 hover:bg-rose-100/80 text-rose-600
-                                                                                                                                   dark:hover:bg-rose-900/40 dark:text-rose-300">
+                                                                                                                                                                                                                                                                           dark:hover:bg-rose-900/40 dark:text-rose-300">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />

@@ -36,24 +36,24 @@ class Estudiante extends Component
     {
         // Si limpian el select
         if (empty($value)) {
-            $this->selectedAlumno   = null;
-            $this->edad             = null;
-            $this->fechaNacimiento  = null;
+            $this->selectedAlumno = null;
+            $this->edad = null;
+            $this->fechaNacimiento = null;
             return;
         }
 
         // Buscar alumno con todas sus relaciones
         $alumno = Inscripcion::with([
-                'licenciatura',
-                'user',
-                'generacion',
-                'modalidad',
-                'cuatrimestre',
-                'ciudadNacimiento',
-                'estadoNacimiento',
-                'ciudad',
-                'estado',
-            ])->find($value);
+            'licenciatura',
+            'user',
+            'generacion',
+            'modalidad',
+            'cuatrimestre',
+            'ciudadNacimiento',
+            'estadoNacimiento',
+            'ciudad',
+            'estado',
+        ])->find($value);
 
         if ($alumno) {
             $this->selectedAlumno = $alumno->toArray();
@@ -62,8 +62,8 @@ class Estudiante extends Component
             $this->selectedAlumno = null;
 
             $this->dispatch('swal', [
-                'title'    => 'Alumno no encontrado',
-                'icon'     => 'error',
+                'title' => 'Alumno no encontrado',
+                'icon' => 'error',
                 'position' => 'top',
             ]);
         }
@@ -73,17 +73,17 @@ class Estudiante extends Component
     {
         $fecha = substr($curp, 4, 6); // AAMMDD
         $anio = substr($fecha, 0, 2);
-        $mes  = substr($fecha, 2, 2);
-        $dia  = substr($fecha, 4, 2);
+        $mes = substr($fecha, 2, 2);
+        $dia = substr($fecha, 4, 2);
 
-        $anio_completo    = intval($anio) < 30 ? "20$anio" : "19$anio";
+        $anio_completo = intval($anio) < 30 ? "20$anio" : "19$anio";
         $fecha_nacimiento = "$anio_completo-$mes-$dia";
 
         $this->fechaNacimiento = $fecha_nacimiento;
 
         try {
             $nacimiento = new \DateTime($fecha_nacimiento);
-            $hoy        = new \DateTime();
+            $hoy = new \DateTime();
             $this->edad = $hoy->diff($nacimiento)->y;
         } catch (\Exception $e) {
             $this->edad = null;
@@ -92,9 +92,9 @@ class Estudiante extends Component
 
     public function limpiarAlumno()
     {
-        $this->query          = '';
+        $this->query = '';
         $this->selectedAlumno = null;
-        $this->edad           = null;
+        $this->edad = null;
         $this->fechaNacimiento = null;
     }
 
@@ -103,16 +103,16 @@ class Estudiante extends Component
     {
         if ($this->selectedAlumno && isset($this->selectedAlumno['id'])) {
             $alumno = Inscripcion::with([
-                    'licenciatura',
-                    'user',
-                    'generacion',
-                    'modalidad',
-                    'cuatrimestre',
-                    'ciudadNacimiento',
-                    'estadoNacimiento',
-                    'ciudad',
-                    'estado',
-                ])->find($this->selectedAlumno['id']);
+                'licenciatura',
+                'user',
+                'generacion',
+                'modalidad',
+                'cuatrimestre',
+                'ciudadNacimiento',
+                'estadoNacimiento',
+                'ciudad',
+                'estado',
+            ])->find($this->selectedAlumno['id']);
 
             if ($alumno) {
                 $this->selectedAlumno = $alumno->toArray();
@@ -125,10 +125,16 @@ class Estudiante extends Component
     {
         // Opciones del select (no hace búsqueda, solo lista; la búsqueda la hace el componente Blade)
         $alumnos = Inscripcion::with([
-                'licenciatura', 'user', 'generacion', 'modalidad',
-                'cuatrimestre', 'ciudadNacimiento', 'estadoNacimiento',
-                'ciudad', 'estado',
-            ])
+            'licenciatura',
+            'user',
+            'generacion',
+            'modalidad',
+            'cuatrimestre',
+            'ciudadNacimiento',
+            'estadoNacimiento',
+            'ciudad',
+            'estado',
+        ])
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
             ->orderBy('nombre')
