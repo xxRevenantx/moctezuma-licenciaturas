@@ -1,4 +1,33 @@
 <div>
+
+    @if (session()->has('error'))
+        <div x-data="{ open: true }" x-show="open" x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-90"
+            class="rounded-3xl bg-red-500/10 dark:bg-red-500/20 shadow-xl ring-1 ring-red-500/20 dark:ring-red-500/30 px-5 sm:px-6 py-4 mb-6">
+            <div class="flex items-center gap-3">
+                <span
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-red-500/20 text-red-600 dark:text-red-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </span>
+                <p class="text-sm font-medium text-red-700 dark:text-red-300">{{ session('error') }}</p>
+                <button type="button" @click="open = false"
+                    class="ml-auto -mx-1.5 -my-1.5 bg-red-500/20 text-red-600 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex h-8 w-8 dark:bg-red-500/20 dark:text-red-300 dark:hover:bg-red-300/20"
+                    aria-label="Close">
+                    <span class="sr-only">Close</span>
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+
+
     <form wire:submit.prevent="guardarActaExamen" class="w-full mx-auto space-y-6">
 
         {{-- ENCABEZADO --}}
@@ -146,7 +175,7 @@
                                     <span
                                         class="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200/80 dark:bg-indigo-900/20 dark:text-indigo-100 dark:ring-indigo-700/70 px-2.5 py-0.5">
                                         <span class="text-[10px] uppercase tracking-wide">
-                                            Folio
+                                            Folio:
                                         </span>
                                         <span class="font-semibold text-xs">
                                             {{ $selectedAlumno['folio'] ?? '----' }}
@@ -176,7 +205,7 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1">
                 <flux:field>
                     <!-- Select de búsqueda -->
                     <x-searchable-select label="Estudiante" placeholder="--Selecciona al estudiante--"
@@ -206,7 +235,26 @@
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </flux:field>
+                <flux:field>
+                    <flux:input label="Número de Autorización" wire:model="numero_autorizacion"
+                        placeholder="Número de autorización" />
+
+                    @error('numero_autorizacion')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </flux:field>
+
+                <flux:field>
+                    <flux:input type="datetime-local" label="Fecha de autorización" wire:model="fecha_autorizacion"
+                        placeholder="Fecha de autorización" />
+
+                    @error('fecha_autorizacion')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </flux:field>
+
             </div>
+
         </div>
 
 
@@ -273,7 +321,7 @@
                     @foreach($sinodos as $index => $sinodo)
                         <div
                             class="rounded-2xl border border-neutral-200/80 dark:border-neutral-800
-                                                                                                                                               bg-neutral-50/70 dark:bg-neutral-900/70 px-3 sm:px-4 py-3 sm:py-3.5">
+                                                                                                                                                                                                                                                       bg-neutral-50/70 dark:bg-neutral-900/70 px-3 sm:px-4 py-3 sm:py-3.5">
                             <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 md:gap-4 items-start">
                                 {{-- Campo nombre sínodo --}}
                                 <flux:field>
@@ -313,7 +361,7 @@
                                         <flux:button type="button" size="xs" variant="ghost"
                                             wire:click="removeSinodo({{ $index }})"
                                             class="rounded-full p-1.5 hover:bg-rose-100/80 text-rose-600
-                                                                                                                                                                                                                                                                           dark:hover:bg-rose-900/40 dark:text-rose-300">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           dark:hover:bg-rose-900/40 dark:text-rose-300">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -327,6 +375,102 @@
                 </div>
             </div>
         </div>
+
+        <div class="mt-6">
+            <div class="flex items-center justify-between mb-3 gap-2">
+                <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-50 flex items-center gap-2">
+                    <span
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 7h18M3 12h18M3 17h18" />
+                        </svg>
+                    </span>
+                    Tabla de Datos
+                </h3>
+
+                <span
+                    class="hidden sm:inline-flex items-center rounded-full bg-neutral-100 dark:bg-neutral-800 px-3 py-1 text-xs font-medium text-neutral-600 dark:text-neutral-300">
+                    2 registros
+                </span>
+            </div>
+
+            <div
+                class="relative overflow-hidden rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white/95 dark:bg-neutral-950/95 shadow-sm">
+                <!-- barrita superior -->
+                <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500">
+                </div>
+
+                <!-- decoraciones suaves -->
+                <div
+                    class="pointer-events-none absolute -left-16 top-6 h-24 w-24 rounded-full bg-sky-500/10 blur-3xl dark:bg-sky-500/15">
+                </div>
+                <div
+                    class="pointer-events-none absolute -right-10 -bottom-10 h-28 w-28 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-500/15">
+                </div>
+
+                <div class="relative overflow-x-auto">
+                    <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-800">
+                        <thead class="bg-neutral-50/90 dark:bg-neutral-900/90 backdrop-blur">
+                            <tr>
+                                <th scope="col"
+                                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.12em]">
+                                    Columna 1
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.12em]">
+                                    Columna 2
+                                </th>
+                                <th scope="col"
+                                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 dark:text-neutral-300 uppercase tracking-[0.12em]">
+                                    Acción
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody
+                            class="bg-white/80 dark:bg-neutral-950/80 divide-y divide-neutral-100 dark:divide-neutral-800 text-sm">
+                            <tr class="hover:bg-sky-50/70 dark:hover:bg-neutral-900 transition-colors">
+                                <td
+                                    class="px-6 py-4 whitespace-nowrap font-semibold text-neutral-900 dark:text-neutral-50">
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2 w-2 rounded-full bg-sky-500"></span>
+                                        <span>Fila 1, Dato 1</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-neutral-600 dark:text-neutral-300">
+                                    Fila 1, Dato 2
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-neutral-600 dark:text-neutral-300">
+                                    Fila 1, Dato 3
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/70 dark:hover:bg-neutral-900 transition-colors">
+                                <td
+                                    class="px-6 py-4 whitespace-nowrap font-semibold text-neutral-900 dark:text-neutral-50">
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                        <span>Fila 2, Dato 1</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-neutral-600 dark:text-neutral-300">
+                                    Fila 2, Dato 2
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-neutral-600 dark:text-neutral-300">
+                                    <flux:button target="_blank"
+                                        href="{{ route('admin.pdf.documentacion.acta-examen', 23) }}"
+                                        icon:trailing="arrow-up-right" type="button" variant="primary"
+                                        class="rounded-2xl px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 hover:from-sky-600 hover:via-indigo-600 hover:to-violet-600 shadow-md shadow-sky-900/30">
+                                        Acta de examen PDF
+                                    </flux:button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
 
         {{-- BOTÓN GUARDAR --}}
         <div class="flex items-center justify-end pt-2">

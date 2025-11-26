@@ -143,6 +143,8 @@ Route::middleware(['auth'])->group(function () {
     // PDF DE ALUMNOS QUE NO TIENE DOCUMENTACIÓN
     Route::get('/alumnos-documentacion/{licenciatura}', [PDFController::class, 'alumnos_documentacion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.alumnos.documentacion');
 
+    //ACTA DE EXAMEN
+    Route::get('/acta-examen/{id}', [PDFController::class, 'acta_examen'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.acta-examen');
 
     Route::prefix('licenciaturas')->group(function () {
         // Paso 1: Selección de modalidad

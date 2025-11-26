@@ -358,7 +358,8 @@
             <tr>
                 <td class="subtitulo">LICENCIATURA ASIGNADA</td>
                 <td colspan="3" style="text-align: center; text-transform: uppercase;">
-                    {{ $alumno->licenciatura->nombre}}</td>
+                    {{ $alumno->licenciatura->nombre}}
+                </td>
             </tr>
             <tr>
                 <td class="subtitulo">GENERACIÓN</td>
@@ -489,7 +490,8 @@
                 {{ $escuela->nombre }} tendrá la facultad de procesar la
                 baja correspondiente y el alumno deberá cubrir las colegiaturas correspondientes, de acuerdo a la fecha
                 de baja procesada por
-                el CUM.</p>
+                el CUM.
+            </p>
 
             <p><b>PAGO ANTICIPADO</b></p>
             <p>El pago del cuatrimestre por anticipado tendrá un 8% de descuento exclusivamente sobre las colegiaturas
