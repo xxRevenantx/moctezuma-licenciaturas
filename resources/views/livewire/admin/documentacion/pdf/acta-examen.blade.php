@@ -22,12 +22,12 @@
             src: url('{{ public_path('fonts/calibri-regular.ttf') }}') format('truetype');
         }
 
-        /* @font-face {
+        @font-face {
             font-family: 'calibri';
             font-style: bold;
             font-weight: 700;
             src: url('{{ storage_path('fonts/calibri/calibri-bold.ttf') }}') format('truetype');
-        } */
+        }
 
         body {
             font-family: 'calibri';
@@ -88,8 +88,10 @@
         .title-acta {
             text-align: center;
             font-weight: 600;
-            margin-top: 8px;
-            margin-bottom: 18px;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            font-size: 16px;
+
         }
 
         .foto-cuadro {
@@ -269,6 +271,8 @@
     {{-- ================== PÁGINA 1 ================== --}}
     <div class="page">
 
+        <img style="width: 70%;" src="{{ public_path('storage/encabezado.png') }}" alt="">
+
         <div class="title-acta">
             ACTA DE EXAMEN PROFESIONAL
         </div>
@@ -280,7 +284,7 @@
                 </td>
                 <td width="82%" valign="top">
                     <div class="contenido">
-                        Entidad federativa: <strong>Guerrero</strong>. Número de autorización
+                        Entidad federativa: <u>Guerrero</u>. Número de autorización
                         <span class="underline-short"></span>, siendo las
                         <span class="underline-short"></span>
                         horas del día
@@ -294,7 +298,7 @@
             </tr>
         </table>
 
-        <div class="contenido sangria mb-5" style="margin-top:28px;">
+        <div class="contenido sangria mb-5" style="margin-top:-20px; margin-left: 118px;">
             Se reunió el Sínodo integrado por los CC.
             <div class="sinodo-line"></div>
             <div class="sinodo-line"></div>

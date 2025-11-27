@@ -1,7 +1,7 @@
 {
     "calibri": {
-        "normal": "calibri_normal_fa8b8b315e8ba0cf21580a1bfc277c80",
-        "bold": "C:\\laragon\\www\\moctezuma-licenciaturas\\storage\\fonts\/calibri_bold_bc1f37d53b782e6b87304ad08a73ba2e"
+        "normal": "C:\\laragon\\www\\moctezuma-licenciaturas\\public\\\/fonts\/calibri_normal_fa8b8b315e8ba0cf21580a1bfc277c80",
+        "bold": "calibri_bold_bc1f37d53b782e6b87304ad08a73ba2e"
     },
     "great-vibes": {
         "normal": "great_vibes_normal_a8485aec53b605476229aa6acf783cbf"
