@@ -263,7 +263,6 @@ class PDFController extends Controller
             $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.actaResultadosPDF', $data)
                 ->setPaper('letter', 'portrait');
             return $pdf->stream("ACTA_DE_RESULTADOS_GEN_{$generacion->generacion}.pdf");
-
         } elseif ($documento === 'registro-escolaridad') {
             $data = compact('generacion', 'escuela', 'materias', 'licenciatura', 'alumnos', 'periodos', 'modalidades', 'rector', 'jefe');
             $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.registroEscolaridadPDF', $data)
@@ -371,7 +370,6 @@ class PDFController extends Controller
 
             $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.foliosOficioPDF', $data)->setPaper('letter', 'portrait');
             return $pdf->stream("OFICIO_FOLIOS_" . $generacion->generacion . ".pdf");
-
         } else if ($documento == 'certificados') {
             $data = [
                 'generacion' => $generacion,
@@ -388,8 +386,6 @@ class PDFController extends Controller
             $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.certificadosOficioPDF', $data)->setPaper('letter', 'portrait');
             return $pdf->stream("OFICIO_CERTIFICADOS_" . $generacion->generacion . ".pdf");
         }
-
-
     }
 
     // DOCUMENTO PERSONAL
@@ -492,7 +488,6 @@ class PDFController extends Controller
         } else {
             abort(404, 'Tipo de documento no válido');
         }
-
     }
 
 
@@ -526,9 +521,7 @@ class PDFController extends Controller
         ];
 
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialPDF', $data)
-            ->setPaper('letter', 'portrait')
-
-        ;
+            ->setPaper('letter', 'portrait');
 
         return $pdf->stream("CREDENCIAL(S).pdf");
     }
@@ -562,7 +555,6 @@ class PDFController extends Controller
         ];
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciasPDF', $data)->setPaper('letter', 'portrait');
         return $pdf->stream("CONSTANCIA_" . $alumno["nombre"] . "_" . $alumno["apellido_paterno"] . "_" . $alumno["apellido_materno"] . "_" . $alumno->matricula . ".pdf");
-
     }
 
 
@@ -659,8 +651,8 @@ class PDFController extends Controller
 
                 $nombre = trim(
                     ($prof->nombre ?? 'Sin asignar') . ' ' .
-                    ($prof->apellido_paterno ?? '') . ' ' .
-                    ($prof->apellido_materno ?? '')
+                        ($prof->apellido_paterno ?? '') . ' ' .
+                        ($prof->apellido_materno ?? '')
                 );
 
                 return [
@@ -875,8 +867,7 @@ class PDFController extends Controller
         $exportacion = $licenciatura->nombre . '_' . $materia->materia->slug . '_' . $generacion->generacion . '_' . $cuatrimestre_id . '°_Cuatrimestre';
 
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-asistencia-semiescolarizadaPDF', $data)
-            ->setPaper('letter', 'landscape');
-        ;
+            ->setPaper('letter', 'landscape');;
 
         return $pdf->stream("LISTA_ASISTENCIA_" . $exportacion . ".pdf");
     }
@@ -972,11 +963,9 @@ class PDFController extends Controller
         ];
 
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-evaluacionPDF', $data)
-            ->setPaper('letter', 'landscape');
-        ;
+            ->setPaper('letter', 'landscape');;
 
         return $pdf->stream("Lista_evaluacion.pdf");
-
     }
 
     // CREDENCIAL DEL PROFESOR
@@ -1010,9 +999,7 @@ class PDFController extends Controller
         ];
 
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialProfesorPDF', $data)
-            ->setPaper('letter', 'portrait')
-
-        ;
+            ->setPaper('letter', 'portrait');
 
         return $pdf->stream("CREDENCIAL(S).pdf");
     }
@@ -1027,8 +1014,7 @@ class PDFController extends Controller
             return redirect()->back()->with('error', 'No se seleccionaron profesores.');
         }
         // Obtiene los datos de los profesores
-        $profesores = Profesor::whereIn('id', $profesoresIds)->
-            with('user')->get();
+        $profesores = Profesor::whereIn('id', $profesoresIds)->with('user')->get();
         // CICLO ESCOLAR
         $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
         // Puedes ver los datos si estás probando
@@ -1094,7 +1080,6 @@ class PDFController extends Controller
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.boletaCalificacionPDF', $data)
             ->setPaper('letter', 'portrait');
         return $pdf->stream("BOLETA_DEL_" . $cuatrimestre->cuatrimestre . "°_CUATRIMESTRE_ALUMNO:" . $inscripcion->nombre . " " . $inscripcion->apellido_paterno . " " . $inscripcion->apellido_materno . ".pdf");
-
     }
 
     // CALIFICACIONES GENERALES
@@ -1181,7 +1166,6 @@ class PDFController extends Controller
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.calificacionesGeneralesPDF', $data)
             ->setPaper('letter', 'landscape');
         return $pdf->stream("CALIFICACIONES_GENERALES_" . strtoupper($licenciatura->nombre) . "_" . strtoupper($generacion->generacion) . "_" . strtoupper($cuatrimestres->cuatrimestre) . "°_CUATRIMESTRE.pdf");
-
     }
 
 
@@ -1199,7 +1183,6 @@ class PDFController extends Controller
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.justificantePDF', $data)
             ->setPaper('letter', 'portrait');
         return $pdf->stream("JUSTIFICANTE_" . $justificantes->alumno->nombre . "_" . $justificantes->alumno->apellido_paterno . "_" . $justificantes->alumno->apellido_materno . ".pdf");
-
     }
 
     // HORARIO DOCENTE SEMIESCOLARIZADA
@@ -1346,8 +1329,7 @@ class PDFController extends Controller
                 'fontDir' => public_path('/fonts'),
                 'fontCache' => public_path('/fonts'),
                 'defaultFont' => 'calibri'
-            ]);
-        ;
+            ]);;
 
         return $pdf->stream($filename);
     }
