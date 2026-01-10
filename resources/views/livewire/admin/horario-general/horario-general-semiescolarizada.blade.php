@@ -1,117 +1,141 @@
-<div x-data="{ open:false }" x-cloak>
+<div x-data="{
+    open: false,
+    destroyHorario(modalidad) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: `El horario de semiescolarizada se eliminará de forma permanente`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#2563EB',
+            cancelButtonColor: '#EF4444',
+            cancelButtonText: 'Cancelar',
+            confirmButtonText: 'Sí, eliminar'
+        }).then((r) => r.isConfirmed && @this.call('destroyHorario', modalidad))
+    }
+}" x-cloak>
     @php
         // Helper de contraste (evita redeclaración si se incluye varias veces)
         if (!function_exists('esColorOscuro')) {
-            function esColorOscuro($hexColor) {
+            function esColorOscuro($hexColor)
+            {
                 $hexColor = ltrim($hexColor ?: '#ffffff', '#');
                 if (strlen($hexColor) == 3) {
-                    $hexColor = $hexColor[0].$hexColor[0].$hexColor[1].$hexColor[1].$hexColor[2].$hexColor[2];
+                    $hexColor = $hexColor[0] . $hexColor[0] . $hexColor[1] . $hexColor[1] . $hexColor[2] . $hexColor[2];
                 }
                 $r = hexdec(substr($hexColor, 0, 2));
                 $g = hexdec(substr($hexColor, 2, 2));
                 $b = hexdec(substr($hexColor, 4, 2));
-                $l = (0.299*$r + 0.587*$g + 0.114*$b);
+                $l = 0.299 * $r + 0.587 * $g + 0.114 * $b;
                 return $l < 128; // true si el fondo es oscuro
             }
         }
     @endphp
 
     <!-- Búsqueda -->
-    <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm p-4 md:p-5 mb-4">
-        <flux:input
-            label="Buscar por profesor o materia"
-            wire:model.live="busqueda"
-            placeholder="Ej. Matemáticas o Juan Pérez"
-            class="w-full md:w-1/2"
-        />
+    <div
+        class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm p-4 md:p-5 mb-4">
+        <flux:input label="Buscar por profesor o materia" wire:model.live="busqueda"
+            placeholder="Ej. Matemáticas o Juan Pérez" class="w-full md:w-1/2" />
     </div>
 
 
 
     {{-- Sin resultados --}}
     @if ($horarios->isEmpty())
-        <div class="mt-6 p-4 text-center text-red-700 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl shadow-sm">
+        <div
+            class="mt-6 p-4 text-center text-red-700 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl shadow-sm">
             No se encontraron resultados.
         </div>
     @else
         <!-- Botón PDF + Modal -->
-        <div class="mb-4">
+        <div class="mb-4 flex items-center gap-3">
             <x-button x-on:click="open=true" variant="primary"
-                      class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
+                class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
                 <flux:icon.download />
                 Ver PDF
             </x-button>
+
+            <flux:button variant="danger" class="cursor-pointer bg-rose-600 hover:bg-rose-700 text-white"
+                @click="destroyHorario({{ 2 }})" title="Eliminar" aria-label="Eliminar">
+                <flux:icon.trash />
+                Eliminar Horario Semiescolarizada
+            </flux:button>
         </div>
 
-        <div x-show="open"
-             x-transition.opacity
-             @keydown.escape.window="open=false"
-             @click.self="open=false"
-             x-effect="document.body.classList.toggle('overflow-hidden', open)"
-             class="fixed inset-0 z-[120] grid place-items-center bg-black/40 dark:bg-black/50 backdrop-blur-sm p-4"
-             style="display:none"
-             tabindex="0"
-        >
-            <div class="relative w-full max-w-7xl rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-2xl">
-                <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-                    <h3 class="text-sm md:text-base font-semibold text-neutral-900 dark:text-neutral-100">Vista previa · Horario Semiescolarizada</h3>
+        <div x-show="open" x-transition.opacity @keydown.escape.window="open=false" @click.self="open=false"
+            x-effect="document.body.classList.toggle('overflow-hidden', open)"
+            class="fixed inset-0 z-[120] grid place-items-center bg-black/40 dark:bg-black/50 backdrop-blur-sm p-4"
+            style="display:none" tabindex="0">
+            <div
+                class="relative w-full max-w-7xl rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-2xl">
+                <div
+                    class="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+                    <h3 class="text-sm md:text-base font-semibold text-neutral-900 dark:text-neutral-100">Vista previa ·
+                        Horario Semiescolarizada</h3>
                     <button @click="open=false"
-                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white">
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white">
                         <span class="sr-only">Cerrar</span>
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.7 2.88 18.3 9.17 12 2.88 5.71 4.29 4.3l6.3 6.29 6.29-6.3z"/></svg>
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.7 2.88 18.3 9.17 12 2.88 5.71 4.29 4.3l6.3 6.29 6.29-6.3z" />
+                        </svg>
                     </button>
                 </div>
                 <div class="p-3">
                     <iframe src="{{ route('admin.pdf.horario-general-semiescolarizada') }}"
-                            class="w-full h-[80vh] rounded-lg border border-neutral-200 dark:border-neutral-800"></iframe>
+                        class="w-full h-[80vh] rounded-lg border border-neutral-200 dark:border-neutral-800"></iframe>
                 </div>
             </div>
         </div>
 
         <!-- Loader general -->
         <div wire:loading.flex class="justify-center items-center py-10">
-            <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                </circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
             </svg>
             <span class="text-neutral-600 dark:text-neutral-300 text-sm">Cargando…</span>
         </div>
 
         <!-- Tabla principal -->
-        <div wire:loading.remove class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden">
+        <div wire:loading.remove
+            class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead class="bg-neutral-100 dark:bg-neutral-700 sticky top-0 z-10">
                         <tr>
-                            <th class="px-3 py-2 text-left font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Hora</th>
-                            @foreach($columnasUnicas as $col)
-
-                                <th class="px-3 py-2 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                            <th
+                                class="px-3 py-2 text-left font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                Hora</th>
+                            @foreach ($columnasUnicas as $col)
+                                <th
+                                    class="px-3 py-2 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
                                     {{ $col['etiqueta'] }}
 
-                                   {{-- Botón atractivo que lanza el modal de PDF --}}
-                                        <flux:button
-                                            variant="primary"
-                                            class="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600
+                                    {{-- Botón atractivo que lanza el modal de PDF --}}
+                                    <flux:button variant="primary"
+                                        class="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600
                                                 hover:from-sky-600 hover:via-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl
                                                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                            @click.prevent="$dispatch('open-pdf-modal', {
+                                        @click.prevent="$dispatch('open-pdf-modal', {
                                                 url: '{{ route('admin.pdf.horario-semiescolarizada', [
-                                                    'licenciatura_id'   => $col['licenciatura_id'],
-                                                    'modalidad_id'      => 2,
-                                                    'filtrar_generacion'=> $col['generacion_id'],
+                                                    'licenciatura_id' => $col['licenciatura_id'],
+                                                    'modalidad_id' => 2,
+                                                    'filtrar_generacion' => $col['generacion_id'],
                                                     'filtrar_cuatrimestre' => $col['cuatrimestre_id'],
                                                 ]) }}',
                                                 title: 'Horario (Semiescolarizada)'
-                                            })"
-                                        >
-                                            {{-- Ícono de documento/PDF --}}
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M7 7v10a2 2 0 002 2h6m0 0l4-4m-4 4V7a2 2 0 00-2-2H7m6 0l4 4" />
-                                            </svg>
-                                            <span>Ver PDF</span>
-                                        </flux:button>
+                                            })">
+                                        {{-- Ícono de documento/PDF --}}
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 7v10a2 2 0 002 2h6m0 0l4-4m-4 4V7a2 2 0 00-2-2H7m6 0l4 4" />
+                                        </svg>
+                                        <span>Ver PDF</span>
+                                    </flux:button>
 
 
 
@@ -122,7 +146,8 @@
                     <tbody>
                         @foreach ($horasUnicas as $hora)
                             <tr class="odd:bg-neutral-50/60 dark:odd:bg-neutral-800/60">
-                                <td class="px-3 py-2 font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                <td
+                                    class="px-3 py-2 font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
                                     {{ $hora }}
                                 </td>
 
@@ -130,17 +155,24 @@
                                     @php
                                         $item = $horarios->first(function ($h) use ($hora, $col) {
                                             return $h->hora === $hora &&
-                                                   $h->cuatrimestre_id === $col['cuatrimestre_id'] &&
-                                                   $h->licenciatura_id === $col['licenciatura_id'];
+                                                $h->cuatrimestre_id === $col['cuatrimestre_id'] &&
+                                                $h->licenciatura_id === $col['licenciatura_id'];
                                         });
 
-                                        $materia     = optional(optional($item)->asignacionMateria)->materia?->nombre;
+                                        $materia = optional(optional($item)->asignacionMateria)->materia?->nombre;
                                         $profesorObj = optional(optional($item)->asignacionMateria)->profesor;
-                                        $profesor    = $profesorObj
-                                            ? trim($profesorObj->nombre.' '.$profesorObj->apellido_paterno.' '.$profesorObj->apellido_materno)
+                                        $profesor = $profesorObj
+                                            ? trim(
+                                                $profesorObj->nombre .
+                                                    ' ' .
+                                                    $profesorObj->apellido_paterno .
+                                                    ' ' .
+                                                    $profesorObj->apellido_materno,
+                                            )
                                             : null;
-                                        $color = optional(optional($item)->asignacionMateria)->profesor?->color ?? '#ffffff';
-                                        $txt   = esColorOscuro($color) ? '#ffffff' : '#111827'; // blanco o slate-900
+                                        $color =
+                                            optional(optional($item)->asignacionMateria)->profesor?->color ?? '#ffffff';
+                                        $txt = esColorOscuro($color) ? '#ffffff' : '#111827'; // blanco o slate-900
                                     @endphp
 
                                     <td class="px-3 py-2 text-sm text-center align-middle border-b border-neutral-200 dark:border-neutral-700"
@@ -165,13 +197,12 @@
             </h4>
 
             <!-- Loader recalculo -->
-            <div
-                wire:loading.delay
-                wire:target="busqueda"
-                class="w-full flex flex-col items-center justify-center gap-3 p-6 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 text-center"
-            >
-                <svg class="animate-spin h-8 w-8 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <div wire:loading.delay wire:target="busqueda"
+                class="w-full flex flex-col items-center justify-center gap-3 p-6 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 text-center">
+                <svg class="animate-spin h-8 w-8 text-indigo-600 dark:text-indigo-400"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4z"></path>
                 </svg>
                 <span class="text-sm font-medium text-neutral-700 dark:text-neutral-200">
@@ -187,14 +218,20 @@
                 foreach ($horarios as $h) {
                     $asig = $h->asignacionMateria ?? null;
                     $prof = optional($asig)->profesor;
-                    $mat  = optional($asig)->materia;
+                    $mat = optional($asig)->materia;
 
                     $pid = $prof?->id ?? 'sin';
                     if (!isset($porProfesor[$pid])) {
                         $porProfesor[$pid] = [
-                            'profesor' => $prof ? $prof : (object)['nombre' => 'Sin asignar', 'apellido_paterno' => '', 'apellido_materno' => ''],
-                            'color'    => $prof?->color ?? '#e5e7eb',
-                            'horas'    => 0,
+                            'profesor' => $prof
+                                ? $prof
+                                : (object) [
+                                    'nombre' => 'Sin asignar',
+                                    'apellido_paterno' => '',
+                                    'apellido_materno' => '',
+                                ],
+                            'color' => $prof?->color ?? '#e5e7eb',
+                            'horas' => 0,
                             'materias' => [],
                         ];
                     }
@@ -203,59 +240,89 @@
                     if ($mat) {
                         if (!isset($porProfesor[$pid]['materias'][$mat->id])) {
                             $porProfesor[$pid]['materias'][$mat->id] = [
-                                'nombre'        => $mat->nombre,
-                                'clave'         => $mat->clave,
-                                'licenciatura'  => $mat->licenciatura->nombre ?? 'N/A',
-                                'count'         => 0,
-                                'slots'         => [],
+                                'nombre' => $mat->nombre,
+                                'clave' => $mat->clave,
+                                'licenciatura' => $mat->licenciatura->nombre ?? 'N/A',
+                                'count' => 0,
+                                'slots' => [],
                             ];
                         }
                         $porProfesor[$pid]['materias'][$mat->id]['count']++;
                         $porProfesor[$pid]['materias'][$mat->id]['slots'][] = [
-                            'dia'  => $h->dia->dia ?? ('Día '.$h->dia_id),
+                            'dia' => $h->dia->dia ?? 'Día ' . $h->dia_id,
                             'hora' => $h->hora,
                         ];
                     }
                 }
                 // Orden alfabético (los 'sin' van al final)
-                uksort($porProfesor, function($a,$b) use ($porProfesor){
-                    if ($a==='sin' && $b==='sin') return 0;
-                    if ($a==='sin') return 1;
-                    if ($b==='sin') return -1;
-                    $na = trim(($porProfesor[$a]['profesor']->nombre ?? '').' '.($porProfesor[$a]['profesor']->apellido_paterno ?? '').' '.($porProfesor[$a]['profesor']->apellido_materno ?? ''));
-                    $nb = trim(($porProfesor[$b]['profesor']->nombre ?? '').' '.($porProfesor[$b]['profesor']->apellido_paterno ?? '').' '.($porProfesor[$b]['profesor']->apellido_materno ?? ''));
-                    return mb_strtolower($na,'UTF-8') <=> mb_strtolower($nb,'UTF-8');
+                uksort($porProfesor, function ($a, $b) use ($porProfesor) {
+                    if ($a === 'sin' && $b === 'sin') {
+                        return 0;
+                    }
+                    if ($a === 'sin') {
+                        return 1;
+                    }
+                    if ($b === 'sin') {
+                        return -1;
+                    }
+                    $na = trim(
+                        ($porProfesor[$a]['profesor']->nombre ?? '') .
+                            ' ' .
+                            ($porProfesor[$a]['profesor']->apellido_paterno ?? '') .
+                            ' ' .
+                            ($porProfesor[$a]['profesor']->apellido_materno ?? ''),
+                    );
+                    $nb = trim(
+                        ($porProfesor[$b]['profesor']->nombre ?? '') .
+                            ' ' .
+                            ($porProfesor[$b]['profesor']->apellido_paterno ?? '') .
+                            ' ' .
+                            ($porProfesor[$b]['profesor']->apellido_materno ?? ''),
+                    );
+                    return mb_strtolower($na, 'UTF-8') <=> mb_strtolower($nb, 'UTF-8');
                 });
-                $totalHoras = array_sum(array_map(fn($x)=>$x['horas'],$porProfesor));
+                $totalHoras = array_sum(array_map(fn($x) => $x['horas'], $porProfesor));
 
-                $formatearChips = function(array $slots) use ($posHora){
+                $formatearChips = function (array $slots) use ($posHora) {
                     $porDia = [];
-                    foreach ($slots as $s) { $porDia[$s['dia']][] = $s['hora']; }
+                    foreach ($slots as $s) {
+                        $porDia[$s['dia']][] = $s['hora'];
+                    }
                     $chips = [];
                     foreach ($porDia as $dia => $horasDia) {
-                        if ($posHora) { usort($horasDia, fn($a,$b)=>($posHora[$a]??999) <=> ($posHora[$b]??999)); }
-                        else { sort($horasDia); }
-                        $chips[] = ['dia'=>$dia,'horas'=>$horasDia];
+                        if ($posHora) {
+                            usort($horasDia, fn($a, $b) => ($posHora[$a] ?? 999) <=> ($posHora[$b] ?? 999));
+                        } else {
+                            sort($horasDia);
+                        }
+                        $chips[] = ['dia' => $dia, 'horas' => $horasDia];
                     }
                     return $chips;
                 };
             @endphp
 
-            <div
-                wire:loading.remove
-                wire:target="busqueda"
-                class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden"
-            >
-                @if(count($porProfesor))
+            <div wire:loading.remove wire:target="busqueda"
+                class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden">
+                @if (count($porProfesor))
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm">
                             <thead class="bg-neutral-100 dark:bg-neutral-700">
                                 <tr>
-                                    <th class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">#</th>
-                                    <th class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Profesor</th>
-                                    <th class="px-4 py-3 font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Materia (horas) y desglose por día</th>
-                                    <th class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Total de Horas</th>
-                                    <th class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">Horario</th>
+                                    <th
+                                        class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                        #</th>
+                                    <th
+                                        class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                        Profesor</th>
+                                    <th
+                                        class="px-4 py-3 font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                        Materia (horas) y desglose por día</th>
+                                    <th
+                                        class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                        Total de Horas</th>
+                                    <th
+                                        class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                        Horario</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -264,37 +331,54 @@
                                     @php
                                         $p = $data['profesor'];
                                         $profColor = $data['color'] ?? '#e5e7eb';
-                                        $txtColor  = esColorOscuro($profColor) ? '#ffffff' : '#222222';
-                                        $nombre    = trim(($p->nombre ?? '').' '.($p->apellido_paterno ?? '').' '.($p->apellido_materno ?? ''));
+                                        $txtColor = esColorOscuro($profColor) ? '#ffffff' : '#222222';
+                                        $nombre = trim(
+                                            ($p->nombre ?? '') .
+                                                ' ' .
+                                                ($p->apellido_paterno ?? '') .
+                                                ' ' .
+                                                ($p->apellido_materno ?? ''),
+                                        );
                                     @endphp
                                     <tr class="odd:bg-neutral-50/60 dark:odd:bg-neutral-800/60">
-                                        <td class="px-4 py-3 text-center font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">{{ $i++ }}</td>
-                                        <td class="px-4 py-3 text-center border-b border-neutral-200 dark:border-neutral-700">
-                                            <span class="inline-block px-2 py-1 rounded-md" style="background-color: {{ $profColor }}; color: {{ $txtColor }};">
+                                        <td
+                                            class="px-4 py-3 text-center font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                            {{ $i++ }}</td>
+                                        <td
+                                            class="px-4 py-3 text-center border-b border-neutral-200 dark:border-neutral-700">
+                                            <span class="inline-block px-2 py-1 rounded-md"
+                                                style="background-color: {{ $profColor }}; color: {{ $txtColor }};">
                                                 {{ $nombre ?: 'Sin asignar' }}
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700">
-                                            @if(count($data['materias']))
+                                            @if (count($data['materias']))
                                                 <ul class="space-y-2">
                                                     @foreach ($data['materias'] as $m)
                                                         @php $chips = $formatearChips($m['slots']); @endphp
-                                                        <li class="rounded-lg border border-neutral-200 dark:border-neutral-700 p-2">
+                                                        <li
+                                                            class="rounded-lg border border-neutral-200 dark:border-neutral-700 p-2">
                                                             <div class="flex items-center justify-between gap-2">
-                                                                <div class="font-medium text-neutral-900 dark:text-neutral-100">
+                                                                <div
+                                                                    class="font-medium text-neutral-900 dark:text-neutral-100">
                                                                     {{ $m['nombre'] }}
-                                                                    <span class="text-xs text-neutral-500">({{ $m['clave'] }})</span>
-                                                                    <span class="text-xs text-neutral-500">({{ $m['licenciatura'] }})</span>
+                                                                    <span
+                                                                        class="text-xs text-neutral-500">({{ $m['clave'] }})</span>
+                                                                    <span
+                                                                        class="text-xs text-neutral-500">({{ $m['licenciatura'] }})</span>
                                                                 </div>
-                                                                <span class="inline-flex items-center text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                                                                <span
+                                                                    class="inline-flex items-center text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
                                                                     {{ $m['count'] }} h
                                                                 </span>
                                                             </div>
-                                                            @if(count($chips))
+                                                            @if (count($chips))
                                                                 <div class="mt-2 flex flex-wrap gap-1">
                                                                     @foreach ($chips as $c)
-                                                                        <span class="inline-flex items-center text-[11px] px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200">
-                                                                            <strong class="mr-1">{{ $c['dia'] }}:</strong>
+                                                                        <span
+                                                                            class="inline-flex items-center text-[11px] px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200">
+                                                                            <strong
+                                                                                class="mr-1">{{ $c['dia'] }}:</strong>
                                                                             {{ implode(', ', $c['horas']) }}
                                                                         </span>
                                                                     @endforeach
@@ -307,17 +391,22 @@
                                                 <span class="text-neutral-400 italic">Sin materias</span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3 text-center font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
+                                        <td
+                                            class="px-4 py-3 text-center font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
                                             {{ $data['horas'] }}
                                             <div class="text-[11px] text-neutral-500">Total de horas</div>
                                         </td>
-                                        <td class="px-4 py-3 text-center border-b border-neutral-200 dark:border-neutral-700">
-                                            @if($pid !== 'sin')
-                                                <form action="{{ route('admin.pdf.horario-docente-semiescolarizada') }}" method="GET" target="_blank">
-                                                    <input type="hidden" name="profesor_id" value="{{ $pid }}">
+                                        <td
+                                            class="px-4 py-3 text-center border-b border-neutral-200 dark:border-neutral-700">
+                                            @if ($pid !== 'sin')
+                                                <form
+                                                    action="{{ route('admin.pdf.horario-docente-semiescolarizada') }}"
+                                                    method="GET" target="_blank">
+                                                    <input type="hidden" name="profesor_id"
+                                                        value="{{ $pid }}">
                                                     <input type="hidden" name="modalidad_id" value="2">
                                                     <button type="submit"
-                                                            class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg">
+                                                        class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg">
                                                         <flux:icon.file-text />
                                                         Horario
                                                     </button>
@@ -330,7 +419,8 @@
                                 @endforeach
 
                                 <tr>
-                                    <td colspan="5" class="px-4 py-4 text-center text-sm font-semibold text-indigo-700 dark:text-indigo-300 border-t border-neutral-200 dark:border-neutral-700">
+                                    <td colspan="5"
+                                        class="px-4 py-4 text-center text-sm font-semibold text-indigo-700 dark:text-indigo-300 border-t border-neutral-200 dark:border-neutral-700">
                                         Total global de horas: {{ $totalHoras }}
                                     </td>
                                 </tr>
@@ -338,7 +428,8 @@
                         </table>
                     </div>
                 @else
-                    <div class="p-6 text-center text-neutral-600 dark:text-neutral-300">No hay datos para mostrar.</div>
+                    <div class="p-6 text-center text-neutral-600 dark:text-neutral-300">No hay datos para mostrar.
+                    </div>
                 @endif
             </div>
         </div>
@@ -346,102 +437,96 @@
 
 
     {{-- Modal de Preview PDF (reutilizable) --}}
-<div
-    x-data="{ open:false, url:'', title:'', loaded:false }"
-    x-on:open-pdf-modal.window="
+    <div x-data="{ open: false, url: '', title: '', loaded: false }"
+        x-on:open-pdf-modal.window="
         open = true;
         url = $event.detail.url;
         title = $event.detail.title || 'Documento PDF';
         loaded = false;
         document.documentElement.classList.add('overflow-hidden');
     "
-    x-on:keydown.escape.window="
+        x-on:keydown.escape.window="
         open = false;
         document.documentElement.classList.remove('overflow-hidden');
     "
-    x-cloak
-    aria-live="polite"
->
-    {{-- Overlay --}}
-    <div
-        x-show="open"
-        x-transition.opacity.duration.200ms
-        class="fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm"
-        @click="open=false; document.documentElement.classList.remove('overflow-hidden')"
-        aria-hidden="true"
-    ></div>
+        x-cloak aria-live="polite">
+        {{-- Overlay --}}
+        <div x-show="open" x-transition.opacity.duration.200ms
+            class="fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm"
+            @click="open=false; document.documentElement.classList.remove('overflow-hidden')" aria-hidden="true">
+        </div>
 
-    {{-- Panel --}}
-    <section
-        x-show="open"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-6 sm:translate-y-0 sm:scale-95 blur-sm"
-        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100 blur-0"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-        x-transition:leave-end="opacity-0 translate-y-6 sm:translate-y-0 sm:scale-95"
-        class="fixed inset-0 z-[90] grid place-items-center p-4"
-        role="dialog" aria-modal="true" :aria-label="title"
-    >
-        <div class="relative w-full max-w-5xl rounded-2xl shadow-2xl ring-1 ring-black/5
+        {{-- Panel --}}
+        <section x-show="open" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-6 sm:translate-y-0 sm:scale-95 blur-sm"
+            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100 blur-0"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave-end="opacity-0 translate-y-6 sm:translate-y-0 sm:scale-95"
+            class="fixed inset-0 z-[90] grid place-items-center p-4" role="dialog" aria-modal="true"
+            :aria-label="title">
+            <div
+                class="relative w-full max-w-5xl rounded-2xl shadow-2xl ring-1 ring-black/5
                     bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700">
 
-            {{-- Top bar --}}
-            <header class="flex items-center justify-between px-5 py-3
+                {{-- Top bar --}}
+                <header
+                    class="flex items-center justify-between px-5 py-3
                            bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 text-white rounded-t-2xl">
-                <h3 class="text-base sm:text-lg font-semibold truncate" x-text="title"></h3>
+                    <h3 class="text-base sm:text-lg font-semibold truncate" x-text="title"></h3>
 
-                <div class="flex items-center gap-2">
-                    <a :href="url" target="_blank" rel="noopener"
-                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25">
-                        {{-- Icono abrir en nueva pestaña --}}
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M14 3h7m0 0v7m0-7L10 14"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M5 7v12a2 2 0 002 2h12"/>
-                        </svg>
-                        <span class="text-sm font-medium">Abrir</span>
-                    </a>
+                    <div class="flex items-center gap-2">
+                        <a :href="url" target="_blank" rel="noopener"
+                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25">
+                            {{-- Icono abrir en nueva pestaña --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14 3h7m0 0v7m0-7L10 14" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 7v12a2 2 0 002 2h12" />
+                            </svg>
+                            <span class="text-sm font-medium">Abrir</span>
+                        </a>
 
 
 
-                    <button type="button" class="ml-1 p-1.5 rounded-lg hover:bg-white/20"
+                        <button type="button" class="ml-1 p-1.5 rounded-lg hover:bg-white/20"
                             @click="open=false; document.documentElement.classList.remove('overflow-hidden')"
                             aria-label="Cerrar">
-                        {{-- Icono cerrar --}}
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-            </header>
-
-            {{-- Contenido --}}
-            <div class="relative p-4">
-                {{-- Loader mientras carga el PDF --}}
-                <div x-show="!loaded" class="absolute inset-0 grid place-items-center">
-                    <div class="flex flex-col items-center gap-2 text-neutral-600 dark:text-neutral-300">
-                        <svg class="animate-spin h-6 w-6" viewBox="0 0 24 24" fill="none">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                            <path class="opacity-75" fill="currentColor"
-                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-                        </svg>
-                        <span class="text-sm">Cargando documento…</span>
+                            {{-- Icono cerrar --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
-                </div>
+                </header>
 
-                {{-- Iframe del PDF --}}
-                <iframe
-                    :src="url"
-                    class="w-full h-[80vh] rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white"
-                    @load="loaded = true"
-                ></iframe>
+                {{-- Contenido --}}
+                <div class="relative p-4">
+                    {{-- Loader mientras carga el PDF --}}
+                    <div x-show="!loaded" class="absolute inset-0 grid place-items-center">
+                        <div class="flex flex-col items-center gap-2 text-neutral-600 dark:text-neutral-300">
+                            <svg class="animate-spin h-6 w-6" viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4" />
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                            </svg>
+                            <span class="text-sm">Cargando documento…</span>
+                        </div>
+                    </div>
+
+                    {{-- Iframe del PDF --}}
+                    <iframe :src="url"
+                        class="w-full h-[80vh] rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white"
+                        @load="loaded = true"></iframe>
+                </div>
             </div>
-        </div>
-    </section>
-</div>
+        </section>
+    </div>
 
 
 

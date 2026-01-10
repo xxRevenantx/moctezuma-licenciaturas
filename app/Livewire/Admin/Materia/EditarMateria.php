@@ -6,6 +6,8 @@ use App\Models\Materia;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+
 
 class EditarMateria extends Component
 {
@@ -38,35 +40,55 @@ class EditarMateria extends Component
     }
 
 
-     public function updatedNombre($value){
+    public function updatedNombre($value)
+    {
         $this->slug = Str::slug($value);
     }
 
 
-    public function actualizarMateria(){
+    public function actualizarMateria()
+    {
         $this->validate([
-            'nombre' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:materias,slug,'.$this->materiaId,
-            'clave' => 'required|string|max:255|unique:materias,clave,'.$this->materiaId,
-            'calificable' => 'required|in:true,false',
-            'creditos' => 'required|integer',
-            'cuatrimestre_id' => 'required|exists:cuatrimestres,id',
-            'licenciatura_id' => 'required|exists:licenciaturas,id',
+            'nombre' => ['required', 'string', 'max:255'],
 
-        ],[
+            // ✅ slug único SOLO dentro de la misma licenciatura
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('materias', 'slug')
+                    ->where(fn($q) => $q->where('licenciatura_id', $this->licenciatura_id))
+                    ->ignore($this->materiaId),
+            ],
+
+            // (opcional) clave también por licenciatura (si quieres la misma lógica)
+            'clave' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('materias', 'clave')
+                    ->where(fn($q) => $q->where('licenciatura_id', $this->licenciatura_id))
+                    ->ignore($this->materiaId),
+            ],
+
+            'calificable' => ['required', 'in:true,false'],
+            'creditos' => ['required', 'integer'],
+            'cuatrimestre_id' => ['required', 'exists:cuatrimestres,id'],
+            'licenciatura_id' => ['required', 'exists:licenciaturas,id'],
+        ], [
             'nombre.required' => 'El nombre de la materia es requerido',
             'slug.required' => 'El slug de la materia es requerido',
-            'slug.unique' => 'El slug de la materia ya existe',
+            'slug.unique' => 'El slug de la materia ya existe en esta licenciatura',
             'clave.required' => 'La clave de la materia es requerida',
-            'clave.unique' => 'La clave de la materia ya existe',
+            'clave.unique' => 'La clave de la materia ya existe en esta licenciatura',
             'creditos.required' => 'Los creditos son requeridos',
             'cuatrimestre_id.required' => 'El cuatrimestre es requerido',
             'licenciatura_id.required' => 'La licenciatura es requerida',
             'calificable.required' => 'El campo calificable es requerido',
-
         ]);
 
         $materia = Materia::findOrFail($this->materiaId);
+
         $materia->update([
             "nombre" => trim($this->nombre),
             "slug" => trim($this->slug),
@@ -78,20 +100,21 @@ class EditarMateria extends Component
         ]);
 
         $this->dispatch('swal', [
-                'title' => '¡Materia actualizada correctamente!',
-                'icon' => 'success',
-                'position' => 'top-end',
-            ]);
+            'title' => '¡Materia actualizada correctamente!',
+            'icon' => 'success',
+            'position' => 'top-end',
+        ]);
 
-            $this->reset(['open', 'nombre', 'slug', 'clave', 'creditos', 'licenciatura_id', 'cuatrimestre_id', 'calificable']);
-            $this->dispatch('refreshMaterias');
-             $this->cerrarModal();
+        $this->reset(['open', 'nombre', 'slug', 'clave', 'creditos', 'licenciatura_id', 'cuatrimestre_id', 'calificable']);
+        $this->dispatch('refreshMaterias');
+        $this->cerrarModal();
     }
 
 
 
 
-     public function cerrarModal()
+
+    public function cerrarModal()
     {
         $this->reset([
             'materiaId',
@@ -103,8 +126,7 @@ class EditarMateria extends Component
             'cuatrimestre_id',
             'calificable'
         ]);
-          $this->resetValidation();
-
+        $this->resetValidation();
     }
 
 
