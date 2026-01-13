@@ -40,17 +40,17 @@ class Calificacion extends Component
     public $materias = [];       // asignacion_materia CANÓNICA por materia
     public $calificaciones = []; // [alumno_id][canon_id] => valor
 
-    /** Mapas internos */
-    protected array $canonicoPorMateria = [];  // [materia_id] => asig_canónico_id
-    protected array $otrosIdsPorCanonico = []; // [asig_canónico_id] => [otros_asig_id...]
-    protected array $idsParaLimpiar = [];      // ids de asignaciones del cuatri (incluye duplicadas)
+    /** ✅ IMPORTANTE: en Livewire deben ser PUBLIC para persistir entre requests */
+    public array $canonicoPorMateria = [];   // [materia_id] => asig_canónico_id
+    public array $otrosIdsPorCanonico = [];  // [asig_canónico_id] => [otros_asig_id...]
+    public array $idsParaLimpiar = [];       // ids de asignaciones del cuatri (incluye duplicadas)
 
     /** UI flags */
     public bool $todas_calificaciones_guardadas = false;
     public bool $hayCambios = false;
     public bool $yaExistenEnBD = false;
 
-    /** ✅ Nuevo: modo desde el botón (guardar inserta no duplicados / actualizar reemplaza todo) */
+    /** ✅ modo desde el botón */
     public string $modoGuardar = 'guardar'; // 'guardar' | 'actualizar'
 
     /** ======================= CICLO DE VIDA ======================= */
@@ -80,6 +80,10 @@ class Calificacion extends Component
         $this->alumnos = [];
         $this->materias = [];
         $this->yaExistenEnBD = false;
+
+        $this->canonicoPorMateria = [];
+        $this->otrosIdsPorCanonico = [];
+        $this->idsParaLimpiar = [];
 
         if (!$value) return;
 
@@ -118,14 +122,13 @@ class Calificacion extends Component
     {
         if ($this->filtrar_generacion && $this->filtrar_cuatrimestre) {
             $this->cargarAlumnos();
-            $this->hidratarInputsConBD(); // mantiene lo tecleado (incluido vacío)
+            $this->hidratarInputsConBD();
         }
     }
 
     /**
      * ✅ ELIMINACIÓN INMEDIATA
      * Se ejecuta cuando cambia calificaciones.{alumnoId}.{canonId}
-     * $key llega como "41.123"
      */
     public function updatedCalificaciones($value, string $key): void
     {
@@ -142,13 +145,12 @@ class Calificacion extends Component
         // ✅ Solo eliminamos si quedó vacío
         if ($v !== null) return;
 
-        // Seguridad: solo permitir eliminar si es una materia visible en el cuatri
         $idsCanon = collect($this->materias)->pluck('id')->map(fn($x) => (int)$x)->all();
         if (!in_array($canonId, $idsCanon, true)) return;
 
         $deleted = ModelsCalificacion::query()
             ->where('alumno_id', $alumnoId)
-            ->where('asignacion_materia_id', $canonId) // CANÓNICO
+            ->where('asignacion_materia_id', $canonId)
             ->where('modalidad_id', $this->modalidad->id)
             ->where('licenciatura_id', $this->licenciatura->id)
             ->where('generacion_id', $this->filtrar_generacion)
@@ -214,6 +216,24 @@ class Calificacion extends Component
         $this->recalcularFlags();
     }
 
+    /**
+     * ✅ Si el request llega “nuevo” (click del botón),
+     * y Livewire no trae dataset listo, lo reconstruimos.
+     */
+    private function asegurarDatasetMinimo(): void
+    {
+        if (!$this->filtrar_generacion || !$this->filtrar_cuatrimestre) return;
+
+        // Si falta el mapa o ids para limpiar, reconstruye materias canónicas
+        if (empty($this->idsParaLimpiar) || empty($this->canonicoPorMateria) || empty($this->materias)) {
+            $this->cargarMateriasCanonicas();
+        }
+
+        if (empty($this->alumnos)) {
+            $this->cargarAlumnos();
+        }
+    }
+
     private function cargarMateriasCanonicas(): void
     {
         $asignacionesAll = AsignacionMateria::with(['materia', 'profesor'])
@@ -231,10 +251,14 @@ class Calificacion extends Component
         $otrosIdsPorCanonico = [];
 
         foreach ($grupos as $materiaId => $grupo) {
-            $canon = $grupo->min('id');
+            $canon = (int) $grupo->min('id');
             $canonicoPorMateria[$materiaId] = $canon;
 
-            $otros = $grupo->pluck('id')->reject(fn($id) => (int)$id === (int)$canon)->values()->all();
+            $otros = $grupo->pluck('id')
+                ->reject(fn($id) => (int)$id === (int)$canon)
+                ->values()
+                ->all();
+
             $otrosIdsPorCanonico[$canon] = $otros;
         }
 
@@ -274,7 +298,7 @@ class Calificacion extends Component
 
     private function hidratarInputsConBD(): void
     {
-        if (!count($this->alumnos) || !count($this->materias)) return;
+        if (!count($this->alumnos) || !count($this->materias) || empty($this->idsParaLimpiar)) return;
 
         $alumnoIds = collect($this->alumnos)->pluck('id')->values()->all();
 
@@ -295,6 +319,7 @@ class Calificacion extends Component
             $canonId = $this->canonicoPorMateria[$materiaId] ?? null;
             if (!$canonId) continue;
 
+            // Si hay varias en BD, la última gana (solo para mostrar)
             $guardadas[$c->alumno_id][$canonId] = $c->calificacion;
         }
 
@@ -303,8 +328,11 @@ class Calificacion extends Component
                 $canonId = $asigCanon->id;
                 $valorBD = $guardadas[$al->id][$canonId] ?? null;
 
-                // ✅ CRÍTICO: si el usuario ya tocó el campo, NO lo sobrescribas (aunque sea null)
-                if (!isset($this->calificaciones[$al->id]) || !array_key_exists($canonId, $this->calificaciones[$al->id])) {
+                // ✅ si el usuario ya tocó el campo, NO lo sobrescribas
+                if (
+                    !isset($this->calificaciones[$al->id]) ||
+                    !array_key_exists($canonId, $this->calificaciones[$al->id])
+                ) {
                     $this->calificaciones[$al->id][$canonId] = $valorBD;
                 }
             }
@@ -317,7 +345,7 @@ class Calificacion extends Component
         $this->hayCambios = false;
         $this->yaExistenEnBD = false;
 
-        if (!count($this->alumnos) || !count($this->materias)) return;
+        if (!count($this->alumnos) || !count($this->materias) || empty($this->idsParaLimpiar)) return;
 
         $alumnoIds = collect($this->alumnos)->pluck('id')->values()->all();
         $idsCanon  = collect($this->materias)->pluck('id')->values()->all();
@@ -413,6 +441,9 @@ class Calificacion extends Component
             return;
         }
 
+        // ✅ reconstruye dataset si el request llegó “nuevo”
+        $this->asegurarDatasetMinimo();
+
         if (!count($this->alumnos) || !count($this->materias)) {
             $this->dispatch('swal', [
                 'icon' => 'warning',
@@ -445,7 +476,7 @@ class Calificacion extends Component
 
                 $rows[] = [
                     'alumno_id'             => $alumnoId,
-                    'asignacion_materia_id' => $canonId,
+                    'asignacion_materia_id' => $canonId, // ✅ SIEMPRE canónico
                     'modalidad_id'          => $this->modalidad->id,
                     'generacion_id'         => $this->filtrar_generacion,
                     'licenciatura_id'       => $this->licenciatura->id,
@@ -468,10 +499,15 @@ class Calificacion extends Component
             return;
         }
 
-        // ✅ ACTUALIZAR: reemplazar todo el contexto (vacíos quedan eliminados porque no se insertan)
+        /**
+         * ✅ ACTUALIZAR: borrar TODO el contexto (incluye duplicados) y reinsertar lo capturado
+         * (vacíos quedan eliminados porque no se insertan)
+         */
         if ($this->modoGuardar === 'actualizar') {
             DB::transaction(function () use ($alumnoIds, $rows) {
-                ModelsCalificacion::whereIn('alumno_id', $alumnoIds)
+                // ✅ Con idsParaLimpiar ya persistido (public) SÍ borra
+                ModelsCalificacion::query()
+                    ->whereIn('alumno_id', $alumnoIds)
                     ->where('modalidad_id', $this->modalidad->id)
                     ->where('licenciatura_id', $this->licenciatura->id)
                     ->where('generacion_id', $this->filtrar_generacion)
@@ -494,25 +530,41 @@ class Calificacion extends Component
             return;
         }
 
-        // ✅ GUARDAR: insertar solo no duplicados (los duplicados se omiten)
-        $existentes = ModelsCalificacion::query()
-            ->select(['alumno_id', 'asignacion_materia_id'])
+        /**
+         * ✅ GUARDAR: insertar solo NO duplicados
+         * PERO detecta duplicado aunque en BD exista con asignacion_materia_id NO canónico.
+         *
+         * Estrategia:
+         * - Traemos existentes del cuatrimestre usando idsParaLimpiar
+         * - Los normalizamos a clave alumno|canonId (por materia_id)
+         * - Si ya existe alumno|canonId, se omite
+         */
+        $existentes = ModelsCalificacion::with('asignacionMateria:id,materia_id')
             ->whereIn('alumno_id', $alumnoIds)
-            ->whereIn('asignacion_materia_id', $idsCanon)
+            ->whereIn('asignacion_materia_id', $this->idsParaLimpiar) // ✅ no solo $idsCanon
             ->where('modalidad_id', $this->modalidad->id)
             ->where('licenciatura_id', $this->licenciatura->id)
             ->where('generacion_id', $this->filtrar_generacion)
             ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
-            ->get()
-            ->map(fn($r) => $r->alumno_id . '|' . $r->asignacion_materia_id)
-            ->flip();
+            ->get();
+
+        $setExistentesCanon = [];
+        foreach ($existentes as $e) {
+            $materiaId = $e->asignacionMateria->materia_id ?? null;
+            if (!$materiaId) continue;
+
+            $canonId = $this->canonicoPorMateria[$materiaId] ?? null;
+            if (!$canonId) continue;
+
+            $setExistentesCanon[$e->alumno_id . '|' . $canonId] = true;
+        }
 
         $rowsNoDuplicados = [];
         $omitidos = 0;
 
         foreach ($rows as $r) {
-            $key = $r['alumno_id'] . '|' . $r['asignacion_materia_id'];
-            if (isset($existentes[$key])) {
+            $keyCanon = $r['alumno_id'] . '|' . $r['asignacion_materia_id']; // asignacion_materia_id ya es canonId
+            if (isset($setExistentesCanon[$keyCanon])) {
                 $omitidos++;
                 continue;
             }

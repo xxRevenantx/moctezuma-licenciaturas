@@ -168,7 +168,22 @@ class PDFController extends Controller
         $escuela = Escuela::all()->first();
         $generacion = Generacion::where('id', $filtrar_generacion)->first();
         $licenciatura_nombre = Licenciatura::where('id', $licenciatura)->first();
-        $dias = Dia::where('dia', '!=', 'Sábado')->get();
+
+
+        $dias = Dia::query()
+            ->where('dia', '!=', 'Sábado')
+            ->orderByRaw("
+                CASE dia
+                    WHEN 'Lunes' THEN 1
+                    WHEN 'Martes' THEN 2
+                    WHEN 'Miércoles' THEN 3
+                    WHEN 'Jueves' THEN 4
+                    WHEN 'Viernes' THEN 5
+                    ELSE 99
+                END
+            ")
+            ->get();
+
 
         // Ejemplo en tu componente o controlador
         $materias = \App\Models\Horario::with([

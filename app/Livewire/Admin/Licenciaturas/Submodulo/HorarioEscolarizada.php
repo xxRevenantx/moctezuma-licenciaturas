@@ -35,7 +35,7 @@ class HorarioEscolarizada extends Component
         $this->licenciatura = Licenciatura::where('slug', $licenciatura)->firstOrFail();
         $this->modalidad = Modalidad::where('slug', $modalidad)->firstOrFail();
 
-         $this->generaciones = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
+        $this->generaciones = AsignarGeneracion::where('licenciatura_id', $this->licenciatura->id)
             ->where('modalidad_id', $this->modalidad->id)
             ->WhereHas('generacion', function ($query) {
                 $query->where('activa', "true");
@@ -53,7 +53,21 @@ class HorarioEscolarizada extends Component
             "1:30pm-2:30pm",
             "2:30pm-3:30pm",
         ];
-        $this->dias = Dia::where('dia', '!=', 'Sábado')->get();
+        $this->dias = Dia::query()
+            ->where('dia', '!=', 'Sábado')
+            ->orderByRaw("
+                CASE dia
+                    WHEN 'Lunes' THEN 1
+                    WHEN 'Martes' THEN 2
+                    WHEN 'Miércoles' THEN 3
+                    WHEN 'Jueves' THEN 4
+                    WHEN 'Viernes' THEN 5
+                    ELSE 99
+                END
+            ")
+            ->get();
+
+
         $this->materias = [];
         $this->llenarHorarioEnBlanco();
     }
@@ -70,19 +84,19 @@ class HorarioEscolarizada extends Component
     }
 
     public function cargarHorario()
-{
-    $this->llenarHorarioEnBlanco();
-    if ($this->filtrar_generacion && $this->filtrar_cuatrimestre) {
-        $horariosBD = Horario::where('licenciatura_id', $this->licenciatura->id)
-            ->where('modalidad_id', $this->modalidad->id)
-            ->where('generacion_id', $this->filtrar_generacion)
-            ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
-            ->get();
-        foreach ($horariosBD as $h) {
-            $this->horario[$h->dia_id][$h->hora] = (string) $h->asignacion_materia_id ?? "0";
+    {
+        $this->llenarHorarioEnBlanco();
+        if ($this->filtrar_generacion && $this->filtrar_cuatrimestre) {
+            $horariosBD = Horario::where('licenciatura_id', $this->licenciatura->id)
+                ->where('modalidad_id', $this->modalidad->id)
+                ->where('generacion_id', $this->filtrar_generacion)
+                ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
+                ->get();
+            foreach ($horariosBD as $h) {
+                $this->horario[$h->dia_id][$h->hora] = (string) $h->asignacion_materia_id ?? "0";
+            }
         }
     }
-}
 
 
     // Limpiar todo al hacer clic en el botón de filtros
