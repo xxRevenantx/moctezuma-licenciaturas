@@ -66,38 +66,46 @@ class CargaDocumentos extends Component
             $this->estudiante = Inscripcion::find($this->inscripcionId);
         }
 
-        $nombreGenerado = $this->generarNombrePersonalizado();
-        $ruta = $this->rutaGuardado . '/' . $nombreGenerado;
-
-        if (Storage::exists($ruta)) {
-            Storage::delete($ruta);
-        }
-
-        $this->archivo->storeAs($this->rutaGuardado, $nombreGenerado);
-
-        // ✅ columna correcta desde wireId
         $columna = $this->getColumna();
-        if ($columna) {
-            $this->estudiante->$columna = $nombreGenerado;
-            $this->estudiante->save();
+        if (!$columna) return;
+
+        // ✅ 1) Yo obtengo el nombre VIEJO desde BD (este es el que debo borrar)
+        $nombreViejo = $this->estudiante->$columna; // ejemplo: CURP_GOGP2005...PDF
+
+        // ✅ 2) Si existía, yo borro el archivo viejo en SU carpeta
+        if (!empty($nombreViejo)) {
+            $rutaVieja = $this->rutaGuardado . '/' . $nombreViejo;
+
+            if (Storage::disk('public')->exists($rutaVieja)) {
+                Storage::disk('public')->delete($rutaVieja);
+            }
         }
 
-        $this->estudiante->refresh();
-        $nombreDesdeBD = $columna ? ($this->estudiante->$columna ?: $nombreGenerado) : $nombreGenerado;
+        // ✅ 3) Yo genero el nombre NUEVO
+        $nombreNuevo = $this->generarNombrePersonalizado();
 
-        $rutaFinal = $this->rutaGuardado . '/' . $nombreDesdeBD;
-        $this->archivoGuardadoUrl = Storage::url($rutaFinal);
+        // ✅ 4) Yo guardo el nuevo archivo en la carpeta correcta
+        $this->archivo->storeAs($this->rutaGuardado, $nombreNuevo, 'public');
+
+        // ✅ 5) Yo guardo en BD solo el nombre (como tú lo tienes)
+        $this->estudiante->$columna = $nombreNuevo;
+        $this->estudiante->save();
+        $this->estudiante->refresh();
+
+        // ✅ 6) UI
+        $rutaFinal = $this->rutaGuardado . '/' . $nombreNuevo;
+        $this->archivoGuardadoUrl = Storage::disk('public')->url($rutaFinal);
         $this->guardado = true;
-        $this->nombreArchivo = $nombreDesdeBD;
-        $this->tamanoArchivo = $this->formatoTamano(Storage::size($rutaFinal));
+        $this->nombreArchivo = $nombreNuevo;
+        $this->tamanoArchivo = $this->formatoTamano(Storage::disk('public')->size($rutaFinal));
         $this->mensaje = 'Archivo guardado correctamente.';
 
         $this->reset('archivo');
 
-        // ✅ emite el MISMO nombre que escucha el Blade (slug en minúsculas con _)
         $evento = 'archivo-guardado-' . Str::slug($this->wireId, '_');
         $this->dispatch($evento, nombre: $this->nombreArchivo, tamano: $this->tamanoArchivo);
     }
+
 
     public function cargarArchivoGuardado()
     {
@@ -137,18 +145,25 @@ class CargaDocumentos extends Component
         if (!$this->estudiante || !$this->rutaGuardado) return;
 
         $columna = $this->getColumna();
-        $nombre = $columna ? ($this->estudiante?->$columna ?: $this->generarNombrePersonalizado()) : $this->generarNombrePersonalizado();
-        $ruta = $this->rutaGuardado . '/' . $nombre;
+        if (!$columna) return;
 
-        if (Storage::exists($ruta)) {
-            Storage::delete($ruta);
+        // ✅ Yo borro usando el nombre REAL guardado en BD
+        $nombre = $this->estudiante->$columna;
+
+        if (!empty($nombre)) {
+            $ruta = $this->rutaGuardado . '/' . $nombre;
+
+            if (Storage::disk('public')->exists($ruta)) {
+                Storage::disk('public')->delete($ruta);
+            }
         }
 
-        if ($columna) {
-            $this->estudiante->$columna = null;
-            $this->estudiante->save();
-        }
+        // ✅ Yo limpio BD
+        $this->estudiante->$columna = null;
+        $this->estudiante->save();
+        $this->estudiante->refresh();
 
+        // ✅ Yo limpio UI
         $this->archivoGuardadoUrl = null;
         $this->nombreArchivo = '';
         $this->tamanoArchivo = '';
@@ -157,10 +172,10 @@ class CargaDocumentos extends Component
 
         $this->dispatch('swal', title: '¡Archivo eliminado correctamente!', icon: 'success', position: 'top');
 
-        // ✅ mismo nombre que escucha el Blade
         $evento = 'archivo-eliminado-' . Str::slug($this->wireId, '_');
         $this->dispatch($evento);
     }
+
 
     /**
      * Columna de `inscripciones` a partir del wireId, normalizando el case.
@@ -171,8 +186,8 @@ class CargaDocumentos extends Component
         $map = [
             'curp_documento'      => 'CURP_documento',
             'acta_nacimiento'     => 'acta_nacimiento',
-            'certificado_estudios'=> 'certificado_estudios',
-            'comprobante_domicilio'=> 'comprobante_domicilio',
+            'certificado_estudios' => 'certificado_estudios',
+            'comprobante_domicilio' => 'comprobante_domicilio',
             'certificado_medico'  => 'certificado_medico',
             'ine'                  => 'ine',
         ];
