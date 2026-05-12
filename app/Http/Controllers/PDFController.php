@@ -22,6 +22,7 @@ use App\Models\Modalidad;
 use App\Models\Periodo;
 use App\Models\Profesor;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class PDFController extends Controller
@@ -1349,5 +1350,86 @@ class PDFController extends Controller
             ]);;
 
         return $pdf->stream($filename);
+    }
+
+    // PROMEDIOS
+
+    public function promedios(Request $request)
+    {
+        $licenciaturaId = $request->input('licenciatura_id');
+        $generacionId = $request->input('generacion_id');
+
+        if (!$licenciaturaId || !$generacionId) {
+            abort(404, 'Faltan filtros para generar el PDF.');
+        }
+
+        $licenciatura = Licenciatura::findOrFail($licenciaturaId);
+        $generacion = Generacion::findOrFail($generacionId);
+        $escuela = Escuela::query()->first();
+        $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
+
+        $stats = DB::table('calificaciones as c')
+            ->select([
+                'c.alumno_id',
+                'c.licenciatura_id',
+                'c.generacion_id',
+                DB::raw("
+                TRUNCATE(AVG(
+                    CASE
+                        WHEN c.calificacion REGEXP '^[0-9]+(\\.[0-9]+)?$'
+                        THEN c.calificacion + 0
+                        ELSE NULL
+                    END
+                ), 1) AS promedio_final
+            "),
+                DB::raw("
+                COUNT(DISTINCT CASE
+                    WHEN c.calificacion REGEXP '^[0-9]+(\\.[0-9]+)?$'
+                    THEN c.asignacion_materia_id
+                    ELSE NULL
+                END) AS total_materias
+            "),
+            ])
+            ->where('c.licenciatura_id', $licenciaturaId)
+            ->where('c.generacion_id', $generacionId)
+            ->groupBy('c.alumno_id', 'c.licenciatura_id', 'c.generacion_id');
+
+        $alumnos = Inscripcion::query()
+            ->leftJoinSub($stats, 'stats', function ($join) {
+                $join->on('stats.alumno_id', '=', 'inscripciones.id')
+                    ->on('stats.licenciatura_id', '=', 'inscripciones.licenciatura_id')
+                    ->on('stats.generacion_id', '=', 'inscripciones.generacion_id');
+            })
+            ->where('inscripciones.licenciatura_id', $licenciaturaId)
+            ->where('inscripciones.generacion_id', $generacionId)
+            ->where('inscripciones.status', 'true')
+            ->select('inscripciones.*')
+            ->addSelect([
+                'stats.promedio_final',
+                'stats.total_materias',
+            ])
+            ->orderBy('inscripciones.apellido_paterno', 'asc')
+            ->orderBy('inscripciones.apellido_materno', 'asc')
+            ->orderBy('inscripciones.nombre', 'asc')
+            ->get();
+
+        $data = [
+            'alumnos' => $alumnos,
+            'licenciatura' => $licenciatura,
+            'generacion' => $generacion,
+            'escuela' => $escuela,
+            'ciclo_escolar' => $ciclo_escolar,
+        ];
+
+        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.promediosPDF', $data)
+            ->setPaper('letter', 'portrait');
+
+        return $pdf->stream(
+            'LISTA_PROMEDIOS_' .
+                strtoupper($licenciatura->nombre) .
+                '_GEN_' .
+                strtoupper($generacion->generacion) .
+                '.pdf'
+        );
     }
 }

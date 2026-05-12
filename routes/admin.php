@@ -146,17 +146,15 @@ Route::middleware(['auth'])->group(function () {
     //ACTA DE EXAMEN
     Route::get('/acta-examen/{id}', [PDFController::class, 'acta_examen'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.acta-examen');
 
+    // PROMEDIOS
+    Route::get('/promedios', [PDFController::class, 'promedios'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.pdf.documentacion.promedios');
+
     Route::prefix('licenciaturas')->group(function () {
         // Paso 1: Selección de modalidad
         Route::get('{slug_licenciatura}', [SeleccionarModalidadController::class, 'index'])->name('licenciaturas.seleccionar-modalidad');
 
         Route::get('{slug_licenciatura}/{slug_modalidad}/{submodulo}', [SubmoduloController::class, 'index'])->name('licenciaturas.submodulo');
-
     });
-
-
-
-
 });
-
-
