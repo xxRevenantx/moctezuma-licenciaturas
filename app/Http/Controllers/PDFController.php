@@ -978,9 +978,11 @@ class PDFController extends Controller
         ];
 
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.lista-evaluacionPDF', $data)
-            ->setPaper('letter', 'landscape');;
+            ->setPaper('letter', 'landscape');
 
-        return $pdf->stream("Lista_evaluacion.pdf");
+        $nombreLista = $materia->profesor->nombre . " " . $materia->profesor->apellido_paterno . "_" . $materia->profesor->apellido_materno . "_" . mb_strtoupper($materia->materia->nombre) . "_" . $materia->cuatrimestre->cuatrimestre . "°_CUATRIMESTRE";
+
+        return $pdf->stream("LISTA_EVALUACION_" . $nombreLista . ".pdf");
     }
 
     // CREDENCIAL DEL PROFESOR
