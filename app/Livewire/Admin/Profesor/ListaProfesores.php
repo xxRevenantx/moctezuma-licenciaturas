@@ -9,57 +9,70 @@ use Livewire\Component;
 
 class ListaProfesores extends Component
 {
-    public $query = '';
-    // public $profesores = [];
-    public $selectedIndex = 0;
-    public $selectedProfesor = null;
+    public string $query = '';
+    public int $selectedIndex = 0;
+    public ?array $selectedProfesor = null;
 
-    public $materiasAsignadas = [];
-    public $buscador_materia = '';
+    public array $materiasAsignadas = [];
+    public string $buscador_materia = '';
 
-    public $periodo_id = '';
+    public string $periodo_id = '';
 
-    // ===== Eventos de UI =====
-    public function updatedQuery()
+    public function updatedQuery(): void
     {
-        // Si limpian el select
-        if (empty($this->query)) {
-            $this->selectedProfesor = null;
-            $this->materiasAsignadas = [];
-            return;
-        }
-
-        // Buscar profesor con todas sus relaciones
-        $profesor = Profesor::with(['user'])->find($this->query);
-
-        if ($profesor) {
-            $this->selectedProfesor = $profesor->toArray();
-            $this->cargarMateriasAsignadas();
-        } else {
-            $this->selectedProfesor = null;
-            $this->materiasAsignadas = [];
-        }
+        $this->seleccionarProfesor($this->query);
     }
 
-
-    // ===== Datos =====
-    public function cargarMateriasAsignadas()
+    public function seleccionarProfesor($profesorId): void
     {
-        if (! $this->selectedProfesor) {
+        $profesorId = (int) $profesorId;
+        $this->query = $profesorId > 0 ? (string) $profesorId : '';
+        $this->selectedIndex = 0;
+
+        if ($profesorId <= 0) {
+            $this->limpiarProfesorSeleccionado();
+            return;
+        }
+
+        $profesor = Profesor::with(['user'])->find($profesorId);
+
+        if (! $profesor) {
+            $this->limpiarProfesorSeleccionado();
+            return;
+        }
+
+        $this->selectedProfesor = $profesor->toArray();
+        $this->buscador_materia = '';
+        $this->cargarMateriasAsignadas();
+    }
+
+    public function limpiarProfesorSeleccionado(): void
+    {
+        $this->query = '';
+        $this->selectedIndex = 0;
+        $this->selectedProfesor = null;
+        $this->materiasAsignadas = [];
+        $this->buscador_materia = '';
+        $this->periodo_id = '';
+    }
+
+    public function cargarMateriasAsignadas(): void
+    {
+        if (! $this->selectedProfesor || empty($this->selectedProfesor['id'])) {
             $this->materiasAsignadas = [];
             return;
         }
 
-        $profesorId = $this->selectedProfesor['id'];
+        $profesorId = (int) $this->selectedProfesor['id'];
 
-        // Solo materias que tienen horario asignado
+        // Solo se muestran materias que ya tienen horario asignado.
         $this->materiasAsignadas = DB::table('asignacion_materias as am')
             ->join('materias as m', 'am.materia_id', '=', 'm.id')
             ->join('modalidades as mo', 'am.modalidad_id', '=', 'mo.id')
             ->join('cuatrimestres as c', 'am.cuatrimestre_id', '=', 'c.id')
             ->join('licenciaturas as l', 'am.licenciatura_id', '=', 'l.id')
             ->join('profesores as p', 'am.profesor_id', '=', 'p.id')
-            ->join('horarios as h', 'h.asignacion_materia_id', '=', 'am.id') // INNER JOIN => debe tener horario
+            ->join('horarios as h', 'h.asignacion_materia_id', '=', 'am.id')
             ->where('am.profesor_id', $profesorId)
             ->select([
                 'am.id as asignacion_materia_id',
@@ -71,16 +84,22 @@ class ListaProfesores extends Component
                 'c.cuatrimestre as cuatrimestre',
                 'l.id as licenciatura_id',
                 'l.nombre as licenciatura',
-                DB::raw('GROUP_CONCAT(DISTINCT h.generacion_id) as generaciones')
+                DB::raw('GROUP_CONCAT(DISTINCT h.generacion_id ORDER BY h.generacion_id SEPARATOR ",") as generaciones'),
             ])
             ->groupBy(
-                'am.id', 'm.id', 'm.nombre',
-                'mo.id', 'mo.nombre',
-                'c.id', 'c.cuatrimestre',
-                'l.id', 'l.nombre'
+                'am.id',
+                'm.id',
+                'm.nombre',
+                'mo.id',
+                'mo.nombre',
+                'c.id',
+                'c.cuatrimestre',
+                'l.id',
+                'l.nombre'
             )
             ->orderBy('mo.nombre')
             ->orderBy('c.cuatrimestre')
+            ->orderBy('m.nombre')
             ->get()
             ->toArray();
     }
@@ -88,24 +107,50 @@ class ListaProfesores extends Component
     public function getMateriasFiltradasProperty()
     {
         if (! $this->selectedProfesor) {
-            return collect(); // Nada hasta escoger profesor
+            return collect();
         }
 
-        $needle = mb_strtolower($this->buscador_materia);
-        return collect($this->materiasAsignadas)->filter(function ($row) use ($needle) {
-            return $needle === '' || str_contains(mb_strtolower($row->materia), $needle);
-        })->values();
+        $needle = mb_strtolower(trim($this->buscador_materia));
+
+        return collect($this->materiasAsignadas)
+            ->filter(function ($row) use ($needle) {
+                if ($needle === '') {
+                    return true;
+                }
+
+                return str_contains(mb_strtolower($row->materia ?? ''), $needle)
+                    || str_contains(mb_strtolower($row->modalidad ?? ''), $needle)
+                    || str_contains(mb_strtolower($row->licenciatura ?? ''), $needle)
+                    || str_contains((string) ($row->cuatrimestre ?? ''), $needle);
+            })
+            ->values();
     }
 
     public function render()
     {
         $profesores = Profesor::with('user')
-            ->orderBy('nombre')
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
+            ->orderBy('nombre')
             ->get()
+            ->map(function ($profesor) {
+                return [
+                    'id' => $profesor->id,
+                    'nombre' => $profesor->nombre,
+                    'apellido_paterno' => $profesor->apellido_paterno,
+                    'apellido_materno' => $profesor->apellido_materno,
+                    'CURP' => $profesor->CURP ?? null,
+                    'email' => $profesor->user->email ?? null,
+                    'nombre_completo' => trim(
+                        ($profesor->apellido_paterno ?? '') . ' ' .
+                            ($profesor->apellido_materno ?? '') . ' ' .
+                            ($profesor->nombre ?? '')
+                    ),
+                ];
+            })
+            ->values()
             ->toArray();
-        // Si usas periodos más adelante, deja esto. No se muestra hasta elegir profesor.
+
         return view('livewire.admin.profesor.lista-profesores', [
             'periodos' => Periodo::orderBy('id', 'desc')->get(),
             'profesores' => $profesores,
