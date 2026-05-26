@@ -9,11 +9,11 @@ use Livewire\Component;
 
 class Documentos extends Component
 {
-    public $query = '';
+    public string $query = '';
 
-    public $alumnos = [];
+    public array $alumnos = [];
 
-    public $selectedIndex = 0;
+    public int $selectedIndex = 0;
 
     public $alumno_id = null;
 
@@ -32,7 +32,7 @@ class Documentos extends Component
     {
         $texto = trim($this->query);
 
-        if ($texto === '') {
+        if (strlen($texto) < 2) {
             $this->alumnos = [];
             $this->selectedIndex = 0;
 
@@ -43,7 +43,7 @@ class Documentos extends Component
             ->with([
                 'licenciatura:id,nombre',
                 'generacion:id,generacion',
-                'modalidad:id,modalidad',
+                'modalidad:id,nombre',
                 'cuatrimestre:id,nombre_cuatrimestre',
             ])
             ->where(function ($consulta) use ($texto) {
@@ -66,7 +66,7 @@ class Documentos extends Component
 
     public function selectAlumno($index): void
     {
-        if (! isset($this->alumnos[$index])) {
+        if (empty($this->alumnos) || ! isset($this->alumnos[$index])) {
             $this->dispatch('swal', [
                 'title' => 'Alumno no encontrado',
                 'text' => 'No fue posible cargar la información del alumno seleccionado.',
@@ -116,6 +116,7 @@ class Documentos extends Component
 
         $this->query = $nombreCompleto;
         $this->selectedAlumno = $alumno->toArray();
+
         $this->alumnos = [];
         $this->selectedIndex = 0;
     }

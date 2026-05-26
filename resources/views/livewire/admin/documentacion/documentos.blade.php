@@ -342,7 +342,7 @@
 
                 <div x-show="openAccordion" x-transition
                     class="mt-1 rounded-2xl bg-white dark:bg-neutral-900 shadow-lg ring-1 ring-neutral-200/80 dark:ring-neutral-800 px-4 sm:px-5 py-4 sm:py-5">
-                    <livewire:admin.documentacion.acta-examen />
+                    {{-- <livewire:admin.documentacion.acta-examen /> --}}
                 </div>
             </div>
 
