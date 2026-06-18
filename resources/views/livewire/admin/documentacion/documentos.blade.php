@@ -73,7 +73,7 @@
             </div>
         </div>
 
-        <!-- DOCUMENTO PERSONAL POR ALUMNO -->
+        <!-- DOCUMENTO PERSONAL -->
         <div>
             <form action="{{ route('admin.pdf.documentacion.documento_personal') }}" method="GET" target="_blank"
                 class="rounded-3xl bg-white/95 dark:bg-neutral-900/95 shadow-xl ring-1 ring-neutral-200/80 dark:ring-neutral-800 px-4 sm:px-6 py-5 sm:py-6 space-y-4">
@@ -81,11 +81,11 @@
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div class="space-y-0.5">
                         <h2 class="text-sm sm:text-base font-semibold text-neutral-900 dark:text-neutral-50">
-                            Documento personal por alumno
+                            Documento personal
                         </h2>
 
                         <p class="text-xs text-neutral-500 dark:text-neutral-400">
-                            Selecciona un estudiante, el tipo de documento y la fecha de expedición para generar el PDF.
+                            Selecciona si deseas generar el documento por alumno, licenciatura o generación.
                         </p>
                     </div>
 
@@ -94,116 +94,149 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 pt-2">
 
-                    <!-- Alumno -->
-                    <div x-data="{ open: false }" class="relative md:col-span-2">
-                        <flux:input label="Buscar alumno" wire:model.live.debounce.500ms="query" name="buscar_alumno"
-                            id="buscar_alumno_documento" type="text"
-                            placeholder="Buscar alumno por nombre, matrícula, CURP o folio" autocomplete="off"
-                            @focus="open = true" @input="open = true" @blur="setTimeout(() => open = false, 180)"
-                            wire:keydown.arrow-down="selectIndexDown" wire:keydown.arrow-up="selectIndexUp"
-                            wire:keydown.enter.prevent="selectAlumno({{ $selectedIndex }})" />
-
-                        <input type="hidden" name="alumno_id" value="{{ $alumno_id }}">
-
-                        @if (!empty($alumnos))
-                            <ul x-show="open" x-transition x-cloak
-                                class="absolute left-0 right-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-2 shadow-2xl ring-1 ring-black/5 dark:border-neutral-700 dark:bg-neutral-900">
-                                @foreach ($alumnos as $index => $alumno)
-                                    <li wire:click="selectAlumno({{ $index }})"
-                                        class="cursor-pointer rounded-xl px-3 py-3 transition
-                                            {{ $selectedIndex === $index
-                                                ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-200 dark:ring-indigo-800/60'
-                                                : 'text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800/80' }}">
-                                        <div class="flex items-start justify-between gap-3">
-                                            <div class="min-w-0">
-                                                <p class="truncate text-sm font-bold">
-                                                    {{ $alumno['apellido_paterno'] ?? '' }}
-                                                    {{ $alumno['apellido_materno'] ?? '' }}
-                                                    {{ $alumno['nombre'] ?? '' }}
-                                                </p>
-
-                                                <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
-                                                    <span
-                                                        class="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
-                                                        Matrícula:
-                                                        <span class="font-mono">
-                                                            {{ $alumno['matricula'] ?? '----' }}
-                                                        </span>
-                                                    </span>
-
-                                                    <span
-                                                        class="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
-                                                        CURP:
-                                                        <span class="font-mono">
-                                                            {{ $alumno['CURP'] ?? '----' }}
-                                                        </span>
-                                                    </span>
-
-                                                    <span
-                                                        class="rounded-full bg-indigo-50 px-2 py-0.5 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200">
-                                                        {{ $alumno['licenciatura']['nombre'] ?? 'Sin licenciatura' }}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            @if ($selectedIndex === $index)
-                                                <span
-                                                    class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
-                                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @endif
-
-                        <div wire:loading wire:target="query,selectAlumno,limpiarAlumno"
-                            class="mt-2 flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-300">
-                            <span
-                                class="h-3 w-3 animate-spin rounded-full border-2 border-indigo-300 border-t-indigo-600"></span>
-                            Buscando alumno...
-                        </div>
+                    <!-- Modo de generación -->
+                    <div class="md:col-span-3">
+                        <flux:select label="Expedir documento por" wire:model.live="modo_documento"
+                            name="modo_documento" class="w-full" required>
+                            <flux:select.option value="alumno">Alumno</flux:select.option>
+                            <flux:select.option value="licenciatura">Licenciatura</flux:select.option>
+                            <flux:select.option value="generacion">Generación</flux:select.option>
+                        </flux:select>
                     </div>
 
+                    @if ($modo_documento === 'alumno')
+                        <!-- Alumno -->
+                        <div x-data="{ open: false }" class="relative md:col-span-5">
+                            <flux:input label="Buscar alumno" wire:model.live.debounce.500ms="query"
+                                name="buscar_alumno" id="buscar_alumno_documento" type="text"
+                                placeholder="Buscar alumno por nombre, matrícula, CURP o folio" autocomplete="off"
+                                @focus="open = true" @input="open = true" @blur="setTimeout(() => open = false, 180)"
+                                wire:keydown.arrow-down="selectIndexDown" wire:keydown.arrow-up="selectIndexUp"
+                                wire:keydown.enter.prevent="selectAlumno({{ $selectedIndex }})" />
+
+                            <input type="hidden" name="alumno_id" value="{{ $alumno_id }}">
+
+                            @if (!empty($alumnos))
+                                <ul x-show="open" x-transition x-cloak
+                                    class="absolute left-0 right-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-2 shadow-2xl ring-1 ring-black/5 dark:border-neutral-700 dark:bg-neutral-900">
+                                    @foreach ($alumnos as $index => $alumno)
+                                        <li wire:click="selectAlumno({{ $index }})"
+                                            class="cursor-pointer rounded-xl px-3 py-3 transition
+                                                {{ $selectedIndex === $index
+                                                    ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-200 dark:ring-indigo-800/60'
+                                                    : 'text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800/80' }}">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <div class="min-w-0">
+                                                    <p class="truncate text-sm font-bold">
+                                                        {{ $alumno['apellido_paterno'] ?? '' }}
+                                                        {{ $alumno['apellido_materno'] ?? '' }}
+                                                        {{ $alumno['nombre'] ?? '' }}
+                                                    </p>
+
+                                                    <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
+                                                        <span
+                                                            class="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                                                            Matrícula:
+                                                            <span
+                                                                class="font-mono">{{ $alumno['matricula'] ?? '----' }}</span>
+                                                        </span>
+
+                                                        <span
+                                                            class="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                                                            CURP:
+                                                            <span
+                                                                class="font-mono">{{ $alumno['CURP'] ?? '----' }}</span>
+                                                        </span>
+
+                                                        <span
+                                                            class="rounded-full bg-indigo-50 px-2 py-0.5 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200">
+                                                            {{ $alumno['licenciatura']['nombre'] ?? 'Sin licenciatura' }}
+                                                        </span>
+
+                                                        <span
+                                                            class="rounded-full bg-violet-50 px-2 py-0.5 text-violet-700 dark:bg-violet-900/30 dark:text-violet-200">
+                                                            {{ $alumno['generacion']['generacion'] ?? 'Sin generación' }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                @if ($selectedIndex === $index)
+                                                    <span
+                                                        class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
+                                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+
+                            <div wire:loading wire:target="query,selectAlumno,limpiarAlumno"
+                                class="mt-2 flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-300">
+                                <span
+                                    class="h-3 w-3 animate-spin rounded-full border-2 border-indigo-300 border-t-indigo-600"></span>
+                                Buscando alumno...
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($modo_documento === 'licenciatura')
+                        <!-- Licenciatura -->
+                        <div class="md:col-span-5">
+                            <flux:select label="Licenciatura" wire:model.live="filtro_licenciatura_id"
+                                name="licenciatura_id" placeholder="Selecciona una licenciatura" class="w-full"
+                                required>
+                                <flux:select.option value="">Selecciona una licenciatura</flux:select.option>
+
+                                @foreach ($licenciaturas as $licenciatura)
+                                    <flux:select.option value="{{ $licenciatura->id }}">
+                                        {{ $licenciatura->nombre }}
+                                    </flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                    @endif
+
+                    @if ($modo_documento === 'generacion')
+                        <!-- Generación -->
+                        <div class="md:col-span-5">
+                            <flux:select label="Generación" wire:model.live="filtro_generacion_id" name="generacion_id"
+                                placeholder="Selecciona una generación" class="w-full" required>
+                                <flux:select.option value="">Selecciona una generación</flux:select.option>
+
+                                @foreach ($generaciones as $generacion)
+                                    <flux:select.option value="{{ $generacion->id }}">
+                                        {{ $generacion->generacion }}
+                                    </flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                    @endif
+
                     <!-- Tipo documento -->
-                    <div>
+                    <div class="md:col-span-2">
                         <flux:select name="tipo_documento" required label="Tipo de documento"
-                            placeholder="Selecciona un tipo de documento" class="w-full">
-                            <flux:select.option value="certificado-de-estudios">
-                                Certificado de estudios
+                            placeholder="Tipo de documento" class="w-full">
+                            <flux:select.option value="certificado-de-estudios">Certificado de estudios
                             </flux:select.option>
-
-                            <flux:select.option value="historial-academico">
-                                Historial Académico
-                            </flux:select.option>
-
-                            <flux:select.option value="diploma">
-                                Diploma
-                            </flux:select.option>
-
-                            <flux:select.option value="kardex">
-                                Kardex
-                            </flux:select.option>
-
-                            <flux:select.option value="carta-de-pasante">
-                                Carta de pasante
-                            </flux:select.option>
-
-                            <flux:select.option value="constancia-de-termino">
-                                Constancia de término
+                            <flux:select.option value="historial-academico">Historial Académico</flux:select.option>
+                            <flux:select.option value="diploma">Diploma</flux:select.option>
+                            <flux:select.option value="kardex">Kardex</flux:select.option>
+                            <flux:select.option value="carta-de-pasante">Carta de pasante</flux:select.option>
+                            <flux:select.option value="constancia-de-termino">Constancia de término
                             </flux:select.option>
                         </flux:select>
                     </div>
 
                     <!-- Fecha -->
-                    <div>
+                    <div class="md:col-span-2">
                         <label for="fecha_expedicion_documento"
                             class="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-200">
                             Fecha de expedición
@@ -215,16 +248,16 @@
                     </div>
 
                     <!-- Botón -->
-                    <div class="flex md:items-end">
-                        <flux:button type="submit" :disabled="!$alumno_id"
-                            class="w-full md:w-auto md:mt-6 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 hover:from-indigo-600 hover:via-violet-600 hover:to-fuchsia-600 shadow-lg shadow-fuchsia-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    <div class="flex md:col-span-12 md:items-end">
+                        <flux:button type="submit"
+                            class="w-full md:w-auto md:mt-2 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 hover:from-indigo-600 hover:via-violet-600 hover:to-fuchsia-600 shadow-lg shadow-fuchsia-900/30"
                             variant="primary">
                             Descargar
                         </flux:button>
                     </div>
                 </div>
 
-                @if ($selectedAlumno)
+                @if ($selectedAlumno && $modo_documento === 'alumno')
                     <div
                         class="mt-5 rounded-3xl border border-indigo-100 bg-indigo-50/60 p-4 dark:border-indigo-900/50 dark:bg-indigo-900/10">
                         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -246,31 +279,28 @@
 
                                     <p class="mt-1 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
                                         {{ $selectedAlumno['licenciatura']['nombre'] ?? 'Licenciatura no registrada' }}
+                                        —
+                                        {{ $selectedAlumno['generacion']['generacion'] ?? 'Generación no registrada' }}
                                     </p>
 
                                     <div class="mt-3 flex flex-wrap items-center gap-2">
                                         <span
                                             class="inline-flex items-center gap-1 rounded-full bg-white text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 px-3 py-1 text-xs">
                                             <span class="font-medium">Matrícula:</span>
-                                            <span class="font-mono">
-                                                {{ $selectedAlumno['matricula'] ?? '----' }}
-                                            </span>
+                                            <span
+                                                class="font-mono">{{ $selectedAlumno['matricula'] ?? '----' }}</span>
                                         </span>
 
                                         <span
                                             class="inline-flex items-center gap-1 rounded-full bg-white text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 px-3 py-1 text-xs">
                                             <span class="font-medium">CURP:</span>
-                                            <span class="font-mono">
-                                                {{ $selectedAlumno['CURP'] ?? '----' }}
-                                            </span>
+                                            <span class="font-mono">{{ $selectedAlumno['CURP'] ?? '----' }}</span>
                                         </span>
 
                                         <span
                                             class="inline-flex items-center gap-1 rounded-full bg-white text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 px-3 py-1 text-xs">
                                             <span class="font-medium">Folio:</span>
-                                            <span>
-                                                {{ $selectedAlumno['folio'] ?? '----' }}
-                                            </span>
+                                            <span>{{ $selectedAlumno['folio'] ?? '----' }}</span>
                                         </span>
                                     </div>
                                 </div>

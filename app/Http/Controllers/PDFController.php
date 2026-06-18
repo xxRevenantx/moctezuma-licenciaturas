@@ -24,6 +24,7 @@ use App\Models\Profesor;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use ZipArchive;
 
 class PDFController extends Controller
 {
@@ -408,30 +409,137 @@ class PDFController extends Controller
 
     public function documento_personal(Request $request)
     {
-        $id = $request->alumno_id;
-        $documento = $request->tipo_documento;
-        $fecha = $request->fecha_expedicion;
+        $modo = $request->input('modo_documento', 'alumno');
+        $documento = $request->input('tipo_documento');
+        $fecha = $request->input('fecha_expedicion');
 
-        $escuela = Escuela::all()->first();
-        $alumno = Inscripcion::where('id', $id)->first();
-        if (!$alumno) {
-            abort(404, 'Alumno no encontrado');
+        if (!$documento || !$fecha) {
+            abort(404, 'Faltan parámetros para generar el documento.');
         }
 
-        $jefe = Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
+        if ($modo === 'alumno') {
+            $id = $request->input('alumno_id');
 
-        $revisado = Directivo::where('identificador', 'revisado')->where('status', 'true')->first();
+            if (!$id) {
+                abort(404, 'Selecciona un alumno.');
+            }
 
-        $licenciatura = Licenciatura::find($alumno->licenciatura_id);
-        $cuatrimestres = Cuatrimestre::all();
+            $alumno = Inscripcion::query()->find($id);
+
+            if (!$alumno) {
+                abort(404, 'Alumno no encontrado.');
+            }
+
+            $resultado = $this->generarDocumentoAlumno($alumno, $documento, $fecha);
+
+            return $resultado['pdf']->stream($resultado['filename']);
+        }
+
+        if ($modo === 'licenciatura') {
+            $licenciaturaId = $request->input('licenciatura_id');
+
+            if (!$licenciaturaId) {
+                abort(404, 'Selecciona una licenciatura.');
+            }
+
+            $licenciatura = Licenciatura::query()->findOrFail($licenciaturaId);
+
+            $alumnos = Inscripcion::query()
+                ->where('licenciatura_id', $licenciaturaId)
+                ->where('status', 'true')
+                ->orderBy('apellido_paterno')
+                ->orderBy('apellido_materno')
+                ->orderBy('nombre')
+                ->get();
+
+            return $this->generarZipDocumentos(
+                alumnos: $alumnos,
+                documento: $documento,
+                fecha: $fecha,
+                nombreZip: 'DOCUMENTOS_' . $this->limpiarNombreArchivo($licenciatura->nombre) . '.zip'
+            );
+        }
+
+        if ($modo === 'generacion') {
+            $generacionId = $request->input('generacion_id');
+
+            if (!$generacionId) {
+                abort(404, 'Selecciona una generación.');
+            }
+
+            $generacion = Generacion::query()->findOrFail($generacionId);
+
+            $alumnos = Inscripcion::query()
+                ->where('generacion_id', $generacionId)
+                ->where('status', 'true')
+                ->orderBy('apellido_paterno')
+                ->orderBy('apellido_materno')
+                ->orderBy('nombre')
+                ->get();
+
+            return $this->generarZipDocumentos(
+                alumnos: $alumnos,
+                documento: $documento,
+                fecha: $fecha,
+                nombreZip: 'DOCUMENTOS_GENERACION_' . $this->limpiarNombreArchivo($generacion->generacion) . '.zip'
+            );
+        }
+
+        abort(404, 'Modo de generación no válido.');
+    }
+
+    private function generarZipDocumentos($alumnos, string $documento, string $fecha, string $nombreZip)
+    {
+        if ($alumnos->isEmpty()) {
+            abort(404, 'No se encontraron alumnos activos para generar documentos.');
+        }
+
+        $zip = new ZipArchive();
+        $zipPath = storage_path('app/temp/' . uniqid('documentos_', true) . '.zip');
+
+        if (!is_dir(dirname($zipPath))) {
+            mkdir(dirname($zipPath), 0775, true);
+        }
+
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            abort(500, 'No fue posible crear el archivo ZIP.');
+        }
+
+        foreach ($alumnos as $alumno) {
+            $resultado = $this->generarDocumentoAlumno($alumno, $documento, $fecha);
+
+            $zip->addFromString(
+                $resultado['filename'],
+                $resultado['pdf']->output()
+            );
+        }
+
+        $zip->close();
+
+        return response()->download($zipPath, $nombreZip)->deleteFileAfterSend(true);
+    }
+
+    private function generarDocumentoAlumno(Inscripcion $alumno, string $documento, string $fecha): array
+    {
+        $escuela = Escuela::query()->first();
+        $licenciatura = Licenciatura::query()->find($alumno->licenciatura_id);
+        $cuatrimestres = Cuatrimestre::query()->get();
+
         $rector = Directivo::where('cargo', 'Rector')->first();
         $directora = Directivo::where('cargo', 'Directora General')->first();
+        $jefe = Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
+        $revisado = Directivo::where('identificador', 'revisado')->where('status', 'true')->first();
 
-        $periodos = Periodo::where('generacion_id', $alumno->generacion_id)
-            ->get();
+        $periodos = Periodo::where('generacion_id', $alumno->generacion_id)->get();
 
+        $nombreAlumno = $this->limpiarNombreArchivo(trim(
+            ($alumno->nombre ?? '') . '_' .
+                ($alumno->apellido_paterno ?? '') . '_' .
+                ($alumno->apellido_materno ?? '') . '_' .
+                ($alumno->matricula ?? '')
+        ));
 
-        if ($documento == 'kardex') {
+        if ($documento === 'kardex') {
             $data = [
                 'alumno' => $alumno,
                 'escuela' => $escuela,
@@ -439,9 +547,15 @@ class PDFController extends Controller
                 'cuatrimestres' => $cuatrimestres,
                 'rector' => $rector,
             ];
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexPDF', $data)->setPaper('legal', 'portrait');
-            return $pdf->stream("KARDEX_" . $alumno["nombre"] . "_" . $alumno["apellido_paterno"] . "_" . $alumno["apellido_materno"] . "_" . $alumno['matricula'] . ".pdf");
-        } else if ($documento == 'historial-academico') {
+
+            return [
+                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexPDF', $data)
+                    ->setPaper('legal', 'portrait'),
+                'filename' => "KARDEX_{$nombreAlumno}.pdf",
+            ];
+        }
+
+        if ($documento === 'historial-academico') {
             $data = [
                 'alumno' => $alumno,
                 'escuela' => $escuela,
@@ -450,44 +564,68 @@ class PDFController extends Controller
                 'rector' => $rector,
                 'directora' => $directora,
                 'fecha' => $fecha,
-                'periodos' => $periodos
+                'periodos' => $periodos,
             ];
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.historialAcademicoPDF', $data)->setPaper('legal', 'portrait');
-            return $pdf->stream("HISTORIAL_ACADEMICO_" . $alumno["nombre"] . "_" . $alumno["apellido_paterno"] . "_" . $alumno["apellido_materno"] . "_" . $alumno['matricula'] . ".pdf");
-        } else if ($documento == 'diploma') {
+
+            return [
+                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.historialAcademicoPDF', $data)
+                    ->setPaper('legal', 'portrait'),
+                'filename' => "HISTORIAL_ACADEMICO_{$nombreAlumno}.pdf",
+            ];
+        }
+
+        if ($documento === 'diploma') {
             $data = [
                 'alumno' => $alumno,
                 'escuela' => $escuela,
                 'licenciatura' => $licenciatura,
                 'fecha' => $fecha,
                 'rector' => $rector,
-                'directora' => $directora
+                'directora' => $directora,
             ];
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.diplomaPDF', $data)->setPaper('letter', 'portrait');
-            return $pdf->stream("DIPLOMA_" . $alumno["nombre"] . "_" . $alumno["apellido_paterno"] . "_" . $alumno["apellido_materno"] . "_" . $alumno['matricula'] . ".pdf");
-        } else if ($documento == 'carta-de-pasante') {
+
+            return [
+                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.diplomaPDF', $data)
+                    ->setPaper('letter', 'portrait'),
+                'filename' => "DIPLOMA_{$nombreAlumno}.pdf",
+            ];
+        }
+
+        if ($documento === 'carta-de-pasante') {
             $data = [
                 'alumno' => $alumno,
                 'escuela' => $escuela,
                 'licenciatura' => $licenciatura,
                 'fecha' => $fecha,
                 'rector' => $rector,
-                'directora' => $directora
+                'directora' => $directora,
             ];
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.cartaPasantePDF', $data)->setPaper('letter', 'portrait');
-            return $pdf->stream("CARTA_DE_PASANTE_" . $alumno["nombre"] . "_" . $alumno["apellido_paterno"] . "_" . $alumno["apellido_materno"] . "_" . $alumno['matricula'] . ".pdf");
-        } else if ($documento == 'constancia-de-termino') {
+
+            return [
+                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.cartaPasantePDF', $data)
+                    ->setPaper('letter', 'portrait'),
+                'filename' => "CARTA_DE_PASANTE_{$nombreAlumno}.pdf",
+            ];
+        }
+
+        if ($documento === 'constancia-de-termino') {
             $data = [
                 'alumno' => $alumno,
                 'escuela' => $escuela,
                 'licenciatura' => $licenciatura,
                 'fecha' => $fecha,
                 'rector' => $rector,
-                'directora' => $directora
+                'directora' => $directora,
             ];
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciaTerminoPDF', $data)->setPaper('letter', 'portrait');
-            return $pdf->stream("CONSTANCIA_DE_TERMINO_" . $alumno["nombre"] . "_" . $alumno["apellido_paterno"] . "_" . $alumno["apellido_materno"] . "_" . $alumno['matricula'] . ".pdf");
-        } else if ($documento == 'certificado-de-estudios') {
+
+            return [
+                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciaTerminoPDF', $data)
+                    ->setPaper('letter', 'portrait'),
+                'filename' => "CONSTANCIA_DE_TERMINO_{$nombreAlumno}.pdf",
+            ];
+        }
+
+        if ($documento === 'certificado-de-estudios') {
             $data = [
                 'alumno' => $alumno,
                 'escuela' => $escuela,
@@ -497,15 +635,27 @@ class PDFController extends Controller
                 'rector' => $rector,
                 'jefe' => $jefe,
                 'revisado' => $revisado,
-                'directora' => $directora
+                'directora' => $directora,
             ];
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.certificadoPDF', $data)->setPaper('legal', 'portrait');
-            return $pdf->stream("CERTIFICADO_DE_ESTUDIOS_" . $alumno["nombre"] . "_" . $alumno["apellido_paterno"] . "_" . $alumno["apellido_materno"] . "_" . $alumno['matricula'] . ".pdf");
-        } else {
-            abort(404, 'Tipo de documento no válido');
+
+            return [
+                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.certificadoPDF', $data)
+                    ->setPaper('legal', 'portrait'),
+                'filename' => "CERTIFICADO_DE_ESTUDIOS_{$nombreAlumno}.pdf",
+            ];
         }
+
+        abort(404, 'Tipo de documento no válido.');
     }
 
+    private function limpiarNombreArchivo(?string $texto): string
+    {
+        $texto = trim((string) $texto);
+        $texto = preg_replace('/[^A-Za-z0-9_\-ÁÉÍÓÚÜÑáéíóúüñ]+/u', '_', $texto);
+        $texto = preg_replace('/_+/', '_', $texto);
+
+        return strtoupper(trim($texto, '_')) ?: 'DOCUMENTO';
+    }
 
     //    CREDENCIAL DEL ALUMNO
 

@@ -19,13 +19,49 @@ class Documentos extends Component
 
     public $selectedAlumno = null;
 
+    /**
+     * Este generacion_id se conserva para la sección de expedición por generación.
+     */
     public $generacion_id = null;
 
     public $documento_expedicion = null;
 
+    /**
+     * Modo para el documento personal.
+     * Opciones: alumno, licenciatura, generacion.
+     */
+    public string $modo_documento = 'alumno';
+
+    public $filtro_licenciatura_id = null;
+
+    public $filtro_generacion_id = null;
+
     public function updatedQuery(): void
     {
         $this->buscarAlumnos();
+    }
+
+    public function updatedModoDocumento(): void
+    {
+        $this->limpiarSeleccionDocumentoPersonal();
+    }
+
+    public function updatedFiltroLicenciaturaId(): void
+    {
+        $this->limpiarAlumnoSeleccionado();
+
+        if (strlen(trim($this->query)) >= 2) {
+            $this->buscarAlumnos();
+        }
+    }
+
+    public function updatedFiltroGeneracionId(): void
+    {
+        $this->limpiarAlumnoSeleccionado();
+
+        if (strlen(trim($this->query)) >= 2) {
+            $this->buscarAlumnos();
+        }
     }
 
     public function buscarAlumnos(): void
@@ -35,7 +71,6 @@ class Documentos extends Component
         if (strlen($texto) < 2) {
             $this->alumnos = [];
             $this->selectedIndex = 0;
-
             return;
         }
 
@@ -53,6 +88,12 @@ class Documentos extends Component
                     ->orWhere('CURP', 'like', '%' . $texto . '%')
                     ->orWhere('matricula', 'like', '%' . $texto . '%')
                     ->orWhere('folio', 'like', '%' . $texto . '%');
+            })
+            ->when($this->filtro_licenciatura_id, function ($consulta) {
+                $consulta->where('licenciatura_id', $this->filtro_licenciatura_id);
+            })
+            ->when($this->filtro_generacion_id, function ($consulta) {
+                $consulta->where('generacion_id', $this->filtro_generacion_id);
             })
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
@@ -73,12 +114,10 @@ class Documentos extends Component
                 'icon' => 'error',
                 'position' => 'top-end',
             ]);
-
             return;
         }
 
         $alumnoSeleccionado = $this->alumnos[$index];
-
         $this->alumno_id = $alumnoSeleccionado['id'];
 
         $alumno = Inscripcion::query()
@@ -104,7 +143,6 @@ class Documentos extends Component
                 'icon' => 'error',
                 'position' => 'top-end',
             ]);
-
             return;
         }
 
@@ -128,6 +166,25 @@ class Documentos extends Component
         $this->selectedIndex = 0;
         $this->alumno_id = null;
         $this->selectedAlumno = null;
+    }
+
+    public function limpiarAlumnoSeleccionado(): void
+    {
+        $this->alumnos = [];
+        $this->selectedIndex = 0;
+        $this->alumno_id = null;
+        $this->selectedAlumno = null;
+    }
+
+    public function limpiarSeleccionDocumentoPersonal(): void
+    {
+        $this->query = '';
+        $this->alumnos = [];
+        $this->selectedIndex = 0;
+        $this->alumno_id = null;
+        $this->selectedAlumno = null;
+        $this->filtro_licenciatura_id = null;
+        $this->filtro_generacion_id = null;
     }
 
     public function selectIndexUp(): void

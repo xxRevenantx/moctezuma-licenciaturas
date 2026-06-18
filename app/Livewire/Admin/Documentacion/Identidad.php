@@ -32,9 +32,8 @@ class Identidad extends Component
     {
         // Solo columnas necesarias para el select
         $this->licenciaturas = Licenciatura::orderBy('nombre')
-            ->get(['id','nombre'])
+            ->get(['id', 'nombre'])
             ->toArray();
-
     }
 
 
@@ -50,10 +49,10 @@ class Identidad extends Component
             $this->alumnos = Inscripcion::with('licenciatura')
                 ->where(function ($q) {
                     $q->where('nombre', 'like', "%{$this->query}%")
-                      ->orWhere('apellido_paterno', 'like', "%{$this->query}%")
-                      ->orWhere('apellido_materno', 'like', "%{$this->query}%")
-                      ->orWhere('curp', 'like', "%{$this->query}%")
-                      ->orWhere('matricula', 'like', "%{$this->query}%");
+                        ->orWhere('apellido_paterno', 'like', "%{$this->query}%")
+                        ->orWhere('apellido_materno', 'like', "%{$this->query}%")
+                        ->orWhere('curp', 'like', "%{$this->query}%")
+                        ->orWhere('matricula', 'like', "%{$this->query}%");
                 })
                 // Si quieres que el buscador respete filtros, descomenta:
                 // ->when($this->selectedLicenciatura, fn($q) => $q->where('licenciatura_id', $this->selectedLicenciatura))
@@ -70,11 +69,11 @@ class Identidad extends Component
     {
         if (isset($this->alumnos[$index])) {
             $this->selectedAlumno = $this->alumnos[$index];
-            $this->query = $this->selectedAlumno['nombre'].' '.
-                           $this->selectedAlumno['apellido_paterno'].' '.
-                           $this->selectedAlumno['apellido_materno'].' - '.
-                           $this->selectedAlumno['matricula'].' - '.
-                           ($this->selectedAlumno['curp'] ?? ''); // usa 'curp' en minúsculas
+            $this->query = $this->selectedAlumno['nombre'] . ' ' .
+                $this->selectedAlumno['apellido_paterno'] . ' ' .
+                $this->selectedAlumno['apellido_materno'] . ' - ' .
+                $this->selectedAlumno['matricula'] . ' - ' .
+                ($this->selectedAlumno['curp'] ?? ''); // usa 'curp' en minúsculas
 
             $this->verificarDocumentos();
             $this->dispatch('alumnoSeleccionado', $this->selectedAlumno['id']);
