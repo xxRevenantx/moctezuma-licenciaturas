@@ -123,5 +123,10 @@ class Inscripcion extends Model
         return $this->hasMany(Justificante::class, 'alumno_id');
     }
 
+    public function historial()
+    {
+        return $this->hasMany(HistorialInscripcion::class);
+    }
+
 
 }

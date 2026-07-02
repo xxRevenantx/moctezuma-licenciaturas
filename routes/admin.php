@@ -20,6 +20,7 @@ use App\Http\Controllers\DocumentosUnificadosController;
 use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\EstudianteController;
+use App\Http\Controllers\EstadisticaLicenciaturasController;
 
 use App\Http\Controllers\HorarioGeneralController;
 use App\Http\Controllers\ListaProfesorController;
@@ -51,6 +52,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/listas-generales', [DocumentacionController::class, 'listasGenerales'])->middleware('can:admin.administracion')->name('admin.listas-generales');
     Route::get('/constancias', [DocumentacionController::class, 'constancias'])->middleware('can:admin.administracion')->name('admin.constancias');
     Route::get('/documentacion', [DocumentacionController::class, 'documentacion'])->middleware('can:admin.administracion')->name('admin.documentacion');
+
+
+    Route::get('/estadistica-licenciaturas/pdf', [EstadisticaLicenciaturasController::class, 'pdf'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.estadistica-licenciaturas.pdf');
+
+    Route::get('/estadistica-licenciaturas/excel', [EstadisticaLicenciaturasController::class, 'excel'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.estadistica-licenciaturas.excel');
 
 
     ////////

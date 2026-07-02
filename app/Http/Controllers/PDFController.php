@@ -51,70 +51,354 @@ class PDFController extends Controller
 
     public function matricula(Request $request)
     {
-        $licenciatura = $request->licenciatura_id;
-        $modalidad = $request->modalidad_id;
-        $filtrar_generacion = $request->filtrar_generacion;
-        $filtar_foraneo = $request->filtar_foraneo; //
-        $query = Inscripcion::where('licenciatura_id', $licenciatura)
-            ->where('modalidad_id', $modalidad)
-            ->where('status', "true")
-            ->where('generacion_id', $filtrar_generacion)
-            ->orderBy('apellido_paterno', 'asc')
-            ->orderBy('apellido_materno', 'asc')
-            ->orderBy('nombre', 'asc');
-        if ($filtar_foraneo !== null) {
-            $query->where('foraneo', $filtar_foraneo);
-        }
+        $datos = $request->validate([
+            'licenciatura_id' => ['required', 'integer', 'exists:licenciaturas,id'],
+            'modalidad_id' => ['required', 'integer', 'exists:modalidades,id'],
+            'filtrar_generacion' => ['required', 'integer', 'exists:generaciones,id'],
+            'filtrar_foraneo' => ['nullable', 'in:true,false'],
+        ]);
 
+        $filtrarForaneo = $datos['filtrar_foraneo'] ?? null;
 
-        $matricula = $query->get();
-        $generacion = Generacion::where('id', $filtrar_generacion)->first();
-        $licenciatura_nombre = Licenciatura::where('id', $licenciatura)->first();
-        $escuela = Escuela::all()->first();
-        // Aquí puedes agregar la lógica para generar el PDF con los datos recibidos
-        // Por ejemplo, puedes usar una librería como Dompdf o Snappy para generar el PDF
-
-        $data = [
-            'matricula' => $matricula,
-            'generacion' => $generacion,
-            'licenciatura_nombre' => $licenciatura_nombre,
-            'escuela' => $escuela,
-        ];
-        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculaPDF', $data)->setPaper('letter', 'landscape');
-        return $pdf->stream("Lista_de_grupo_Lic_en_{$licenciatura_nombre->nombre}_Gen:{$generacion->generacion}.pdf");
-    }
-
-    // MATRICULA GENERACION
-    public function matricula_generacion(Request $request)
-    {
-        $licenciatura = $request->licenciatura_id;
-        $generacion = $request->generacion_id;
-
-        // dd($licenciatura, $modalidad, $filtrar_generacion, $filtar_foraneo);
-
-        $matricula = Inscripcion::where('licenciatura_id', $licenciatura)
-            ->where('status', "true")
-            ->where('generacion_id', $generacion)
-            ->orderBy('apellido_paterno', 'asc')
-            ->orderBy('apellido_materno', 'asc')
-            ->orderBy('nombre', 'asc')
+        $matricula = Inscripcion::query()
+            ->with(['modalidad:id,nombre', 'cuatrimestre:id,nombre_cuatrimestre'])
+            ->where('licenciatura_id', $datos['licenciatura_id'])
+            ->where('modalidad_id', $datos['modalidad_id'])
+            ->where('status', 'true')
+            ->where('generacion_id', $datos['filtrar_generacion'])
+            ->when(
+                in_array($filtrarForaneo, ['true', 'false'], true),
+                function ($query) use ($filtrarForaneo) {
+                    $query->where('foraneo', $filtrarForaneo);
+                }
+            )
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->orderBy('nombre')
             ->get();
 
-        $generacion = Generacion::where('id', $generacion)->first();
-        $licenciatura_nombre = Licenciatura::where('id', $licenciatura)->first();
-        $escuela = Escuela::all()->first();
+        $generacion = Generacion::findOrFail($datos['filtrar_generacion']);
+        $licenciatura_nombre = Licenciatura::findOrFail($datos['licenciatura_id']);
+        $escuela = Escuela::query()->first();
 
-        // Aquí puedes agregar la lógica para generar el PDF con los datos recibidos
-        // Por ejemplo, puedes usar una librería como Dompdf o Snappy para generar el PDF
+        $tituloLista = match ($filtrarForaneo) {
+            'true' => 'LISTA DE ALUMNOS FORÁNEOS',
+            'false' => 'LISTA DE ALUMNOS LOCALES',
+            default => 'LISTA GENERAL DE ALUMNOS',
+        };
+
+        $descripcionFiltro = match ($filtrarForaneo) {
+            'true' => 'Únicamente alumnos foráneos',
+            'false' => 'Únicamente alumnos locales',
+            default => 'Alumnos foráneos y locales',
+        };
+
+        $tipoArchivo = match ($filtrarForaneo) {
+            'true' => 'Foraneos',
+            'false' => 'Locales',
+            default => 'General',
+        };
 
         $data = [
             'matricula' => $matricula,
             'generacion' => $generacion,
             'licenciatura_nombre' => $licenciatura_nombre,
             'escuela' => $escuela,
+            'tituloLista' => $tituloLista,
+            'descripcionFiltro' => $descripcionFiltro,
+            'filtrarForaneo' => $filtrarForaneo,
         ];
-        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculaGeneracionPDF', $data)->setPaper('letter', 'landscape');
-        return $pdf->stream("Lista_de_grupo_Lic_en_{$licenciatura_nombre->nombre}_Gen:{$generacion->generacion}.pdf");
+
+        $pdf = Pdf::loadView(
+            'livewire.admin.licenciaturas.submodulo.pdf.matriculaPDF',
+            $data
+        )->setPaper('letter', 'landscape');
+
+        return $pdf->stream(
+            "Lista_{$tipoArchivo}_Lic_en_{$licenciatura_nombre->nombre}_Gen_{$generacion->generacion}.pdf"
+        );
+    }
+
+    // MATRÍCULA POR GENERACIÓN
+    public function matricula_generacion(Request $request)
+    {
+        $datos = $request->validate([
+            'licenciatura_id' => ['required', 'integer', 'exists:licenciaturas,id'],
+            'generacion_id' => ['required', 'integer', 'exists:generaciones,id'],
+            'filtrar_foraneo' => ['nullable', 'in:true,false'],
+        ]);
+
+        $filtrarForaneo = $datos['filtrar_foraneo'] ?? null;
+
+        $matricula = Inscripcion::query()
+            ->with(['modalidad:id,nombre', 'cuatrimestre:id,nombre_cuatrimestre'])
+            ->where('licenciatura_id', $datos['licenciatura_id'])
+            ->where('status', 'true')
+            ->where('generacion_id', $datos['generacion_id'])
+            ->when(
+                in_array($filtrarForaneo, ['true', 'false'], true),
+                function ($query) use ($filtrarForaneo) {
+                    $query->where('foraneo', $filtrarForaneo);
+                }
+            )
+            ->orderBy('modalidad_id')
+            ->orderBy('cuatrimestre_id')
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->orderBy('nombre')
+            ->get();
+
+        $generacion = Generacion::findOrFail($datos['generacion_id']);
+        $licenciatura_nombre = Licenciatura::findOrFail($datos['licenciatura_id']);
+        $escuela = Escuela::query()->first();
+
+        $tituloLista = match ($filtrarForaneo) {
+            'true' => 'LISTA DE ALUMNOS',
+            'false' => 'LISTA DE ALUMNOS',
+            default => 'LISTA GENERAL DE ALUMNOS',
+        };
+
+        $descripcionFiltro = match ($filtrarForaneo) {
+            'true' => 'Únicamente alumnos foráneos',
+            'false' => 'Únicamente alumnos locales',
+            default => 'Alumnos foráneos y locales',
+        };
+
+        $tipoArchivo = match ($filtrarForaneo) {
+            'true' => 'Foraneos',
+            'false' => 'Locales',
+            default => 'General',
+        };
+
+        $data = [
+            'matricula' => $matricula,
+            'generacion' => $generacion,
+            'licenciatura_nombre' => $licenciatura_nombre,
+            'escuela' => $escuela,
+            'tituloLista' => $tituloLista,
+            'descripcionFiltro' => $descripcionFiltro,
+            'filtrarForaneo' => $filtrarForaneo,
+        ];
+
+        $pdf = Pdf::loadView(
+            'livewire.admin.licenciaturas.submodulo.pdf.matriculaGeneracionPDF',
+            $data
+        )->setPaper('letter', 'landscape');
+
+        return $pdf->stream(
+            "Lista_{$tipoArchivo}_Lic_en_{$licenciatura_nombre->nombre}_Gen_{$generacion->generacion}.pdf"
+        );
+    }
+
+    /**
+     * Muestra en una nueva pestaña todas las listas de la licenciatura
+     * seleccionada dentro de un solo PDF, respetando el filtro de procedencia.
+     *
+     * El PDF incluye:
+     * - Una lista general por cada generación.
+     * - Una lista por cada modalidad existente dentro de cada generación.
+     */
+    public function matricula_todas(Request $request)
+    {
+        $datos = $request->validate([
+            'licenciatura_id' => ['required', 'integer', 'exists:licenciaturas,id'],
+            'filtrar_foraneo' => ['nullable', 'in:true,false'],
+        ]);
+
+        $filtrarForaneo = $datos['filtrar_foraneo'] ?? null;
+
+        $alumnos = Inscripcion::query()
+            ->with([
+                'generacion:id,generacion',
+                'modalidad:id,nombre',
+                'cuatrimestre:id,nombre_cuatrimestre,cuatrimestre',
+            ])
+            ->where('licenciatura_id', $datos['licenciatura_id'])
+            ->where('status', 'true')
+            ->when(
+                in_array($filtrarForaneo, ['true', 'false'], true),
+                function ($query) use ($filtrarForaneo) {
+                    $query->where('foraneo', $filtrarForaneo);
+                }
+            )
+            ->orderBy('generacion_id')
+            ->orderBy('modalidad_id')
+            ->orderBy('cuatrimestre_id')
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->orderBy('nombre')
+            ->get();
+
+        if ($alumnos->isEmpty()) {
+            abort(404, 'No hay alumnos para mostrar las listas con el filtro seleccionado.');
+        }
+
+        $licenciatura = Licenciatura::query()->findOrFail($datos['licenciatura_id']);
+        $escuela = Escuela::query()->first();
+
+        $tituloLista = match ($filtrarForaneo) {
+            'true' => 'LISTA DE ALUMNOS',
+            'false' => 'LISTA DE ALUMNOS',
+            default => 'LISTA GENERAL DE ALUMNOS',
+        };
+
+        $descripcionFiltro = match ($filtrarForaneo) {
+            'true' => 'Únicamente alumnos foráneos',
+            'false' => 'Únicamente alumnos locales',
+            default => 'Alumnos foráneos y locales',
+        };
+
+        $tipoArchivo = match ($filtrarForaneo) {
+            'true' => 'FORANEOS',
+            'false' => 'LOCALES',
+            default => 'TODOS',
+        };
+
+        $listas = collect();
+
+        foreach ($alumnos->groupBy('generacion_id') as $generacionId => $alumnosGeneracion) {
+            $generacion = $alumnosGeneracion->first()->generacion
+                ?? Generacion::query()->findOrFail($generacionId);
+
+            // Lista general de la generación.
+            $listas->push([
+                'tipo' => 'generacion',
+                'generacion' => $generacion,
+                'modalidad' => null,
+                'alumnos' => $alumnosGeneracion->values(),
+            ]);
+
+            // Listas separadas por modalidad dentro de la generación.
+            foreach ($alumnosGeneracion->groupBy('modalidad_id') as $modalidadId => $alumnosModalidad) {
+                $modalidad = $alumnosModalidad->first()->modalidad
+                    ?? Modalidad::query()->find($modalidadId);
+
+                $listas->push([
+                    'tipo' => 'modalidad',
+                    'generacion' => $generacion,
+                    'modalidad' => $modalidad,
+                    'alumnos' => $alumnosModalidad->values(),
+                ]);
+            }
+        }
+
+        $pdf = Pdf::loadView(
+            'livewire.admin.licenciaturas.submodulo.pdf.matriculaTodasPDF',
+            [
+                'listas' => $listas,
+                'licenciatura_nombre' => $licenciatura,
+                'escuela' => $escuela,
+                'tituloLista' => $tituloLista,
+                'descripcionFiltro' => $descripcionFiltro,
+                'filtrarForaneo' => $filtrarForaneo,
+            ]
+        )->setPaper('letter', 'landscape');
+
+        $nombreLicenciatura = $this->limpiarNombreArchivo($licenciatura->nombre);
+
+        return $pdf->stream(
+            "TODAS_LAS_LISTAS_{$tipoArchivo}_{$nombreLicenciatura}.pdf"
+        );
+    }
+
+
+    /**
+     * Muestra en una nueva pestaña un solo PDF con todos los alumnos
+     * foráneos activos, organizados por licenciatura y por generación.
+     *
+     * Reglas:
+     * - Solo alumnos con status = true.
+     * - Solo alumnos con foraneo = true.
+     * - Incluye generaciones activas e inactivas.
+     * - Solo incluye licenciaturas que tengan alumnos foráneos.
+     * - Cada licenciatura comienza en una página nueva.
+     */
+    public function matricula_foraneos_licenciaturas()
+    {
+        $licenciaturas = Licenciatura::query()
+            ->whereHas('inscripciones', function ($query) {
+                $query
+                    ->where('status', 'true')
+                    ->where('foraneo', 'true');
+            })
+            ->with([
+                'inscripciones' => function ($query) {
+                    $query
+                        ->where('status', 'true')
+                        ->where('foraneo', 'true')
+                        ->with([
+                            'generacion:id,generacion,activa',
+                            'modalidad:id,nombre',
+                            'cuatrimestre:id,nombre_cuatrimestre,cuatrimestre',
+                        ])
+                        ->orderBy('generacion_id')
+                        ->orderBy('cuatrimestre_id')
+                        ->orderBy('modalidad_id')
+                        ->orderBy('apellido_paterno')
+                        ->orderBy('apellido_materno')
+                        ->orderBy('nombre');
+                },
+            ])
+            ->orderBy('nombre')
+            ->get();
+
+        if ($licenciaturas->isEmpty()) {
+            abort(404, 'No hay alumnos foráneos activos registrados.');
+        }
+
+        $listas = $licenciaturas
+            ->map(function (Licenciatura $licenciatura) {
+                $alumnos = $licenciatura->inscripciones;
+
+                $generaciones = $alumnos
+                    ->groupBy(function (Inscripcion $alumno) {
+                        return $alumno->generacion_id ?: 'sin_generacion';
+                    })
+                    ->map(function ($alumnosGeneracion) {
+                        return [
+                            'generacion' => $alumnosGeneracion->first()->generacion,
+                            'alumnos' => $alumnosGeneracion->values(),
+                            'total' => $alumnosGeneracion->count(),
+                        ];
+                    })
+                    ->values();
+
+                return [
+                    'licenciatura' => $licenciatura,
+                    'generaciones' => $generaciones,
+                    'total' => $alumnos->count(),
+                ];
+            })
+            ->values();
+
+        $resumen = $listas
+            ->map(function (array $lista) {
+                return [
+                    'licenciatura' => $lista['licenciatura']->nombre,
+                    'generaciones' => $lista['generaciones']
+                        ->map(function (array $grupo) {
+                            return $grupo['generacion']->generacion ?? 'SIN GENERACIÓN';
+                        })
+                        ->implode(', '),
+                    'total' => $lista['total'],
+                ];
+            })
+            ->values();
+
+        $escuela = Escuela::query()->first();
+        $totalGeneral = $listas->sum('total');
+
+        $pdf = Pdf::loadView(
+            'livewire.admin.licenciaturas.submodulo.pdf.matriculaForaneosLicenciaturasPDF',
+            [
+                'listas' => $listas,
+                'resumen' => $resumen,
+                'escuela' => $escuela,
+                'totalGeneral' => $totalGeneral,
+            ]
+        )->setPaper('letter', 'landscape');
+
+        return $pdf->stream('LISTA_GENERAL_DE_ALUMNOS_FORANEOS_POR_LICENCIATURA.pdf');
     }
 
 

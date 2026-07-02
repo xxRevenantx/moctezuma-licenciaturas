@@ -4,37 +4,32 @@ namespace App\Livewire\Admin\Documentacion;
 
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class ListasGenerales extends Component
 {
-    public $licenciatura_id = null;
+    public $licenciatura_id = '';
 
     public $alumnos = [];
 
-    public ?string $licenciatura_nombre = null;
+    public $licenciatura_nombre = null;
 
-    public string $search = '';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Filtro de procedencia
-    |--------------------------------------------------------------------------
-    |
-    | todos = Mostrar todos
-    | true  = Mostrar únicamente foráneos
-    | false = Mostrar únicamente locales
-    |
-    */
-    public string $filtrar_foraneo = 'todos';
+    public $search = '';
 
     /**
-     * Indica si ya se realizó una consulta.
+     * null    = todos
+     * 'true'  = únicamente foráneos
+     * 'false' = únicamente locales
      */
-    public bool $consultado = false;
+    public $filtrar_foraneo = null;
+
+    public $consultado = false;
 
     /**
-     * Consulta inicial mediante el botón.
+     * Consulta las listas después de validar la licenciatura
+     * y el filtro de procedencia.
      */
     public function consultarListas(): void
     {
@@ -44,14 +39,13 @@ class ListasGenerales extends Component
                 'exists:licenciaturas,id',
             ],
             'filtrar_foraneo' => [
-                'required',
-                'in:todos,true,false',
+                'nullable',
+                Rule::in(['true', 'false']),
             ],
         ], [
             'licenciatura_id.required' => 'Debes seleccionar una licenciatura.',
             'licenciatura_id.exists' => 'La licenciatura seleccionada no es válida.',
-            'filtrar_foraneo.required' => 'Debes seleccionar un filtro.',
-            'filtrar_foraneo.in' => 'El filtro seleccionado no es válido.',
+            'filtrar_foraneo.in' => 'El filtro de procedencia no es válido.',
         ]);
 
         $this->consultado = true;
@@ -60,11 +54,12 @@ class ListasGenerales extends Component
     }
 
     /**
-     * Carga los alumnos aplicando todos los filtros.
+     * Carga los alumnos aplicando licenciatura,
+     * procedencia y búsqueda.
      */
     private function cargarAlumnos(): void
     {
-        if (!$this->licenciatura_id) {
+        if (!$this->consultado || !$this->licenciatura_id) {
             $this->alumnos = [];
             $this->licenciatura_nombre = null;
 
@@ -75,19 +70,30 @@ class ListasGenerales extends Component
             ->whereKey($this->licenciatura_id)
             ->value('nombre');
 
-        $search = trim($this->search);
+        $busqueda = trim((string) $this->search);
 
         $this->alumnos = Inscripcion::query()
+            ->with([
+                'licenciatura:id,nombre',
+                'generacion:id,generacion,activa',
+                'modalidad:id,nombre',
+                'cuatrimestre:id,nombre_cuatrimestre,cuatrimestre',
+            ])
+
+            // Licenciatura seleccionada
             ->where('licenciatura_id', $this->licenciatura_id)
+
+            // Únicamente alumnos activos
             ->where('status', 'true')
-            ->whereHas('generacion', function ($query) {
-                $query->where('activa', 'true');
-            })
 
             /*
             |--------------------------------------------------------------------------
-            | Filtro foráneo/local
+            | Filtro de procedencia
             |--------------------------------------------------------------------------
+            |
+            | No se filtra por generacion.activa porque existen alumnos activos
+            | pertenecientes a generaciones marcadas como inactivas.
+            |
             */
             ->when(
                 in_array($this->filtrar_foraneo, ['true', 'false'], true),
@@ -101,29 +107,30 @@ class ListasGenerales extends Component
             | Buscador
             |--------------------------------------------------------------------------
             */
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($consulta) use ($search) {
+            ->when($busqueda !== '', function ($query) use ($busqueda) {
+                $query->where(function ($consulta) use ($busqueda) {
                     $consulta
-                        ->where('nombre', 'like', '%' . $search . '%')
-                        ->orWhere('apellido_paterno', 'like', '%' . $search . '%')
-                        ->orWhere('apellido_materno', 'like', '%' . $search . '%')
-                        ->orWhere('matricula', 'like', '%' . $search . '%')
+                        ->where('nombre', 'like', "%{$busqueda}%")
+                        ->orWhere('apellido_paterno', 'like', "%{$busqueda}%")
+                        ->orWhere('apellido_materno', 'like', "%{$busqueda}%")
+                        ->orWhere('matricula', 'like', "%{$busqueda}%")
+                        ->orWhere('CURP', 'like', "%{$busqueda}%")
                         ->orWhereRaw(
                             "CONCAT_WS(' ', nombre, apellido_paterno, apellido_materno) LIKE ?",
-                            ['%' . $search . '%']
+                            ["%{$busqueda}%"]
                         )
                         ->orWhereRaw(
                             "CONCAT_WS(' ', apellido_paterno, apellido_materno, nombre) LIKE ?",
-                            ['%' . $search . '%']
+                            ["%{$busqueda}%"]
                         );
                 });
             })
-            ->with([
-                'licenciatura',
-                'generacion',
-                'modalidad',
-                'cuatrimestre',
-            ])
+
+            /*
+            |--------------------------------------------------------------------------
+            | Orden de los resultados
+            |--------------------------------------------------------------------------
+            */
             ->orderBy('generacion_id')
             ->orderBy('cuatrimestre_id')
             ->orderBy('modalidad_id')
@@ -134,21 +141,21 @@ class ListasGenerales extends Component
     }
 
     /**
-     * Al cambiar de licenciatura se restablecen los filtros.
+     * Al cambiar la licenciatura se limpian los filtros.
      */
     public function updatedLicenciaturaId(): void
     {
         $this->resetValidation();
 
         $this->search = '';
-        $this->filtrar_foraneo = 'todos';
+        $this->filtrar_foraneo = null;
         $this->alumnos = [];
         $this->licenciatura_nombre = null;
         $this->consultado = false;
     }
 
     /**
-     * Buscador reactivo.
+     * Actualiza la lista al escribir en el buscador.
      */
     public function updatedSearch(): void
     {
@@ -158,7 +165,8 @@ class ListasGenerales extends Component
     }
 
     /**
-     * Filtro foráneo/local reactivo.
+     * Actualiza automáticamente la lista al cambiar
+     * entre Todos, Foráneos y Locales.
      */
     public function updatedFiltrarForaneo(): void
     {
@@ -167,14 +175,23 @@ class ListasGenerales extends Component
         }
     }
 
+    /**
+     * Actualiza la lista después de editar un alumno.
+     */
+    #[On('refreshMatricula')]
+    public function refrescarListas(): void
+    {
+        if ($this->consultado && $this->licenciatura_id) {
+            $this->cargarAlumnos();
+        }
+    }
+
     public function render()
     {
-        $licenciaturas = Licenciatura::query()
-            ->orderBy('nombre')
-            ->get();
-
         return view('livewire.admin.documentacion.listas-generales', [
-            'licenciaturas' => $licenciaturas,
+            'licenciaturas' => Licenciatura::query()
+                ->orderBy('nombre')
+                ->get(),
         ]);
     }
 }

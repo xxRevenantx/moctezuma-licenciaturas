@@ -1,17 +1,7 @@
 <div>
     @php
         $alumnosColeccion = collect($alumnos);
-
-        $alumnosPorGeneracion = $alumnosColeccion
-            ->sortBy([
-                ['generacion_id', 'asc'],
-                ['cuatrimestre_id', 'asc'],
-                ['modalidad_id', 'asc'],
-                ['apellido_paterno', 'asc'],
-                ['apellido_materno', 'asc'],
-                ['nombre', 'asc'],
-            ])
-            ->groupBy('generacion_id');
+        $alumnosPorGeneracion = $alumnosColeccion->groupBy('generacion_id');
 
         $textoFiltro = match ($filtrar_foraneo) {
             'true' => 'Foráneos',
@@ -25,32 +15,50 @@
             default => 'alumnos',
         };
 
-        $tituloLista = match ($filtrar_foraneo) {
-            'true' => 'Lista de alumnos foráneos',
-            'false' => 'Lista de alumnos locales',
-            default => 'Lista general de alumnos',
-        };
-
-        $descripcionFiltro = match ($filtrar_foraneo) {
-            'true' => 'Se muestran únicamente los estudiantes foráneos.',
-            'false' => 'Se muestran únicamente los estudiantes locales.',
-            default => 'Se muestran estudiantes foráneos y locales.',
+        $tituloDescarga = match ($filtrar_foraneo) {
+            'true' => 'Descargar lista de foráneos',
+            'false' => 'Descargar lista de locales',
+            default => 'Descargar lista general',
         };
     @endphp
 
-    {{-- Encabezado --}}
-    <div class="flex flex-col gap-4">
-        <h1 class="py-3 text-2xl font-bold text-gray-800 dark:text-white">
-            Listas Generales
-        </h1>
+    <div class="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+                Listas Generales
+            </h1>
+
+            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                Consulta listas por licenciatura o visualiza el concentrado general de alumnos foráneos.
+            </p>
+        </div>
+
+        <form
+            target="_blank"
+            method="GET"
+            action="{{ route('admin.pdf.matricula-foraneos-licenciaturas') }}"
+        >
+            <flux:button
+                type="submit"
+                variant="primary"
+                icon="eye"
+                class="w-full sm:w-auto"
+            >
+                Ver todos los foráneos por licenciatura
+            </flux:button>
+        </form>
     </div>
 
-    {{-- Formulario de consulta --}}
-    <form wire:submit.prevent="consultarListas"
-        class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+    {{-- Filtros principales --}}
+    <form
+        wire:submit.prevent="consultarListas"
+        class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+    >
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {{-- Licenciatura --}}
-            <flux:select wire:model.live="licenciatura_id" label="Selecciona una licenciatura">
+            <flux:select
+                wire:model.live="licenciatura_id"
+                label="Selecciona una licenciatura"
+            >
                 <flux:select.option value="">
                     -- Selecciona una licenciatura --
                 </flux:select.option>
@@ -62,9 +70,11 @@
                 @endforeach
             </flux:select>
 
-            {{-- Filtro de procedencia --}}
-            <flux:select wire:model.live="filtrar_foraneo" label="Procedencia del alumno">
-                <flux:select.option value="todos">
+            <flux:select
+                wire:model.live="filtrar_foraneo"
+                label="Procedencia del alumno"
+            >
+                <flux:select.option value="">
                     Todos
                 </flux:select.option>
 
@@ -78,23 +88,44 @@
             </flux:select>
         </div>
 
-        <div class="mt-5 flex items-center justify-end">
-            <flux:button variant="primary" type="submit" icon="magnifying-glass">
+        <div class="mt-5 flex justify-end">
+            <flux:button
+                type="submit"
+                variant="primary"
+                icon="magnifying-glass"
+            >
                 Consultar listas
             </flux:button>
         </div>
     </form>
 
-    {{-- Loader --}}
-    <div wire:loading.flex wire:target="consultarListas,search,filtrar_foraneo"
-        class="items-center justify-center py-10">
+    {{-- Indicador de carga --}}
+    <div
+        wire:loading.flex
+        wire:target="consultarListas,search,filtrar_foraneo"
+        class="items-center justify-center py-10"
+    >
         <div class="flex flex-col items-center gap-3">
-            <svg class="h-16 w-16 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                </circle>
+            <svg
+                class="h-14 w-14 animate-spin text-blue-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+            >
+                <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                ></circle>
 
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                ></path>
             </svg>
 
             <span class="text-sm font-medium text-blue-600 dark:text-blue-400">
@@ -103,14 +134,16 @@
         </div>
     </div>
 
-    {{-- Contenido --}}
-    <div wire:loading.remove wire:target="consultarListas,search,filtrar_foraneo">
+    <div
+        wire:loading.remove
+        wire:target="consultarListas,search,filtrar_foraneo"
+    >
         @if ($consultado && $licenciatura_id)
-            {{-- Resumen --}}
+            {{-- Resumen y buscador --}}
             <div class="mt-5 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                             Licenciatura
                         </p>
 
@@ -119,51 +152,97 @@
                         </h2>
 
                         <div class="mt-2 flex flex-wrap items-center gap-2">
-                            <flux:badge
-                                :color="$filtrar_foraneo === 'true'
-                                    ?
-                                    'red' :
-                                    ($filtrar_foraneo === 'false' ? 'purple' : 'blue')">
-                                {{ $textoFiltro }}
-                            </flux:badge>
+                            @if ($filtrar_foraneo === 'true')
+                                <flux:badge color="red">Foráneos</flux:badge>
+                            @elseif ($filtrar_foraneo === 'false')
+                                <flux:badge color="purple">Locales</flux:badge>
+                            @else
+                                <flux:badge color="blue">Todos</flux:badge>
+                            @endif
 
                             <span class="text-sm text-zinc-600 dark:text-zinc-300">
-                                {{ $descripcionFiltro }}
+                                Filtro actual: {{ $textoFiltro }}
                             </span>
                         </div>
                     </div>
 
-                    <div class="rounded-xl bg-white px-5 py-3 shadow-sm dark:bg-zinc-900">
-                        <p class="text-center text-xs font-medium uppercase text-zinc-500">
-                            Total
-                        </p>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        @if ($alumnosColeccion->isNotEmpty())
+                            <form
+                                target="_blank"
+                                method="GET"
+                                action="{{ route('admin.pdf.matricula-todas') }}"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="licenciatura_id"
+                                    value="{{ $licenciatura_id }}"
+                                >
 
-                        <p class="text-center text-2xl font-bold text-zinc-900 dark:text-white">
-                            {{ $alumnosColeccion->count() }}
-                        </p>
+                                <input
+                                    type="hidden"
+                                    name="filtrar_foraneo"
+                                    value="{{ $filtrar_foraneo }}"
+                                >
 
-                        <p class="text-center text-xs text-zinc-500">
-                            {{ $textoTotal }}
-                        </p>
+                                <flux:button
+                                    type="submit"
+                                    variant="primary"
+                                    icon="eye"
+                                    class="w-full sm:w-auto"
+                                >
+                                    Ver todas las listas
+                                </flux:button>
+                            </form>
+                        @else
+                            <flux:button
+                                type="button"
+                                variant="primary"
+                                icon="eye"
+                                disabled
+                                class="w-full sm:w-auto"
+                            >
+                                Ver todas las listas
+                            </flux:button>
+                        @endif
+
+                        <div class="rounded-xl bg-white px-6 py-3 shadow-sm dark:bg-zinc-900">
+                            <p class="text-center text-xs font-semibold uppercase text-zinc-500">
+                                Total
+                            </p>
+
+                            <p class="text-center text-3xl font-bold text-zinc-900 dark:text-white">
+                                {{ $alumnosColeccion->count() }}
+                            </p>
+
+                            <p class="text-center text-xs text-zinc-500">
+                                {{ $textoTotal }}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Buscador --}}
             <div class="my-5 flex justify-end">
                 <div class="w-full md:w-96">
-                    <flux:input icon="magnifying-glass" wire:model.live.debounce.400ms="search" label="Buscar alumno"
-                        placeholder="Nombre, apellidos o matrícula..." clearable />
+                    <flux:input
+                        wire:model.live.debounce.400ms="search"
+                        icon="magnifying-glass"
+                        label="Buscar alumno"
+                        placeholder="Nombre, apellidos, matrícula o CURP..."
+                        clearable
+                    />
                 </div>
             </div>
         @endif
 
-        @if ($consultado && $alumnosPorGeneracion->count() > 0)
+        @if ($consultado && $alumnosPorGeneracion->isNotEmpty())
             @foreach ($alumnosPorGeneracion as $generacionId => $grupoGeneracion)
                 <section
+                    wire:key="generacion-{{ $generacionId }}-{{ $filtrar_foraneo }}"
                     class="mt-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
-                    wire:key="generacion-{{ $generacionId }}-{{ $filtrar_foraneo }}">
-                    {{-- Encabezado de generación --}}
+                >
+                    {{-- Generación --}}
                     <div class="border-l-4 border-indigo-500 bg-indigo-50 p-4 dark:bg-indigo-950/30">
                         <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                             <div>
@@ -173,27 +252,44 @@
                                 </h3>
 
                                 <p class="mt-1 text-sm text-indigo-700 dark:text-indigo-400">
-                                    {{ $descripcionFiltro }}
+                                    Se muestran {{ strtolower($textoTotal) }} según el filtro seleccionado.
                                 </p>
                             </div>
 
                             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                                 <flux:badge color="indigo">
                                     Total: {{ $grupoGeneracion->count() }}
-                                    {{ $textoTotal }}
                                 </flux:badge>
 
-                                {{-- PDF general por generación --}}
-                                <form target="_blank" method="GET"
-                                    action="{{ route('admin.pdf.matricula-generacion') }}">
-                                    <input type="hidden" name="licenciatura_id" value="{{ $licenciatura_id }}">
+                                <form
+                                    target="_blank"
+                                    method="GET"
+                                    action="{{ route('admin.pdf.matricula-generacion') }}"
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="licenciatura_id"
+                                        value="{{ $licenciatura_id }}"
+                                    >
 
-                                    <input type="hidden" name="generacion_id" value="{{ $generacionId }}">
+                                    <input
+                                        type="hidden"
+                                        name="generacion_id"
+                                        value="{{ $generacionId }}"
+                                    >
 
-                                    <input type="hidden" name="filtrar_foraneo" value="{{ $filtrar_foraneo }}">
+                                    <input
+                                        type="hidden"
+                                        name="filtrar_foraneo"
+                                        value="{{ $filtrar_foraneo }}"
+                                    >
 
-                                    <flux:button type="submit" variant="primary" icon="download">
-                                        {{ $tituloLista }}
+                                    <flux:button
+                                        type="submit"
+                                        variant="primary"
+                                        icon="download"
+                                    >
+                                        {{ $tituloDescarga }}
                                     </flux:button>
                                 </form>
                             </div>
@@ -205,18 +301,18 @@
                     @endphp
 
                     @foreach ($cuatrimestresGrupo as $cuatrimestreId => $alumnosCuatrimestre)
-                        <div class="p-4" wire:key="cuatrimestre-{{ $generacionId }}-{{ $cuatrimestreId }}">
-                            {{-- Cuatrimestre --}}
+                        <div
+                            wire:key="cuatrimestre-{{ $generacionId }}-{{ $cuatrimestreId }}"
+                            class="p-4"
+                        >
                             <div class="mb-4 border-l-4 border-orange-500 bg-orange-50 p-3 dark:bg-orange-950/30">
                                 <div class="flex items-center justify-between gap-3">
                                     <p class="font-bold text-orange-800 dark:text-orange-300">
-                                        {{ $alumnosCuatrimestre->first()->cuatrimestre->nombre ?? $cuatrimestreId }}
-                                        Cuatrimestre
+                                        {{ $alumnosCuatrimestre->first()->cuatrimestre->nombre_cuatrimestre ?? $cuatrimestreId . '° CUATRIMESTRE' }}
                                     </p>
 
                                     <flux:badge color="orange">
-                                        {{ $alumnosCuatrimestre->count() }}
-                                        {{ $textoTotal }}
+                                        {{ $alumnosCuatrimestre->count() }} alumnos
                                     </flux:badge>
                                 </div>
                             </div>
@@ -226,8 +322,10 @@
                             @endphp
 
                             @foreach ($porModalidad as $modalidadId => $alumnosModalidad)
-                                <div class="mb-6 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700"
-                                    wire:key="modalidad-{{ $generacionId }}-{{ $cuatrimestreId }}-{{ $modalidadId }}">
+                                <div
+                                    wire:key="modalidad-{{ $generacionId }}-{{ $cuatrimestreId }}-{{ $modalidadId }}"
+                                    class="mb-6 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700"
+                                >
                                     {{-- Modalidad --}}
                                     <div class="border-l-4 border-green-500 bg-green-50 p-4 dark:bg-green-950/30">
                                         <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -238,34 +336,50 @@
                                                 </h4>
 
                                                 <p class="mt-1 text-sm text-green-700 dark:text-green-400">
-                                                    {{ $descripcionFiltro }}
+                                                    Filtro de procedencia: {{ $textoFiltro }}.
                                                 </p>
                                             </div>
 
                                             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                                                 <flux:badge color="green">
                                                     Total: {{ $alumnosModalidad->count() }}
-                                                    {{ $textoTotal }}
                                                 </flux:badge>
 
-                                                {{-- PDF por modalidad --}}
-                                                <form target="_blank" method="GET"
-                                                    action="{{ route('admin.pdf.matricula') }}">
-                                                    <input type="hidden" name="licenciatura_id"
-                                                        value="{{ $licenciatura_id }}">
+                                                <form
+                                                    target="_blank"
+                                                    method="GET"
+                                                    action="{{ route('admin.pdf.matricula') }}"
+                                                >
+                                                    <input
+                                                        type="hidden"
+                                                        name="licenciatura_id"
+                                                        value="{{ $licenciatura_id }}"
+                                                    >
 
-                                                    <input type="hidden" name="filtrar_generacion"
-                                                        value="{{ $generacionId }}">
+                                                    <input
+                                                        type="hidden"
+                                                        name="filtrar_generacion"
+                                                        value="{{ $generacionId }}"
+                                                    >
 
-                                                    <input type="hidden" name="modalidad_id"
-                                                        value="{{ $alumnosModalidad->first()->modalidad->id ?? $modalidadId }}">
+                                                    <input
+                                                        type="hidden"
+                                                        name="modalidad_id"
+                                                        value="{{ $alumnosModalidad->first()->modalidad_id ?? $modalidadId }}"
+                                                    >
 
-                                                    <input type="hidden" name="filtrar_foraneo"
-                                                        value="{{ $filtrar_foraneo }}">
+                                                    <input
+                                                        type="hidden"
+                                                        name="filtrar_foraneo"
+                                                        value="{{ $filtrar_foraneo }}"
+                                                    >
 
-                                                    <flux:button type="submit" variant="primary" icon="download">
-                                                        Descargar
-                                                        {{ strtolower($tituloLista) }}
+                                                    <flux:button
+                                                        type="submit"
+                                                        variant="primary"
+                                                        icon="download"
+                                                    >
+                                                        {{ $tituloDescarga }}
                                                     </flux:button>
                                                 </form>
                                             </div>
@@ -277,111 +391,68 @@
                                         <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                                             <thead class="bg-zinc-50 dark:bg-zinc-800">
                                                 <tr>
-                                                    <th
-                                                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">
-                                                        #
-                                                    </th>
-
-                                                    <th
-                                                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">
-                                                        Nombre
-                                                    </th>
-
-                                                    <th
-                                                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">
-                                                        Apellido paterno
-                                                    </th>
-
-                                                    <th
-                                                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">
-                                                        Apellido materno
-                                                    </th>
-
-                                                    <th
-                                                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">
-                                                        Matrícula
-                                                    </th>
-
-                                                    <th
-                                                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">
-                                                        Generación
-                                                    </th>
-
-                                                    <th
-                                                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">
-                                                        Modalidad
-                                                    </th>
-
-                                                    <th
-                                                        class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">
-                                                        Procedencia
-                                                    </th>
-
-                                                    <th
-                                                        class="px-4 py-3 text-center text-xs font-semibold uppercase text-zinc-500">
-                                                        Acciones
-                                                    </th>
+                                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">#</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">Nombre</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">Apellido paterno</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">Apellido materno</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">Matrícula</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">Generación</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">Modalidad</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-zinc-500">Procedencia</th>
+                                                    <th class="px-4 py-3 text-center text-xs font-semibold uppercase text-zinc-500">Acciones</th>
                                                 </tr>
                                             </thead>
 
-                                            <tbody
-                                                class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
+                                            <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
                                                 @foreach ($alumnosModalidad as $alumno)
-                                                    <tr wire:key="alumno-lista-{{ $alumno->id }}"
-                                                        class="transition hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
-                                                        <td
-                                                            class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
+                                                    <tr
+                                                        wire:key="alumno-lista-{{ $alumno->id }}"
+                                                        class="transition hover:bg-zinc-50 dark:hover:bg-zinc-800/70"
+                                                    >
+                                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
                                                             {{ $loop->iteration }}
                                                         </td>
 
-                                                        <td
-                                                            class="whitespace-nowrap px-4 py-3 text-sm font-medium text-zinc-900 dark:text-white">
+                                                        <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-zinc-900 dark:text-white">
                                                             {{ $alumno->nombre }}
                                                         </td>
 
-                                                        <td
-                                                            class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
+                                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
                                                             {{ $alumno->apellido_paterno }}
                                                         </td>
 
-                                                        <td
-                                                            class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
+                                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
                                                             {{ $alumno->apellido_materno }}
                                                         </td>
 
-                                                        <td
-                                                            class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
+                                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
                                                             {{ $alumno->matricula }}
                                                         </td>
 
-                                                        <td
-                                                            class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
+                                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
                                                             {{ $alumno->generacion->generacion ?? '-' }}
                                                         </td>
 
-                                                        <td
-                                                            class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
+                                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-zinc-600 dark:text-zinc-300">
                                                             {{ $alumno->modalidad->nombre ?? '-' }}
                                                         </td>
 
                                                         <td class="whitespace-nowrap px-4 py-3">
                                                             @if ($alumno->foraneo === 'true')
-                                                                <flux:badge color="red">
-                                                                    Foráneo
-                                                                </flux:badge>
+                                                                <flux:badge color="red">Foráneo</flux:badge>
                                                             @else
-                                                                <flux:badge color="purple">
-                                                                    Local
-                                                                </flux:badge>
+                                                                <flux:badge color="purple">Local</flux:badge>
                                                             @endif
                                                         </td>
 
                                                         <td class="whitespace-nowrap px-4 py-3 text-center">
-                                                            <flux:button variant="primary" square icon="pencil-square"
-                                                                x-on:click="Livewire.dispatch(
-                                                                    'abrirEstudiante',
-                                                                    { id: {{ $alumno->id }} }
-                                                                )" />
+                                                            <flux:button
+                                                                type="button"
+                                                                variant="primary"
+                                                                square
+                                                                icon="pencil-square"
+                                                                x-on:click="Livewire.dispatch('abrirEstudiante', { id: {{ $alumno->id }} })"
+                                                            />
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -395,19 +466,12 @@
                 </section>
             @endforeach
         @elseif ($consultado && $licenciatura_id)
-            {{-- Sin resultados --}}
-            <div
-                class="mt-6 rounded-2xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-900 dark:bg-red-950/30">
+            <div class="mt-6 rounded-2xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-900 dark:bg-red-950/30">
                 <flux:icon.exclamation-triangle class="mx-auto mb-3 size-10 text-red-500" />
 
-                @if (strlen(trim($search)) > 0)
+                @if (trim($search) !== '')
                     <p class="font-bold uppercase text-red-700 dark:text-red-300">
-                        No se encontró al alumno
-                        <span class="italic">
-                            “{{ $search }}”
-                        </span>
-                        en esta licenciatura con el filtro
-                        “{{ $textoFiltro }}”.
+                        No se encontró al alumno “{{ $search }}” con el filtro {{ $textoFiltro }}.
                     </p>
                 @else
                     <p class="font-bold uppercase text-red-700 dark:text-red-300">
