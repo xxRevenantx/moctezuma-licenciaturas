@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Documentacion;
 
+use App\Models\Generacion;
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
 use Illuminate\Validation\Rule;
@@ -26,6 +27,16 @@ class ListasGenerales extends Component
     public $filtrar_foraneo = null;
 
     public $consultado = false;
+
+    public $generacion_id = '';
+
+    public $procedencia_generacion = 'todos';
+
+    public $resumen_generacion = [];
+
+    public $total_generacion = 0;
+
+    public $generacion_consultada = false;
 
     /**
      * Consulta las listas después de validar la licenciatura
@@ -175,6 +186,67 @@ class ListasGenerales extends Component
         }
     }
 
+
+    public function consultarGeneracion(): void
+    {
+        $this->validate([
+            'generacion_id' => ['required', 'exists:generaciones,id'],
+            'procedencia_generacion' => ['required', Rule::in(['todos', 'true', 'false'])],
+        ], [
+            'generacion_id.required' => 'Debes seleccionar una generación.',
+            'generacion_id.exists' => 'La generación seleccionada no es válida.',
+            'procedencia_generacion.required' => 'Debes seleccionar la procedencia.',
+            'procedencia_generacion.in' => 'La procedencia seleccionada no es válida.',
+        ]);
+
+        $conteos = Inscripcion::query()
+            ->selectRaw("licenciatura_id, COUNT(*) AS total")
+            ->selectRaw("SUM(CASE WHEN foraneo = 'true' THEN 1 ELSE 0 END) AS foraneos")
+            ->selectRaw("SUM(CASE WHEN foraneo = 'false' THEN 1 ELSE 0 END) AS locales")
+            ->where('generacion_id', $this->generacion_id)
+            ->where('status', 'true')
+            ->when($this->procedencia_generacion !== 'todos', function ($query) {
+                $query->where('foraneo', $this->procedencia_generacion);
+            })
+            ->groupBy('licenciatura_id')
+            ->get()
+            ->keyBy('licenciatura_id');
+
+        $this->resumen_generacion = Licenciatura::query()
+            ->orderBy('id')
+            ->get(['id', 'nombre'])
+            ->map(function (Licenciatura $licenciatura) use ($conteos) {
+                $conteo = $conteos->get($licenciatura->id);
+
+                return [
+                    'id' => $licenciatura->id,
+                    'nombre' => $licenciatura->nombre,
+                    'locales' => (int) ($conteo->locales ?? 0),
+                    'foraneos' => (int) ($conteo->foraneos ?? 0),
+                    'total' => (int) ($conteo->total ?? 0),
+                ];
+            })
+            ->all();
+
+        $this->total_generacion = collect($this->resumen_generacion)->sum('total');
+        $this->generacion_consultada = true;
+    }
+
+    public function updatedGeneracionId(): void
+    {
+        $this->resetValidation(['generacion_id']);
+        $this->resumen_generacion = [];
+        $this->total_generacion = 0;
+        $this->generacion_consultada = false;
+    }
+
+    public function updatedProcedenciaGeneracion(): void
+    {
+        if ($this->generacion_consultada && $this->generacion_id) {
+            $this->consultarGeneracion();
+        }
+    }
+
     /**
      * Actualiza la lista después de editar un alumno.
      */
@@ -192,6 +264,9 @@ class ListasGenerales extends Component
             'licenciaturas' => Licenciatura::query()
                 ->orderBy('nombre')
                 ->get(),
+            'generaciones' => Generacion::query()
+                ->orderBy('id')
+                ->get(['id', 'generacion', 'activa']),
         ]);
     }
 }

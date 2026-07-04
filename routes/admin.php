@@ -28,6 +28,7 @@ use App\Http\Controllers\MateriaController;
 use App\Http\Controllers\MesController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\ProfesorController;
+use App\Http\Controllers\ReporteGeneracionController;
 use App\Livewire\Admin\Licenciaturas\SeleccionarModalidad;
 use App\Livewire\Admin\Usuarios\MostrarUsuarios;
 use App\Models\Generacion;
@@ -52,6 +53,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/listas-generales', [DocumentacionController::class, 'listasGenerales'])->middleware('can:admin.administracion')->name('admin.listas-generales');
     Route::get('/constancias', [DocumentacionController::class, 'constancias'])->middleware('can:admin.administracion')->name('admin.constancias');
     Route::get('/documentacion', [DocumentacionController::class, 'documentacion'])->middleware('can:admin.administracion')->name('admin.documentacion');
+    Route::get('/reportes/generacion/pdf', [ReporteGeneracionController::class, 'pdf'])->middleware('can:admin.administracion')->name('admin.reportes.generacion.pdf');
+    Route::get('/reportes/generacion/excel', [ReporteGeneracionController::class, 'excel'])->middleware('can:admin.administracion')->name('admin.reportes.generacion.excel');
 
 
     Route::get('/estadistica-licenciaturas/pdf', [EstadisticaLicenciaturasController::class, 'pdf'])
@@ -117,6 +120,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/expediente/{id}', [PDFController::class, 'expediente'])->middleware('can:admin.administracion')->name('admin.pdf.expediente');
     Route::get('/matricula', [PDFController::class, 'matricula'])->middleware('can:admin.administracion')->name('admin.pdf.matricula');
     Route::get('/matricula-generacion', [PDFController::class, 'matricula_generacion'])->middleware('can:admin.administracion')->name('admin.pdf.matricula-generacion');
+    Route::match(['get', 'post'], '/matricula-todas', [PDFController::class, 'matricula_todas'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.pdf.matricula-todas');
+    Route::get('/matricula-foraneos-licenciaturas', [PDFController::class, 'matricula_foraneos_licenciaturas'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.pdf.matricula-foraneos-licenciaturas');
     Route::get('/horario-semiescolarizada', [PDFController::class, 'horario_semiescolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.horario-semiescolarizada');
     Route::get('/horario-escolarizada', [PDFController::class, 'horario_escolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.horario-escolarizada');
 
