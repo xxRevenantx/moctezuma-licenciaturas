@@ -55,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/documentacion', [DocumentacionController::class, 'documentacion'])->middleware('can:admin.administracion')->name('admin.documentacion');
     Route::get('/reportes/generacion/pdf', [ReporteGeneracionController::class, 'pdf'])->middleware('can:admin.administracion')->name('admin.reportes.generacion.pdf');
     Route::get('/reportes/generacion/excel', [ReporteGeneracionController::class, 'excel'])->middleware('can:admin.administracion')->name('admin.reportes.generacion.excel');
+    Route::get('/reportes/generacion/word', [ReporteGeneracionController::class, 'word'])->middleware('can:admin.administracion')->name('admin.reportes.generacion.word');
 
 
     Route::get('/estadistica-licenciaturas/pdf', [EstadisticaLicenciaturasController::class, 'pdf'])

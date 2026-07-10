@@ -586,8 +586,9 @@
                 style="border:1px solid #000; width:250px; text-align:center; font-size:16px; border-bottom:1px transparent">
                 REVISADO Y CONFRONTADO POR:</td>
             <td style="width:220px"></td>
-            <td style="border:1px solid #000; width:250px; text-align:center; font-size:16px; line-height:13px ">JEFE(A)
-                DEL DEPARTAMENTO DE <br> REGISTRO Y CERTIFICACIÓN</td>
+            <td style="border:1px solid #000; width:250px; text-align:center; font-size:16px; line-height:13px ">
+                ENCARGADO
+                DEL DEPARTAMENTO DE <br> REGISTRO Y CERTIFICACIÓN SEG</td>
         </tr>
         <tr>
             <td

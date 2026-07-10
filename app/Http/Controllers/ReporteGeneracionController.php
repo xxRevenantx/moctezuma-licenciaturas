@@ -8,6 +8,7 @@ use App\Models\Escuela;
 use App\Models\Generacion;
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
+use App\Services\ListasGeneracionWordService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -37,6 +38,21 @@ class ReporteGeneracionController extends Controller
             new ListasGeneracionExport($reporte),
             $this->nombreArchivo($reporte, 'xlsx')
         );
+    }
+
+    public function word(Request $request, ListasGeneracionWordService $wordService)
+    {
+        $datos = $this->validar($request);
+        $reporte = $this->construirReporte((int) $datos['generacion_id'], $datos['procedencia']);
+        $ruta = $wordService->generar($reporte);
+
+        return response()
+            ->download(
+                $ruta,
+                $this->nombreArchivo($reporte, 'docx'),
+                ['Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+            )
+            ->deleteFileAfterSend(true);
     }
 
     private function validar(Request $request): array
