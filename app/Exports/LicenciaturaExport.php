@@ -29,6 +29,7 @@ class LicenciaturaExport implements FromCollection, WithHeadings, WithStyles, Sh
                 'Nombre'        => $lic->nombre,
                 'Nombre corto'  => $lic->nombre_corto,
                 'RVOE'          => $lic->RVOE,
+                'Fecha acuerdo' => $lic->fecha_acuerdo_formateada,
             ];
         });
     }
@@ -39,13 +40,14 @@ class LicenciaturaExport implements FromCollection, WithHeadings, WithStyles, Sh
             'Nombre',
             'Nombre corto',
             'RVOE',
+            'Fecha de acuerdo',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
         // Encabezado estilizado: fondo verde y texto blanco
-        $sheet->getStyle('A1:C1')->applyFromArray([
+        $sheet->getStyle('A1:D1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
@@ -62,7 +64,7 @@ class LicenciaturaExport implements FromCollection, WithHeadings, WithStyles, Sh
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $rowCount = $this->licenciaturas->count();
-                $cellRange = 'A1:C' . ($rowCount + 1); // Desde encabezado hasta la última fila
+                $cellRange = 'A1:D' . ($rowCount + 1); // Desde encabezado hasta la última fila
 
                 // Bordes para toda la tabla
                 $event->sheet->getStyle($cellRange)->applyFromArray([

@@ -153,14 +153,24 @@
                                         />
                                     </div>
 
-                                    <div class="sm:col-span-2">
+                                    <div>
                                         <flux:input
                                             badge="Opcional"
                                             wire:model="RVOE"
-                                            :label="__('RVOE')"
+                                            :label="__('RVOE / Número de acuerdo')"
                                             type="text"
                                             placeholder="Clave RVOE (si aplica)"
                                             autocomplete="RVOE"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <flux:input
+                                            badge="Opcional"
+                                            wire:model="fecha_acuerdo"
+                                            :label="__('Fecha de acuerdo')"
+                                            type="date"
+                                            autocomplete="off"
                                         />
                                     </div>
                                 </div>

@@ -125,14 +125,24 @@
                 autocomplete="nombre_corto"
               />
 
-              <flux:input
-                badge="Opcional"
-                wire:model="RVOE"
-                :label="__('RVOE')"
-                type="text"
-                placeholder="RVOE"
-                autocomplete="RVOE"
-              />
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <flux:input
+                  badge="Opcional"
+                  wire:model="RVOE"
+                  :label="__('RVOE / Número de acuerdo')"
+                  type="text"
+                  placeholder="RVOE"
+                  autocomplete="RVOE"
+                />
+
+                <flux:input
+                  badge="Opcional"
+                  wire:model="fecha_acuerdo"
+                  :label="__('Fecha de acuerdo')"
+                  type="date"
+                  autocomplete="off"
+                />
+              </div>
             </div>
           </div>
 

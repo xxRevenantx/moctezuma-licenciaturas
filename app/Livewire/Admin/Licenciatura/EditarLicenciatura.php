@@ -14,7 +14,7 @@ class EditarLicenciatura extends Component
 
     use WithFileUploads;
     public $licenciaturaId;
-    public $nombre, $slug, $nombre_corto, $RVOE;
+    public $nombre, $slug, $nombre_corto, $RVOE, $fecha_acuerdo;
     public $imagen;
     public $imagen_nueva;
     public $open = false;
@@ -29,6 +29,7 @@ class EditarLicenciatura extends Component
         $this->nombre = $lic->nombre;
         $this->nombre_corto = $lic->nombre_corto;
         $this->RVOE = $lic->RVOE;
+        $this->fecha_acuerdo = $lic->fecha_acuerdo?->format('Y-m-d');
         $this->slug = $lic->slug;
         $this->imagen = $lic->imagen;
         $this->open = true;
@@ -46,11 +47,13 @@ class EditarLicenciatura extends Component
             'nombre_corto' => 'required|string|max:100|unique:licenciaturas,nombre_corto,' . $this->licenciaturaId,
             'slug' => 'required|string|max:255|unique:licenciaturas,slug,' . $this->licenciaturaId,
             'RVOE' => 'nullable|string|max:100|unique:licenciaturas,RVOE,' . $this->licenciaturaId,
+            'fecha_acuerdo' => 'nullable|date',
             'imagen_nueva' => 'image|nullable|max:2048|mimes:jpeg,jpg,png',
         ],[
             'nombre.required' => 'El nombre de la licenciatura es obligatorio.',
             'nombre.unique' => 'El nombre de la licenciatura ya existe.',
             'RVOE.unique' => 'El RVOE ya existe.',
+            'fecha_acuerdo.date' => 'La fecha de acuerdo no es válida.',
             'nombre_corto.required' => 'El nombre corto es obligatorio.',
             'nombre_corto.unique' => 'El nombre corto ya existe.',
             'slug.required' => 'La url es obligatoria.',
@@ -74,7 +77,8 @@ class EditarLicenciatura extends Component
             'nombre' => $this->nombre,
             'slug' => $this->slug,
             'nombre_corto' => $this->nombre_corto,
-            'RVOE' => $this->RVOE ? $this->RVOE : NULL,
+            'RVOE' => $this->RVOE ?: null,
+            'fecha_acuerdo' => $this->fecha_acuerdo ?: null,
             'imagen' => $this->imagen_nueva ? $datos['imagen'] : $this->imagen,
         ]);
 
@@ -91,7 +95,7 @@ class EditarLicenciatura extends Component
 
     public function cerrarModal()
     {
-        $this->reset(['open', 'licenciaturaId', 'nombre', 'slug', 'nombre_corto', 'RVOE', 'imagen_nueva']);
+        $this->reset(['open', 'licenciaturaId', 'nombre', 'slug', 'nombre_corto', 'RVOE', 'fecha_acuerdo', 'imagen_nueva']);
         $this->resetValidation();
     }
 

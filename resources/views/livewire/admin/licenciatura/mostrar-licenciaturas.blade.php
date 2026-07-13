@@ -42,7 +42,7 @@
                     id="buscar-lic"
                     type="text"
                     wire:model.live="search"
-                    placeholder="Buscar por nombre, nombre corto o RVOE…"
+                    placeholder="Buscar por nombre, nombre corto, RVOE o fecha…"
                     class="pl-10 w-full"
                 />
             </div>
@@ -111,13 +111,14 @@
                             <th class="px-4 py-3 text-left font-semibold">Licenciatura</th>
                             <th class="px-4 py-3 text-left font-semibold">Nombre corto</th>
                             <th class="px-4 py-3 text-left font-semibold">RVOE</th>
+                            <th class="px-4 py-3 text-left font-semibold">Fecha de acuerdo</th>
                             <th class="px-4 py-3 text-center font-semibold">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-neutral-800">
                         @if($licenciaturas->isEmpty())
                             <tr>
-                                <td colspan="6" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
+                                <td colspan="7" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
                                     <div class="mx-auto w-full max-w-md">
                                         <div class="rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 p-6">
                                             <div class="mb-2 font-semibold">No hay licenciaturas</div>
@@ -160,6 +161,9 @@
                                                 Sin RVOE
                                             </span>
                                         @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                        {{ $licenciatura->fecha_acuerdo_formateada ?? 'Sin fecha' }}
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="flex items-center justify-center gap-2">
@@ -238,6 +242,9 @@
                                 @if($licenciatura->slug)
                                     <div class="text-xs text-gray-400 dark:text-gray-500">/{{ $licenciatura->slug }}</div>
                                 @endif
+                                <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    Fecha de acuerdo: {{ $licenciatura->fecha_acuerdo_formateada ?? 'Sin fecha' }}
+                                </div>
 
                                 <div class="mt-3 flex flex-wrap gap-2">
                                     <flux:button

@@ -15,6 +15,7 @@ class CrearLicenciatura extends Component
 
     public $nombre;
     public $RVOE;
+    public $fecha_acuerdo;
     public $nombre_corto;
     public $imagen;
     public $slug;
@@ -34,6 +35,7 @@ class CrearLicenciatura extends Component
         $this->validate([
             'nombre' => 'required|unique:licenciaturas',
             'RVOE' => 'nullable|unique:licenciaturas',
+            'fecha_acuerdo' => 'nullable|date',
             'nombre_corto' => 'required|unique:licenciaturas',
             'imagen' =>  'image|nullable|max:2048|mimes:jpeg,jpg,png',
             'slug' => 'required|unique:licenciaturas,slug',
@@ -41,6 +43,7 @@ class CrearLicenciatura extends Component
             'nombre.required' => 'El nombre de la licenciatura es obligatorio.',
             'nombre.unique' => 'El nombre de la licenciatura ya existe.',
             'RVOE.unique' => 'El RVOE ya existe.',
+            'fecha_acuerdo.date' => 'La fecha de acuerdo no es válida.',
             'nombre_corto.required' => 'El nombre corto es obligatorio.',
             'nombre_corto.unique' => 'El nombre corto ya existe.',
             'slug.required' => 'La url es obligatoria.',
@@ -59,13 +62,14 @@ class CrearLicenciatura extends Component
 
         Licenciatura::create([
             'nombre' => trim($this->nombre),
-            'RVOE' => $this->RVOE,
+            'RVOE' => $this->RVOE ?: null,
+            'fecha_acuerdo' => $this->fecha_acuerdo ?: null,
             'nombre_corto' => trim($this->nombre_corto),
             'slug' => $this->slug,
             'imagen' => $datos["imagen"],
         ]);
 
-        $this->reset(['nombre', 'RVOE', 'nombre_corto', 'imagen', 'slug']);
+        $this->reset(['nombre', 'RVOE', 'fecha_acuerdo', 'nombre_corto', 'imagen', 'slug']);
 
 
         $this->dispatch('swal', [

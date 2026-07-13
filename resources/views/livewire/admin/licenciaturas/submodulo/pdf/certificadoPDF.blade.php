@@ -121,8 +121,8 @@
                     CURSÓ Y ACREDITÓ LAS ASIGNATURAS CORRESPONDIENTES A LA <b>LICENCIATURA EN
                         {{ $licenciatura->nombre }} </b> <br>
                     CON RECONOCIMIENTO DE VALIDEZ OFICIAL DE ESTUDIOS DE LA SECRETARÍA DE EDUCACIÓN GUERRERO.
-                    SEGÚN ACUERDO NÚMERO: <b><u>{{ $licenciatura->RVOE }}</u></b>, DE FECHA <b><u>29 DE ENERO DEL
-                            2021</u></b>, Y CON CLAVE
+                    SEGÚN ACUERDO NÚMERO: <b><u>{{ $licenciatura->RVOE }}</u></b>, DE FECHA
+                    <b><u>{{ mb_strtoupper($licenciatura->fecha_acuerdo_formateada ?? 'FECHA NO REGISTRADA', 'UTF-8') }}</u></b>, Y CON CLAVE
                     CENTRO DE TRABAJO <b>{{ $escuela->CCT }}.
                 </p>
 

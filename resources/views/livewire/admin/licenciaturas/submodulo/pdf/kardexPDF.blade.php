@@ -170,11 +170,13 @@
         <tr>
             <td style="text-decoration: underline;font-weight:bold; text-align:center; font-size:14px">{{ $escuela->nombre }}</td>
             <td style="text-decoration: underline;font-weight:bold; text-align:center">{{ $licenciatura->RVOE ?? "-------"}}</td>
+            <td style="text-decoration: underline;font-weight:bold; text-align:center; text-transform:uppercase">{{ $licenciatura->fecha_acuerdo_formateada ?? "-------"}}</td>
             <td style="text-decoration: underline;font-weight:bold; text-align:center">{{ $escuela->CCT}}</td>
         </tr>
         <tr>
             <td style="font-size:13px; text-align:center">NOMBRE DE LA ESCUELA</td>
             <td style="font-size:13px; text-align:center">No. DE ACUERDO DE INCORPORACIÓN</td>
+            <td style="font-size:13px; text-align:center">FECHA DE ACUERDO</td>
             <td style="font-size:13px; text-align:center">CLAVE DEL CENTRO DE TRABAJO</td>
         </tr>
 

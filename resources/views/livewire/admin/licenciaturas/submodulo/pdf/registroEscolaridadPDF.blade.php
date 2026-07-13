@@ -225,6 +225,8 @@
         <td style="font-size: 16px;">
             NUMERO DE ACUERDO: <span style="text-decoration: underline; font-weight: bold; ">{{ $licenciatura->RVOE }}</span>
             &nbsp;&nbsp;
+            FECHA DE ACUERDO: <span style="text-decoration: underline; font-weight: bold; text-transform: uppercase;">{{ $licenciatura->fecha_acuerdo_formateada ?? 'SIN FECHA' }}</span>
+            &nbsp;&nbsp;
             CICLO ESCOLAR: <span style="text-decoration: underline; font-weight: bold; "> {{ $periodo->ciclo_escolar }}</span>
             &nbsp;&nbsp;
             GENERACIÓN: <span style="text-decoration: underline; font-weight: bold; "> {{ $periodo->generacion->generacion }}</span>

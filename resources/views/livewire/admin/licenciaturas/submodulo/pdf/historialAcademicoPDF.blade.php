@@ -99,11 +99,13 @@
         <tr class="h">
             <td>Nombre de la escuela</td>
             <td>No. de acuerdo de incorporación</td>
+            <td>Fecha de acuerdo</td>
             <td>Clave del centro de trabajo</td>
         </tr>
         <tr>
             <td class="v uppercase">{{ $escuela->nombre }}</td>
             <td class="v uppercase">{{ $licenciatura->RVOE ?? '-------' }}</td>
+            <td class="v uppercase">{{ $licenciatura->fecha_acuerdo_formateada ?? '-------' }}</td>
             <td class="v uppercase">{{ $escuela->CCT }}</td>
         </tr>
         <tr class="h">

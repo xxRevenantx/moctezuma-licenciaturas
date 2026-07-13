@@ -59,8 +59,9 @@ class MostrarLicenciaturas extends Component
         $licenciaturasFiltradas = Licenciatura::where('nombre', 'like', '%' . $this->search . '%')
             ->orWhere('nombre_corto', 'like', '%' . $this->search . '%')
             ->orWhere('RVOE', 'like', '%' . $this->search . '%')
+            ->orWhere('fecha_acuerdo', 'like', '%' . $this->search . '%')
             ->orderBy('id', 'desc')
-            ->get(['id','nombre', 'nombre_corto', 'RVOE']); // columnas deseadas
+            ->get(['id','nombre', 'nombre_corto', 'RVOE', 'fecha_acuerdo']); // columnas deseadas
 
         return Excel::download(new LicenciaturaExport($licenciaturasFiltradas), 'licenciaturas_filtradas.xlsx');
     }
@@ -72,6 +73,7 @@ class MostrarLicenciaturas extends Component
         $licenciaturas = Licenciatura::where('nombre', 'like', '%' . $this->search . '%')
             ->orWhere('nombre_corto', 'like', '%' . $this->search . '%')
             ->orWhere('RVOE', 'like', '%' . $this->search . '%')
+            ->orWhere('fecha_acuerdo', 'like', '%' . $this->search . '%')
             ->orderBy('id', 'desc')
             ->paginate(10);
         return view('livewire.admin.licenciatura.mostrar-licenciaturas', compact('licenciaturas'));

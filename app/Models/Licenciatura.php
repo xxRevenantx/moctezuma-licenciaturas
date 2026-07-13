@@ -13,12 +13,20 @@ class Licenciatura extends Model
     protected $fillable = [
         'nombre',
         'RVOE',
+        'fecha_acuerdo',
         'nombre_corto',
         'imagen',
         'slug',
     ];
 
+    protected $casts = [
+        'fecha_acuerdo' => 'date',
+    ];
 
+    public function getFechaAcuerdoFormateadaAttribute(): ?string
+    {
+        return $this->fecha_acuerdo?->locale('es')->translatedFormat('d \d\e F \d\e Y');
+    }
 
     public function asignarGeneraciones()
     {
