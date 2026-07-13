@@ -10,9 +10,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ListaGeneralSheet implements FromArray, ShouldAutoSize, WithStyles, WithTitle
 {
-    public function __construct(private readonly array $reporte)
-    {
-    }
+    public function __construct(private readonly array $reporte) {}
 
     public function array(): array
     {
@@ -25,21 +23,23 @@ class ListaGeneralSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
             ['Procedencia', $this->reporte['procedenciaTexto']],
             ['Fecha de emisión', $this->reporte['fechaEmision']->format('d/m/Y')],
             [],
-            ['N.º', 'Matrícula', 'Nombre completo', 'Licenciatura', 'Generación', 'Procedencia'],
+            ['N.º', 'Matrícula', 'Nombre', 'Apellido paterno', 'Apellido materno', 'Licenciatura', 'Generación', 'Procedencia'],
         ];
 
         foreach ($this->reporte['listas'] as $lista) {
             $filas[] = [
                 '',
                 '',
-                'LICENCIATURA EN '.mb_strtoupper($lista['licenciatura']->nombre),
+                'LICENCIATURA EN ' . mb_strtoupper($lista['licenciatura']->nombre),
                 '',
                 '',
-                'TOTAL: '.$lista['total'],
+                '',
+                '',
+                'TOTAL: ' . $lista['total'],
             ];
 
             if ($lista['alumnos']->isEmpty()) {
-                $filas[] = ['', '', 'SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO', '', '', ''];
+                $filas[] = ['', '', 'SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO', '', '', '', '', ''];
                 continue;
             }
 
@@ -47,7 +47,9 @@ class ListaGeneralSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
                 $filas[] = [
                     $indice + 1,
                     $alumno->matricula,
-                    trim("{$alumno->apellido_paterno} {$alumno->apellido_materno} {$alumno->nombre}"),
+                    trim((string) $alumno->nombre),
+                    trim((string) $alumno->apellido_paterno),
+                    trim((string) $alumno->apellido_materno),
                     $lista['licenciatura']->nombre,
                     $this->reporte['generacion']->generacion,
                     $alumno->foraneo === 'true' ? 'FORÁNEO' : 'LOCAL',
@@ -56,11 +58,11 @@ class ListaGeneralSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
         }
 
         $filas[] = [];
-        $filas[] = ['', '', '', '', 'HOMBRES', $this->reporte['totalHombres']];
-        $filas[] = ['', '', '', '', 'MUJERES', $this->reporte['totalMujeres']];
-        $filas[] = ['', '', '', '', 'LOCALES', $this->reporte['totalLocales']];
-        $filas[] = ['', '', '', '', 'FORÁNEOS', $this->reporte['totalForaneos']];
-        $filas[] = ['', '', '', '', 'TOTAL GENERAL', $this->reporte['totalGeneral']];
+        $filas[] = ['', '', '', '', '', '', 'HOMBRES', $this->reporte['totalHombres']];
+        $filas[] = ['', '', '', '', '', '', 'MUJERES', $this->reporte['totalMujeres']];
+        $filas[] = ['', '', '', '', '', '', 'LOCALES', $this->reporte['totalLocales']];
+        $filas[] = ['', '', '', '', '', '', 'FORÁNEOS', $this->reporte['totalForaneos']];
+        $filas[] = ['', '', '', '', '', '', 'TOTAL GENERAL', $this->reporte['totalGeneral']];
 
         return $filas;
     }
@@ -72,20 +74,20 @@ class ListaGeneralSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
 
     public function styles(Worksheet $sheet): array
     {
-        $sheet->mergeCells('A1:F1');
-        $sheet->mergeCells('A2:F2');
-        $sheet->getStyle('A1:F2')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A9:F9')->getFont()->setBold(true);
+        $sheet->mergeCells('A1:H1');
+        $sheet->mergeCells('A2:H2');
+        $sheet->getStyle('A1:H2')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A9:H9')->getFont()->setBold(true);
         $sheet->freezePane('A10');
 
         $ultimaFila = $sheet->getHighestRow();
-        $sheet->getStyle("E".($ultimaFila - 4).":F{$ultimaFila}")->getFont()->setBold(true);
+        $sheet->getStyle('G' . ($ultimaFila - 4) . ":H{$ultimaFila}")->getFont()->setBold(true);
 
         for ($fila = 10; $fila <= $ultimaFila - 6; $fila++) {
             $valor = (string) $sheet->getCell("C{$fila}")->getValue();
 
             if (str_starts_with($valor, 'LICENCIATURA EN ')) {
-                $sheet->getStyle("A{$fila}:F{$fila}")->getFont()->setBold(true);
+                $sheet->getStyle("A{$fila}:H{$fila}")->getFont()->setBold(true);
             }
         }
 

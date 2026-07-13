@@ -9,9 +9,7 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class ListasGeneracionExport implements WithMultipleSheets
 {
-    public function __construct(private readonly array $reporte)
-    {
-    }
+    public function __construct(private readonly array $reporte) {}
 
     public function sheets(): array
     {
@@ -20,7 +18,8 @@ class ListasGeneracionExport implements WithMultipleSheets
 
         foreach ($this->reporte['listas'] as $lista) {
             $nombre = mb_substr($lista['licenciatura']->nombre_corto ?: $lista['licenciatura']->nombre, 0, 25);
-            $base = preg_replace('/[\\\/\?\*\[\]:]/u', '', $nombre) ?: 'LICENCIATURA';
+            $base = str_replace(['\\', '/', '?', '*', '[', ']', ':'], '', $nombre);
+            $base = trim($base) !== '' ? trim($base) : 'LICENCIATURA';
             $titulo = $base;
             $contador = 2;
 

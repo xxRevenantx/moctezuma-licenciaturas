@@ -14,8 +14,7 @@ class LicenciaturaSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
         private readonly array $reporte,
         private readonly array $lista,
         private readonly string $titulo
-    ) {
-    }
+    ) {}
 
     public function array(): array
     {
@@ -25,24 +24,26 @@ class LicenciaturaSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
             ['Generación', $this->reporte['generacion']->generacion],
             ['Procedencia', $this->reporte['procedenciaTexto']],
             [],
-            ['N.º', 'Matrícula', 'Nombre completo', 'Procedencia'],
+            ['N.º', 'Matrícula', 'Nombre', 'Apellido paterno', 'Apellido materno', 'Procedencia'],
         ];
 
         if ($this->lista['alumnos']->isEmpty()) {
-            $filas[] = ['', '', 'SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO', ''];
+            $filas[] = ['', '', 'SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO', '', '', ''];
         } else {
             foreach ($this->lista['alumnos'] as $indice => $alumno) {
                 $filas[] = [
                     $indice + 1,
                     $alumno->matricula,
-                    trim("{$alumno->apellido_paterno} {$alumno->apellido_materno} {$alumno->nombre}"),
+                    trim((string) $alumno->nombre),
+                    trim((string) $alumno->apellido_paterno),
+                    trim((string) $alumno->apellido_materno),
                     $alumno->foraneo === 'true' ? 'FORÁNEO' : 'LOCAL',
                 ];
             }
         }
 
         $filas[] = [];
-        $filas[] = ['', '', 'TOTAL', $this->lista['total']];
+        $filas[] = ['', '', '', '', 'TOTAL', $this->lista['total']];
 
         return $filas;
     }
@@ -54,9 +55,9 @@ class LicenciaturaSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
 
     public function styles(Worksheet $sheet): array
     {
-        $sheet->mergeCells('A1:D1');
-        $sheet->getStyle('A1:D1')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A6:D6')->getFont()->setBold(true);
+        $sheet->mergeCells('A1:F1');
+        $sheet->getStyle('A1:F1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A6:F6')->getFont()->setBold(true);
         $sheet->freezePane('A7');
 
         return [];
