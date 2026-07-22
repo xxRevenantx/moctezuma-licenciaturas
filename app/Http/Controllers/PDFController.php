@@ -23,6 +23,7 @@ use App\Models\Periodo;
 use App\Models\Profesor;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use ZipArchive;
 
@@ -33,7 +34,7 @@ class PDFController extends Controller
     public function expediente($id)
     {
 
-        $alumno = Inscripcion::with(['generacion', 'licenciatura', 'modalidad', 'user'])->find($id);
+        $alumno = Inscripcion::with(['generacion', 'licenciatura', 'modalidad', 'user', 'documentosIdentidadActuales'])->find($id);
         $escuela = Escuela::all()->first();
 
         if (!$alumno) {
@@ -1719,12 +1720,26 @@ class PDFController extends Controller
 
     //ALUMNOS DOCUMENTACION
 
-    public function alumnos_documentacion(int $licenciatura)
+    public function alumnos_documentacion(Request $request, int $licenciatura)
     {
+        $datos = $request->validate([
+            'generacion' => ['nullable', 'integer', 'min:0'],
+            'estado' => ['nullable', 'in:activos,egresados,bajas,todos'],
+        ]);
+
+        $generacionId = (int) ($datos['generacion'] ?? 0);
+        $estado = $datos['estado'] ?? 'activos';
         $licenciaturaNombre = 'Todas las licenciaturas';
+        $generacionNombre = 'Todas las generaciones';
+        $tipos = config('documentos_identidad.types', []);
+        $disk = (string) config('documentos_identidad.disk', 'local');
 
         $query = Inscripcion::query()
-            ->with(['generacion:id,generacion', 'licenciatura:id,nombre']);
+            ->with([
+                'generacion:id,generacion',
+                'licenciatura:id,nombre',
+                'documentosIdentidadActuales',
+            ]);
 
         if ($licenciatura !== 0) {
             $lic = Licenciatura::findOrFail($licenciatura);
@@ -1732,29 +1747,69 @@ class PDFController extends Controller
             $query->where('licenciatura_id', $lic->id);
         }
 
+        if ($generacionId !== 0) {
+            $generacion = Generacion::findOrFail($generacionId);
+            $generacionNombre = $generacion->generacion;
+            $query->where('generacion_id', $generacionId);
+        }
+
+        match ($estado) {
+            'activos' => $query->where('status', 'true')->where('egresado', 'false'),
+            'egresados' => $query->where('egresado', 'true'),
+            'bajas' => $query->where('status', 'false'),
+            default => null,
+        };
+
         $alumnos = $query
             ->orderBy('generacion_id')
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
             ->orderBy('nombre')
-            ->get();
+            ->get()
+            ->map(function (Inscripcion $alumno) use ($tipos, $disk): Inscripcion {
+                $actuales = $alumno->documentosIdentidadActuales->keyBy('tipo');
+                $estados = [];
+                $entregados = 0;
 
-        // Agrupar por etiqueta de generación (ej. "2022-2025"); si no tiene, "Sin generación"
-        $grupos = $alumnos->groupBy(function ($a) {
-            return optional($a->generacion)->generacion ?: 'Sin generación';
-        })->sortKeys();
+                foreach ($tipos as $tipo => $config) {
+                    $documento = $actuales->get($tipo);
+                    $existe = $documento && Storage::disk($disk)->exists($documento->ruta);
+                    $estados[$tipo] = $existe;
+                    $entregados += $existe ? 1 : 0;
+                }
 
-        $data = [
-            'licenciaturaNombre' => $licenciaturaNombre,
-            'grupos' => $grupos,
+                $alumno->setAttribute('documentos_estado', $estados);
+                $alumno->setAttribute('documentos_entregados', $entregados);
+                $alumno->setAttribute('documentos_total', count($tipos));
+                $alumno->setAttribute('documentos_porcentaje', count($tipos) > 0
+                    ? (int) round(($entregados / count($tipos)) * 100)
+                    : 0);
+
+                return $alumno;
+            });
+
+        $grupos = $alumnos->groupBy(fn ($alumno) => optional($alumno->generacion)->generacion ?: 'Sin generación')->sortKeys();
+        $resumen = [
+            'alumnos' => $alumnos->count(),
+            'completos' => $alumnos->where('documentos_porcentaje', 100)->count(),
+            'con_documentos' => $alumnos->where('documentos_entregados', '>', 0)->count(),
+            'sin_documentos' => $alumnos->where('documentos_entregados', 0)->count(),
         ];
 
-        $filename = 'ALUMNOS_DOCUMENTACION_' . strtoupper(str_replace(' ', '_', $licenciaturaNombre)) . '.pdf';
+        $data = compact(
+            'licenciaturaNombre',
+            'generacionNombre',
+            'estado',
+            'grupos',
+            'tipos',
+            'resumen'
+        );
 
-        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.alumnosDocumentacionPDF', $data)
-            ->setPaper('letter', 'landscape');
+        $filename = 'CONTROL_DOCUMENTAL_' . strtoupper(str_replace(' ', '_', $licenciaturaNombre)) . '.pdf';
 
-        return $pdf->stream($filename);
+        return Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.alumnosDocumentacionPDF', $data)
+            ->setPaper('letter', 'landscape')
+            ->stream($filename);
     }
 
     // ACTA DE EXAMEN

@@ -371,53 +371,33 @@
 
         <h2>REGISTRO DE DOCUMENTACIÓN</h2>
 
+        @php
+            $documentosActuales = $alumno->documentosIdentidadActuales->keyBy('tipo');
+            $diskDocumentos = config('documentos_identidad.disk', 'local');
+            $documentoEntregado = function (string $tipo) use ($documentosActuales, $diskDocumentos): bool {
+                $documento = $documentosActuales->get($tipo);
+                return $documento && \Illuminate\Support\Facades\Storage::disk($diskDocumentos)->exists($documento->ruta);
+            };
+        @endphp
+
         <table>
-            <tr>
-                <td>CERTIFICADO DE BACHILLERATO</td>
-                <td class="center">
-                    @if($alumno->certificado == "true")
-                        <span style="color: green; font-weight: bold;">ENTREGADO</span>
-                    @else
-                        <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
-                    @endif
-                </td>
-                <td rowspan="5" style="width: 50%; text-align: justify; line-height: 12px">
-                    <p style="padding: 10px">
-                        • LA DOCUMENTACIÓN MENCIONADA DEBERÁ
-                        ENTREGARSE AL MOMENTO DE INSCRIBIRSE. <br>
-                        • EL ALUMNO PODRÁ INSCRIBIRSE CARECIENDO DEL
-                        CERTIFICADO CORRESPONDIENTE SIEMPRE Y CUANDO
-                        PRESENTE CONSTANCIA DE ACREDITACIÓN Y LO
-                        PRESENTE EN EL PLAZO QUE INDIQUE, DE NO HACERLO
-                        ASÍ, NO SE LE PODRÁ DAR SEGUIMIENTO AL TRÁMITE
-                        CORRESPONDIENTE ANTE LAS AUTORIDADES
-                        EDUCATIVAS DEL ESTADO Y POR LO TANTO SU
-                        INSCRIPCIÓN SE ANULARÁ.
-                    </p>
-
-                </td>
-            </tr>
-            <tr>
-                <td>ACTA DE NACIMIENTO</td>
-                <td class="center">
-                    @if($alumno->acta_nacimiento == "true")
-                        <span style="color: green; font-weight: bold;">ENTREGADO</span>
-                    @else
-                        <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
-                    @endif
-                </td>
-
-            </tr>
-            <tr>
-                <td>CERTIFICADO MÉDICO</td>
-                <td class="center">
-                    @if($alumno->certificado_medico == "true")
-                        <span style="color: green; font-weight: bold;">ENTREGADO</span>
-                    @else
-                        <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
-                    @endif
-                </td>
-            </tr>
+            @foreach(config('documentos_identidad.types') as $tipo => $config)
+                <tr>
+                    <td style="width: 55%; text-transform: uppercase;">
+                        {{ $config['label'] }}
+                        @if($config['required'])
+                            <span style="font-size: 8px; color: #8a5a00;">(OBLIGATORIO)</span>
+                        @endif
+                    </td>
+                    <td class="center" style="width: 45%;">
+                        @if($documentoEntregado($tipo))
+                            <span style="color: green; font-weight: bold;">ENTREGADO</span>
+                        @else
+                            <span style="color: red; font-weight: bold;">NO ENTREGADO</span>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
             <tr>
                 <td>FOTOGRAFÍA TAMAÑO INFANTIL</td>
                 <td class="center">
@@ -428,36 +408,21 @@
                     @endif
                 </td>
             </tr>
-
             <tr>
                 <td>OTROS</td>
-                <td class="center">
-                    @if(!empty($alumno->otros))
-                        {{ $alumno->otros }}
-                    @else
-                        -------------
-                    @endif
-                </td>
+                <td class="center">{{ !empty($alumno->otros) ? $alumno->otros : '-------------' }}</td>
             </tr>
-
             <tr>
-                <td style=" text-align: justify; line-height: 12px; text-transform: uppercase;" colspan="3">
-                    ME COMPROMETO A ENTREGAR LOS DOCUMENTOS FALTANTES A MÁS TARDAR EL DÍA________
-                    DE_______________________
-                    DEL___________. ESTOY DE ACUERDO QUE EN CASO DE NO CUMPLIR CON EL COMPROMISO ANTERIOR, SEA CANCELADA
-                    MI
-                    INSCRIPCIÓN Y CAUSE BAJA SIN NINGUNA RESPONSABILIDAD PARA EL {{ $escuela->nombre }}.
+                <td style="text-align: justify; line-height: 12px; text-transform: uppercase;" colspan="2">
+                    LA DOCUMENTACIÓN DIGITAL SE CONSIDERA ENTREGADA ÚNICAMENTE CUANDO EXISTE UN REGISTRO ACTIVO Y EL ARCHIVO PDF PRIVADO PUEDE SER LOCALIZADO. ME COMPROMETO A ENTREGAR LOS DOCUMENTOS FALTANTES A MÁS TARDAR EL DÍA________ DE_______________________ DEL___________. ESTOY DE ACUERDO QUE EN CASO DE NO CUMPLIR CON EL COMPROMISO ANTERIOR, SEA CANCELADA MI INSCRIPCIÓN Y CAUSE BAJA SIN NINGUNA RESPONSABILIDAD PARA EL {{ $escuela->nombre }}.
                 </td>
             </tr>
             <tr>
-                <td colspan="3" class="center" style="text-transform: uppercase">
-                    CD. ALTAMIRANO, GRO., A
-                    {{ \Carbon\Carbon::now()->locale('es')->isoFormat('DD [de] MMMM [de] YYYY') }}
+                <td colspan="2" class="center" style="text-transform: uppercase">
+                    CD. ALTAMIRANO, GRO., A {{ \Carbon\Carbon::now()->locale('es')->isoFormat('DD [de] MMMM [de] YYYY') }}
                 </td>
             </tr>
-
         </table>
-
 
         <footer>
             <p>{{ $escuela->nombre }} | {{ $escuela->pagina_web }} | Tel: {{ $escuela->telefono}}</p>

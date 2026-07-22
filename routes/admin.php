@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\WordController;
 use App\Http\Controllers\CiudadController;
 use App\Http\Controllers\ConstanciaController;
 use App\Http\Controllers\DocumentacionController;
+use App\Http\Controllers\DocumentoIdentidadController;
 use App\Http\Controllers\DocumentosUnificadosController;
 use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
@@ -115,7 +116,15 @@ Route::middleware(['auth'])->group(function () {
 
     //DOCUMENTOS UNIFICADOS
 
-    Route::get('/documentos/unificados_identidad/{id}', [DocumentosUnificadosController::class, 'DocumentosUnificadosAlumno'])->middleware('can:admin.administracion')->name('admin.alumnos.documentos.unificar');
+    Route::get('/documentos-identidad/{documento}/ver', [DocumentoIdentidadController::class, 'ver'])
+        ->middleware('can:documentos-identidad.ver')
+        ->name('admin.documentos-identidad.ver');
+    Route::get('/documentos-identidad/{documento}/descargar', [DocumentoIdentidadController::class, 'descargar'])
+        ->middleware('can:documentos-identidad.descargar')
+        ->name('admin.documentos-identidad.descargar');
+    Route::get('/documentos/unificados_identidad/{id}', [DocumentosUnificadosController::class, 'DocumentosUnificadosAlumno'])
+        ->middleware('can:documentos-identidad.descargar')
+        ->name('admin.alumnos.documentos.unificar');
 
 
     Route::get('/expediente/{id}', [PDFController::class, 'expediente'])->middleware('can:admin.administracion')->name('admin.pdf.expediente');
@@ -161,7 +170,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/justificantes/{justificante}', [PDFController::class, 'justificante'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.justificantes');
 
     // PDF DE ALUMNOS QUE NO TIENE DOCUMENTACIÓN
-    Route::get('/alumnos-documentacion/{licenciatura}', [PDFController::class, 'alumnos_documentacion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.alumnos.documentacion');
+    Route::get('/alumnos-documentacion/{licenciatura}', [PDFController::class, 'alumnos_documentacion'])
+        ->middleware('can:documentos-identidad.auditar')
+        ->name('admin.pdf.documentacion.alumnos.documentacion');
 
     //ACTA DE EXAMEN
     Route::get('/acta-examen/{id}', [PDFController::class, 'acta_examen'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.acta-examen');

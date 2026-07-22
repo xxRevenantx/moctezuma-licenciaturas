@@ -128,5 +128,15 @@ class Inscripcion extends Model
         return $this->hasMany(HistorialInscripcion::class);
     }
 
+    public function documentosIdentidad()
+    {
+        return $this->hasMany(DocumentoIdentidad::class);
+    }
+
+    public function documentosIdentidadActuales()
+    {
+        return $this->hasMany(DocumentoIdentidad::class)->actual();
+    }
+
 
 }

@@ -2,52 +2,44 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-
-
+use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $role1 = Role::create(['name' => 'SuperAdmin']);
-        $role2 = Role::create(['name' => 'Admin']);
-        $role3 = Role::create(['name' => 'Profesor']);
-        $role4 = Role::create(['name' => 'Estudiante']);
-        $role5 = Role::create(['name' => 'Invitado']);
+        $superAdmin = Role::firstOrCreate(['name' => 'SuperAdmin', 'guard_name' => 'web']);
+        $admin = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'Profesor', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'Estudiante', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'Invitado', 'guard_name' => 'web']);
 
+        $permisos = [
+            'admin.usuarios' => [$superAdmin, $admin],
+            'admin.usuarios.acciones' => [$superAdmin],
+            'admin.administracion' => [$superAdmin],
+            'admin.generaciones' => [$superAdmin],
+            'admin.asignar.generacion' => [$superAdmin],
+            'admin.asignacion.licenciaturas' => [$superAdmin, $admin],
+            'admin.licenciaturas' => [$superAdmin, $admin],
+            'exportar.licenciaturas' => [$superAdmin],
+            'exportar.directivos' => [$superAdmin],
+            'documentos-identidad.ver' => [$superAdmin],
+            'documentos-identidad.subir' => [$superAdmin],
+            'documentos-identidad.reemplazar' => [$superAdmin],
+            'documentos-identidad.eliminar' => [$superAdmin],
+            'documentos-identidad.descargar' => [$superAdmin],
+            'documentos-identidad.auditar' => [$superAdmin],
+        ];
 
-        Permission::create(['name' => 'admin.usuarios'])->syncRoles([$role1, $role2]);
-        Permission::create(['name' => 'admin.usuarios.acciones'])->syncRoles([$role1]);
+        foreach ($permisos as $nombre => $roles) {
+            $permission = Permission::firstOrCreate(['name' => $nombre, 'guard_name' => 'web']);
 
-
-        Permission::create(['name' => 'admin.administracion'])->syncRoles([$role1]);
-
-        Permission::create(['name' => 'admin.generaciones'])->syncRoles([$role1]);
-
-        Permission::create(['name' => 'admin.asignar.generacion'])->syncRoles([$role1]);
-
-        // ROL la asignacion de licenciaturas
-        Permission::create(['name' => 'admin.asignacion.licenciaturas'])->syncRoles([$role1, $role2]);
-
-
-        // ROL PARA LICENCIATURAS
-        Permission::create(['name' => 'admin.licenciaturas'])->syncRoles([$role1, $role2]);
-
-
-        Permission::create(['name' => 'exportar.licenciaturas'])->syncRoles([$role1]);
-
-
-        Permission::create(['name' => 'exportar.directivos'])->syncRoles([$role1]);
-
-
-
-
+            foreach ($roles as $role) {
+                $role->givePermissionTo($permission);
+            }
+        }
     }
 }

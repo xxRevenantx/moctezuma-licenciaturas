@@ -475,329 +475,64 @@
                             value="{{ $selectedAlumno['modalidad']['nombre'] ?? '---' }}"
                             class="{{ empty($selectedAlumno['modalidad']['nombre']) ? 'border-red-500' : '' }}" />
 
-                        {{-- Documentos entregados (tu misma lógica, solo embebida) --}}
-                        <div
-                            class="mt-4 w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 p-4">
-                            <h4
-                                class="mb-3 text-sm sm:text-base font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-                                <span
-                                    class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-white text-xs">
-                                    📄
-                                </span>
-                                Documentos entregados
-                            </h4>
-
-                            <ul class="space-y-3">
-                                {{-- CURP --}}
-                                @php
-                                    $curpNombre = $selectedAlumno['CURP_documento'] ?? null;
-                                    $curpUrl = $curpNombre ? asset('storage/documentos/curp/' . $curpNombre) : null;
-                                @endphp
-                                <li x-data="{ show: false }"
-                                    x-effect="document.body.style.overflow = show ? 'hidden':'auto'">
-                                    <div
-                                        class="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-700/40 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition">
-                                        <button type="button" @click="show=true"
-                                            :disabled="{{ $curpNombre ? 'false' : 'true' }}"
-                                            class="disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="{{ $curpNombre ? 'Ver CURP' : 'Sin archivo' }}">
-                                            <img src="{{ asset('storage/curp.png') }}" class="h-8 w-8"
-                                                alt="CURP">
-                                        </button>
-                                        <span
-                                            class="flex-1 text-sm font-medium text-neutral-800 dark:text-neutral-100">CURP</span>
-                                        @if ($curpNombre)
-                                            <flux:badge color="green">Entregado</flux:badge>
-                                        @else
-                                            <flux:badge color="red">Pendiente</flux:badge>
-                                        @endif
+                        {{-- Documentos de identidad almacenados de forma privada --}}
+                        @php
+                            $documentosFicha = $selectedAlumno['documentos_identidad_ficha'] ?? [];
+                            $documentosEntregadosFicha = collect($documentosFicha)->where('entregado', true)->count();
+                        @endphp
+                        <div class="mt-4 w-full rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-neutral-900 dark:text-white">Documentos de identidad</h4>
+                                    <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">Archivos privados y verificados desde el expediente documental.</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="h-2 w-28 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+                                        <div class="h-full rounded-full bg-gradient-to-r from-[#006492] to-[#88AC2E]" style="width: {{ $selectedAlumno['documentos_identidad_porcentaje'] ?? 0 }}%"></div>
                                     </div>
+                                    <span class="text-sm font-bold text-[#006492] dark:text-sky-300">{{ $documentosEntregadosFicha }}/{{ count($documentosFicha) }}</span>
+                                </div>
+                            </div>
 
-                                    <!-- Modal CURP -->
-                                    <div x-cloak x-show="show" @keydown.escape.window="show = false"
-                                        @click.self="show=false"
-                                        class="fixed inset-0 z-[10000] bg-black/45 backdrop-blur-sm flex items-center justify-center p-4"
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-                                        <div
-                                            class="relative w-full max-w-5xl h-[80vh] bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-neutral-200 dark:ring-neutral-700">
-                                            <button type="button" @click="show=false"
-                                                class="absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-neutral-700/60 hover:bg-white dark:hover:bg-neutral-700 shadow">
-                                                <span class="sr-only">Cerrar</span>✕
-                                            </button>
-                                            @if ($curpUrl)
-                                                <iframe src="{{ $curpUrl }}" class="w-full h-full"
-                                                    title="CURP PDF"></iframe>
-                                            @else
-                                                <div class="w-full h-full flex items-center justify-center p-6">
-                                                    <p class="text-neutral-600 dark:text-neutral-300">No hay archivo de
-                                                        CURP.</p>
+                            <ul class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                                @foreach ($documentosFicha as $tipo => $documentoFicha)
+                                    <li x-data="{ visor: false }" class="rounded-xl border border-neutral-200 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-800/50">
+                                        <div class="flex items-center gap-3">
+                                            <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl {{ $documentoFicha['entregado'] ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' }}">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5V5.625A3.375 3.375 0 0011.25 2.25h-4.5A2.25 2.25 0 004.5 4.5v15a2.25 2.25 0 002.25 2.25h10.5a2.25 2.25 0 002.25-2.25v-5.25z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.25 2.25V6a2.25 2.25 0 002.25 2.25H19.5"/></svg>
+                                            </span>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <p class="truncate text-sm font-semibold text-neutral-800 dark:text-neutral-100">{{ $documentoFicha['label'] }}</p>
+                                                    @if ($documentoFicha['obligatorio'])
+                                                        <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">Obligatorio</span>
+                                                    @endif
                                                 </div>
+                                                <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                                                    {{ $documentoFicha['entregado'] ? 'Entregado el '.$documentoFicha['fecha'] : 'Pendiente de entrega' }}
+                                                </p>
+                                            </div>
+                                            @if ($documentoFicha['entregado'] && $documentoFicha['url'])
+                                                @can('documentos-identidad.ver')
+                                                    <button type="button" @click="visor = true" class="rounded-lg px-3 py-2 text-xs font-semibold text-[#006492] hover:bg-sky-50 dark:text-sky-300 dark:hover:bg-neutral-700">Ver</button>
+                                                @endcan
                                             @endif
                                         </div>
-                                    </div>
-                                </li>
 
-                                {{-- ACTA DE NACIMIENTO --}}
-                                @php
-                                    $actaNombre = $selectedAlumno['acta_nacimiento'] ?? null;
-                                    $actaUrl = $actaNombre ? asset('storage/documentos/actas/' . $actaNombre) : null;
-                                @endphp
-                                <li x-data="{ show: false }"
-                                    x-effect="document.body.style.overflow = show ? 'hidden':'auto'">
-                                    <div
-                                        class="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-700/40 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition">
-                                        <button type="button" @click="show=true"
-                                            :disabled="{{ $actaNombre ? 'false' : 'true' }}"
-                                            class="disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="{{ $actaNombre ? 'Ver Acta' : 'Sin archivo' }}">
-                                            <img src="{{ asset('storage/acta_nacimiento.png') }}" class="h-8 w-8"
-                                                alt="Acta de nacimiento">
-                                        </button>
-                                        <span
-                                            class="flex-1 text-sm font-medium text-neutral-800 dark:text-neutral-100">ACTA
-                                            DE
-                                            NACIMIENTO</span>
-                                        @if ($actaNombre)
-                                            <flux:badge color="green">Entregado</flux:badge>
-                                        @else
-                                            <flux:badge color="red">Pendiente</flux:badge>
-                                        @endif
-                                    </div>
-
-                                    <div x-cloak x-show="show" @keydown.escape.window="show=false"
-                                        @click.self="show=false"
-                                        class="fixed inset-0 z-[10000] bg-black/45 backdrop-blur-sm flex items-center justify-center p-4"
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-                                        <div
-                                            class="relative w-full max-w-5xl h-[80vh] bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-neutral-200 dark:ring-neutral-700">
-                                            <button type="button" @click="show=false"
-                                                class="absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-neutral-700/60 hover:bg-white dark:hover:bg-neutral-700 shadow">✕</button>
-                                            @if ($actaUrl)
-                                                <iframe src="{{ $actaUrl }}" class="w-full h-full"
-                                                    title="Acta de nacimiento PDF"></iframe>
-                                            @else
-                                                <div class="w-full h-full flex items-center justify-center p-6">
-                                                    <p class="text-neutral-600 dark:text-neutral-300">No hay Acta de
-                                                        nacimiento.</p>
+                                        @if ($documentoFicha['entregado'] && $documentoFicha['url'])
+                                            <div x-cloak x-show="visor" @keydown.escape.window="visor = false" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm">
+                                                <div @click.outside="visor = false" class="relative h-[84vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-neutral-900">
+                                                    <div class="flex h-14 items-center justify-between border-b border-neutral-200 px-4 dark:border-neutral-700">
+                                                        <p class="text-sm font-semibold text-neutral-900 dark:text-white">{{ $documentoFicha['label'] }}</p>
+                                                        <button type="button" @click="visor = false" class="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800">✕</button>
+                                                    </div>
+                                                    <iframe src="{{ $documentoFicha['url'] }}" class="h-[calc(84vh-3.5rem)] w-full" title="{{ $documentoFicha['label'] }}"></iframe>
                                                 </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </li>
-
-                                {{-- CERTIFICADO DE ESTUDIOS --}}
-                                @php
-                                    $certEstNombre = $selectedAlumno['certificado_estudios'] ?? null;
-                                    $certEstUrl = $certEstNombre
-                                        ? asset('storage/documentos/certificado_estudios/' . $certEstNombre)
-                                        : null;
-                                @endphp
-                                <li x-data="{ show: false }"
-                                    x-effect="document.body.style.overflow = show ? 'hidden':'auto'">
-                                    <div
-                                        class="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-700/40 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition">
-                                        <button type="button" @click="show=true"
-                                            :disabled="{{ $certEstNombre ? 'false' : 'true' }}"
-                                            class="disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="{{ $certEstNombre ? 'Ver certificado' : 'Sin archivo' }}">
-                                            <img src="{{ asset('storage/certificado_estudios.png') }}"
-                                                class="h-8 w-8" alt="Certificado de estudios">
-                                        </button>
-                                        <span
-                                            class="flex-1 text-sm font-medium text-neutral-800 dark:text-neutral-100">CERTIFICADO
-                                            DE
-                                            ESTUDIOS</span>
-                                        @if ($certEstNombre)
-                                            <flux:badge color="green">Entregado</flux:badge>
-                                        @else
-                                            <flux:badge color="red">Pendiente</flux:badge>
+                                            </div>
                                         @endif
-                                    </div>
-
-                                    <div x-cloak x-show="show" @keydown.escape.window="show=false"
-                                        @click.self="show=false"
-                                        class="fixed inset-0 z-[10000] bg-black/45 backdrop-blur-sm flex items-center justify-center p-4"
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-                                        <div
-                                            class="relative w-full max-w-5xl h-[80vh] bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-neutral-200 dark:ring-neutral-700">
-                                            <button type="button" @click="show=false"
-                                                class="absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-neutral-700/60 hover:bg-white dark:hover:bg-neutral-700 shadow">✕</button>
-                                            @if ($certEstUrl)
-                                                <iframe src="{{ $certEstUrl }}" class="w-full h-full"
-                                                    title="Certificado de estudios PDF"></iframe>
-                                            @else
-                                                <div class="w-full h-full flex items-center justify-center p-6">
-                                                    <p class="text-neutral-600 dark:text-neutral-300">No hay
-                                                        Certificado de estudios.</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </li>
-
-                                {{-- COMPROBANTE DE DOMICILIO --}}
-                                @php
-                                    $compDomNombre = $selectedAlumno['comprobante_domicilio'] ?? null;
-                                    $compDomUrl = $compDomNombre
-                                        ? asset('storage/documentos/comprobante_domicilio/' . $compDomNombre)
-                                        : null;
-                                @endphp
-                                <li x-data="{ show: false }"
-                                    x-effect="document.body.style.overflow = show ? 'hidden':'auto'">
-                                    <div
-                                        class="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-700/40 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition">
-                                        <button type="button" @click="show=true"
-                                            :disabled="{{ $compDomNombre ? 'false' : 'true' }}"
-                                            class="disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="{{ $compDomNombre ? 'Ver comprobante' : 'Sin archivo' }}">
-                                            <img src="{{ asset('storage/comprobante_domicilio.png') }}"
-                                                class="h-8 w-8" alt="Comprobante de domicilio">
-                                        </button>
-                                        <span
-                                            class="flex-1 text-sm font-medium text-neutral-800 dark:text-neutral-100">COMPROBANTE
-                                            DE
-                                            DOMICILIO</span>
-                                        @if ($compDomNombre)
-                                            <flux:badge color="green">Entregado</flux:badge>
-                                        @else
-                                            <flux:badge color="red">Pendiente</flux:badge>
-                                        @endif
-                                    </div>
-
-                                    <div x-cloak x-show="show" @keydown.escape.window="show=false"
-                                        @click.self="show=false"
-                                        class="fixed inset-0 z-[10000] bg-black/45 backdrop-blur-sm flex items-center justify-center p-4"
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-                                        <div
-                                            class="relative w-full max-w-5xl h-[80vh] bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-neutral-200 dark:ring-neutral-700">
-                                            <button type="button" @click="show=false"
-                                                class="absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-neutral-700/60 hover:bg-white dark:hover:bg-neutral-700 shadow">✕</button>
-                                            @if ($compDomUrl)
-                                                <iframe src="{{ $compDomUrl }}" class="w-full h-full"
-                                                    title="Comprobante de domicilio PDF"></iframe>
-                                            @else
-                                                <div class="w-full h-full flex items-center justify-center p-6">
-                                                    <p class="text-neutral-600 dark:text-neutral-300">No hay
-                                                        Comprobante de domicilio.</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </li>
-
-                                {{-- CERTIFICADO MÉDICO --}}
-                                @php
-                                    $certMedNombre = $selectedAlumno['certificado_medico'] ?? null;
-                                    $certMedUrl = $certMedNombre
-                                        ? asset('storage/documentos/certificado_medico/' . $certMedNombre)
-                                        : null;
-                                @endphp
-                                <li x-data="{ show: false }"
-                                    x-effect="document.body.style.overflow = show ? 'hidden':'auto'">
-                                    <div
-                                        class="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-700/40 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition">
-                                        <button type="button" @click="show=true"
-                                            :disabled="{{ $certMedNombre ? 'false' : 'true' }}"
-                                            class="disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="{{ $certMedNombre ? 'Ver certificado médico' : 'Sin archivo' }}">
-                                            <img src="{{ asset('storage/certificado_medico.png') }}" class="h-8 w-8"
-                                                alt="Certificado médico">
-                                        </button>
-                                        <span
-                                            class="flex-1 text-sm font-medium text-neutral-800 dark:text-neutral-100">CERTIFICADO
-                                            MÉDICO</span>
-                                        @if ($certMedNombre)
-                                            <flux:badge color="green">Entregado</flux:badge>
-                                        @else
-                                            <flux:badge color="red">Pendiente</flux:badge>
-                                        @endif
-                                    </div>
-
-                                    <div x-cloak x-show="show" @keydown.escape.window="show=false"
-                                        @click.self="show=false"
-                                        class="fixed inset-0 z-[10000] bg-black/45 backdrop-blur-sm flex items-center justify-center p-4"
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-                                        <div
-                                            class="relative w-full max-w-5xl h-[80vh] bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-neutral-200 dark:ring-neutral-700">
-                                            <button type="button" @click="show=false"
-                                                class="absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-neutral-700/60 hover:bg-white dark:hover:bg-neutral-700 shadow">✕</button>
-                                            @if ($certMedUrl)
-                                                <iframe src="{{ $certMedUrl }}" class="w-full h-full"
-                                                    title="Certificado médico PDF"></iframe>
-                                            @else
-                                                <div class="w-full h-full flex items-center justify-center p-6">
-                                                    <p class="text-neutral-600 dark:text-neutral-300">No hay
-                                                        Certificado médico.</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </li>
-
-                                {{-- INE --}}
-                                @php
-                                    $ineNombre = $selectedAlumno['ine'] ?? null;
-                                    $ineUrl = $ineNombre ? asset('storage/documentos/ine/' . $ineNombre) : null;
-                                @endphp
-                                <li x-data="{ show: false }"
-                                    x-effect="document.body.style.overflow = show ? 'hidden':'auto'">
-                                    <div
-                                        class="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-700/40 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition">
-                                        <button type="button" @click="show=true"
-                                            :disabled="{{ $ineNombre ? 'false' : 'true' }}"
-                                            class="disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="{{ $ineNombre ? 'Ver INE' : 'Sin archivo' }}">
-                                            <img src="{{ asset('storage/fotos_infantiles.png') }}" class="h-8 w-8"
-                                                alt="INE">
-                                        </button>
-                                        <span
-                                            class="flex-1 text-sm font-medium text-neutral-800 dark:text-neutral-100">INE</span>
-                                        @if ($ineNombre)
-                                            <flux:badge color="green">Entregado</flux:badge>
-                                        @else
-                                            <flux:badge color="red">Pendiente</flux:badge>
-                                        @endif
-                                    </div>
-
-                                    <div x-cloak x-show="show" @keydown.escape.window="show=false"
-                                        @click.self="show=false"
-                                        class="fixed inset-0 z-[10000] bg-black/45 backdrop-blur-sm flex items-center justify-center p-4"
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-                                        <div
-                                            class="relative w-full max-w-5xl h-[80vh] bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-neutral-200 dark:ring-neutral-700">
-                                            <button type="button" @click="show=false"
-                                                class="absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-neutral-700/60 hover:bg-white dark:hover:bg-neutral-700 shadow">✕</button>
-                                            @if ($ineUrl)
-                                                <iframe src="{{ $ineUrl }}" class="w-full h-full"
-                                                    title="INE PDF"></iframe>
-                                            @else
-                                                <div class="w-full h-full flex items-center justify-center p-6">
-                                                    <p class="text-neutral-600 dark:text-neutral-300">No hay INE.</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </li>
+                                    </li>
+                                @endforeach
                             </ul>
-
                         </div>
                     </flux:field>
                 </div>

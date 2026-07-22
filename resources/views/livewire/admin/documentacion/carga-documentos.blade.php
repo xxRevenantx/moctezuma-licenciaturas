@@ -1,293 +1,166 @@
 <div
     x-data="{
-        isUploading: false,
-        progress: 0,
-        fileUrl: null,
-        showModal: false,
-        showModalConfirmDelete: false,
-        guardado: @entangle('guardado'),
-        archivoGuardadoUrl: @entangle('archivoGuardadoUrl'),
-        nombreArchivo: @entangle('nombreArchivo'),
-        tamanoArchivo: @entangle('tamanoArchivo'),
+        visor: false,
+        confirmarEliminacion: false,
+        progreso: 0,
+        subiendo: false
     }"
-    x-on:livewire-upload-start="isUploading = true"
-    x-on:livewire-upload-finish="isUploading = false"
-    x-on:livewire-upload-error="isUploading = false"
-    x-on:livewire-upload-progress="progress = $event.detail.progress"
-    x-on:archivo-guardado-{{ Str::slug($wireId, '_') }}.window="
-        progress = 0;
-        isUploading = false;
-        nombreArchivo = $event.detail.nombre;
-        tamanoArchivo = $event.detail.tamano;
-        fileUrl = archivoGuardadoUrl;
-        guardado = true;
-    "
-    x-on:archivo-eliminado-{{ Str::slug($wireId, '_') }}.window="
-        fileUrl = null; progress = 0; isUploading = false;
-        nombreArchivo = ''; tamanoArchivo = ''; guardado = false;
-    "
-    class="relative rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow overflow-hidden"
-    aria-live="polite"
+    x-on:livewire-upload-start="subiendo = true; progreso = 0"
+    x-on:livewire-upload-progress="progreso = $event.detail.progress"
+    x-on:livewire-upload-finish="subiendo = false; progreso = 100"
+    x-on:livewire-upload-error="subiendo = false; progreso = 0"
+    class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
 >
-    <!-- Accent -->
-    <div class="h-1 w-full bg-gradient-to-r from-indigo-600 via-violet-500 to-fuchsia-500"></div>
+    <div class="h-1 bg-gradient-to-r from-[#006492] to-[#88AC2E]"></div>
 
-    <div class="p-4 sm:p-6 space-y-4">
-        <!-- Header -->
-        <div class="flex items-start justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-                <div class="h-10 w-10 grid place-items-center rounded-xl bg-indigo-50 dark:bg-indigo-900/30 ring-1 ring-indigo-100 dark:ring-indigo-800">
-                    <!-- PDF icon -->
-                    <svg class="h-5 w-5 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none">
-                        <path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
-                              d="M7 21h10a2 2 0 0 0 2-2V8.5L14.5 3H7a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2Z"/>
-                        <path stroke="currentColor" stroke-width="1.6" d="M14.5 3V8h4.5"/>
-                        <rect x="8" y="12.5" width="8" height="1.5" rx=".75" fill="currentColor"/>
-                        <rect x="8" y="15.5" width="6" height="1.5" rx=".75" fill="currentColor"/>
-                    </svg>
-                </div>
+    <div class="p-5">
+        <div class="flex items-start justify-between gap-4">
+            <div class="flex min-w-0 items-start gap-3">
+                <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#006492]/10 text-[#006492] dark:bg-[#006492]/20 dark:text-sky-300">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5V5.625A3.375 3.375 0 0011.25 2.25h-4.5A2.25 2.25 0 004.5 4.5v15a2.25 2.25 0 002.25 2.25h10.5a2.25 2.25 0 002.25-2.25v-5.25z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.25 2.25V6a2.25 2.25 0 002.25 2.25H19.5"/></svg>
+                </span>
                 <div class="min-w-0">
-                    <h2 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
-                        {{ strtoupper($label) }} <span class="font-normal text-xs">(PDF)</span>
-                    </h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                        Sube, previsualiza, reemplaza o elimina el documento.
-                    </p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="font-semibold uppercase tracking-wide text-slate-900 dark:text-white">{{ $label }}</h3>
+                        <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $obligatorio ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' : 'bg-slate-100 text-slate-600 dark:bg-neutral-800 dark:text-neutral-300' }}">
+                            {{ $obligatorio ? 'Obligatorio' : 'Opcional' }}
+                        </span>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-neutral-400">PDF, JPG o PNG · máximo {{ $maxMb }} MB. Las imágenes se convierten automáticamente a PDF.</p>
                 </div>
             </div>
 
-            <!-- Estado -->
-            <span
-                x-show="guardado"
-                class="inline-flex items-center gap-1 rounded-full border border-emerald-300/60 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-700/50"
-            >
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Guardado
-            </span>
-            <span
-                x-show="!guardado"
-                class="inline-flex items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700/50"
-            >
-                <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Sin guardar
-            </span>
+            @if ($inconsistente)
+                <span class="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">Archivo faltante</span>
+            @elseif ($guardado)
+                <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">Entregado</span>
+            @else
+                <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">Pendiente</span>
+            @endif
         </div>
 
-        <!-- Uploader -->
-        <div class="flex flex-wrap items-center gap-2">
-            <label
-                :class="guardado
-                    ? 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow cursor-pointer transition'
-                    : 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow cursor-pointer transition'"
-                title="Seleccionar PDF"
-            >
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
-                    <path d="M5 12h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                    <path d="M12 5v14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                </svg>
-                <span x-text="guardado ? 'Reemplazar {{ $label }}' : 'Subir {{ $label }}'"></span>
-
-                <input
-                    type="file"
-                    wire:model="archivo"
-                    accept="application/pdf"
-                    class="hidden"
-                    x-on:change="
-                        const file = $event.target.files[0];
-                        if (file && file.type === 'application/pdf') {
-                            fileUrl = URL.createObjectURL(file);
-                            nombreArchivo = file.name;
-                            tamanoArchivo = (file.size/1024).toFixed(2) + ' KB';
-                            guardado = false;
-                        } else {
-                            fileUrl = null; progress = 0; isUploading = false;
-                            alert('El archivo debe ser un PDF válido.');
-                            nombreArchivo = ''; tamanoArchivo = ''; $event.target.value = '';
-                        }
-                    "
-                />
-            </label>
-
-            <!-- Ver PDF temporal -->
-            <button
-                type="button"
-                x-show="fileUrl && !guardado"
-                @click="showModal = true"
-                class="inline-flex items-center gap-2 rounded-xl px-3 py-2 ring-1 ring-gray-200 dark:ring-neutral-700 text-indigo-700 hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-neutral-800 transition"
-                title="Previsualizar PDF antes de guardar"
-            >
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5c7 0 10 7 10 7s-3 7-10 7S2 12 2 12s3-7 10-7Zm0 3.5A3.5 3.5 0 1 0 12 18a3.5 3.5 0 0 0 0-7Z"/></svg>
-                Vista previa
-            </button>
-
-            <!-- Ver PDF guardado -->
-            <button
-                type="button"
-                x-show="guardado && archivoGuardadoUrl"
-                @click="fileUrl = archivoGuardadoUrl; showModal = true"
-                class="inline-flex items-center gap-2 rounded-xl px-3 py-2 ring-1 ring-gray-200 dark:ring-neutral-700 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-neutral-800 transition"
-                title="Ver documento guardado"
-            >
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5c7 0 10 7 10 7s-3 7-10 7S2 12 2 12s3-7 10-7Zm0 3.5A3.5 3.5 0 1 0 12 18a3.5 3.5 0 0 0 0-7Z"/></svg>
-                Ver guardado
-            </button>
-
-            <!-- Eliminar -->
-            <button
-                type="button"
-                x-show="guardado && archivoGuardadoUrl"
-                @click="showModalConfirmDelete = true"
-                class="inline-flex items-center gap-2 rounded-xl px-3 py-2 ring-1 ring-gray-200 dark:ring-neutral-700 text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-neutral-800 transition"
-                title="Eliminar archivo"
-            >
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6l1 2h5v2H3V5h5l1-2Zm1 7h2v7h-2v-7Zm4 0h2v7h-2v-7ZM6 10h2v7H6v-7Z"/></svg>
-                Eliminar
-            </button>
-        </div>
-
-        <!-- Nombre / tamaño -->
-        <div class="text-xs text-gray-600 dark:text-gray-300 space-y-1">
-            <template x-if="nombreArchivo">
-                <p><span class="font-medium">Archivo:</span> <span class="font-mono" x-text="nombreArchivo"></span></p>
-            </template>
-            <template x-if="tamanoArchivo">
-                <p><span class="font-medium">Tamaño:</span> <span class="font-mono" x-text="tamanoArchivo"></span></p>
-            </template>
-            <template x-if="!archivoGuardadoUrl && !fileUrl">
-                <p class="text-rose-500">No se ha subido ningún archivo.</p>
-            </template>
-        </div>
-
-        <!-- Progreso -->
-        <div x-show="progress > 0" class="space-y-1" role="status" aria-atomic="true" aria-busy="true">
-            <div class="w-full h-2 rounded-full bg-gray-200 dark:bg-neutral-700 overflow-hidden">
-                <div class="h-2 bg-indigo-600 transition-all duration-300" :style="'width:'+progress+'%'"></div>
+        @if ($guardado)
+            <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 dark:border-emerald-900/60 dark:bg-emerald-950/20">
+                <p class="truncate text-sm font-medium text-emerald-900 dark:text-emerald-100" title="{{ $nombreArchivo }}">{{ $nombreArchivo }}</p>
+                <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-300">{{ $tamanoArchivo }} · almacenado de forma privada</p>
             </div>
-            <div class="text-[11px] text-gray-500 dark:text-gray-400" x-text="`Progreso: ${progress}%`"></div>
+        @elseif ($inconsistente)
+            <div class="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/20 dark:text-rose-200">
+                La base de datos tenía una referencia, pero el archivo físico no existe. Sube una nueva copia y ejecuta la auditoría documental.
+            </div>
+        @endif
+
+        <div class="mt-4 flex flex-wrap gap-2">
+            @if ($guardado && $archivoGuardadoUrl)
+                @can('documentos-identidad.ver')
+                    <button type="button" @click="visor = true" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Ver
+                    </button>
+                @endcan
+
+                @can('documentos-identidad.descargar')
+                    <a href="{{ $archivoDescargaUrl }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 10.5L12 15m0 0l4.5-4.5M12 15V3"/></svg>
+                        Descargar
+                    </a>
+                @endcan
+            @endif
+
+            @can($guardado ? 'documentos-identidad.reemplazar' : 'documentos-identidad.subir')
+                <label class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#006492] px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-[#00547b]">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 16.5V3.75m0 0L7.5 8.25M12 3.75l4.5 4.5M3.75 15v3.75A2.25 2.25 0 006 21h12a2.25 2.25 0 002.25-2.25V15"/></svg>
+                    {{ $guardado ? 'Seleccionar reemplazo' : 'Subir documento' }}
+                    <input wire:model="archivo" type="file" accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png" class="sr-only">
+                </label>
+            @endcan
+
+            @if ($guardado)
+                @can('documentos-identidad.eliminar')
+                    <button type="button" @click="confirmarEliminacion = true" class="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50 dark:border-rose-900/60 dark:text-rose-300 dark:hover:bg-rose-950/20">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673A2.25 2.25 0 0115.916 21H8.084a2.25 2.25 0 01-2.244-1.327L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0V4.477c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                        Retirar
+                    </button>
+                @endcan
+            @endif
         </div>
 
-        <!-- Guardar -->
-        <div class="pt-1">
-            <button
-                x-show="progress === 100 && fileUrl && !guardado"
-                x-transition
-                wire:click="guardarArchivo"
-                wire:loading.attr="disabled"
-                wire:target="guardarArchivo"
-                class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow cursor-pointer"
-            >
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M5 12h14M12 5v14"/></svg>
-                Guardar {{ $label }}
-            </button>
+        <div x-show="subiendo" x-cloak class="mt-4">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400"><span>Subiendo y validando…</span><span x-text="progreso + '%'">0%</span></div>
+            <div class="mt-1 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-neutral-700"><div class="h-full rounded-full bg-[#006492] transition-all" :style="`width:${progreso}%`"></div></div>
         </div>
+
+        @if ($requiereConfirmacion)
+            <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+                <p class="text-sm font-semibold text-amber-900 dark:text-amber-100">Confirmar reemplazo</p>
+                <p class="mt-1 text-xs text-amber-800 dark:text-amber-200">El nuevo archivo se validará antes de cambiar el actual. La versión anterior permanecerá en el historial.</p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <button wire:click="guardarArchivo(true)" wire:loading.attr="disabled" wire:target="guardarArchivo" class="rounded-xl bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60">Reemplazar documento</button>
+                    <button wire:click="cancelarReemplazo" class="rounded-xl border border-amber-300 px-3.5 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-950/40">Cancelar</button>
+                </div>
+            </div>
+        @endif
 
         @error('archivo')
-            <p class="text-sm text-rose-600">{{ $message }}</p>
+            <p class="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 dark:bg-rose-950/30 dark:text-rose-300">{{ $message }}</p>
         @enderror
 
         @if ($mensaje)
-            <p class="text-sm font-medium text-emerald-600">{{ $mensaje }}</p>
+            <p class="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">{{ $mensaje }}</p>
+        @endif
+
+        @if ($historial !== [])
+            <details class="mt-4 rounded-xl border border-slate-200 dark:border-neutral-700">
+                <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-slate-700 dark:text-neutral-200">Historial de versiones ({{ count($historial) }})</summary>
+                <div class="border-t border-slate-200 px-4 py-3 dark:border-neutral-700">
+                    <div class="space-y-2">
+                        @foreach ($historial as $version)
+                            <div class="flex flex-col gap-2 rounded-lg bg-slate-50 p-3 text-xs dark:bg-neutral-800/60 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="font-semibold text-slate-800 dark:text-neutral-100">Versión {{ $version['version'] }} · {{ ucfirst($version['estado']) }}</p>
+                                    <p class="mt-0.5 text-slate-500 dark:text-neutral-400">{{ $version['fecha'] }} · {{ $version['usuario'] }} · {{ $version['tamano'] }}</p>
+                                </div>
+                                @if ($version['url'])
+                                    @can('documentos-identidad.ver')
+                                        <a href="{{ $version['url'] }}" target="_blank" class="font-semibold text-[#006492] hover:underline dark:text-sky-300">Consultar</a>
+                                    @endcan
+                                @else
+                                    <span class="font-medium text-rose-600 dark:text-rose-300">Archivo no disponible</span>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </details>
         @endif
     </div>
 
-    <!-- Overlay de carga general (opcional) -->
-    <div
-        x-show="isUploading"
-        x-transition.opacity
-        class="pointer-events-none absolute inset-0 grid place-items-center bg-white/60 dark:bg-neutral-900/60"
-    >
-        <div class="flex items-center gap-3 rounded-xl bg-white dark:bg-neutral-900 px-4 py-3 ring-1 ring-gray-200 dark:ring-neutral-800 shadow">
-            <svg class="h-5 w-5 animate-spin text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-            </svg>
-            <span class="text-sm text-gray-800 dark:text-gray-200">Subiendo…</span>
+    <div wire:loading.flex wire:target="archivo,guardarArchivo,eliminarArchivo" class="absolute inset-0 z-20 items-center justify-center bg-white/75 backdrop-blur-sm dark:bg-neutral-900/75">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-lg ring-1 ring-slate-200 dark:bg-neutral-900 dark:text-neutral-200 dark:ring-neutral-700">
+            <svg class="h-5 w-5 animate-spin text-[#006492]" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+            Procesando documento…
         </div>
     </div>
 
-    <!-- Modal visor PDF -->
-    <div
-        x-show="showModal"
-        x-trap.noscroll="showModal"
-        @keydown.escape.window="showModal = false"
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 z-50 flex items-center justify-center"
-        aria-modal="true" role="dialog"
-    >
-        <div class="absolute inset-0 bg-neutral-900/70 backdrop-blur-sm" @click="showModal = false"></div>
-
-        <div
-            class="relative w-[92vw] sm:w-[88vw] md:w-[80vw] max-w-5xl h-[78vh] bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden"
-            x-show="showModal"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-        >
-            <div class="h-1 w-full bg-gradient-to-r from-indigo-600 via-sky-400 to-indigo-600"></div>
-            <div class="absolute top-2 right-2">
-                <button
-                    @click="showModal = false"
-                    class="inline-flex items-center justify-center rounded-xl p-2 text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:text-white dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                    aria-label="Cerrar"
-                >
-                    &times;
-                </button>
-            </div>
-            <template x-if="fileUrl">
-                <iframe :src="fileUrl" class="w-full h-full"></iframe>
-            </template>
-        </div>
-    </div>
-
-    <!-- Modal Confirmación Eliminar -->
-    <div
-        x-show="showModalConfirmDelete"
-        x-trap.noscroll="showModalConfirmDelete"
-        @keydown.escape.window="showModalConfirmDelete = false"
-        x-transition.opacity
-        class="fixed inset-0 z-50 flex items-center justify-center"
-        aria-modal="true" role="dialog"
-    >
-        <div class="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" @click="showModalConfirmDelete = false"></div>
-
-        <div
-            class="relative w-[92vw] sm:w-[88vw] md:w-[480px] bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden"
-            x-show="showModalConfirmDelete"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-        >
-            <div class="h-1 w-full bg-gradient-to-r from-rose-600 via-pink-500 to-rose-600"></div>
-            <div class="p-5 sm:p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">¿Eliminar documento?</h3>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Esta acción no se puede deshacer.</p>
-
-                <div class="mt-6 flex flex-col sm:flex-row justify-end gap-2">
-                    <button
-                        type="button"
-                        @click="showModalConfirmDelete = false"
-                        class="inline-flex justify-center rounded-xl px-4 py-2.5 border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-300 dark:focus:ring-offset-neutral-900"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        type="button"
-                        @click="showModalConfirmDelete = false; $wire.eliminarArchivo()"
-                        class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white shadow"
-                    >
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6l1 2h5v2H3V5h5l1-2Zm1 7h2v7h-2v-7Zm4 0h2v7h-2v-7ZM6 10h2v7H6v-7Z"/></svg>
-                        Sí, eliminar
-                    </button>
+    @if ($archivoGuardadoUrl)
+        <div x-cloak x-show="visor" @keydown.escape.window="visor = false" class="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+            <div @click.outside="visor = false" class="relative h-[86vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-neutral-900">
+                <div class="flex h-14 items-center justify-between border-b border-slate-200 px-4 dark:border-neutral-700">
+                    <p class="truncate pr-4 text-sm font-semibold text-slate-900 dark:text-white">{{ $label }} · {{ $nombreArchivo }}</p>
+                    <button type="button" @click="visor = false" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800">✕</button>
                 </div>
+                <iframe src="{{ $archivoGuardadoUrl }}" class="h-[calc(86vh-3.5rem)] w-full" title="Vista previa de {{ $label }}"></iframe>
+            </div>
+        </div>
+    @endif
+
+    <div x-cloak x-show="confirmarEliminacion" @keydown.escape.window="confirmarEliminacion = false" class="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm">
+        <div @click.outside="confirmarEliminacion = false" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">¿Retirar {{ $label }}?</h3>
+            <p class="mt-2 text-sm text-slate-600 dark:text-neutral-300">Dejará de contar como entregado. La versión se conservará en el historial de auditoría.</p>
+            <div class="mt-6 flex justify-end gap-2">
+                <button type="button" @click="confirmarEliminacion = false" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800">Cancelar</button>
+                <button type="button" @click="confirmarEliminacion = false; $wire.eliminarArchivo()" class="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700">Sí, retirar</button>
             </div>
         </div>
     </div>

@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Estudiante;
 
 use App\Models\Inscripcion;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -114,6 +115,7 @@ class Estudiante extends Component
                 'estadoNacimiento',
                 'ciudad',
                 'estado',
+                'documentosIdentidadActuales.usuario',
             ])
             ->find($alumnoId);
 
@@ -135,8 +137,31 @@ class Estudiante extends Component
                 ($alumno->nombre ?? '')
         );
 
+        $datosAlumno = $alumno->toArray();
+        $documentosFicha = [];
+        $disk = (string) config('documentos_identidad.disk', 'local');
+        $actuales = $alumno->documentosIdentidadActuales->keyBy('tipo');
+
+        foreach (config('documentos_identidad.types', []) as $tipo => $config) {
+            $documento = $actuales->get($tipo);
+            $existe = $documento && Storage::disk($disk)->exists($documento->ruta);
+
+            $documentosFicha[$tipo] = [
+                'label' => $config['label'],
+                'obligatorio' => (bool) $config['required'],
+                'entregado' => (bool) $existe,
+                'url' => $existe ? route('admin.documentos-identidad.ver', $documento) : null,
+                'fecha' => $existe ? optional($documento->created_at)->format('d/m/Y H:i') : null,
+            ];
+        }
+
+        $datosAlumno['documentos_identidad_ficha'] = $documentosFicha;
+        $datosAlumno['documentos_identidad_porcentaje'] = count($documentosFicha) > 0
+            ? (int) round((collect($documentosFicha)->where('entregado', true)->count() / count($documentosFicha)) * 100)
+            : 0;
+
         $this->query = $nombreCompleto;
-        $this->selectedAlumno = $alumno->toArray();
+        $this->selectedAlumno = $datosAlumno;
         $this->alumnos = [];
         $this->selectedIndex = 0;
 

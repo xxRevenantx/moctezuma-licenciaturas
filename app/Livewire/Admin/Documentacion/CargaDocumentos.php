@@ -2,221 +2,225 @@
 
 namespace App\Livewire\Admin\Documentacion;
 
+use App\Models\DocumentoIdentidad;
 use App\Models\Inscripcion;
+use App\Services\DocumentosIdentidad\DocumentoIdentidadService;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Storage;
-use Livewire\Attributes\On;
-use Illuminate\Support\Str; // 👈
+use Throwable;
 
 class CargaDocumentos extends Component
 {
     use WithFileUploads;
 
     public $archivo;
-    public $archivoGuardadoUrl = null;
-    public $guardado = false;
-    public $nombreArchivo = '';
-    public $tamanoArchivo = '';
-    public $inscripcionId;
 
-    public $label;       // solo UI
-    public $wireId;      // 👈 clave para columna BD
-    public $rutaGuardado;
-    public $mensaje;
+    public int $inscripcionId;
 
-    public $estudiante;
+    public string $tipo;
 
-    public function mount()
+    public string $label = '';
+
+    public bool $obligatorio = false;
+
+    public bool $guardado = false;
+
+    public bool $inconsistente = false;
+
+    public bool $requiereConfirmacion = false;
+
+    public ?int $documentoId = null;
+
+    public ?string $archivoGuardadoUrl = null;
+
+    public ?string $archivoDescargaUrl = null;
+
+    public string $nombreArchivo = '';
+
+    public string $tamanoArchivo = '';
+
+    public string $mensaje = '';
+
+    public array $historial = [];
+
+    public int $maxMb = 10;
+
+    public function mount(int $inscripcionId, string $tipo): void
     {
-        if ($this->inscripcionId) {
-            $this->estudiante = Inscripcion::find($this->inscripcionId);
-            $this->cargarArchivoGuardado();
+        $this->inscripcionId = $inscripcionId;
+        $this->tipo = $tipo;
+
+        $config = app(DocumentoIdentidadService::class)->configuracionTipo($tipo);
+        $this->label = $config['label'];
+        $this->obligatorio = (bool) $config['required'];
+        $this->maxMb = max(1, (int) ceil(((int) config('documentos_identidad.max_kb', 10240)) / 1024));
+
+        $this->cargarEstado();
+    }
+
+    public function updatedArchivo(): void
+    {
+        $this->resetErrorBag('archivo');
+        $this->mensaje = '';
+        $this->requiereConfirmacion = false;
+
+        $this->validarArchivo();
+
+        if ($this->guardado) {
+            Gate::authorize('documentos-identidad.reemplazar');
+            $this->requiereConfirmacion = true;
+
+            return;
+        }
+
+        Gate::authorize('documentos-identidad.subir');
+        $this->guardarArchivo();
+    }
+
+    public function guardarArchivo(bool $confirmado = false): void
+    {
+        $this->validarArchivo();
+
+        $actual = app(DocumentoIdentidadService::class)->actual($this->inscripcionId, $this->tipo);
+
+        if ($actual && ! $confirmado) {
+            Gate::authorize('documentos-identidad.reemplazar');
+            $this->requiereConfirmacion = true;
+
+            return;
+        }
+
+        Gate::authorize($actual ? 'documentos-identidad.reemplazar' : 'documentos-identidad.subir');
+
+        $alumno = Inscripcion::findOrFail($this->inscripcionId);
+
+        try {
+            app(DocumentoIdentidadService::class)->guardarSubida(
+                $this->archivo,
+                $alumno,
+                $this->tipo,
+                auth()->id()
+            );
+
+            $this->reset('archivo');
+            $this->requiereConfirmacion = false;
+            $this->mensaje = $actual
+                ? 'Documento reemplazado correctamente. La versión anterior quedó en el historial.'
+                : 'Documento validado y guardado correctamente.';
+            $this->cargarEstado(false);
+
+            $this->dispatch('documento-identidad-actualizado', inscripcionId: $this->inscripcionId);
+            $this->dispatch('swal', title: 'Documento guardado', text: $this->mensaje, icon: 'success', position: 'top');
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            report($e);
+            $this->addError('archivo', $e->getMessage());
         }
     }
 
-    #[On('alumnoSeleccionado')]
-    public function cargarDocumentosPorAlumno($id)
+    public function cancelarReemplazo(): void
     {
-        $this->inscripcionId = $id;
-        $this->estudiante = Inscripcion::find($id);
-        $this->archivo = null;
-        $this->mensaje = null;
-        $this->cargarArchivoGuardado();
+        $this->reset('archivo');
+        $this->requiereConfirmacion = false;
+        $this->mensaje = 'Reemplazo cancelado; se conservó el documento actual.';
     }
 
-    public function updatedArchivo()
+    public function eliminarArchivo(): void
     {
-        $this->validate([
-            'archivo' => 'required|file|mimes:pdf|max:1024',
-        ]);
-        $this->guardado = false;
-        $this->mensaje = null;
-    }
+        Gate::authorize('documentos-identidad.eliminar');
 
-    public function guardarArchivo()
-    {
-        $this->validate([
-            'archivo' => 'required|file|mimes:pdf|max:1024',
-        ]);
-
-        if (!$this->archivo || !$this->inscripcionId) return;
-
-        if (!$this->estudiante) {
-            $this->estudiante = Inscripcion::find($this->inscripcionId);
-        }
-
-        $columna = $this->getColumna();
-        if (!$columna) return;
-
-        // ✅ 1) Yo obtengo el nombre VIEJO desde BD (este es el que debo borrar)
-        $nombreViejo = $this->estudiante->$columna; // ejemplo: CURP_GOGP2005...PDF
-
-        // ✅ 2) Si existía, yo borro el archivo viejo en SU carpeta
-        if (!empty($nombreViejo)) {
-            $rutaVieja = $this->rutaGuardado . '/' . $nombreViejo;
-
-            if (Storage::disk('public')->exists($rutaVieja)) {
-                Storage::disk('public')->delete($rutaVieja);
-            }
-        }
-
-        // ✅ 3) Yo genero el nombre NUEVO
-        $nombreNuevo = $this->generarNombrePersonalizado();
-
-        // ✅ 4) Yo guardo el nuevo archivo en la carpeta correcta
-        $this->archivo->storeAs($this->rutaGuardado, $nombreNuevo, 'public');
-
-        // ✅ 5) Yo guardo en BD solo el nombre (como tú lo tienes)
-        $this->estudiante->$columna = $nombreNuevo;
-        $this->estudiante->save();
-        $this->estudiante->refresh();
-
-        // ✅ 6) UI
-        $rutaFinal = $this->rutaGuardado . '/' . $nombreNuevo;
-        $this->archivoGuardadoUrl = Storage::disk('public')->url($rutaFinal);
-        $this->guardado = true;
-        $this->nombreArchivo = $nombreNuevo;
-        $this->tamanoArchivo = $this->formatoTamano(Storage::disk('public')->size($rutaFinal));
-        $this->mensaje = 'Archivo guardado correctamente.';
+        $alumno = Inscripcion::findOrFail($this->inscripcionId);
+        app(DocumentoIdentidadService::class)->eliminarActual($alumno, $this->tipo, auth()->id());
 
         $this->reset('archivo');
+        $this->requiereConfirmacion = false;
+        $this->mensaje = 'El documento se retiró del expediente. El historial permanece disponible para auditoría.';
+        $this->cargarEstado(false);
 
-        $evento = 'archivo-guardado-' . Str::slug($this->wireId, '_');
-        $this->dispatch($evento, nombre: $this->nombreArchivo, tamano: $this->tamanoArchivo);
+        $this->dispatch('documento-identidad-actualizado', inscripcionId: $this->inscripcionId);
+        $this->dispatch('swal', title: 'Documento retirado', icon: 'success', position: 'top');
     }
 
-
-    public function cargarArchivoGuardado()
+    protected function validarArchivo(): void
     {
-        if (!$this->estudiante && $this->inscripcionId) {
-            $this->estudiante = Inscripcion::find($this->inscripcionId);
-        }
+        $max = (int) config('documentos_identidad.max_kb', 10240);
+        $extensiones = implode(',', (array) config('documentos_identidad.allowed_extensions', ['pdf', 'jpg', 'jpeg', 'png']));
 
-        $columna = $this->getColumna();
-        $nombre = $columna ? ($this->estudiante?->$columna ?: null) : null;
-
-        if ($nombre) {
-            $ruta = $this->rutaGuardado . '/' . $nombre;
-
-            if (Storage::exists($ruta)) {
-                $this->archivoGuardadoUrl = Storage::url($ruta);
-                $this->guardado = true;
-                $this->nombreArchivo = $nombre;
-                $this->tamanoArchivo = $this->formatoTamano(Storage::size($ruta));
-            } else {
-                $this->archivoGuardadoUrl = null;
-                $this->guardado = false;
-                $this->nombreArchivo = '';
-                $this->tamanoArchivo = '';
-            }
-        } else {
-            $this->archivoGuardadoUrl = null;
-            $this->guardado = false;
-            $this->nombreArchivo = '';
-            $this->tamanoArchivo = '';
-        }
-
-        $this->mensaje = null;
+        $this->validate([
+            'archivo' => "required|file|mimes:{$extensiones}|max:{$max}",
+        ], [
+            'archivo.required' => 'Selecciona un archivo.',
+            'archivo.file' => 'El archivo seleccionado no es válido.',
+            'archivo.mimes' => 'Solo se aceptan archivos PDF, JPG y PNG.',
+            'archivo.max' => "El archivo no debe superar {$this->maxMb} MB.",
+        ]);
     }
 
-    public function eliminarArchivo()
+    protected function cargarEstado(bool $limpiarMensaje = true): void
     {
-        if (!$this->estudiante || !$this->rutaGuardado) return;
+        $service = app(DocumentoIdentidadService::class);
+        $documento = $service->actual($this->inscripcionId, $this->tipo);
+        $disk = $service->disk();
 
-        $columna = $this->getColumna();
-        if (!$columna) return;
-
-        // ✅ Yo borro usando el nombre REAL guardado en BD
-        $nombre = $this->estudiante->$columna;
-
-        if (!empty($nombre)) {
-            $ruta = $this->rutaGuardado . '/' . $nombre;
-
-            if (Storage::disk('public')->exists($ruta)) {
-                Storage::disk('public')->delete($ruta);
-            }
-        }
-
-        // ✅ Yo limpio BD
-        $this->estudiante->$columna = null;
-        $this->estudiante->save();
-        $this->estudiante->refresh();
-
-        // ✅ Yo limpio UI
+        $this->guardado = false;
+        $this->inconsistente = false;
+        $this->documentoId = null;
         $this->archivoGuardadoUrl = null;
+        $this->archivoDescargaUrl = null;
         $this->nombreArchivo = '';
         $this->tamanoArchivo = '';
-        $this->guardado = false;
-        $this->mensaje = null;
 
-        $this->dispatch('swal', title: '¡Archivo eliminado correctamente!', icon: 'success', position: 'top');
-
-        $evento = 'archivo-eliminado-' . Str::slug($this->wireId, '_');
-        $this->dispatch($evento);
-    }
-
-
-    /**
-     * Columna de `inscripciones` a partir del wireId, normalizando el case.
-     */
-    protected function getColumna(): ?string
-    {
-        // mapa en minúsculas → nombre real de columna
-        $map = [
-            'curp_documento'      => 'CURP_documento',
-            'acta_nacimiento'     => 'acta_nacimiento',
-            'certificado_estudios' => 'certificado_estudios',
-            'comprobante_domicilio' => 'comprobante_domicilio',
-            'certificado_medico'  => 'certificado_medico',
-            'ine'                  => 'ine',
-        ];
-
-        $id = Str::slug((string)$this->wireId, '_'); // p.ej. CURP_documento → curp_documento
-        return $map[$id] ?? null;
-    }
-
-    public function generarNombrePersonalizado()
-    {
-        if (!$this->estudiante && $this->inscripcionId) {
-            $this->estudiante = Inscripcion::find($this->inscripcionId);
+        if ($documento) {
+            if (Storage::disk($disk)->exists($documento->ruta)) {
+                $this->guardado = true;
+                $this->documentoId = $documento->id;
+                $this->archivoGuardadoUrl = route('admin.documentos-identidad.ver', $documento);
+                $this->archivoDescargaUrl = route('admin.documentos-identidad.descargar', $documento);
+                $this->nombreArchivo = $documento->nombre_original;
+                $this->tamanoArchivo = $this->formatoTamano($documento->tamano);
+            } else {
+                $this->inconsistente = true;
+            }
         }
 
-        if (!$this->estudiante) {
-            return uniqid('archivo_', true) . '.pdf';
+        $this->historial = DocumentoIdentidad::query()
+            ->where('inscripcion_id', $this->inscripcionId)
+            ->where('tipo', $this->tipo)
+            ->orderByDesc('version')
+            ->limit(8)
+            ->get()
+            ->map(function (DocumentoIdentidad $item) use ($disk): array {
+                $existe = Storage::disk($disk)->exists($item->ruta);
+
+                return [
+                    'id' => $item->id,
+                    'version' => $item->version,
+                    'estado' => $item->estado,
+                    'nombre' => $item->nombre_original,
+                    'tamano' => $this->formatoTamano($item->tamano),
+                    'fecha' => optional($item->created_at)->format('d/m/Y H:i'),
+                    'usuario' => $item->usuario?->name ?? 'Sistema',
+                    'url' => $existe ? route('admin.documentos-identidad.ver', $item) : null,
+                ];
+            })
+            ->toArray();
+
+        if ($limpiarMensaje) {
+            $this->mensaje = '';
         }
-
-        $matricula = preg_replace('/[^A-Za-z0-9]/', '', $this->estudiante->matricula ?? 'sinmatricula');
-        $curp = preg_replace('/[^A-Za-z0-9]/', '', $this->estudiante->CURP ?? 'sincurp');
-        $label = preg_replace('/[^A-Za-z0-9]/', '', $this->label ?? 'documento');
-
-        return strtoupper("{$label}_{$matricula}_{$curp}.pdf");
     }
 
-    public function formatoTamano($bytes)
+    protected function formatoTamano(int $bytes): string
     {
-        $kb = $bytes / 1024;
-        return number_format($kb, 1) . ' KB';
+        if ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2) . ' MB';
+        }
+
+        return number_format($bytes / 1024, 1) . ' KB';
     }
 
     public function render()
