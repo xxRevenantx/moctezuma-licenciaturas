@@ -74,9 +74,9 @@
         <div class="flex-1">
             <p class="text-sm text-white/90">Profesores Activos</p>
             <p class="text-3xl font-extrabold text-white leading-tight drop-shadow-sm">
-                {{ count($profesoresActivos) }}
+                {{ $profesoresActivos }}
             </p>
-            <p class="mt-1 text-xs font-medium text-white/80">Increased by 40%</p>
+            <p class="mt-1 text-xs font-medium text-white/80">Docentes con cuenta activa</p>
         </div>
     </div>
 </div>
@@ -356,72 +356,322 @@
     <livewire:admin.progreso.panel-progreso-calificaciones />
 
 
-    {{-- 5) GRÁFICA (Chart.js) --}}
-    <div
-        x-data
-        x-init="$nextTick(() => renderGraficaAlumnos())"
-        class="bg-white rounded-2xl p-6 shadow border border-neutral-200 dark:bg-neutral-800 dark:border-neutral-700 mt-2"
-    >
-        <h2 class="text-xl sm:text-2xl font-bold mb-4 text-neutral-800 dark:text-white">
-            Comparativa por Licenciatura (Locales y Foráneos)
-        </h2>
-        <div class="relative h-[360px] sm:h-[420px] lg:h-[520px]">
-            <canvas id="graficaAlumnos" class="!w-full !h-full"></canvas>
-        </div>
-    </div>
+    {{-- 5) GRÁFICAS CON APEXCHARTS --}}
+    <section class="grid gap-4 xl:grid-cols-3">
+        <article class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-800 sm:p-6 xl:col-span-2">
+            <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-300">
+                        Matrícula activa
+                    </p>
+                    <h2 class="mt-1 text-xl font-bold text-neutral-900 dark:text-white sm:text-2xl">
+                        Alumnos activos por licenciatura
+                    </h2>
+                    <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                        Comparación por procedencia y sexo, considerando únicamente generaciones activas.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <span class="rounded-full bg-sky-50 px-3 py-1.5 font-semibold text-sky-700 dark:bg-sky-950/50 dark:text-sky-200">
+                        {{ $chartData['totales']['activos'] ?? 0 }} activos
+                    </span>
+                    <span class="rounded-full bg-neutral-100 px-3 py-1.5 font-semibold text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">
+                        {{ $chartData['totales']['hombresActivos'] ?? 0 }} H · {{ $chartData['totales']['mujeresActivas'] ?? 0 }} M
+                    </span>
+                </div>
+            </div>
+
+            <div wire:ignore id="dashboard-alumnos-activos-chart" class="min-h-[390px] w-full"></div>
+        </article>
+
+        <article class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-800 sm:p-6">
+            <div class="mb-3">
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+                    Estado general
+                </p>
+                <h2 class="mt-1 text-xl font-bold text-neutral-900 dark:text-white">
+                    Activos y bajas
+                </h2>
+                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                    Distribución total entre alumnado local y foráneo.
+                </p>
+            </div>
+
+            <div wire:ignore id="dashboard-estado-general-chart" class="min-h-[330px] w-full"></div>
+
+            <div class="mt-3 grid grid-cols-2 gap-3">
+                <div class="rounded-xl bg-emerald-50 p-3 dark:bg-emerald-950/40">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Activos</p>
+                    <p class="mt-1 text-2xl font-extrabold text-emerald-900 dark:text-emerald-100">
+                        {{ $chartData['totales']['activos'] ?? 0 }}
+                    </p>
+                </div>
+                <div class="rounded-xl bg-red-50 p-3 dark:bg-red-950/40">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-red-700 dark:text-red-300">Bajas</p>
+                    <p class="mt-1 text-2xl font-extrabold text-red-900 dark:text-red-100">
+                        {{ $chartData['totales']['bajas'] ?? 0 }}
+                    </p>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    @assets
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts@6.5.0/dist/apexcharts.min.js"></script>
+    @endassets
+
+    @script
+        <script>
+            (() => {
+                const chartData = @js($chartData);
+                const isDark = document.documentElement.classList.contains('dark');
+                const textColor = isDark ? '#e5e7eb' : '#374151';
+                const mutedColor = isDark ? '#9ca3af' : '#6b7280';
+                const gridColor = isDark ? '#374151' : '#e5e7eb';
+
+                window.moctezumaDashboardCharts ??= {};
+
+                Object.values(window.moctezumaDashboardCharts).forEach((chart) => {
+                    if (chart && typeof chart.destroy === 'function') {
+                        chart.destroy();
+                    }
+                });
+
+                window.moctezumaDashboardCharts = {};
+
+                const activeElement = document.querySelector('#dashboard-alumnos-activos-chart');
+                const statusElement = document.querySelector('#dashboard-estado-general-chart');
+
+                if (!window.ApexCharts) {
+                    [activeElement, statusElement].filter(Boolean).forEach((element) => {
+                        element.innerHTML = '<div class="flex min-h-[260px] items-center justify-center text-sm text-neutral-500">No fue posible cargar las gráficas.</div>';
+                    });
+                    return;
+                }
+
+                if (activeElement) {
+                    const activeChart = new ApexCharts(activeElement, {
+                        chart: {
+                            type: 'bar',
+                            height: 410,
+                            stacked: true,
+                            fontFamily: 'Nunito, sans-serif',
+                            foreColor: textColor,
+                            toolbar: {
+                                show: true,
+                                tools: {
+                                    download: true,
+                                    selection: false,
+                                    zoom: false,
+                                    zoomin: false,
+                                    zoomout: false,
+                                    pan: false,
+                                    reset: false,
+                                },
+                            },
+                            animations: {
+                                enabled: true,
+                                speed: 450,
+                            },
+                        },
+                        series: chartData.alumnosActivos ?? [],
+                        colors: ['#006492', '#38bdf8', '#88AC2E', '#bef264'],
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 5,
+                                borderRadiusApplication: 'end',
+                                columnWidth: '62%',
+                            },
+                        },
+                        dataLabels: {
+                            enabled: false,
+                        },
+                        stroke: {
+                            show: true,
+                            width: 1,
+                            colors: ['transparent'],
+                        },
+                        xaxis: {
+                            categories: chartData.categorias ?? [],
+                            labels: {
+                                rotate: -25,
+                                trim: true,
+                                style: {
+                                    colors: mutedColor,
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                },
+                            },
+                            axisBorder: {
+                                color: gridColor,
+                            },
+                            axisTicks: {
+                                color: gridColor,
+                            },
+                        },
+                        yaxis: {
+                            min: 0,
+                            forceNiceScale: true,
+                            labels: {
+                                formatter: (value) => Math.round(value),
+                                style: {
+                                    colors: mutedColor,
+                                },
+                            },
+                            title: {
+                                text: 'Número de alumnos',
+                                style: {
+                                    color: mutedColor,
+                                    fontWeight: 700,
+                                },
+                            },
+                        },
+                        grid: {
+                            borderColor: gridColor,
+                            strokeDashArray: 4,
+                        },
+                        legend: {
+                            position: 'bottom',
+                            horizontalAlign: 'center',
+                            fontSize: '12px',
+                            labels: {
+                                colors: textColor,
+                            },
+                            markers: {
+                                size: 6,
+                            },
+                            itemMargin: {
+                                horizontal: 10,
+                                vertical: 5,
+                            },
+                        },
+                        tooltip: {
+                            shared: true,
+                            intersect: false,
+                            theme: isDark ? 'dark' : 'light',
+                            y: {
+                                formatter: (value) => `${value} alumno${value === 1 ? '' : 's'}`,
+                            },
+                        },
+                        noData: {
+                            text: 'No hay alumnos registrados para mostrar.',
+                            align: 'center',
+                            verticalAlign: 'middle',
+                            style: {
+                                color: mutedColor,
+                            },
+                        },
+                        responsive: [{
+                            breakpoint: 640,
+                            options: {
+                                chart: {
+                                    height: 450,
+                                },
+                                plotOptions: {
+                                    bar: {
+                                        columnWidth: '76%',
+                                    },
+                                },
+                                xaxis: {
+                                    labels: {
+                                        rotate: -45,
+                                    },
+                                },
+                            },
+                        }],
+                    });
+
+                    activeChart.render();
+                    window.moctezumaDashboardCharts.active = activeChart;
+                }
+
+                if (statusElement) {
+                    const originalSeries = chartData.estadoGeneral?.series ?? [];
+                    const hasData = originalSeries.some((value) => Number(value) > 0);
+                    const statusSeries = hasData ? originalSeries : [1];
+                    const statusLabels = hasData
+                        ? (chartData.estadoGeneral?.labels ?? [])
+                        : ['Sin registros'];
+
+                    const statusChart = new ApexCharts(statusElement, {
+                        chart: {
+                            type: 'donut',
+                            height: 340,
+                            fontFamily: 'Nunito, sans-serif',
+                            foreColor: textColor,
+                            toolbar: {
+                                show: false,
+                            },
+                        },
+                        series: statusSeries,
+                        labels: statusLabels,
+                        colors: hasData
+                            ? ['#006492', '#88AC2E', '#ef4444', '#f59e0b']
+                            : ['#d1d5db'],
+                        stroke: {
+                            width: 3,
+                            colors: [isDark ? '#262626' : '#ffffff'],
+                        },
+                        dataLabels: {
+                            enabled: hasData,
+                            formatter: (value) => `${Math.round(value)}%`,
+                        },
+                        legend: {
+                            position: 'bottom',
+                            fontSize: '12px',
+                            labels: {
+                                colors: textColor,
+                            },
+                            markers: {
+                                size: 6,
+                            },
+                        },
+                        tooltip: {
+                            enabled: hasData,
+                            theme: isDark ? 'dark' : 'light',
+                            y: {
+                                formatter: (value) => `${value} alumno${value === 1 ? '' : 's'}`,
+                            },
+                        },
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '68%',
+                                    labels: {
+                                        show: true,
+                                        name: {
+                                            show: true,
+                                            color: mutedColor,
+                                        },
+                                        value: {
+                                            show: true,
+                                            color: textColor,
+                                            fontSize: '28px',
+                                            fontWeight: 800,
+                                            formatter: (value) => hasData ? value : '0',
+                                        },
+                                        total: {
+                                            show: true,
+                                            label: 'Total',
+                                            color: mutedColor,
+                                            formatter: () => hasData
+                                                ? originalSeries.reduce((total, value) => total + Number(value || 0), 0)
+                                                : 0,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    });
+
+                    statusChart.render();
+                    window.moctezumaDashboardCharts.status = statusChart;
+                }
+            })();
+        </script>
+    @endscript
 
     {{-- Toast Message --}}
     @include('components.toast-message')
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        function renderGraficaAlumnos() {
-            const ctx = document.getElementById('graficaAlumnos');
-            if (!ctx) return;
-
-            if (window.graficaAlumnosInstance) {
-                window.graficaAlumnosInstance.destroy();
-            }
-
-            const labels = @js($licenciaturas->pluck('nombre'));
-            const dataHombresLocales         = @js(collect($resumenPorLicenciatura)->pluck('hombres'));
-            const dataMujeresLocales         = @js(collect($resumenPorLicenciatura)->pluck('mujeres'));
-            const dataHombresBajasLocales    = @js(collect($resumenPorLicenciaturaBaja)->pluck('hombres'));
-            const dataMujeresBajasLocales    = @js(collect($resumenPorLicenciaturaBaja)->pluck('mujeres'));
-            const dataHombresForaneos        = @js(collect($resumenPorLicenciaturaForaneo)->pluck('hombres'));
-            const dataMujeresForaneos        = @js(collect($resumenPorLicenciaturaForaneo)->pluck('mujeres'));
-            const dataHombresBajasForaneos   = @js(collect($resumenPorLicenciaturaBajaForaneo)->pluck('hombres'));
-            const dataMujeresBajasForaneos   = @js(collect($resumenPorLicenciaturaBajaForaneo)->pluck('mujeres'));
-
-            window.graficaAlumnosInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        { label: 'Locales Activos Hombres', data: dataHombresLocales,      backgroundColor: '#3B82F6' },
-                        { label: 'Locales Activos Mujeres', data: dataMujeresLocales,      backgroundColor: '#60A5FA' },
-                        { label: 'Locales Bajas Hombres',   data: dataHombresBajasLocales, backgroundColor: '#F87171' },
-                        { label: 'Locales Bajas Mujeres',   data: dataMujeresBajasLocales, backgroundColor: '#FCA5A5' },
-                        { label: 'Foráneos Activos Hombres',data: dataHombresForaneos,     backgroundColor: '#10B981' },
-                        { label: 'Foráneos Activos Mujeres',data: dataMujeresForaneos,     backgroundColor: '#6EE7B7' },
-                        { label: 'Foráneos Bajas Hombres',  data: dataHombresBajasForaneos,backgroundColor: '#F59E0B' },
-                        { label: 'Foráneos Bajas Mujeres',  data: dataMujeresBajasForaneos,backgroundColor: '#FCD34D' },
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } },
-                        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y ?? 0}` } }
-                    },
-                    scales: {
-                        x: { stacked: true, ticks: { maxRotation: 0, autoSkip: true } },
-                        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
-                    }
-                }
-            });
-        }
-    </script>
 </div>

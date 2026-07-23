@@ -2,329 +2,240 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\Dashboard as ModelsDashboard;
-use Livewire\Component;
 use App\Helpers\Flash;
+use App\Models\Dashboard as ModelsDashboard;
 use App\Models\Generacion;
 use App\Models\Inscripcion;
+use App\Models\Licenciatura;
 use App\Models\Profesor;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
 class Dashboard extends Component
 {
-    public $ciclo_escolar;
-    public $periodo_escolar;
+    public string $ciclo_escolar = '';
+    public string $periodo_escolar = '';
 
     public $licenciaturas;
-
-    public $resumenPorLicenciatura = [];
-    public $resumenPorLicenciaturaBaja = [];
-
-    public $totalLocalesActivos;
-    public $totalHombresLocalesActivos;
-    public $totalMujeresLocalesActivos;
-
-
-    public $totalLocalesBaja;
-    public $totalHombresLocalesBaja;
-    public $totalMujeresLocalesBaja;
-
-
-    public $resumenPorLicenciaturaForaneo = [];
-    public $resumenPorLicenciaturaBajaForaneo = [];
-
-    public $totalForaneosActivos;
-    public $totalHombresForaneosActivos;
-    public $totalMujeresForaneosActivos;
-
-
-    public $totalForaneosBaja;
-    public $totalHombresForaneosBaja;
-    public $totalMujeresForaneosBaja;
-
     public $generacionesActivas;
-    public $profesoresActivos;
 
+    public int $profesoresActivos = 0;
 
+    public array $resumenPorLicenciatura = [];
+    public array $resumenPorLicenciaturaBaja = [];
+    public array $resumenPorLicenciaturaForaneo = [];
+    public array $resumenPorLicenciaturaBajaForaneo = [];
 
-    public function guardarDatos()
+    public int $totalLocalesActivos = 0;
+    public int $totalHombresLocalesActivos = 0;
+    public int $totalMujeresLocalesActivos = 0;
+
+    public int $totalLocalesBaja = 0;
+    public int $totalHombresLocalesBaja = 0;
+    public int $totalMujeresLocalesBaja = 0;
+
+    public int $totalForaneosActivos = 0;
+    public int $totalHombresForaneosActivos = 0;
+    public int $totalMujeresForaneosActivos = 0;
+
+    public int $totalForaneosBaja = 0;
+    public int $totalHombresForaneosBaja = 0;
+    public int $totalMujeresForaneosBaja = 0;
+
+    /**
+     * Información lista para ApexCharts. Se mantiene separada de la vista para
+     * evitar consultas y transformaciones dentro de Blade.
+     */
+    public array $chartData = [];
+
+    public function mount(): void
     {
-        $this->validate([
-            'ciclo_escolar' => 'required',
-            'periodo_escolar' => 'required',
+        $dashboard = ModelsDashboard::query()->latest('id')->first();
+
+        $this->ciclo_escolar = $dashboard?->ciclo_escolar ?? '';
+        $this->periodo_escolar = $dashboard?->periodo_escolar ?? '';
+
+        $this->cargarIndicadores();
+    }
+
+    public function guardarDatos(): void
+    {
+        $datos = $this->validate([
+            'ciclo_escolar' => ['required', 'string', 'max:50'],
+            'periodo_escolar' => ['required', 'string', 'max:100'],
         ]);
 
-        // Siempre usa el registro con ID = 1 o crea uno nuevo si no existe
-        ModelsDashboard::create(
-            [
-                'ciclo_escolar' => trim($this->ciclo_escolar),
-                'periodo_escolar' => trim($this->periodo_escolar)
-            ]
-        );
-
+        ModelsDashboard::query()->create([
+            'ciclo_escolar' => trim($datos['ciclo_escolar']),
+            'periodo_escolar' => trim($datos['periodo_escolar']),
+        ]);
 
         Flash::success('Datos guardados correctamente');
-        $this->dispatch("refreshHeader");
+        $this->dispatch('refreshHeader');
     }
 
-    public function mount()
+    private function cargarIndicadores(): void
     {
-        $dashboard = ModelsDashboard::latest('id')->first(); // Obtenemos el último registro por ID
-        $this->ciclo_escolar = $dashboard->ciclo_escolar ?? '';
-        $this->periodo_escolar = $dashboard->periodo_escolar ?? '';
+        $this->licenciaturas = Licenciatura::query()
+            ->select(['id', 'nombre', 'nombre_corto'])
+            ->orderBy('nombre')
+            ->get();
 
-        $this->licenciaturas = \App\Models\Licenciatura::all() ?? '';
+        $this->generacionesActivas = Generacion::query()
+            ->select(['id', 'generacion'])
+            ->where('activa', 'true')
+            ->orderBy('generacion')
+            ->get();
 
-        $this->generacionesActivas = Generacion::where('activa', 'true')->get();
-
-        $this->profesoresActivos = Profesor::whereHas('user', function ($query) {
-            $query->where('status', 'true');
-        })->get();
-
-        $this->resumenPorLicenciatura = $this->licenciaturas->map(function ($licenciatura) {
-
-            $hombres = Inscripcion::where('licenciatura_id', $licenciatura->id)
-                ->where('foraneo', "false")
-                ->where('status', "true")
-                ->where('sexo', 'H')
-                ->get()
-                ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-                ->count();
-
-            $mujeres = Inscripcion::where('licenciatura_id', $licenciatura->id)
-                ->where('foraneo', "false")
-                ->where('status', "true")
-                ->where('sexo', 'M')
-                ->get()
-                ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-                ->count();
-
-            return [
-                'licenciatura' => $licenciatura->nombre,
-                'hombres' => $hombres,
-                'mujeres' => $mujeres,
-                'total' => $hombres + $mujeres
-            ];
-        });
-
-        $this->totalLocalesActivos = Inscripcion::where('foraneo', "false")
-            ->where('status', "true")
-            ->get()
-            ->filter(function ($inscripcion) {
-            return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-            })
+        $this->profesoresActivos = Profesor::query()
+            ->whereHas('user', fn ($query) => $query->where('status', 'true'))
             ->count();
 
-        $this->totalHombresLocalesActivos = Inscripcion::where('foraneo', "false")
-            ->where('status', "true")
-            ->where('sexo', 'H')
+        $conteos = Inscripcion::query()
+            ->select([
+                'licenciatura_id',
+                'foraneo',
+                'status',
+                'sexo',
+                DB::raw('COUNT(*) AS total'),
+            ])
+            ->whereHas('generacion', fn ($query) => $query->where('activa', 'true'))
+            ->groupBy('licenciatura_id', 'foraneo', 'status', 'sexo')
             ->get()
-            ->filter(function ($inscripcion) {
-            return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-            })
-            ->count();
+            ->mapWithKeys(function ($fila) {
+                $llave = $this->llaveConteo(
+                    (int) $fila->licenciatura_id,
+                    (string) $fila->foraneo,
+                    (string) $fila->status,
+                    (string) $fila->sexo,
+                );
 
-        $this->totalMujeresLocalesActivos = Inscripcion::where('foraneo', "false")
-            ->where('status', "true")
-            ->where('sexo', 'M')
-            ->get()
-            ->filter(function ($inscripcion) {
-            return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-            })
-            ->count();
-
-
-        $this->resumenPorLicenciaturaBaja = $this->licenciaturas->map(function ($licenciatura) {
-
-            $hombres = Inscripcion::where('licenciatura_id', $licenciatura->id)
-                ->where('foraneo', "false")
-                ->where('status', "false")
-                ->where('sexo', 'H')
-                ->get()
-                ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-                ->count();
-
-            $mujeres = Inscripcion::where('licenciatura_id', $licenciatura->id)
-                ->where('foraneo', "false")
-                ->where('status', "false")
-                ->where('sexo', 'M')
-                ->get()
-                ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-                ->count();
-
-                return [
-                    'licenciatura' => $licenciatura->nombre,
-                    'hombres' => $hombres,
-                    'mujeres' => $mujeres,
-                    'total' => $hombres + $mujeres
-                ];
+                return [$llave => (int) $fila->total];
             });
 
+        $this->resumenPorLicenciatura = $this->crearResumen($conteos, 'false', 'true');
+        $this->resumenPorLicenciaturaBaja = $this->crearResumen($conteos, 'false', 'false');
+        $this->resumenPorLicenciaturaForaneo = $this->crearResumen($conteos, 'true', 'true');
+        $this->resumenPorLicenciaturaBajaForaneo = $this->crearResumen($conteos, 'true', 'false');
 
-        $this->totalLocalesBaja = Inscripcion::where('foraneo', "false")
-            ->where('status', "false")
-            ->get()
-            ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-            ->count();
-
-        $this->totalHombresLocalesBaja = Inscripcion::where('foraneo', "false")
-            ->where('status', "false")
-            ->where('sexo', 'H')
-            ->get()
-            ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-            ->count();
-
-        $this->totalMujeresLocalesBaja = Inscripcion::where('foraneo', "false")
-        ->where('status', "false")
-        ->where('sexo', 'M')
-        ->get()
-        ->filter(function ($inscripcion) {
-                return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-            })
-        ->count();
-
-
-
-
-
-
-
-
-
-        $this->alumnosForeaneos();
-
+        $this->asignarTotales();
+        $this->prepararGraficas();
     }
 
-
-    public function alumnosForeaneos(){
-         $this->resumenPorLicenciaturaForaneo = $this->licenciaturas->map(function ($licenciatura) {
-
-            $hombres = Inscripcion::where('licenciatura_id', $licenciatura->id)
-                ->where('foraneo', "true")
-                ->where('status', "true")
-                ->where('sexo', 'H')
-                ->get()
-                ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-                ->count();
-
-            $mujeres = Inscripcion::where('licenciatura_id', $licenciatura->id)
-                ->where('foraneo', "true")
-                ->where('status', "true")
-                ->where('sexo', 'M')
-                ->get()
-                ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-                ->count();
-
-            return [
-                'licenciatura' => $licenciatura->nombre,
-                'hombres' => $hombres,
-                'mujeres' => $mujeres,
-                'total' => $hombres + $mujeres
-            ];
-        });
-
-        $this->totalForaneosActivos = Inscripcion::where('foraneo', "true")
-            ->where('status', "true")
-            ->get()
-            ->filter(function ($inscripcion) {
-            return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-            })
-            ->count();
-
-        $this->totalHombresForaneosActivos = Inscripcion::where('foraneo', "true")
-            ->where('status', "true")
-            ->where('sexo', 'H')
-            ->get()
-            ->filter(function ($inscripcion) {
-            return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-            })
-            ->count();
-
-        $this->totalMujeresForaneosActivos = Inscripcion::where('foraneo', "true")
-            ->where('status', "true")
-            ->where('sexo', 'M')
-            ->get()
-            ->filter(function ($inscripcion) {
-            return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-            })
-            ->count();
-
-
-        $this->resumenPorLicenciaturaBajaForaneo = $this->licenciaturas->map(function ($licenciatura) {
-
-            $hombres = Inscripcion::where('licenciatura_id', $licenciatura->id)
-                ->where('foraneo', "true")
-                ->where('status', "false")
-                ->where('sexo', 'H')
-                ->get()
-                ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-                ->count();
-
-            $mujeres = Inscripcion::where('licenciatura_id', $licenciatura->id)
-                ->where('foraneo', "true")
-                ->where('status', "false")
-                ->where('sexo', 'M')
-                ->get()
-                ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-                ->count();
+    private function crearResumen(Collection $conteos, string $foraneo, string $status): array
+    {
+        return $this->licenciaturas
+            ->map(function (Licenciatura $licenciatura) use ($conteos, $foraneo, $status) {
+                $hombres = $this->obtenerConteo($conteos, $licenciatura->id, $foraneo, $status, 'H');
+                $mujeres = $this->obtenerConteo($conteos, $licenciatura->id, $foraneo, $status, 'M');
 
                 return [
+                    'licenciatura_id' => $licenciatura->id,
                     'licenciatura' => $licenciatura->nombre,
+                    'nombre_corto' => $licenciatura->nombre_corto ?: $licenciatura->nombre,
                     'hombres' => $hombres,
                     'mujeres' => $mujeres,
-                    'total' => $hombres + $mujeres
+                    'total' => $hombres + $mujeres,
                 ];
-            });
-
-
-        $this->totalForaneosBaja = Inscripcion::where('foraneo', "true")
-            ->where('status', "false")
-            ->get()
-            ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-            ->count();
-
-        $this->totalHombresForaneosBaja = Inscripcion::where('foraneo', "true")
-            ->where('status', "false")
-            ->where('sexo', 'H')
-            ->get()
-            ->filter(function ($inscripcion) {
-                    return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
-                })
-            ->count();
-
-        $this->totalMujeresForaneosBaja = Inscripcion::where('foraneo', "true")
-            ->where('status', "false")
-            ->where('sexo', 'M')
-            ->get()
-            ->filter(function ($inscripcion) {
-                return $inscripcion->generacion && $inscripcion->generacion->activa == "true";
             })
-            ->count();
-
+            ->values()
+            ->all();
     }
 
+    private function asignarTotales(): void
+    {
+        [$this->totalHombresLocalesActivos, $this->totalMujeresLocalesActivos, $this->totalLocalesActivos]
+            = $this->totalesDe($this->resumenPorLicenciatura);
 
+        [$this->totalHombresLocalesBaja, $this->totalMujeresLocalesBaja, $this->totalLocalesBaja]
+            = $this->totalesDe($this->resumenPorLicenciaturaBaja);
+
+        [$this->totalHombresForaneosActivos, $this->totalMujeresForaneosActivos, $this->totalForaneosActivos]
+            = $this->totalesDe($this->resumenPorLicenciaturaForaneo);
+
+        [$this->totalHombresForaneosBaja, $this->totalMujeresForaneosBaja, $this->totalForaneosBaja]
+            = $this->totalesDe($this->resumenPorLicenciaturaBajaForaneo);
+    }
+
+    private function totalesDe(array $resumen): array
+    {
+        $coleccion = collect($resumen);
+        $hombres = (int) $coleccion->sum('hombres');
+        $mujeres = (int) $coleccion->sum('mujeres');
+
+        return [$hombres, $mujeres, $hombres + $mujeres];
+    }
+
+    private function prepararGraficas(): void
+    {
+        $this->chartData = [
+            'categorias' => collect($this->resumenPorLicenciatura)
+                ->pluck('nombre_corto')
+                ->values()
+                ->all(),
+            'alumnosActivos' => [
+                [
+                    'name' => 'Locales · hombres',
+                    'data' => collect($this->resumenPorLicenciatura)->pluck('hombres')->values()->all(),
+                ],
+                [
+                    'name' => 'Locales · mujeres',
+                    'data' => collect($this->resumenPorLicenciatura)->pluck('mujeres')->values()->all(),
+                ],
+                [
+                    'name' => 'Foráneos · hombres',
+                    'data' => collect($this->resumenPorLicenciaturaForaneo)->pluck('hombres')->values()->all(),
+                ],
+                [
+                    'name' => 'Foráneos · mujeres',
+                    'data' => collect($this->resumenPorLicenciaturaForaneo)->pluck('mujeres')->values()->all(),
+                ],
+            ],
+            'estadoGeneral' => [
+                'labels' => [
+                    'Locales activos',
+                    'Foráneos activos',
+                    'Locales dados de baja',
+                    'Foráneos dados de baja',
+                ],
+                'series' => [
+                    $this->totalLocalesActivos,
+                    $this->totalForaneosActivos,
+                    $this->totalLocalesBaja,
+                    $this->totalForaneosBaja,
+                ],
+            ],
+            'totales' => [
+                'activos' => $this->totalLocalesActivos + $this->totalForaneosActivos,
+                'bajas' => $this->totalLocalesBaja + $this->totalForaneosBaja,
+                'hombresActivos' => $this->totalHombresLocalesActivos + $this->totalHombresForaneosActivos,
+                'mujeresActivas' => $this->totalMujeresLocalesActivos + $this->totalMujeresForaneosActivos,
+            ],
+        ];
+    }
+
+    private function obtenerConteo(
+        Collection $conteos,
+        int $licenciaturaId,
+        string $foraneo,
+        string $status,
+        string $sexo,
+    ): int {
+        return (int) $conteos->get(
+            $this->llaveConteo($licenciaturaId, $foraneo, $status, $sexo),
+            0,
+        );
+    }
+
+    private function llaveConteo(
+        int $licenciaturaId,
+        string $foraneo,
+        string $status,
+        string $sexo,
+    ): string {
+        return implode('|', [$licenciaturaId, $foraneo, $status, $sexo]);
+    }
 
     public function render()
     {
