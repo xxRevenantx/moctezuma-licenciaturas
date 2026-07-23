@@ -144,5 +144,15 @@ class Inscripcion extends Model
         return $this->hasMany(DocumentoIdentidad::class)->actual();
     }
 
+    public function fuentesDocumentosIdentidad()
+    {
+        return $this->hasMany(DocumentoIdentidadFuente::class);
+    }
+
+    public function organizacionesDocumentosIdentidad()
+    {
+        return $this->hasMany(OrganizacionDocumentoIdentidad::class);
+    }
+
 
 }

@@ -25,8 +25,11 @@
                         <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $obligatorio ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' : 'bg-slate-100 text-slate-600 dark:bg-neutral-800 dark:text-neutral-300' }}">
                             {{ $obligatorio ? 'Obligatorio' : 'Opcional' }}
                         </span>
+                        @if ($organizacionPendiente)
+                            <span class="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">Organización pendiente</span>
+                        @endif
                     </div>
-                    <p class="mt-1 text-xs text-slate-500 dark:text-neutral-400">PDF, JPG o PNG · máximo {{ $maxMb }} MB. Las imágenes se convierten automáticamente a PDF.</p>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-neutral-400">PDF, JPG o PNG · máximo {{ $maxMb }} MB. Puede contener una o varias páginas y documentos combinados.</p>
                 </div>
             </div>
 
@@ -42,11 +45,21 @@
         @if ($guardado)
             <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 dark:border-emerald-900/60 dark:bg-emerald-950/20">
                 <p class="truncate text-sm font-medium text-emerald-900 dark:text-emerald-100" title="{{ $nombreArchivo }}">{{ $nombreArchivo }}</p>
-                <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-300">{{ $tamanoArchivo }} · almacenado de forma privada</p>
+                <p class="mt-1 text-xs text-emerald-700 dark:text-emerald-300">
+                    {{ $tamanoArchivo }}
+                    @if ($paginasDocumento > 0) · {{ $paginasDocumento }} página(s) @endif
+                    · documento confirmado
+                </p>
             </div>
         @elseif ($inconsistente)
             <div class="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/20 dark:text-rose-200">
                 La base de datos tenía una referencia, pero el archivo físico no existe. Sube una nueva copia y ejecuta la auditoría documental.
+            </div>
+        @endif
+
+        @if ($organizacionPendiente)
+            <div class="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-800 dark:border-sky-900/60 dark:bg-sky-950/20 dark:text-sky-200">
+                Hay cambios guardados como borrador. El documento actual seguirá utilizándose hasta confirmar la organización de páginas.
             </div>
         @endif
 
@@ -55,22 +68,31 @@
                 @can('documentos-identidad.ver')
                     <button type="button" @click="visor = true" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        Ver
+                        Ver documento
                     </button>
                 @endcan
 
                 @can('documentos-identidad.descargar')
                     <a href="{{ $archivoDescargaUrl }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 10.5L12 15m0 0l4.5-4.5M12 15V3"/></svg>
-                        Descargar
+                        Descargar documento
                     </a>
                 @endcan
+            @endif
+
+            @if ($tieneFuentes)
+                @canany(['documentos-identidad.subir', 'documentos-identidad.reemplazar'])
+                    <button type="button" wire:click="abrirOrganizador" class="inline-flex items-center gap-2 rounded-xl border border-[#006492]/30 bg-[#006492]/5 px-3 py-2 text-sm font-semibold text-[#006492] transition hover:bg-[#006492]/10 dark:border-sky-800 dark:text-sky-300">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 6.75h15M4.5 12h15m-15 5.25h15"/></svg>
+                        Organizar páginas
+                    </button>
+                @endcanany
             @endif
 
             @can($guardado ? 'documentos-identidad.reemplazar' : 'documentos-identidad.subir')
                 <label class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#006492] px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-[#00547b]">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 16.5V3.75m0 0L7.5 8.25M12 3.75l4.5 4.5M3.75 15v3.75A2.25 2.25 0 006 21h12a2.25 2.25 0 002.25-2.25V15"/></svg>
-                    {{ $guardado ? 'Seleccionar reemplazo' : 'Subir documento' }}
+                    {{ $guardado ? 'Agregar o reemplazar' : 'Subir archivo' }}
                     <input wire:model="archivo" type="file" accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png" class="sr-only">
                 </label>
             @endcan
@@ -85,6 +107,25 @@
             @endif
         </div>
 
+        @if ($fuentesOriginales !== [])
+            <details class="mt-4 rounded-xl border border-slate-200 dark:border-neutral-700">
+                <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-slate-700 dark:text-neutral-200">Archivos originales utilizados ({{ count($fuentesOriginales) }})</summary>
+                <div class="space-y-2 border-t border-slate-200 p-3 dark:border-neutral-700">
+                    @foreach ($fuentesOriginales as $fuente)
+                        <div class="flex flex-col gap-2 rounded-lg bg-slate-50 p-3 text-xs dark:bg-neutral-800/60 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="min-w-0">
+                                <p class="truncate font-semibold text-slate-800 dark:text-neutral-100" title="{{ $fuente['nombre'] }}">{{ $fuente['nombre'] }}</p>
+                                <p class="mt-0.5 text-slate-500 dark:text-neutral-400">Páginas usadas: {{ implode(', ', $fuente['paginas']) }} de {{ $fuente['total_paginas'] }}</p>
+                            </div>
+                            @can('documentos-identidad.descargar')
+                                <a href="{{ $fuente['url'] }}" class="shrink-0 font-semibold text-[#006492] hover:underline dark:text-sky-300">Descargar original</a>
+                            @endcan
+                        </div>
+                    @endforeach
+                </div>
+            </details>
+        @endif
+
         <div x-show="subiendo" x-cloak class="mt-4">
             <div class="flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400"><span>Subiendo y validando…</span><span x-text="progreso + '%'">0%</span></div>
             <div class="mt-1 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-neutral-700"><div class="h-full rounded-full bg-[#006492] transition-all" :style="`width:${progreso}%`"></div></div>
@@ -92,10 +133,13 @@
 
         @if ($requiereConfirmacion)
             <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
-                <p class="text-sm font-semibold text-amber-900 dark:text-amber-100">Confirmar reemplazo</p>
-                <p class="mt-1 text-xs text-amber-800 dark:text-amber-200">El nuevo archivo se validará antes de cambiar el actual. La versión anterior permanecerá en el historial.</p>
+                <p class="text-sm font-semibold text-amber-900 dark:text-amber-100">¿Cómo deseas integrar el nuevo archivo?</p>
+                <p class="mt-1 text-xs text-amber-800 dark:text-amber-200">
+                    El archivo tiene {{ $archivoPaginas }} página(s). Puedes sustituir las páginas actuales de {{ $label }} o agregarlas al final. Los archivos anteriores permanecen como respaldo privado.
+                </p>
                 <div class="mt-3 flex flex-wrap gap-2">
-                    <button wire:click="guardarArchivo(true)" wire:loading.attr="disabled" wire:target="guardarArchivo" class="rounded-xl bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60">Reemplazar documento</button>
+                    <button wire:click="guardarArchivo('reemplazar')" wire:loading.attr="disabled" wire:target="guardarArchivo" class="rounded-xl bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60">Reemplazar documento</button>
+                    <button wire:click="guardarArchivo('agregar')" wire:loading.attr="disabled" wire:target="guardarArchivo" class="rounded-xl bg-[#006492] px-3.5 py-2 text-sm font-semibold text-white hover:bg-[#00547b] disabled:opacity-60">Agregar páginas</button>
                     <button wire:click="cancelarReemplazo" class="rounded-xl border border-amber-300 px-3.5 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-950/40">Cancelar</button>
                 </div>
             </div>
@@ -118,7 +162,10 @@
                             <div class="flex flex-col gap-2 rounded-lg bg-slate-50 p-3 text-xs dark:bg-neutral-800/60 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <p class="font-semibold text-slate-800 dark:text-neutral-100">Versión {{ $version['version'] }} · {{ ucfirst($version['estado']) }}</p>
-                                    <p class="mt-0.5 text-slate-500 dark:text-neutral-400">{{ $version['fecha'] }} · {{ $version['usuario'] }} · {{ $version['tamano'] }}</p>
+                                    <p class="mt-0.5 text-slate-500 dark:text-neutral-400">
+                                        {{ $version['fecha'] }} · {{ $version['usuario'] }} · {{ $version['tamano'] }}
+                                        @if ($version['paginas'] > 0) · {{ $version['paginas'] }} pág. @endif
+                                    </p>
                                 </div>
                                 @if ($version['url'])
                                     @can('documentos-identidad.ver')
@@ -135,7 +182,7 @@
         @endif
     </div>
 
-    <div wire:loading.flex wire:target="archivo,guardarArchivo,eliminarArchivo" class="absolute inset-0 z-20 items-center justify-center bg-white/75 backdrop-blur-sm dark:bg-neutral-900/75">
+    <div wire:loading.flex wire:target="archivo,guardarArchivo,eliminarArchivo,abrirOrganizador" class="absolute inset-0 z-20 items-center justify-center bg-white/75 backdrop-blur-sm dark:bg-neutral-900/75">
         <div class="flex items-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-lg ring-1 ring-slate-200 dark:bg-neutral-900 dark:text-neutral-200 dark:ring-neutral-700">
             <svg class="h-5 w-5 animate-spin text-[#006492]" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
             Procesando documento…
@@ -157,7 +204,7 @@
     <div x-cloak x-show="confirmarEliminacion" @keydown.escape.window="confirmarEliminacion = false" class="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm">
         <div @click.outside="confirmarEliminacion = false" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">¿Retirar {{ $label }}?</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-neutral-300">Dejará de contar como entregado. La versión se conservará en el historial de auditoría.</p>
+            <p class="mt-2 text-sm text-slate-600 dark:text-neutral-300">Dejará de contar como entregado. Las páginas pasarán a “Sin clasificar” y los archivos originales se conservarán para auditoría o una reorganización posterior.</p>
             <div class="mt-6 flex justify-end gap-2">
                 <button type="button" @click="confirmarEliminacion = false" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800">Cancelar</button>
                 <button type="button" @click="confirmarEliminacion = false; $wire.eliminarArchivo()" class="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700">Sí, retirar</button>

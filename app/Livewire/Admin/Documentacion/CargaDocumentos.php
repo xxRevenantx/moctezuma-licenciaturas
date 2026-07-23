@@ -8,6 +8,7 @@ use App\Services\DocumentosIdentidad\DocumentoIdentidadService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Throwable;
@@ -32,6 +33,10 @@ class CargaDocumentos extends Component
 
     public bool $requiereConfirmacion = false;
 
+    public bool $organizacionPendiente = false;
+
+    public bool $tieneFuentes = false;
+
     public ?int $documentoId = null;
 
     public ?string $archivoGuardadoUrl = null;
@@ -45,6 +50,12 @@ class CargaDocumentos extends Component
     public string $mensaje = '';
 
     public array $historial = [];
+
+    public array $fuentesOriginales = [];
+
+    public int $paginasDocumento = 0;
+
+    public int $archivoPaginas = 0;
 
     public int $maxMb = 10;
 
@@ -66,8 +77,19 @@ class CargaDocumentos extends Component
         $this->resetErrorBag('archivo');
         $this->mensaje = '';
         $this->requiereConfirmacion = false;
-
+        $this->archivoPaginas = 0;
         $this->validarArchivo();
+
+        try {
+            $inspeccion = app(DocumentoIdentidadService::class)->inspeccionarArchivoSubido($this->archivo);
+            $this->archivoPaginas = (int) $inspeccion['paginas'];
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            $this->addError('archivo', $e->getMessage());
+
+            return;
+        }
 
         if ($this->guardado) {
             Gate::authorize('documentos-identidad.reemplazar');
@@ -77,43 +99,58 @@ class CargaDocumentos extends Component
         }
 
         Gate::authorize('documentos-identidad.subir');
-        $this->guardarArchivo();
+        $this->guardarArchivo('agregar');
     }
 
-    public function guardarArchivo(bool $confirmado = false): void
+    public function guardarArchivo(string $modo = 'reemplazar'): void
     {
         $this->validarArchivo();
 
-        $actual = app(DocumentoIdentidadService::class)->actual($this->inscripcionId, $this->tipo);
-
-        if ($actual && ! $confirmado) {
-            Gate::authorize('documentos-identidad.reemplazar');
-            $this->requiereConfirmacion = true;
+        if (! in_array($modo, ['agregar', 'reemplazar'], true)) {
+            $this->addError('archivo', 'Selecciona una acción válida para el nuevo archivo.');
 
             return;
         }
 
+        $actual = app(DocumentoIdentidadService::class)->actual($this->inscripcionId, $this->tipo);
         Gate::authorize($actual ? 'documentos-identidad.reemplazar' : 'documentos-identidad.subir');
-
-        $alumno = Inscripcion::findOrFail($this->inscripcionId);
+        $alumno = Inscripcion::query()->findOrFail($this->inscripcionId);
 
         try {
-            app(DocumentoIdentidadService::class)->guardarSubida(
+            $resultado = app(DocumentoIdentidadService::class)->guardarFuenteDesdeSubida(
                 $this->archivo,
                 $alumno,
                 $this->tipo,
+                $modo,
                 auth()->id()
             );
 
+            $fuenteId = $resultado['fuente']->id;
+            $paginas = (int) $resultado['paginas'];
+            $autoConfirmado = (bool) $resultado['auto_confirmado'];
             $this->reset('archivo');
+            $this->archivoPaginas = 0;
             $this->requiereConfirmacion = false;
-            $this->mensaje = $actual
-                ? 'Documento reemplazado correctamente. La versión anterior quedó en el historial.'
-                : 'Documento validado y guardado correctamente.';
-            $this->cargarEstado(false);
 
-            $this->dispatch('documento-identidad-actualizado', inscripcionId: $this->inscripcionId);
-            $this->dispatch('swal', title: 'Documento guardado', text: $this->mensaje, icon: 'success', position: 'top');
+            if ($autoConfirmado) {
+                $this->mensaje = $modo === 'reemplazar'
+                    ? 'Documento reemplazado y confirmado. El archivo anterior se conserva como fuente e historial.'
+                    : 'Página agregada y documento confirmado correctamente.';
+                $this->dispatch('documento-identidad-actualizado', inscripcionId: $this->inscripcionId);
+                $this->dispatch('organizacion-identidad-confirmada', inscripcionId: $this->inscripcionId);
+                $this->dispatch('swal', title: 'Documento guardado', text: $this->mensaje, icon: 'success', position: 'top');
+            } else {
+                $this->mensaje = "El archivo de {$paginas} páginas quedó en el organizador. Confirma qué páginas pertenecen a cada documento.";
+                $this->dispatch('organizacion-identidad-borrador-actualizado', inscripcionId: $this->inscripcionId);
+                $this->dispatch(
+                    'abrir-organizador-identidad',
+                    inscripcionId: $this->inscripcionId,
+                    fuenteId: $fuenteId
+                );
+                $this->dispatch('swal', title: 'Organiza las páginas', text: $this->mensaje, icon: 'info', position: 'top');
+            }
+
+            $this->cargarEstado(false);
         } catch (ValidationException $e) {
             throw $e;
         } catch (Throwable $e) {
@@ -125,24 +162,57 @@ class CargaDocumentos extends Component
     public function cancelarReemplazo(): void
     {
         $this->reset('archivo');
+        $this->archivoPaginas = 0;
         $this->requiereConfirmacion = false;
-        $this->mensaje = 'Reemplazo cancelado; se conservó el documento actual.';
+        $this->mensaje = 'Carga cancelada; se conservó el documento actual.';
+    }
+
+    public function abrirOrganizador(): void
+    {
+        abort_unless(
+            Gate::allows('documentos-identidad.reemplazar') || Gate::allows('documentos-identidad.subir'),
+            403
+        );
+        $this->dispatch('abrir-organizador-identidad', inscripcionId: $this->inscripcionId, fuenteId: null);
     }
 
     public function eliminarArchivo(): void
     {
         Gate::authorize('documentos-identidad.eliminar');
 
-        $alumno = Inscripcion::findOrFail($this->inscripcionId);
-        app(DocumentoIdentidadService::class)->eliminarActual($alumno, $this->tipo, auth()->id());
+        $alumno = Inscripcion::query()->findOrFail($this->inscripcionId);
+        app(DocumentoIdentidadService::class)->retirarTipoOrganizado($alumno, $this->tipo, auth()->id());
 
         $this->reset('archivo');
+        $this->archivoPaginas = 0;
         $this->requiereConfirmacion = false;
-        $this->mensaje = 'El documento se retiró del expediente. El historial permanece disponible para auditoría.';
+        $this->mensaje = 'El documento se retiró del expediente. Sus páginas y archivos originales permanecen disponibles en el organizador y el historial.';
         $this->cargarEstado(false);
 
         $this->dispatch('documento-identidad-actualizado', inscripcionId: $this->inscripcionId);
+        $this->dispatch('organizacion-identidad-confirmada', inscripcionId: $this->inscripcionId);
         $this->dispatch('swal', title: 'Documento retirado', icon: 'success', position: 'top');
+    }
+
+    #[On('organizacion-identidad-confirmada')]
+    public function organizacionConfirmada(int $inscripcionId): void
+    {
+        $this->organizacionActualizada($inscripcionId);
+    }
+
+    #[On('organizacion-identidad-borrador-actualizado')]
+    public function organizacionBorradorActualizado(int $inscripcionId): void
+    {
+        $this->organizacionActualizada($inscripcionId);
+    }
+
+    protected function organizacionActualizada(int $inscripcionId): void
+    {
+        if ($inscripcionId !== $this->inscripcionId) {
+            return;
+        }
+
+        $this->cargarEstado(false);
     }
 
     protected function validarArchivo(): void
@@ -163,6 +233,7 @@ class CargaDocumentos extends Component
     protected function cargarEstado(bool $limpiarMensaje = true): void
     {
         $service = app(DocumentoIdentidadService::class);
+        $alumno = Inscripcion::query()->findOrFail($this->inscripcionId);
         $documento = $service->actual($this->inscripcionId, $this->tipo);
         $disk = $service->disk();
 
@@ -173,6 +244,7 @@ class CargaDocumentos extends Component
         $this->archivoDescargaUrl = null;
         $this->nombreArchivo = '';
         $this->tamanoArchivo = '';
+        $this->paginasDocumento = 0;
 
         if ($documento) {
             if (Storage::disk($disk)->exists($documento->ruta)) {
@@ -182,10 +254,16 @@ class CargaDocumentos extends Component
                 $this->archivoDescargaUrl = route('admin.documentos-identidad.descargar', $documento);
                 $this->nombreArchivo = $documento->nombre_original;
                 $this->tamanoArchivo = $this->formatoTamano($documento->tamano);
+                $this->paginasDocumento = (int) (($documento->metadatos ?? [])['paginas'] ?? 0);
             } else {
                 $this->inconsistente = true;
             }
         }
+
+        $this->fuentesOriginales = $service->fuentesConfirmadasTipo($alumno, $this->tipo);
+        $estadoOrganizacion = $service->estadoOrganizacion($alumno, auth()->id());
+        $this->organizacionPendiente = (bool) $estadoOrganizacion['pendiente'];
+        $this->tieneFuentes = (int) $estadoOrganizacion['fuentes'] > 0;
 
         $this->historial = DocumentoIdentidad::query()
             ->where('inscripcion_id', $this->inscripcionId)
@@ -202,6 +280,7 @@ class CargaDocumentos extends Component
                     'estado' => $item->estado,
                     'nombre' => $item->nombre_original,
                     'tamano' => $this->formatoTamano($item->tamano),
+                    'paginas' => (int) (($item->metadatos ?? [])['paginas'] ?? 0),
                     'fecha' => optional($item->created_at)->format('d/m/Y H:i'),
                     'usuario' => $item->usuario?->name ?? 'Sistema',
                     'url' => $existe ? route('admin.documentos-identidad.ver', $item) : null,

@@ -10,6 +10,21 @@ return [
         'image/png',
     ],
 
+    'organizer' => [
+        'preview_directory' => env('DOCUMENTOS_IDENTIDAD_PREVIEW_DIRECTORY', 'documentos-identidad-temp/previews'),
+        'draft_autosave' => true,
+    ],
+
+    'export' => [
+        // Orden exacto dentro del PDF combinado.
+        'types' => ['curp', 'acta_nacimiento', 'certificado_estudios'],
+        // Hasta este número de alumnos se procesa en la misma petición.
+        'sync_limit' => (int) env('DOCUMENTOS_IDENTIDAD_EXPORT_SYNC_LIMIT', 25),
+        'disk' => env('DOCUMENTOS_IDENTIDAD_EXPORT_DISK', 'local'),
+        'directory' => env('DOCUMENTOS_IDENTIDAD_EXPORT_DIRECTORY', 'expedientes-identidad-exportados'),
+        'retention_hours' => (int) env('DOCUMENTOS_IDENTIDAD_EXPORT_RETENTION_HOURS', 48),
+    ],
+
     'types' => [
         'curp' => [
             'label' => 'CURP',

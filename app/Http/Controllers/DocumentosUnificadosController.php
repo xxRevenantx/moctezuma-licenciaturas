@@ -2,184 +2,62 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DescargaExpedienteIdentidad;
 use App\Models\Inscripcion;
-use App\Services\DocumentosIdentidad\DocumentoIdentidadService;
+use App\Services\DocumentosIdentidad\ExpedienteIdentidadExportService;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use setasign\Fpdi\Fpdi;
-use Throwable;
 
 class DocumentosUnificadosController extends Controller
 {
-    public function DocumentosUnificadosAlumno(int $id, DocumentoIdentidadService $service)
+    public function DocumentosUnificadosAlumno(int $id, ExpedienteIdentidadExportService $service)
     {
         Gate::authorize('documentos-identidad.descargar');
 
-        $alumno = Inscripcion::query()
-            ->with(['licenciatura:id,nombre', 'generacion:id,generacion'])
-            ->findOrFail($id);
+        $alumno = $service->consultaAlumnos([
+            'alumno_id' => $id,
+            'estados' => ['todos'],
+        ])->firstOrFail();
 
-        $disk = $service->disk();
-        $pdf = new Fpdi();
-        $documentos = [];
-        $faltantes = [];
-        $errores = [];
+        $resultado = $service->generarPdfAlumno($alumno);
 
-        foreach ($service->tipos() as $tipo => $config) {
-            $documento = $service->actual($alumno->id, $tipo);
+        abort_if(
+            empty($resultado['contenido']),
+            404,
+            'El alumno no tiene CURP, acta de nacimiento o certificado de estudios disponibles para combinar.'
+        );
 
-            if (! $documento) {
-                $faltantes[] = $config['label'];
-                continue;
-            }
+        DescargaExpedienteIdentidad::query()->create([
+            'usuario_id' => auth()->id(),
+            'tipo' => 'alumno',
+            'formato' => 'pdf',
+            'estado' => 'listo',
+            'filtros' => [
+                'alumno_id' => $alumno->id,
+                'licenciaturas' => [$alumno->licenciatura_id],
+                'generaciones' => [$alumno->generacion_id],
+                'estados' => ['todos'],
+            ],
+            'total_alumnos' => 1,
+            'alumnos_procesados' => 1,
+            'alumnos_incompletos' => ($resultado['faltantes'] !== [] || $resultado['errores'] !== []) ? 1 : 0,
+            'documentos_faltantes' => count($resultado['faltantes']),
+            'archivo_nombre' => $service->nombrePdfAlumno($alumno),
+            'archivo_tamano' => strlen($resultado['contenido']),
+            'ip' => request()->ip(),
+            'user_agent' => mb_substr((string) request()->userAgent(), 0, 500),
+            'solicitado_at' => now(),
+            'iniciado_at' => now(),
+            'completado_at' => now(),
+            'descargado_at' => now(),
+        ]);
 
-            if (! Storage::disk($disk)->exists($documento->ruta)) {
-                $faltantes[] = $config['label'];
-                $errores[] = "Archivo físico faltante: {$config['label']}";
-                Log::warning('Documento de identidad faltante al unificar', [
-                    'documento_id' => $documento->id,
-                    'inscripcion_id' => $alumno->id,
-                    'ruta' => $documento->ruta,
-                ]);
-                continue;
-            }
-
-            $documentos[] = [
-                'tipo' => $tipo,
-                'label' => $config['label'],
-                'documento' => $documento,
-                'ruta' => Storage::disk($disk)->path($documento->ruta),
-            ];
-        }
-
-        $this->agregarPortada($pdf, $alumno, $documentos, $faltantes);
-
-        foreach ($documentos as $item) {
-            try {
-                $pageCount = $pdf->setSourceFile($item['ruta']);
-
-                for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-                    $template = $pdf->importPage($pageNo);
-                    $size = $pdf->getTemplateSize($template);
-                    $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                    $pdf->useTemplate($template);
-                }
-            } catch (Throwable $e) {
-                $errores[] = "No fue posible integrar {$item['label']}.";
-                Log::error('Error al unificar documento de identidad', [
-                    'documento_id' => $item['documento']->id,
-                    'inscripcion_id' => $alumno->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        if ($errores !== []) {
-            $this->agregarPaginaErrores($pdf, $errores);
-        }
-
-        $nombreAlumno = Str::of(trim("{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}"))
-            ->ascii()
-            ->upper()
-            ->replaceMatches('/[^A-Z0-9]+/', '_')
-            ->trim('_');
-        $matricula = Str::of((string) $alumno->matricula)->ascii()->replaceMatches('/[^A-Za-z0-9]+/', '');
-        $fileName = "EXPEDIENTE_IDENTIDAD_{$nombreAlumno}_{$matricula}.pdf";
-        $contenido = $pdf->Output('S');
-
-        return response($contenido, 200, [
+        return response($resultado['contenido'], 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-            'Content-Length' => (string) strlen($contenido),
+            'Content-Disposition' => 'attachment; filename="' . $service->nombrePdfAlumno($alumno) . '"',
+            'Content-Length' => (string) strlen($resultado['contenido']),
             'Cache-Control' => 'private, no-store, max-age=0',
             'Pragma' => 'no-cache',
             'X-Content-Type-Options' => 'nosniff',
         ]);
-    }
-
-    protected function agregarPortada(Fpdi $pdf, Inscripcion $alumno, array $documentos, array $faltantes): void
-    {
-        $pdf->AddPage('P', 'Letter');
-        $pdf->SetFillColor(0, 100, 146);
-        $pdf->Rect(0, 0, 216, 34, 'F');
-        $pdf->SetFillColor(136, 172, 46);
-        $pdf->Rect(0, 34, 216, 4, 'F');
-
-        $pdf->SetTextColor(255, 255, 255);
-        $pdf->SetFont('Arial', 'B', 18);
-        $pdf->SetXY(14, 10);
-        $pdf->Cell(188, 8, utf8_decode('EXPEDIENTE DE IDENTIDAD'), 0, 1, 'C');
-        $pdf->SetFont('Arial', '', 10);
-        $pdf->SetX(14);
-        $pdf->Cell(188, 6, utf8_decode('Centro Universitario Moctezuma'), 0, 1, 'C');
-
-        $pdf->SetTextColor(17, 24, 39);
-        $pdf->SetXY(18, 50);
-        $pdf->SetFont('Arial', 'B', 12);
-        $pdf->Cell(180, 7, utf8_decode('DATOS DEL ALUMNO'), 0, 1);
-        $pdf->SetFont('Arial', '', 10);
-
-        $nombre = trim("{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}");
-        $filas = [
-            ['Nombre', $nombre],
-            ['Matrícula', (string) $alumno->matricula],
-            ['CURP', (string) $alumno->CURP],
-            ['Licenciatura', (string) optional($alumno->licenciatura)->nombre],
-            ['Generación', (string) optional($alumno->generacion)->generacion],
-            ['Generado', now()->format('d/m/Y H:i')],
-        ];
-
-        foreach ($filas as [$etiqueta, $valor]) {
-            $pdf->SetX(18);
-            $pdf->SetFont('Arial', 'B', 9);
-            $pdf->Cell(34, 7, utf8_decode($etiqueta . ':'), 0, 0);
-            $pdf->SetFont('Arial', '', 9);
-            $pdf->MultiCell(146, 7, utf8_decode($valor ?: '—'), 0, 'L');
-        }
-
-        $pdf->Ln(5);
-        $pdf->SetX(18);
-        $pdf->SetFont('Arial', 'B', 12);
-        $pdf->Cell(180, 7, utf8_decode('ÍNDICE DOCUMENTAL'), 0, 1);
-        $pdf->SetFont('Arial', '', 9);
-
-        $entregados = collect($documentos)->pluck('label')->all();
-        $tipos = config('documentos_identidad.types', []);
-        $numero = 1;
-
-        foreach ($tipos as $config) {
-            $esta = in_array($config['label'], $entregados, true);
-            $pdf->SetX(18);
-            $pdf->SetTextColor($esta ? 22 : 153, $esta ? 101 : 27, $esta ? 52 : 27);
-            $estado = $esta ? 'INCLUIDO' : 'PENDIENTE';
-            $pdf->Cell(180, 7, utf8_decode("{$numero}. {$config['label']} — {$estado}"), 0, 1);
-            $numero++;
-        }
-
-        $pdf->SetTextColor(17, 24, 39);
-        $pdf->SetY(245);
-        $pdf->SetFont('Arial', 'I', 8);
-        $nota = $faltantes === []
-            ? 'El expediente contiene todos los documentos configurados.'
-            : 'Documentos pendientes: ' . implode(', ', $faltantes) . '.';
-        $pdf->MultiCell(180, 5, utf8_decode($nota), 0, 'L');
-    }
-
-    protected function agregarPaginaErrores(Fpdi $pdf, array $errores): void
-    {
-        $pdf->AddPage('P', 'Letter');
-        $pdf->SetTextColor(153, 27, 27);
-        $pdf->SetFont('Arial', 'B', 14);
-        $pdf->SetXY(18, 22);
-        $pdf->Cell(180, 8, utf8_decode('ADVERTENCIAS DEL EXPEDIENTE'), 0, 1);
-        $pdf->SetTextColor(17, 24, 39);
-        $pdf->SetFont('Arial', '', 10);
-
-        foreach (array_unique($errores) as $error) {
-            $pdf->SetX(18);
-            $pdf->MultiCell(180, 7, utf8_decode('• ' . $error), 0, 'L');
-        }
     }
 }

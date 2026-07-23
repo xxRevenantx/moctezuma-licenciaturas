@@ -18,7 +18,9 @@ use App\Http\Controllers\CiudadController;
 use App\Http\Controllers\ConstanciaController;
 use App\Http\Controllers\DocumentacionController;
 use App\Http\Controllers\DocumentoIdentidadController;
+use App\Http\Controllers\DocumentoIdentidadFuenteController;
 use App\Http\Controllers\DocumentosUnificadosController;
+use App\Http\Controllers\ExpedientesIdentidadController;
 use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\EstudianteController;
@@ -123,9 +125,25 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/documentos-identidad/{documento}/descargar', [DocumentoIdentidadController::class, 'descargar'])
         ->middleware('can:documentos-identidad.descargar')
         ->name('admin.documentos-identidad.descargar');
+    Route::get('/documentos-identidad/fuentes/{fuente}/ver', [DocumentoIdentidadFuenteController::class, 'ver'])
+        ->middleware('can:documentos-identidad.ver')
+        ->name('admin.documentos-identidad.fuentes.ver');
+    Route::get('/documentos-identidad/fuentes/{fuente}/descargar', [DocumentoIdentidadFuenteController::class, 'descargar'])
+        ->middleware('can:documentos-identidad.descargar')
+        ->name('admin.documentos-identidad.fuentes.descargar');
+    Route::get('/documentos-identidad/fuentes/{fuente}/paginas/{pagina}', [DocumentoIdentidadFuenteController::class, 'pagina'])
+        ->whereNumber('pagina')
+        ->middleware('can:documentos-identidad.ver')
+        ->name('admin.documentos-identidad.fuentes.pagina');
     Route::get('/documentos/unificados_identidad/{id}', [DocumentosUnificadosController::class, 'DocumentosUnificadosAlumno'])
         ->middleware('can:documentos-identidad.descargar')
         ->name('admin.alumnos.documentos.unificar');
+    Route::get('/expedientes-identidad/alumnos/{id}/zip', [ExpedientesIdentidadController::class, 'zipAlumno'])
+        ->middleware('can:documentos-identidad.descargar')
+        ->name('admin.expedientes-identidad.alumno.zip');
+    Route::get('/expedientes-identidad/exportaciones/{descarga}/descargar', [ExpedientesIdentidadController::class, 'descargar'])
+        ->middleware('can:documentos-identidad.descargar')
+        ->name('admin.expedientes-identidad.exportacion.descargar');
 
 
     Route::get('/expediente/{id}', [PDFController::class, 'expediente'])->middleware('can:admin.administracion')->name('admin.pdf.expediente');
