@@ -128,6 +128,12 @@ class Inscripcion extends Model
         return $this->hasMany(HistorialInscripcion::class);
     }
 
+
+    public function matriculaBitacoras()
+    {
+        return $this->hasMany(MatriculaBitacora::class);
+    }
+
     public function documentosIdentidad()
     {
         return $this->hasMany(DocumentoIdentidad::class);

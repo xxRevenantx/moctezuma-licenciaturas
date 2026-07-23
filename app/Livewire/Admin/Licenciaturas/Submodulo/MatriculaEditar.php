@@ -10,6 +10,7 @@ use App\Models\Inscripcion;
 use App\Models\Modalidad;
 use App\Models\Periodo;
 use App\Models\User;
+use App\Services\MatriculaService;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -175,15 +176,6 @@ class MatriculaEditar extends Component
                     $fecha_nacimiento = "$anio_completo-$mes-$dia";
                     $this->fecha_nacimiento = $fecha_nacimiento;
 
-                      // Generar matrícula personalizada
-                        $prefijo = strtoupper(substr($this->CURP, 0, 4)); // Ej: PIXB
-
-                        // Obtener el siguiente valor de "order"
-                        $ultimoOrder = \App\Models\Inscripcion::max('orden') ?? 0;
-                        $siguienteOrder = $ultimoOrder + 1;
-
-                        $this->matricula = $prefijo . '20' . str_pad($siguienteOrder, 2, '0', STR_PAD_LEFT); // Ej: PIXB0201
-
                     // Calcular edad
                     try {
                         $nacimiento = new \DateTime($fecha_nacimiento);
@@ -197,8 +189,7 @@ class MatriculaEditar extends Component
                     // Resetear valores si el CURP está vacío o no tiene longitud válida
                     $this->fecha_nacimiento = null;
                     $this->edad = null;
-                    $this->matricula = null;
-                }
+                    }
             }
 
     }
@@ -230,10 +221,26 @@ class MatriculaEditar extends Component
         }
 
 
-      public function actualizarEstudiante(){
+      public function actualizarEstudiante(MatriculaService $matriculaService){
+        $estudiante = Inscripcion::findOrFail($this->estudianteId);
+        $matriculaAnterior = $matriculaService->normalizar($estudiante->matricula);
+        $this->matricula = $matriculaService->normalizar($this->matricula);
+
         $this->validate([
             'user_id' => 'required|exists:users,id|unique:inscripciones,user_id,'.$this->estudianteId,
-            'matricula' => 'required|max:10|unique:inscripciones,matricula,'.$this->estudianteId,
+            'matricula' => [
+                'required',
+                'max:8',
+                'unique:inscripciones,matricula,'.$this->estudianteId,
+                function (string $attribute, mixed $value, \Closure $fail) use ($matriculaService, $matriculaAnterior): void {
+                    $matricula = $matriculaService->normalizar((string) $value);
+
+                    // Permite conservar temporalmente una matrícula heredada, pero toda corrección debe usar el formato institucional.
+                    if ($matricula !== $matriculaAnterior && ! $matriculaService->esValida($matricula)) {
+                        $fail('La matrícula debe contener cuatro letras y cuatro dígitos, por ejemplo: CAGL2001.');
+                    }
+                },
+            ],
             'folio' => 'nullable|max:10|unique:inscripciones,folio,'.$this->estudianteId,
             'CURP' => 'required|max:18|unique:inscripciones,CURP,'.$this->estudianteId,
             'nombre' => 'required|max:50',
@@ -313,12 +320,12 @@ class MatriculaEditar extends Component
         }
 
 
-        $estudiante = Inscripcion::find($this->estudianteId);
+        $matriculaNueva = $matriculaService->normalizar($this->matricula);
 
         if ($estudiante) {
             $estudiante->update([
                 'user_id' => $this->user_id,
-                'matricula' => strtoupper(trim($this->matricula)),
+                'matricula' => $matriculaNueva,
                 'folio' => strtoupper(trim($this->folio)),
                 'CURP' => strtoupper(trim($this->CURP)),
                 'nombre' => strtoupper(trim($this->nombre)),
@@ -347,15 +354,26 @@ class MatriculaEditar extends Component
                 'modalidad_id' => $this->modalidad_id,
                  'foto' => $this->foto_nueva ? $datos['foto'] : $this->foto,
                 'foraneo' => $this->foraneo ? "true" : "false",
-                'estatus' => $this->status ? "true" : "false",
+                'status' => $this->status ? "true" : "false",
                 'fecha_baja' => $this->fecha_baja,
 
 
             ]);
+
+            if ($matriculaAnterior !== $matriculaNueva) {
+                $matriculaService->registrarCambio(
+                    $estudiante,
+                    'correccion_manual',
+                    $matriculaAnterior !== '' ? $matriculaAnterior : null,
+                    $matriculaNueva !== '' ? $matriculaNueva : null,
+                    ['origen' => 'edicion_inscripcion']
+                );
+            }
         }
 
 
           $this->dispatch('refreshNavbar');
+          $this->dispatch('refreshHeader');
 
         $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente','licenciatura_id','generacion_id','cuatrimestre_id','modalidad_id','foto_nueva','foraneo','status', 'fecha_baja']);
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CuatrimestreController;
 use App\Http\Controllers\Admin\DirectivoController;
 use App\Http\Controllers\Admin\GeneracionController;
 use App\Http\Controllers\Admin\GrupoController;
+use App\Http\Controllers\Admin\HistorialAcademicoAlumnoController;
 use App\Http\Controllers\Admin\InscripcionController;
 use App\Http\Controllers\Admin\LicenciaturaController;
 use App\Http\Controllers\Admin\PeriodoController;
@@ -128,6 +129,10 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/expediente/{id}', [PDFController::class, 'expediente'])->middleware('can:admin.administracion')->name('admin.pdf.expediente');
+
+    Route::get('/historial-academico-alumno/{alumno}', HistorialAcademicoAlumnoController::class)
+        ->middleware('can:admin.administracion')
+        ->name('admin.pdf.historial-academico-alumno');
     Route::get('/matricula', [PDFController::class, 'matricula'])->middleware('can:admin.administracion')->name('admin.pdf.matricula');
     Route::get('/matricula-generacion', [PDFController::class, 'matricula_generacion'])->middleware('can:admin.administracion')->name('admin.pdf.matricula-generacion');
     Route::match(['get', 'post'], '/matricula-todas', [PDFController::class, 'matricula_todas'])
