@@ -318,10 +318,21 @@ class DocumentoIdentidadService
                 throw new RuntimeException('El PDF no contiene páginas válidas.');
             }
 
-            return ['paginas' => $paginas];
+            return [
+                'paginas' => $paginas,
+            ];
         } catch (Throwable $e) {
+            logger()->error('Error al procesar PDF de identidad', [
+                'archivo' => $rutaAbsoluta,
+                'tipo_excepcion' => get_class($e),
+                'mensaje_original' => $e->getMessage(),
+                'codigo' => $e->getCode(),
+            ]);
+
             throw new RuntimeException(
-                'El PDF está corrupto, cifrado o protegido con contraseña y no puede procesarse.',
+                app()->isLocal()
+                    ? 'FPDI no pudo procesar el PDF: ' . $e->getMessage()
+                    : 'El PDF no pudo procesarse. Intenta imprimirlo y guardarlo nuevamente como PDF.',
                 previous: $e
             );
         }
@@ -488,9 +499,9 @@ class DocumentoIdentidadService
         $this->sincronizarFuentesLegadas($inscripcion, $usuarioId);
         $organizacion = $organizacionId
             ? OrganizacionDocumentoIdentidad::query()
-                ->where('inscripcion_id', $inscripcion->id)
-                ->where('estado', 'borrador')
-                ->findOrFail($organizacionId)
+            ->where('inscripcion_id', $inscripcion->id)
+            ->where('estado', 'borrador')
+            ->findOrFail($organizacionId)
             : $this->obtenerOCrearBorrador($inscripcion, $usuarioId);
 
         $normalizadas = $this->normalizarYValidarAsignaciones($inscripcion, $asignaciones);
@@ -669,7 +680,7 @@ class DocumentoIdentidadService
             ->get();
 
         $asignaciones = collect($borrador->asignaciones ?? [])->keyBy(
-            fn (array $item): string => $this->clavePagina((int) $item['fuente_id'], (int) $item['pagina'])
+            fn(array $item): string => $this->clavePagina((int) $item['fuente_id'], (int) $item['pagina'])
         );
         $paginas = [];
 
@@ -749,7 +760,7 @@ class DocumentoIdentidadService
             ->groupBy('fuente_id');
         $fuentes = DocumentoIdentidadFuente::query()
             ->where('inscripcion_id', $inscripcion->id)
-            ->whereIn('id', $porFuente->keys()->map(fn ($id): int => (int) $id))
+            ->whereIn('id', $porFuente->keys()->map(fn($id): int => (int) $id))
             ->get()
             ->keyBy('id');
 
@@ -918,14 +929,14 @@ class DocumentoIdentidadService
             $orden = 1;
             $items = $coleccion
                 ->where('tipo', $tipo)
-                ->sortBy(fn (array $item): string => str_pad((string) ($item['orden'] ?: 999999), 8, '0', STR_PAD_LEFT)
+                ->sortBy(fn(array $item): string => str_pad((string) ($item['orden'] ?: 999999), 8, '0', STR_PAD_LEFT)
                     . '-' . str_pad((string) $item['fuente_id'], 10, '0', STR_PAD_LEFT)
                     . '-' . str_pad((string) $item['pagina'], 6, '0', STR_PAD_LEFT));
 
             foreach ($items as $item) {
                 $clave = $this->clavePagina((int) $item['fuente_id'], (int) $item['pagina']);
                 $indice = $coleccion->search(
-                    fn (array $actual): bool => $this->clavePagina((int) $actual['fuente_id'], (int) $actual['pagina']) === $clave
+                    fn(array $actual): bool => $this->clavePagina((int) $actual['fuente_id'], (int) $actual['pagina']) === $clave
                 );
                 $item['orden'] = $orden++;
                 $coleccion->put($indice, $item);
@@ -933,7 +944,7 @@ class DocumentoIdentidadService
         }
 
         return $coleccion
-            ->sortBy(fn (array $item): string => ($item['tipo'] ?? 'zzzz_sin_clasificar')
+            ->sortBy(fn(array $item): string => ($item['tipo'] ?? 'zzzz_sin_clasificar')
                 . '-' . str_pad((string) $item['orden'], 8, '0', STR_PAD_LEFT)
                 . '-' . str_pad((string) $item['fuente_id'], 10, '0', STR_PAD_LEFT)
                 . '-' . str_pad((string) $item['pagina'], 6, '0', STR_PAD_LEFT))
@@ -1117,14 +1128,14 @@ class DocumentoIdentidadService
     protected function firmaAsignaciones(array $asignaciones): string
     {
         $normalizadas = collect($asignaciones)
-            ->map(fn (array $item): array => [
+            ->map(fn(array $item): array => [
                 'fuente_id' => (int) ($item['fuente_id'] ?? 0),
                 'pagina' => (int) ($item['pagina'] ?? 0),
                 'tipo' => ($item['tipo'] ?? null) ?: null,
                 'orden' => (int) ($item['orden'] ?? 0),
                 'rotacion' => $this->normalizarRotacion((int) ($item['rotacion'] ?? 0)),
             ])
-            ->sortBy(fn (array $item): string => str_pad((string) $item['fuente_id'], 10, '0', STR_PAD_LEFT)
+            ->sortBy(fn(array $item): string => str_pad((string) $item['fuente_id'], 10, '0', STR_PAD_LEFT)
                 . '-' . str_pad((string) $item['pagina'], 6, '0', STR_PAD_LEFT))
             ->values()
             ->all();
