@@ -103,6 +103,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/profesores', [ProfesorController::class, 'index'])->middleware('can:admin.administracion')->name('admin.profesor.index');
     Route::get('/lista-profesores', [ProfesorController::class, 'lista_profesores'])->middleware('can:admin.administracion')->name('admin.profesor.lista_profesores');
+    Route::post('/lista-profesores/masivas', [ListaProfesorController::class, 'masivas'])->middleware('can:admin.administracion')->name('admin.profesor.listas.masivas');
     Route::get('/credencial-profesor', [ProfesorController::class, 'credencial_profesor'])->middleware('can:admin.administracion')->name('admin.profesor.credencial_profesor');
 
 

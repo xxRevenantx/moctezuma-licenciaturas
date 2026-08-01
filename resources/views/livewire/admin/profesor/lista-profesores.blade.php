@@ -1,735 +1,593 @@
 <div class="space-y-6">
+    {{-- Encabezado institucional --}}
+    <section class="relative overflow-hidden rounded-3xl bg-[#006492] px-5 py-6 text-white shadow-xl shadow-sky-900/10 sm:px-7">
+        <div class="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/10"></div>
+        <div class="absolute -bottom-24 right-28 h-52 w-52 rounded-full bg-[#88AC2E]/30"></div>
 
-    {{-- ENCABEZADO PRINCIPAL --}}
-    <div class="rounded-2xl bg-gradient-to-r from-indigo-600 via-sky-500 to-cyan-500 p-[1px] shadow-lg">
-        <div
-            class="flex flex-col gap-3 rounded-2xl bg-white px-5 py-4 dark:bg-neutral-950/95 sm:flex-row sm:items-center">
-            <div class="flex items-center gap-3">
-                <div
-                    class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/90 shadow-md dark:bg-neutral-900">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600 dark:text-sky-400"
-                        viewBox="0 0 24 24" fill="none">
-                        <path
-                            d="M8 7a4 4 0 118 0v1h1a3 3 0 013 3v3.5a2.5 2.5 0 01-2 2.45V19a2 2 0 01-2 2h-2.5a.75.75 0 010-1.5H16a.5.5 0 00.5-.5v-1.05a2.5 2.5 0 01-2-2.45V11a3 3 0 013-3h-1V7a2.5 2.5 0 10-5 0v1H9A3 3 0 006 11v3a3 3 0 003 3h.25a.75.75 0 010 1.5H9A4.5 4.5 0 014.5 14V11A4 4 0 018 7z"
-                            fill="currentColor" />
+        <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-start gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20 backdrop-blur">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v11a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 17.5v-11z" stroke="currentColor" stroke-width="1.7" />
+                        <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
                     </svg>
                 </div>
 
                 <div>
-                    <h1 class="text-base font-semibold text-neutral-900 dark:text-neutral-50 sm:text-lg">
-                        Listado de materias por profesor
-                    </h1>
-                    <p class="text-xs text-neutral-500 dark:text-neutral-400 sm:text-sm">
-                        Selecciona un profesor, el periodo y genera listas de asistencia y evaluación según sus materias
-                        con horario asignado.
+                    <div class="mb-2 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] ring-1 ring-white/15">
+                        Documentación académica
+                    </div>
+                    <h1 class="text-xl font-black tracking-tight sm:text-2xl">Listas por profesor</h1>
+                    <p class="mt-1 max-w-2xl text-sm leading-6 text-sky-50/85">
+                        Consulta las materias con horario, abre listas individuales o genera un paquete masivo de asistencia y evaluación en una nueva pestaña.
                     </p>
                 </div>
             </div>
 
             @if ($selectedProfesor)
-                <div class="flex flex-wrap items-center gap-2 text-xs sm:ml-auto">
-                    <span
-                        class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-100">
-                        <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></span>
-                        Profesor seleccionado
-                    </span>
-
-                    @if ($periodo_id)
-                        <span
-                            class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-100">
-                            Periodo:
-                            <span class="font-semibold">{{ $periodo_id }}</span>
-                        </span>
-                    @endif
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/15 backdrop-blur">
+                        <div class="text-xl font-black">{{ count($materiasAsignadas) }}</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wide text-sky-50/75">Materias</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/15 backdrop-blur">
+                        <div class="text-xl font-black">{{ $this->totalLicenciaturas }}</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wide text-sky-50/75">Licenciaturas</div>
+                    </div>
+                    <div class="rounded-2xl bg-[#88AC2E] px-4 py-3 shadow-lg shadow-lime-950/15">
+                        <div class="text-xl font-black">{{ $this->totalGeneraciones }}</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wide text-white/85">Generaciones</div>
+                    </div>
                 </div>
             @endif
         </div>
-    </div>
+    </section>
 
-    {{-- SELECT PROFESOR PRO --}}
-    <div x-data="{
-        abierto: false,
-        indice: -1,
-        texto: '',
-        profesores: @js($profesores),
-    
-        iniciar() {
-            const profesorSeleccionado = this.profesores.find((profesor) => String(profesor.id) === String($wire.query));
-    
-            if (profesorSeleccionado) {
-                this.texto = this.nombreProfesor(profesorSeleccionado);
-            }
-        },
-    
-        nombreProfesor(profesor) {
-            const apellidoPaterno = profesor.apellido_paterno ?? '';
-            const apellidoMaterno = profesor.apellido_materno ?? '';
-            const nombre = profesor.nombre ?? '';
-    
-            return `${apellidoPaterno} ${apellidoMaterno} ${nombre}`.replace(/\s+/g, ' ').trim();
-        },
-    
-        correoProfesor(profesor) {
-            return profesor.user?.email ?? '';
-        },
-    
-        curpProfesor(profesor) {
-            return profesor.CURP ?? profesor.curp ?? '';
-        },
-    
-        profesoresFiltrados() {
-            const termino = this.texto.toLowerCase().trim();
-    
-            if (!termino) {
-                return this.profesores.slice(0, 20);
-            }
-    
-            return this.profesores
-                .filter((profesor) => {
+    {{-- Buscador de profesor --}}
+    <section class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950 sm:p-5">
+        <div x-data="{
+            abierto: false,
+            indice: -1,
+            texto: '',
+            profesores: @js($profesores),
+
+            iniciar() {
+                const seleccionado = this.profesores.find((profesor) => String(profesor.id) === String($wire.query));
+                if (seleccionado) this.texto = this.nombreProfesor(seleccionado);
+            },
+
+            nombreProfesor(profesor) {
+                return `${profesor.apellido_paterno ?? ''} ${profesor.apellido_materno ?? ''} ${profesor.nombre ?? ''}`
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            },
+
+            profesoresFiltrados() {
+                const termino = this.texto.toLowerCase().trim();
+                if (!termino) return this.profesores.slice(0, 25);
+
+                return this.profesores.filter((profesor) => {
                     const nombre = this.nombreProfesor(profesor).toLowerCase();
-                    const correo = this.correoProfesor(profesor).toLowerCase();
-                    const curp = this.curpProfesor(profesor).toLowerCase();
-    
-                    return nombre.includes(termino) ||
-                        correo.includes(termino) ||
-                        curp.includes(termino);
-                })
-                .slice(0, 20);
-        },
-    
-        abrirLista() {
-            this.abierto = true;
-            this.indice = -1;
-        },
-    
-        cerrarLista() {
-            setTimeout(() => {
+                    const correo = String(profesor.email ?? '').toLowerCase();
+                    const curp = String(profesor.CURP ?? '').toLowerCase();
+                    return nombre.includes(termino) || correo.includes(termino) || curp.includes(termino);
+                }).slice(0, 25);
+            },
+
+            moverAbajo() {
+                const total = this.profesoresFiltrados().length;
+                if (!total) return;
+                this.abierto = true;
+                this.indice = this.indice >= total - 1 ? 0 : this.indice + 1;
+            },
+
+            moverArriba() {
+                const total = this.profesoresFiltrados().length;
+                if (!total) return;
+                this.abierto = true;
+                this.indice = this.indice <= 0 ? total - 1 : this.indice - 1;
+            },
+
+            seleccionarConEnter() {
+                const profesor = this.profesoresFiltrados()[this.indice];
+                if (profesor) this.seleccionar(profesor);
+            },
+
+            seleccionar(profesor) {
+                this.texto = this.nombreProfesor(profesor);
                 this.abierto = false;
                 this.indice = -1;
-            }, 150);
-        },
-    
-        moverAbajo() {
-            const total = this.profesoresFiltrados().length;
-    
-            if (total === 0) {
-                return;
-            }
-    
-            this.abierto = true;
-            this.indice = this.indice >= total - 1 ? 0 : this.indice + 1;
-        },
-    
-        moverArriba() {
-            const total = this.profesoresFiltrados().length;
-    
-            if (total === 0) {
-                return;
-            }
-    
-            this.abierto = true;
-            this.indice = this.indice <= 0 ? total - 1 : this.indice - 1;
-        },
-    
-        seleccionarConEnter() {
-            const lista = this.profesoresFiltrados();
-    
-            if (this.indice < 0 || !lista[this.indice]) {
-                return;
-            }
-    
-            this.seleccionar(lista[this.indice]);
-        },
-    
-        seleccionar(profesor) {
-            this.texto = this.nombreProfesor(profesor);
-            this.abierto = false;
-            this.indice = -1;
-    
-            $wire.seleccionarProfesor(profesor.id);
-        },
-    
-        limpiar() {
-            this.texto = '';
-            this.abierto = false;
-            this.indice = -1;
-    
-            $wire.limpiarProfesor();
-        },
-    
-        resaltar(texto) {
-            if (!this.texto) {
-                return texto;
-            }
-    
-            const termino = this.texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(${termino})`, 'ig');
-    
-            return texto.replace(regex, '<mark class=&quot;rounded bg-yellow-200 px-0.5 text-neutral-950 dark:bg-yellow-500/50 dark:text-white&quot;>$1</mark>');
-        },
-    }" x-init="iniciar()" x-cloak class="relative">
+                $wire.seleccionarProfesor(profesor.id);
+            },
 
-        <label class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-            Profesor
-        </label>
+            limpiar() {
+                this.texto = '';
+                this.abierto = false;
+                this.indice = -1;
+                $wire.limpiarProfesorSeleccionado();
+            }
+        }" x-init="iniciar()" x-cloak class="relative">
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <label class="text-xs font-black uppercase tracking-[0.12em] text-slate-500 dark:text-neutral-400">Profesor</label>
+                    <p class="mt-0.5 text-xs text-slate-400">Busca por nombre, CURP o correo electrónico.</p>
+                </div>
 
-        <div
-            class="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition focus-within:border-sky-300 focus-within:ring-4 focus-within:ring-sky-100 dark:border-neutral-800 dark:bg-neutral-950 dark:focus-within:border-sky-700 dark:focus-within:ring-sky-950/50">
-
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none">
-                    <path d="M15.75 15.75L20 20M18 10.5A7.5 7.5 0 113 10.5a7.5 7.5 0 0115 0z" stroke="currentColor"
-                        stroke-width="1.8" stroke-linecap="round" />
-                </svg>
+                @if ($selectedProfesor)
+                    <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        Profesor seleccionado
+                    </span>
+                @endif
             </div>
 
-            <input type="text" x-model="texto" x-on:focus="abrirLista()" x-on:input="abrirLista()"
-                x-on:blur="cerrarLista()" x-on:keydown.arrow-down.prevent="moverAbajo()"
-                x-on:keydown.arrow-up.prevent="moverArriba()" x-on:keydown.enter.prevent="seleccionarConEnter()"
-                x-on:keydown.escape.prevent="abierto = false" placeholder="Buscar profesor por nombre, CURP o correo..."
-                autocomplete="off"
-                class="w-full border-0 bg-transparent py-3.5 pl-10 pr-24 text-sm font-medium text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-0 dark:text-neutral-100" />
-
-            <div class="absolute inset-y-0 right-0 flex items-center gap-1 pr-2">
-                <button type="button" x-show="texto.length > 0" x-on:mousedown.prevent="limpiar()"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-xl text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
-                    title="Limpiar profesor">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
-                        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8"
-                            stroke-linecap="round" />
+            <div class="relative rounded-2xl border border-slate-200 bg-slate-50 transition focus-within:border-[#006492] focus-within:bg-white focus-within:ring-4 focus-within:ring-sky-100 dark:border-neutral-800 dark:bg-neutral-900 dark:focus-within:ring-sky-950/40">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                        <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.8" />
+                        <path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                     </svg>
-                </button>
+                </div>
 
-                <button type="button" x-on:mousedown.prevent="abierto = !abierto"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-xl text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
-                    title="Abrir lista">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition"
-                        :class="abierto ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none">
-                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                    </svg>
-                </button>
-            </div>
-        </div>
+                <input
+                    type="text"
+                    x-model="texto"
+                    x-on:focus="abierto = true"
+                    x-on:input="abierto = true; indice = -1"
+                    x-on:blur="setTimeout(() => abierto = false, 180)"
+                    x-on:keydown.arrow-down.prevent="moverAbajo()"
+                    x-on:keydown.arrow-up.prevent="moverArriba()"
+                    x-on:keydown.enter.prevent="seleccionarConEnter()"
+                    x-on:keydown.escape.prevent="abierto = false"
+                    autocomplete="off"
+                    placeholder="Escribe el nombre del profesor..."
+                    class="w-full rounded-2xl border-0 bg-transparent py-4 pl-12 pr-24 text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:ring-0 dark:text-neutral-100"
+                >
 
-        {{-- DROPDOWN --}}
-        <div x-show="abierto" x-transition.origin.top.duration.150ms
-            class="absolute z-50 mt-2 max-h-80 w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl shadow-slate-300/40 dark:border-neutral-800 dark:bg-neutral-950 dark:shadow-black/40">
-
-            <div class="border-b border-neutral-100 px-4 py-2.5 dark:border-neutral-800">
-                <p class="text-[11px] font-bold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
-                    Resultados encontrados
-                </p>
-            </div>
-
-            <div class="max-h-72 overflow-y-auto">
-                <template x-if="profesoresFiltrados().length === 0">
-                    <div class="px-4 py-6 text-center">
-                        <div
-                            class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-neutral-400 dark:bg-neutral-800">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none">
-                                <path d="M12 7v6m0 4h.01" stroke="currentColor" stroke-width="1.8"
-                                    stroke-linecap="round" />
-                                <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8" />
-                            </svg>
-                        </div>
-                        <p class="mt-2 text-sm font-semibold text-neutral-700 dark:text-neutral-200">
-                            No se encontraron profesores
-                        </p>
-                        <p class="mt-1 text-xs text-neutral-400">
-                            Intenta con otro nombre, CURP o correo.
-                        </p>
-                    </div>
-                </template>
-
-                <template x-for="(profesor, i) in profesoresFiltrados()" :key="profesor.id">
-                    <button type="button" x-on:mousedown.prevent="seleccionar(profesor)"
-                        class="flex w-full items-start gap-3 px-4 py-3 text-left transition"
-                        :class="indice === i ?
-                            'bg-sky-50 dark:bg-sky-950/40' :
-                            'hover:bg-neutral-50 dark:hover:bg-neutral-900'">
-
-                        <div
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-sm font-black uppercase text-white shadow-sm">
-                            <span x-text="(profesor.nombre ?? 'P').substring(0,1)"></span>
-                        </div>
-
-                        <div class="min-w-0 flex-1">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <p class="truncate text-sm font-black uppercase text-neutral-900 dark:text-neutral-100"
-                                    x-html="resaltar(nombreProfesor(profesor))">
-                                </p>
-
-                                <span x-show="String(profesor.id) === String($wire.query)"
-                                    class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                    Seleccionado
-                                </span>
-                            </div>
-
-                            <div class="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                                <span x-show="curpProfesor(profesor)"
-                                    class="rounded-full bg-neutral-100 px-2 py-0.5 font-medium text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
-                                    x-text="'CURP: ' + curpProfesor(profesor)">
-                                </span>
-
-                                <span x-show="correoProfesor(profesor)"
-                                    class="rounded-full bg-blue-50 px-2 py-0.5 font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
-                                    x-text="correoProfesor(profesor)">
-                                </span>
-                            </div>
-                        </div>
+                <div class="absolute inset-y-0 right-0 flex items-center gap-1 pr-3">
+                    <button
+                        type="button"
+                        x-show="texto.length > 0"
+                        x-on:mousedown.prevent="limpiar()"
+                        class="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+                        title="Limpiar profesor"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        </svg>
                     </button>
-                </template>
+                    <button
+                        type="button"
+                        x-on:mousedown.prevent="abierto = !abierto"
+                        class="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition" :class="abierto ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none">
+                            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </div>
             </div>
-        </div>
-
-        {{-- LOADER --}}
-        <div wire:loading.flex wire:target="query,seleccionarProfesor,limpiarProfesor"
-            class="absolute inset-0 z-40 items-center justify-center rounded-2xl bg-white/60 backdrop-blur-sm dark:bg-neutral-900/60">
-            <div class="flex flex-col items-center gap-2">
-                <svg class="h-7 w-7 animate-spin text-indigo-600 dark:text-sky-400" xmlns="http://www.w3.org/2000/svg"
-                    fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                        stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-                <span class="text-xs font-medium text-neutral-700 dark:text-neutral-200">
-                    Cargando información del profesor…
-                </span>
-            </div>
-        </div>
-    </div>
-
-    {{-- INFO PROFESOR SELECCIONADO --}}
-    @if ($selectedProfesor)
-        <div
-            class="flex items-center gap-3 rounded-2xl border border-neutral-200/80 bg-white px-4 py-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
-            @php
-                $inic =
-                    mb_substr($selectedProfesor['nombre'] ?? '', 0, 1) .
-                    mb_substr($selectedProfesor['apellido_paterno'] ?? '', 0, 1);
-            @endphp
 
             <div
-                class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold uppercase text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-100">
-                {{ $inic }}
-            </div>
+                x-show="abierto"
+                x-transition.origin.top.duration.150ms
+                class="absolute z-50 mt-2 max-h-80 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-300/50 dark:border-neutral-800 dark:bg-neutral-950 dark:shadow-black/40"
+            >
+                <div class="flex items-center justify-between border-b border-slate-100 px-4 py-2.5 dark:border-neutral-800">
+                    <span class="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Resultados</span>
+                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-neutral-800 dark:text-neutral-400" x-text="profesoresFiltrados().length"></span>
+                </div>
 
-            <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-semibold text-neutral-900 dark:text-neutral-50">
-                    {{ $selectedProfesor['nombre'] }}
-                    {{ $selectedProfesor['apellido_paterno'] }}
-                    {{ $selectedProfesor['apellido_materno'] }}
-                </p>
+                <div class="max-h-72 overflow-y-auto">
+                    <template x-if="profesoresFiltrados().length === 0">
+                        <div class="px-5 py-8 text-center">
+                            <div class="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-neutral-800">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7" />
+                                    <path d="M16 16l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                                </svg>
+                            </div>
+                            <p class="mt-3 text-sm font-bold text-slate-700 dark:text-neutral-200">No se encontraron profesores</p>
+                            <p class="mt-1 text-xs text-slate-400">Prueba con otro nombre, CURP o correo.</p>
+                        </div>
+                    </template>
 
-                <div class="mt-1 flex flex-wrap gap-1.5 text-[11px] text-neutral-500 dark:text-neutral-400">
-                    @if (!empty($selectedProfesor['CURP']))
-                        <span
-                            class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 dark:bg-neutral-800/70">
-                            CURP:
-                            <span class="font-mono text-[10px] tracking-tight">
-                                {{ $selectedProfesor['CURP'] }}
-                            </span>
-                        </span>
-                    @endif
-
-                    @if (!empty($selectedProfesor['user']['email']))
-                        <span
-                            class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-blue-700 dark:bg-blue-900/40 dark:text-blue-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24"
-                                fill="none">
-                                <path
-                                    d="M4 6.75A2.75 2.75 0 016.75 4h10.5A2.75 2.75 0 0120 6.75v10.5A2.75 2.75 0 0117.25 20H6.75A2.75 2.75 0 014 17.25V6.75z"
-                                    stroke="currentColor" stroke-width="1.5" />
-                                <path d="M5 7l7 5 7-5" stroke="currentColor" stroke-width="1.5"
-                                    stroke-linecap="round" stroke-linejoin="round" />
+                    <template x-for="(profesor, i) in profesoresFiltrados()" :key="profesor.id">
+                        <button
+                            type="button"
+                            x-on:mousedown.prevent="seleccionar(profesor)"
+                            class="flex w-full items-center gap-3 px-4 py-3 text-left transition"
+                            :class="indice === i ? 'bg-sky-50 dark:bg-sky-950/35' : 'hover:bg-slate-50 dark:hover:bg-neutral-900'"
+                        >
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#006492] text-sm font-black text-white">
+                                <span x-text="String(profesor.nombre ?? 'P').substring(0, 1)"></span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-black uppercase text-slate-800 dark:text-neutral-100" x-text="nombreProfesor(profesor)"></p>
+                                <div class="mt-1 flex flex-wrap gap-1.5 text-[10px]">
+                                    <span x-show="profesor.CURP" class="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-500 dark:bg-neutral-800 dark:text-neutral-400" x-text="'CURP: ' + profesor.CURP"></span>
+                                    <span x-show="profesor.email" class="rounded-full bg-sky-50 px-2 py-0.5 font-semibold text-[#006492] dark:bg-sky-950/40 dark:text-sky-300" x-text="profesor.email"></span>
+                                </div>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-slate-300" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
-                            {{ $selectedProfesor['user']['email'] }}
-                        </span>
-                    @endif
+                        </button>
+                    </template>
                 </div>
             </div>
-        </div>
-    @endif
 
-    {{-- PERIODO --}}
-    @if ($selectedProfesor)
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
-                <div
-                    class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
-                        <rect x="4" y="5" width="16" height="15" rx="2.5" stroke="currentColor"
-                            stroke-width="1.5" />
-                        <path d="M9 3v4M15 3v4M4 10h16" stroke="currentColor" stroke-width="1.5"
-                            stroke-linecap="round" />
+            <div wire:loading.flex wire:target="seleccionarProfesor,limpiarProfesorSeleccionado" class="absolute inset-0 z-40 items-center justify-center rounded-2xl bg-white/70 backdrop-blur-sm dark:bg-neutral-950/70">
+                <div class="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-[#006492] shadow-lg ring-1 ring-slate-100 dark:bg-neutral-900 dark:ring-neutral-800">
+                    <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                     </svg>
+                    Cargando información…
                 </div>
-
-                <span class="font-medium">
-                    Periodo de trabajo del profesor
-                </span>
-            </div>
-
-            <div class="w-full sm:ml-auto sm:w-64">
-                <flux:select label="Periodo" wire:model.live="periodo_id" required>
-                    <flux:select.option value="">--Selecciona el periodo---</flux:select.option>
-                    <flux:select.option value="9-12">SEP/DIC</flux:select.option>
-                    <flux:select.option value="1-4">ENE/ABR</flux:select.option>
-                    <flux:select.option value="5-8">MAY/AGO</flux:select.option>
-                </flux:select>
             </div>
         </div>
-    @endif
+    </section>
 
-    {{-- MATERIAS ASIGNADAS --}}
     @if ($selectedProfesor)
         @php
-            $totalMaterias = $this->materiasFiltradas->count();
+            $iniciales = mb_substr($selectedProfesor['nombre'] ?? '', 0, 1) . mb_substr($selectedProfesor['apellido_paterno'] ?? '', 0, 1);
+            $totalFiltradas = $this->materiasFiltradas->count();
+            $totalSeleccionadas = count($materiasSeleccionadas);
         @endphp
 
-        <div class="space-y-3">
-            <div class="flex flex-wrap items-center gap-2">
-                <h2 class="text-base font-semibold text-neutral-900 dark:text-neutral-50">
-                    Materias asignadas con horario
-                </h2>
+        <form
+            method="POST"
+            action="{{ route('admin.profesor.listas.masivas') }}"
+            target="_blank"
+            wire:key="listas-profesor-form-{{ $selectedProfesor['id'] }}"
+            x-data="{
+                tipo: 'ambas',
+                periodo: @js($periodo_id),
+                seleccionadas: @js(array_values($materiasSeleccionadas)),
+                todas: @js(array_values($materiasSeleccionadas))
+            }"
+            class="space-y-6"
+        >
+            @csrf
+            <input type="hidden" name="profesor_id" value="{{ $selectedProfesor['id'] }}">
+            <input type="hidden" name="tipo" x-model="tipo">
+            <template x-for="asignacionId in seleccionadas" :key="asignacionId">
+                <input type="hidden" name="asignaciones[]" :value="asignacionId">
+            </template>
 
-                <span
-                    class="inline-flex items-center gap-1 rounded-full bg-white/60 px-2.5 py-1 text-[11px] font-medium text-neutral-700 shadow-sm ring-1 ring-white/70 dark:bg-neutral-900/70 dark:text-neutral-100 dark:ring-neutral-700/80">
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                    {{ $totalMaterias }} materia{{ $totalMaterias === 1 ? '' : 's' }} encontradas
-                </span>
+            {{-- Profesor y generador masivo --}}
+            <section class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(440px,0.95fr)]">
+                <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+                    <div class="absolute right-0 top-0 h-24 w-24 rounded-bl-[70px] bg-[#88AC2E]/10"></div>
+                    <div class="relative flex items-start gap-4">
+                        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#006492] text-lg font-black uppercase text-white shadow-lg shadow-sky-900/15">
+                            {{ $iniciales }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h2 class="truncate text-lg font-black uppercase text-slate-800 dark:text-neutral-100">
+                                    {{ $selectedProfesor['nombre'] }} {{ $selectedProfesor['apellido_paterno'] }} {{ $selectedProfesor['apellido_materno'] }}
+                                </h2>
+                                <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900">Activo en consulta</span>
+                            </div>
 
-                <span class="text-xs text-neutral-500 dark:text-neutral-400">
-                    Filtra por nombre de materia y ajusta las columnas que quieres ver.
-                </span>
-            </div>
+                            <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                                @if (!empty($selectedProfesor['CURP']))
+                                    <span class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-1.5 font-semibold text-slate-600 dark:bg-neutral-900 dark:text-neutral-300">
+                                        <span class="text-[9px] font-black uppercase text-slate-400">CURP</span>
+                                        {{ $selectedProfesor['CURP'] }}
+                                    </span>
+                                @endif
+                                @if (!empty($selectedProfesor['user']['email']))
+                                    <span class="inline-flex items-center gap-1.5 rounded-xl bg-sky-50 px-3 py-1.5 font-semibold text-[#006492] dark:bg-sky-950/40 dark:text-sky-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                                            <rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.6" />
+                                            <path d="M5 7l7 5 7-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        {{ $selectedProfesor['user']['email'] }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="w-full sm:max-w-xs">
-                <flux:input icon="magnifying-glass" wire:model.live="buscador_materia"
-                    placeholder="Buscar por nombre de materia..." />
-            </div>
+                    <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <div class="rounded-2xl bg-slate-50 px-3 py-3 text-center dark:bg-neutral-900">
+                            <div class="text-lg font-black text-[#006492] dark:text-sky-300">{{ count($materiasAsignadas) }}</div>
+                            <div class="text-[9px] font-black uppercase tracking-wide text-slate-400">Materias</div>
+                        </div>
+                        <div class="rounded-2xl bg-slate-50 px-3 py-3 text-center dark:bg-neutral-900">
+                            <div class="text-lg font-black text-[#006492] dark:text-sky-300">{{ $this->totalLicenciaturas }}</div>
+                            <div class="text-[9px] font-black uppercase tracking-wide text-slate-400">Licenciaturas</div>
+                        </div>
+                        <div class="rounded-2xl bg-slate-50 px-3 py-3 text-center dark:bg-neutral-900">
+                            <div class="text-lg font-black text-[#006492] dark:text-sky-300">{{ $this->totalGeneraciones }}</div>
+                            <div class="text-[9px] font-black uppercase tracking-wide text-slate-400">Generaciones</div>
+                        </div>
+                        <div class="rounded-2xl bg-[#88AC2E]/10 px-3 py-3 text-center">
+                            <div class="text-lg font-black text-[#67851c] dark:text-lime-300" x-text="seleccionadas.length"></div>
+                            <div class="text-[9px] font-black uppercase tracking-wide text-[#67851c]/70 dark:text-lime-400">Seleccionadas</div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="relative">
-                {{-- Loader de materias / filtros --}}
-                <div class="absolute inset-0 z-10 flex items-center justify-center bg-white/40 backdrop-blur-sm dark:bg-neutral-950/50"
-                    wire:loading.flex
-                    wire:target="query,buscador_materia,cargarMateriasAsignadas,periodo_id,seleccionarProfesor">
-                    <div class="flex items-center gap-3 text-neutral-700 dark:text-neutral-100">
-                        <svg class="h-6 w-6 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-                            </path>
+                <div class="rounded-3xl border border-sky-100 bg-gradient-to-br from-sky-50 to-white p-5 shadow-sm dark:border-sky-950 dark:from-sky-950/30 dark:to-neutral-950">
+                    <div class="mb-4 flex items-start justify-between gap-3">
+                        <div>
+                            <div class="inline-flex items-center gap-2 rounded-full bg-[#006492]/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-[#006492] dark:text-sky-300">
+                                Exportación masiva
+                            </div>
+                            <h3 class="mt-2 text-lg font-black text-slate-800 dark:text-neutral-100">Generar paquete del profesor</h3>
+                            <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-neutral-400">Se abrirá un único PDF con portada, índice y todas las listas seleccionadas.</p>
+                        </div>
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#88AC2E] text-white shadow-lg shadow-lime-900/15">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <label class="block">
+                            <span class="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-neutral-400">Periodo</span>
+                            <select
+                                name="periodo"
+                                x-model="periodo"
+                                x-on:change="$wire.set('periodo_id', periodo)"
+                                required
+                                class="w-full rounded-2xl border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 shadow-sm focus:border-[#006492] focus:ring-[#006492] dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
+                            >
+                                <option value="">Selecciona el periodo</option>
+                                <option value="9-12">SEP/DIC</option>
+                                <option value="1-4">ENE/ABR</option>
+                                <option value="5-8">MAY/AGO</option>
+                            </select>
+                        </label>
+
+                        <label class="block">
+                            <span class="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-neutral-400">Alumnos</span>
+                            <select
+                                name="filtro_alumnos"
+                                required
+                                class="w-full rounded-2xl border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 shadow-sm focus:border-[#006492] focus:ring-[#006492] dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
+                            >
+                                <option value="locales">Solo locales</option>
+                                <option value="foraneos">Solo foráneos</option>
+                                <option value="todos">Locales y foráneos</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="mt-4">
+                        <span class="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-neutral-400">Contenido del paquete</span>
+                        <div class="grid grid-cols-3 rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200 dark:bg-neutral-900 dark:ring-neutral-800">
+                            <button type="button" x-on:click="tipo = 'asistencia'" class="rounded-xl px-2 py-2 text-xs font-black transition" :class="tipo === 'asistencia' ? 'bg-[#006492] text-white shadow' : 'text-slate-500 hover:bg-slate-50 dark:text-neutral-400 dark:hover:bg-neutral-800'">Asistencia</button>
+                            <button type="button" x-on:click="tipo = 'evaluacion'" class="rounded-xl px-2 py-2 text-xs font-black transition" :class="tipo === 'evaluacion' ? 'bg-[#006492] text-white shadow' : 'text-slate-500 hover:bg-slate-50 dark:text-neutral-400 dark:hover:bg-neutral-800'">Evaluación</button>
+                            <button type="button" x-on:click="tipo = 'ambas'" class="rounded-xl px-2 py-2 text-xs font-black transition" :class="tipo === 'ambas' ? 'bg-[#88AC2E] text-white shadow' : 'text-slate-500 hover:bg-slate-50 dark:text-neutral-400 dark:hover:bg-neutral-800'">Ambas</button>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        x-bind:disabled="!periodo || seleccionadas.length === 0"
+                        class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#006492] px-4 py-3 text-sm font-black text-white shadow-lg shadow-sky-900/15 transition hover:-translate-y-0.5 hover:bg-[#005379] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                            <path d="M14 3h5a2 2 0 012 2v5M10 14L21 3M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
-                        <span class="text-sm font-medium">
-                            Cargando materias…
-                        </span>
+                        Abrir PDF masivo en nueva pestaña
+                    </button>
+
+                    <p x-show="!periodo" class="mt-2 text-center text-[10px] font-semibold text-amber-600">Selecciona un periodo para habilitar la exportación.</p>
+                    <p x-show="periodo && seleccionadas.length === 0" class="mt-2 text-center text-[10px] font-semibold text-amber-600">Selecciona al menos una materia.</p>
+                </div>
+            </section>
+
+            {{-- Materias --}}
+            <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+                <div class="border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-neutral-800 dark:bg-neutral-900/70">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 class="text-base font-black text-slate-800 dark:text-neutral-100">Materias con horario asignado</h3>
+                                <span class="rounded-full bg-[#88AC2E]/10 px-2.5 py-1 text-[10px] font-black text-[#67851c] dark:text-lime-300">{{ $totalFiltradas }} visibles</span>
+                                <span class="rounded-full bg-sky-50 px-2.5 py-1 text-[10px] font-black text-[#006492] dark:bg-sky-950/40 dark:text-sky-300"><span x-text="seleccionadas.length"></span>&nbsp;seleccionadas</span>
+                            </div>
+                            <p class="mt-1 text-xs text-slate-500 dark:text-neutral-400">Cada generación vinculada al horario produce una lista independiente dentro del paquete.</p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                x-on:click="seleccionadas = todas.slice()"
+                                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[#88AC2E] hover:text-[#67851c] dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                                    <path d="M5 12l4 4L19 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                Seleccionar todas
+                            </button>
+                            <button
+                                type="button"
+                                x-on:click="seleccionadas = []"
+                                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-500 transition hover:border-rose-200 hover:text-rose-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+                            >
+                                Limpiar selección
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 max-w-md">
+                        <div class="relative">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.7" />
+                                    <path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                wire:model.live.debounce.250ms="buscador_materia"
+                                placeholder="Buscar por materia, licenciatura, modalidad o cuatrimestre..."
+                                class="w-full rounded-2xl border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-[#006492] focus:ring-[#006492] dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200"
+                            >
+                        </div>
                     </div>
                 </div>
 
-                {{-- CARD GLASS DE LA TABLA --}}
-                <div x-data="{
-                    term: @entangle('buscador_materia'),
-                    dense: false,
-                    showCols: {
-                        modalidad: true,
-                        cuatrimestre: true,
-                        licenciatura: true
-                    },
-                    highlight(t) {
-                        if (!this.term) return t;
-                
-                        const esc = this.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                
-                        return t.replace(
-                            new RegExp(esc, 'ig'),
-                            (m) => `<mark class='rounded bg-yellow-200/80 px-0.5 dark:bg-yellow-500/40'>${m}</mark>`
-                        );
-                    }
-                }"
-                    class="relative overflow-hidden rounded-2xl border border-white/35 bg-white/10 shadow-xl backdrop-blur-2xl dark:border-neutral-700/70 dark:bg-neutral-900/55">
-
-                    {{-- Barra de utilidades glass --}}
-                    <div
-                        class="flex flex-wrap items-center gap-3 border-b border-white/20 bg-gradient-to-r from-neutral-900/85 via-neutral-900/80 to-neutral-800/85 px-3 py-2.5 backdrop-blur dark:border-neutral-700/60">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[11px] uppercase tracking-wide text-neutral-400">
-                                Densidad
-                            </span>
-
-                            <button type="button" @click="dense=false"
-                                :class="dense ? 'bg-neutral-800/70 text-neutral-300' : 'bg-indigo-500 text-white shadow-sm'"
-                                class="rounded-full border border-indigo-600/60 px-2 py-1 text-[11px]">
-                                Cómoda
-                            </button>
-
-                            <button type="button" @click="dense=true"
-                                :class="dense ? 'bg-indigo-500 text-white shadow-sm' : 'bg-neutral-800/70 text-neutral-300'"
-                                class="rounded-full border border-indigo-600/60 px-2 py-1 text-[11px]">
-                                Compacta
-                            </button>
-                        </div>
-
-                        <div class="ml-auto flex flex-wrap items-center gap-2">
-                            <span class="text-[11px] uppercase tracking-wide text-neutral-400">
-                                Columnas
-                            </span>
-
-                            <label class="inline-flex items-center gap-1 text-[11px] text-neutral-200">
-                                <input type="checkbox" class="rounded border-neutral-600 bg-neutral-800"
-                                    x-model="showCols.modalidad">
-                                <span>Modalidad</span>
-                            </label>
-
-                            <label class="inline-flex items-center gap-1 text-[11px] text-neutral-200">
-                                <input type="checkbox" class="rounded border-neutral-600 bg-neutral-800"
-                                    x-model="showCols.cuatrimestre">
-                                <span>Cuatrimestre</span>
-                            </label>
-
-                            <label class="inline-flex items-center gap-1 text-[11px] text-neutral-200">
-                                <input type="checkbox" class="rounded border-neutral-600 bg-neutral-800"
-                                    x-model="showCols.licenciatura">
-                                <span>Licenciatura</span>
-                            </label>
+                <div class="relative overflow-x-auto">
+                    <div wire:loading.flex wire:target="buscador_materia" class="absolute inset-0 z-20 items-center justify-center bg-white/65 backdrop-blur-[2px] dark:bg-neutral-950/65">
+                        <div class="flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-xs font-black text-[#006492] shadow-lg ring-1 ring-slate-100 dark:bg-neutral-900 dark:ring-neutral-800">
+                            <svg class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            Actualizando materias…
                         </div>
                     </div>
 
-                    {{-- Tabla con efecto glass --}}
-                    <div
-                        class="max-h-[480px] overflow-auto bg-gradient-to-b from-white/10 via-white/5 to-white/0 dark:from-neutral-950/40 dark:via-neutral-950/20 dark:to-transparent">
-                        <table class="min-w-full divide-y divide-white/25 dark:divide-neutral-800/80">
-                            <thead class="sticky top-0 z-10 bg-neutral-900/85 backdrop-blur">
-                                <tr>
-                                    <th class="px-3 py-2.5 text-left">
-                                        <span
-                                            class="text-[11px] font-medium uppercase tracking-wider text-neutral-300">
-                                            #
-                                        </span>
-                                    </th>
+                    <table class="min-w-[1100px] w-full text-left">
+                        <thead class="bg-[#006492] text-white">
+                            <tr class="text-[10px] font-black uppercase tracking-[0.08em]">
+                                <th class="w-14 px-4 py-3 text-center">Incluir</th>
+                                <th class="w-12 px-3 py-3 text-center">#</th>
+                                <th class="px-4 py-3">Materia y generaciones</th>
+                                <th class="w-40 px-4 py-3">Modalidad</th>
+                                <th class="w-28 px-4 py-3 text-center">Cuatrimestre</th>
+                                <th class="w-64 px-4 py-3">Licenciatura</th>
+                                <th class="w-80 px-4 py-3">Listas individuales</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-neutral-800">
+                            @forelse ($this->materiasFiltradas as $row)
+                                @php
+                                    $generaciones = collect(explode(',', (string) ($row->generaciones_detalle ?? $row->generaciones)))
+                                        ->filter()
+                                        ->map(function ($detalle) {
+                                            [$id, $nombre] = array_pad(explode('|', $detalle, 2), 2, null);
 
-                                    <th class="px-3 py-2.5 text-left">
-                                        <span
-                                            class="text-[11px] font-medium uppercase tracking-wider text-neutral-300">
-                                            Materia
+                                            return [
+                                                'id' => (int) $id,
+                                                'nombre' => $nombre ?: $id,
+                                            ];
+                                        })
+                                        ->values()
+                                        ->all();
+                                @endphp
+                                <tr class="group transition hover:bg-sky-50/45 dark:hover:bg-sky-950/15">
+                                    <td class="px-4 py-4 text-center align-top">
+                                        <label class="inline-flex cursor-pointer items-center justify-center">
+                                            <input
+                                                type="checkbox"
+                                                value="{{ (string) $row->asignacion_materia_id }}"
+                                                x-model="seleccionadas"
+                                                class="h-5 w-5 rounded-md border-slate-300 text-[#88AC2E] focus:ring-[#88AC2E] dark:border-neutral-700 dark:bg-neutral-900"
+                                            >
+                                        </label>
+                                    </td>
+                                    <td class="px-3 py-4 text-center align-top text-xs font-black text-slate-400">{{ $loop->iteration }}</td>
+                                    <td class="px-4 py-4 align-top">
+                                        <p class="text-sm font-black text-slate-800 dark:text-neutral-100">{{ $row->materia }}</p>
+                                        <div class="mt-2 flex flex-wrap gap-1.5">
+                                            @foreach ($generaciones as $generacion)
+                                                <span class="rounded-full bg-sky-50 px-2.5 py-1 text-[10px] font-black text-[#006492] ring-1 ring-sky-100 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-900">Gen. {{ $generacion['nombre'] }}</span>
+                                            @endforeach
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4 align-top">
+                                        <span class="inline-flex rounded-full bg-violet-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-violet-700 ring-1 ring-violet-100 dark:bg-violet-950/40 dark:text-violet-300 dark:ring-violet-900">
+                                            {{ $row->modalidad }}
                                         </span>
-                                    </th>
-
-                                    <th class="px-3 py-2.5 text-center" x-show="showCols.modalidad">
-                                        <span
-                                            class="text-[11px] font-medium uppercase tracking-wider text-neutral-300">
-                                            Modalidad
-                                        </span>
-                                    </th>
-
-                                    <th class="px-3 py-2.5 text-center" x-show="showCols.cuatrimestre">
-                                        <span
-                                            class="text-[11px] font-medium uppercase tracking-wider text-neutral-300">
-                                            Cuatrimestre
-                                        </span>
-                                    </th>
-
-                                    <th class="px-3 py-2.5 text-center" x-show="showCols.licenciatura">
-                                        <span
-                                            class="text-[11px] font-medium uppercase tracking-wider text-neutral-300">
-                                            Licenciatura
-                                        </span>
-                                    </th>
-
-                                    <th class="px-3 py-2.5 text-left">
-                                        <span
-                                            class="text-[11px] font-medium uppercase tracking-wider text-neutral-300">
-                                            Listas
-                                        </span>
-                                    </th>
+                                    </td>
+                                    <td class="px-4 py-4 text-center align-top">
+                                        <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-slate-100 px-2 text-sm font-black text-slate-700 dark:bg-neutral-900 dark:text-neutral-200">{{ $row->cuatrimestre }}°</span>
+                                    </td>
+                                    <td class="px-4 py-4 align-top text-xs font-semibold leading-5 text-slate-600 dark:text-neutral-300">{{ $row->licenciatura }}</td>
+                                    <td class="px-4 py-4 align-top">
+                                        @if ($periodo_id)
+                                            <div class="space-y-2">
+                                                @foreach ($generaciones as $generacion)
+                                                    <div class="flex flex-wrap items-center gap-1.5">
+                                                        <span class="w-20 text-[10px] font-black text-slate-400">Gen. {{ $generacion['nombre'] }}</span>
+                                                        <a
+                                                            target="_blank"
+                                                            rel="noopener"
+                                                            href="{{ route($row->modalidad === 'ESCOLARIZADA' ? 'admin.pdf.documentacion.lista_asistencia_escolarizada' : 'admin.pdf.documentacion.lista_asistencia_semiescolarizada', [
+                                                                'asignacion_materia' => $row->asignacion_materia_id,
+                                                                'licenciatura_id' => $row->licenciatura_id,
+                                                                'cuatrimestre_id' => $row->cuatrimestre_id,
+                                                                'generacion_id' => $generacion['id'],
+                                                                'modalidad_id' => $row->modalidad_id,
+                                                                'periodo' => $periodo_id,
+                                                            ]) }}"
+                                                            class="inline-flex items-center gap-1 rounded-xl bg-[#006492] px-2.5 py-1.5 text-[10px] font-black text-white transition hover:bg-[#005379]"
+                                                        >
+                                                            Asistencia
+                                                        </a>
+                                                        <a
+                                                            target="_blank"
+                                                            rel="noopener"
+                                                            href="{{ route('admin.pdf.documentacion.lista_evaluacion', [
+                                                                'asignacion_materia' => $row->asignacion_materia_id,
+                                                                'licenciatura_id' => $row->licenciatura_id,
+                                                                'cuatrimestre_id' => $row->cuatrimestre_id,
+                                                                'generacion_id' => $generacion['id'],
+                                                                'modalidad_id' => $row->modalidad_id,
+                                                                'periodo' => $periodo_id,
+                                                            ]) }}"
+                                                            class="inline-flex items-center gap-1 rounded-xl bg-[#88AC2E] px-2.5 py-1.5 text-[10px] font-black text-white transition hover:bg-[#759524]"
+                                                        >
+                                                            Evaluación
+                                                        </a>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <div class="rounded-xl border border-dashed border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-semibold text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+                                                Selecciona un periodo para habilitar las listas individuales.
+                                            </div>
+                                        @endif
+                                    </td>
                                 </tr>
-                            </thead>
-
-                            <tbody
-                                class="divide-y divide-white/15 bg-white/5 text-neutral-900 dark:divide-neutral-800/70 dark:bg-neutral-950/20 dark:text-neutral-50">
-                                @forelse ($this->materiasFiltradas as $i => $row)
-                                    @php
-                                        $firstGen = $row->generaciones
-                                            ? \Illuminate\Support\Str::of($row->generaciones)->explode(',')->first()
-                                            : null;
-                                    @endphp
-
-                                    <tr class="group transition-colors hover:bg-white/25 dark:hover:bg-indigo-900/35">
-                                        {{-- # --}}
-                                        <td class="px-3 align-top"
-                                            :class="dense ? 'py-1.5' : '{{ $loop->last ? 'pb-3 pt-2.5' : 'py-2.5' }}'">
-                                            <span class="text-xs font-medium text-neutral-700 dark:text-neutral-300">
-                                                {{ $i + 1 }}
-                                            </span>
-                                        </td>
-
-                                        {{-- Materia + chips modalidad / generaciones --}}
-                                        <td class="px-3 align-top"
-                                            :class="dense ? 'py-1.5' : '{{ $loop->last ? 'pb-3 pt-2.5' : 'py-2.5' }}'">
-                                            <div class="flex flex-col gap-1.5">
-                                                <span
-                                                    class="text-sm font-semibold text-neutral-900 dark:text-neutral-50"
-                                                    x-html="highlight(@js($row->materia))">
-                                                </span>
-
-                                                <div class="flex flex-wrap gap-1">
-                                                    @if ($row->modalidad === 'SEMIESCOLARIZADA')
-                                                        <span
-                                                            class="inline-flex items-center rounded-full bg-purple-100/80 px-2 py-0.5 text-[10px] font-medium text-purple-800 dark:bg-purple-900/60 dark:text-purple-100">
-                                                            Semiescolarizada
-                                                        </span>
-                                                    @elseif ($row->modalidad === 'ESCOLARIZADA')
-                                                        <span
-                                                            class="inline-flex items-center rounded-full bg-emerald-100/80 px-2 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-100">
-                                                            Escolarizada
-                                                        </span>
-                                                    @endif
-
-                                                    @if ($row->generaciones)
-                                                        @php
-                                                            $gens = \Illuminate\Support\Str::of($row->generaciones)
-                                                                ->explode(',')
-                                                                ->filter()
-                                                                ->unique()
-                                                                ->values();
-                                                        @endphp
-
-                                                        @foreach ($gens as $g)
-                                                            <span
-                                                                class="inline-flex items-center rounded-full bg-sky-100/80 px-2 py-0.5 text-[10px] text-sky-800 dark:bg-sky-900/60 dark:text-sky-100">
-                                                                Gen {{ $g }}
-                                                            </span>
-                                                        @endforeach
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        {{-- Modalidad --}}
-                                        <td class="px-3 text-center align-top" x-show="showCols.modalidad"
-                                            :class="dense ? 'py-1.5' : '{{ $loop->last ? 'pb-3 pt-2.5' : 'py-2.5' }}'">
-                                            <span class="text-xs"
-                                                x-html="highlight(@js($row->modalidad))"></span>
-                                        </td>
-
-                                        {{-- Cuatrimestre --}}
-                                        <td class="px-3 text-center align-top" x-show="showCols.cuatrimestre"
-                                            :class="dense ? 'py-1.5' : '{{ $loop->last ? 'pb-3 pt-2.5' : 'py-2.5' }}'">
-                                            <span class="text-xs font-medium">
-                                                {{ $row->cuatrimestre }}
-                                            </span>
-                                        </td>
-
-                                        {{-- Licenciatura --}}
-                                        <td class="px-3 text-center align-top" x-show="showCols.licenciatura"
-                                            :class="dense ? 'py-1.5' : '{{ $loop->last ? 'pb-3 pt-2.5' : 'py-2.5' }}'">
-                                            <span class="text-xs"
-                                                x-html="highlight(@js($row->licenciatura))"></span>
-                                        </td>
-
-                                        {{-- Acciones --}}
-                                        <td class="px-3 align-top"
-                                            :class="dense ? 'py-1.5' : '{{ $loop->last ? 'pb-3 pt-2.5' : 'py-2.5' }}'">
-                                            <div class="flex flex-wrap gap-2">
-                                                @if ($row->modalidad === 'ESCOLARIZADA')
-                                                    <a target="_blank"
-                                                        href="{{ route('admin.pdf.documentacion.lista_asistencia_escolarizada', [
-                                                            'asignacion_materia' => $row->asignacion_materia_id,
-                                                            'licenciatura_id' => $row->licenciatura_id,
-                                                            'cuatrimestre_id' => $row->cuatrimestre,
-                                                            'generacion_id' => $firstGen,
-                                                            'modalidad_id' => $row->modalidad_id,
-                                                            'periodo' => $periodo_id,
-                                                        ]) }}"
-                                                        class="inline-flex items-center gap-1 rounded-full bg-indigo-600/90 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur hover:bg-indigo-700">
-                                                        Asistencia
-                                                    </a>
-                                                @else
-                                                    <a target="_blank"
-                                                        href="{{ route('admin.pdf.documentacion.lista_asistencia_semiescolarizada', [
-                                                            'asignacion_materia' => $row->asignacion_materia_id,
-                                                            'licenciatura_id' => $row->licenciatura_id,
-                                                            'cuatrimestre_id' => $row->cuatrimestre,
-                                                            'generacion_id' => $firstGen,
-                                                            'modalidad_id' => $row->modalidad_id,
-                                                            'periodo' => $periodo_id,
-                                                        ]) }}"
-                                                        class="inline-flex items-center gap-1 rounded-full bg-indigo-600/90 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur hover:bg-indigo-700">
-                                                        Asistencia
-                                                    </a>
-                                                @endif
-
-                                                <a target="_blank"
-                                                    href="{{ route('admin.pdf.documentacion.lista_evaluacion', [
-                                                        'asignacion_materia' => $row->asignacion_materia_id,
-                                                        'licenciatura_id' => $row->licenciatura_id,
-                                                        'cuatrimestre_id' => $row->cuatrimestre,
-                                                        'generacion_id' => $firstGen,
-                                                        'modalidad_id' => $row->modalidad_id,
-                                                        'periodo' => $periodo_id,
-                                                    ]) }}"
-                                                    class="inline-flex items-center gap-1 rounded-full bg-cyan-600/90 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur hover:bg-cyan-700">
-                                                    Evaluación
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="px-3 py-8">
-                                            <div class="flex flex-col items-center justify-center gap-2 text-center">
-                                                <div
-                                                    class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-neutral-500 backdrop-blur dark:bg-neutral-800 dark:text-neutral-300">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        viewBox="0 0 24 24" fill="none">
-                                                        <path d="M12 7v6m0 4h.01" stroke="currentColor"
-                                                            stroke-width="1.7" stroke-linecap="round" />
-                                                        <circle cx="12" cy="12" r="8"
-                                                            stroke="currentColor" stroke-width="1.7" />
-                                                    </svg>
-                                                </div>
-
-                                                <p class="text-sm font-medium text-neutral-800 dark:text-neutral-100">
-                                                    No hay materias asignadas para el periodo/filtro seleccionado.
-                                                </p>
-
-                                                <p class="text-xs text-neutral-500 dark:text-neutral-400">
-                                                    Verifica el periodo, el profesor seleccionado o ajusta el buscador.
-                                                </p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-6 py-14 text-center">
+                                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-neutral-900">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                                                <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.7" />
+                                                <path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                                            </svg>
+                                        </div>
+                                        <p class="mt-3 text-sm font-black text-slate-700 dark:text-neutral-200">No hay materias que coincidan con la búsqueda</p>
+                                        <p class="mt-1 text-xs text-slate-400">Limpia el filtro o escribe otro término.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-        </div>
+
+                <div class="flex flex-col gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3 text-[10px] font-semibold text-slate-500 dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
+                    <span>Orden: licenciatura → cuatrimestre → materia → generación → asistencia/evaluación.</span>
+                    <span>Las listas sin alumnos activos se omitirán y aparecerán en el índice del PDF.</span>
+                </div>
+            </section>
+        </form>
     @else
-        <div
-            class="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-5 py-6 text-center dark:border-neutral-700 dark:bg-neutral-950">
-            <div
-                class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-neutral-500 shadow-sm dark:bg-neutral-900 dark:text-neutral-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none">
-                    <path
-                        d="M12 6.75a3.25 3.25 0 013.25 3.25v.5a.75.75 0 01-1.5 0v-.5a1.75 1.75 0 10-3.5 0v.25c0 .466.184.913.513 1.243l2.774 2.774A3.25 3.25 0 0114.75 18H9.25a.75.75 0 010-1.5h5.5a1.75 1.75 0 00.596-3.389l-2.774-2.774A3.24 3.24 0 0110.5 10.25v-.25A3.25 3.25 0 0113.75 6.75z"
-                        fill="currentColor" />
-                    <path d="M12 3.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17z" stroke="currentColor" stroke-width="1.5" />
+        <section class="rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center dark:border-neutral-800 dark:bg-neutral-950">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-[#006492] shadow-sm ring-1 ring-slate-100 dark:bg-neutral-900 dark:ring-neutral-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none">
+                    <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.7" />
+                    <path d="M3.5 18c.8-3.2 2.7-5 5.5-5s4.7 1.8 5.5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                    <path d="M16 8h5M18.5 5.5v5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
                 </svg>
             </div>
-
-            <p class="text-sm font-medium text-neutral-800 dark:text-neutral-100">
-                Selecciona un profesor para habilitar la búsqueda y ver sus materias con horario.
+            <h2 class="mt-4 text-base font-black text-slate-800 dark:text-neutral-100">Selecciona un profesor para comenzar</h2>
+            <p class="mx-auto mt-1 max-w-lg text-sm leading-6 text-slate-500 dark:text-neutral-400">
+                Después podrás elegir el periodo, seleccionar materias, filtrar alumnos locales o foráneos y abrir todas las listas en un solo PDF.
             </p>
-
-            <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                Primero elige al profesor en el buscador superior; después podrás definir el periodo y generar las
-                listas.
-            </p>
-        </div>
+        </section>
     @endif
-
 </div>

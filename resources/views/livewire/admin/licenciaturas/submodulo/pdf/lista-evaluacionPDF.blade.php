@@ -80,7 +80,7 @@
 
     footer {
         position: absolute;
-        bottom: 0;
+        bottom: 10px;
         left: 0;
         text-align: center;
         font-size: 12px;
