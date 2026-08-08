@@ -43,6 +43,214 @@
         </div>
     </section>
 
+    @php
+        $checklistParametros = array_filter([
+            'licenciatura_id' => $checklist_licenciatura_id,
+            'modalidad_id' => $checklist_modalidad_id,
+            'generacion_id' => $checklist_generacion_id,
+        ], fn ($valor) => $valor !== null && $valor !== '');
+        $hayChecklist = ($checklistResumen['materias_grupos'] ?? 0) > 0;
+    @endphp
+
+    {{-- Control de entrega de listas a todos los profesores con horario --}}
+    <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+        <div class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-sky-100/60 dark:bg-sky-950/20"></div>
+        <div class="absolute -bottom-24 left-1/3 h-44 w-44 rounded-full bg-[#88AC2E]/10"></div>
+
+        <div class="relative border-b border-slate-200 px-5 py-5 dark:border-neutral-800 sm:px-6">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div class="flex items-start gap-4">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#006492]/10 text-[#006492] ring-1 ring-sky-100 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-900">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                            <path d="M8 4h8M9 2.8h6a1 1 0 011 1V6H8V3.8a1 1 0 011-1z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M6 5h12a2 2 0 012 2v13H4V7a2 2 0 012-2z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                            <path d="M8 10l1.5 1.5L12 9M14 10h3M8 15l1.5 1.5L12 14M14 15h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h2 class="text-lg font-black text-slate-800 dark:text-neutral-100">Control de entrega de listas</h2>
+                            <span class="rounded-full bg-[#88AC2E]/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-[#67851c] dark:text-lime-300">
+                                Checklist institucional
+                            </span>
+                        </div>
+                        <p class="mt-1 max-w-3xl text-xs leading-5 text-slate-500 dark:text-neutral-400">
+                            Genera el control con todos los profesores que tienen materias registradas en horarios. El ciclo y periodo del encabezado se usan como contexto del documento. Cada materia + licenciatura + modalidad + cuatrimestre + generación aparece una sola vez, aunque tenga varias horas o días asignados.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-600 dark:bg-neutral-900 dark:text-neutral-300">
+                        <span class="text-[9px] uppercase tracking-wide text-slate-400">Ciclo</span>
+                        {{ $checklistContexto['ciclo_escolar'] ?: 'Sin configurar' }}
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 rounded-xl bg-sky-50 px-3 py-2 text-xs font-black text-[#006492] ring-1 ring-sky-100 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-900">
+                        <span class="text-[9px] uppercase tracking-wide text-sky-400">Periodo</span>
+                        {{ $checklistContexto['periodo_escolar'] ?: 'Sin configurar' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative p-5 sm:p-6">
+            <div wire:loading.flex wire:target="checklist_licenciatura_id,checklist_modalidad_id,checklist_generacion_id,limpiarFiltrosChecklist" class="absolute inset-0 z-30 items-center justify-center bg-white/70 backdrop-blur-[2px] dark:bg-neutral-950/70">
+                <div class="flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-xs font-black text-[#006492] shadow-xl ring-1 ring-slate-100 dark:bg-neutral-900 dark:ring-neutral-800">
+                    <svg class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    Actualizando checklist…
+                </div>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
+                    <div class="text-2xl font-black text-[#006492] dark:text-sky-300">{{ $checklistResumen['profesores'] }}</div>
+                    <div class="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">Profesores</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
+                    <div class="text-2xl font-black text-[#006492] dark:text-sky-300">{{ $checklistResumen['materias_grupos'] }}</div>
+                    <div class="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">Materias / grupos</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
+                    <div class="text-2xl font-black text-[#006492] dark:text-sky-300">{{ $checklistResumen['asistencias'] }}</div>
+                    <div class="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">Asistencias</div>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
+                    <div class="text-2xl font-black text-[#006492] dark:text-sky-300">{{ $checklistResumen['evaluaciones'] }}</div>
+                    <div class="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">Evaluaciones</div>
+                </div>
+                <div class="rounded-2xl bg-[#88AC2E] px-4 py-3 text-white shadow-lg shadow-lime-900/10">
+                    <div class="text-2xl font-black">{{ $checklistResumen['documentos'] }}</div>
+                    <div class="text-[9px] font-black uppercase tracking-[0.1em] text-white/80">Documentos a entregar</div>
+                </div>
+            </div>
+
+            <div class="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+                <div class="grid gap-3 md:grid-cols-3">
+                    <label class="block">
+                        <span class="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-neutral-400">Licenciatura</span>
+                        <select wire:model.live="checklist_licenciatura_id" class="w-full rounded-2xl border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 shadow-sm focus:border-[#006492] focus:ring-[#006492] dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
+                            <option value="">Todas las licenciaturas</option>
+                            @foreach ($checklistOpciones['licenciaturas'] as $opcion)
+                                <option value="{{ $opcion['id'] }}">{{ $opcion['nombre'] }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+
+                    <label class="block">
+                        <span class="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-neutral-400">Modalidad</span>
+                        <select wire:model.live="checklist_modalidad_id" class="w-full rounded-2xl border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 shadow-sm focus:border-[#006492] focus:ring-[#006492] dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
+                            <option value="">Todas las modalidades</option>
+                            @foreach ($checklistOpciones['modalidades'] as $opcion)
+                                <option value="{{ $opcion['id'] }}">{{ $opcion['nombre'] }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+
+                    <label class="block">
+                        <span class="mb-1.5 block text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-neutral-400">Generación</span>
+                        <select wire:model.live="checklist_generacion_id" class="w-full rounded-2xl border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 shadow-sm focus:border-[#006492] focus:ring-[#006492] dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
+                            <option value="">Todas las generaciones</option>
+                            @foreach ($checklistOpciones['generaciones'] as $opcion)
+                                <option value="{{ $opcion['id'] }}">{{ $opcion['nombre'] }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                </div>
+
+                <button type="button" wire:click="limpiarFiltrosChecklist" class="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 7h16M7 12h10M10 17h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                    Limpiar filtros
+                </button>
+            </div>
+
+            <div class="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-5 dark:border-neutral-800 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    @if ($hayChecklist)
+                        <p class="text-xs font-bold text-slate-600 dark:text-neutral-300">
+                            El checklist se ordena por apellido paterno → apellido materno → nombre y agrupa todas las materias de cada profesor.
+                        </p>
+                        <p class="mt-1 text-[10px] text-slate-400">
+                            Cada registro incluye casillas independientes para asistencia y evaluación, observaciones, entrega completa, fecha y firma.
+                        </p>
+                    @else
+                        <p class="text-xs font-black text-amber-600 dark:text-amber-300">No hay listas disponibles con los filtros actuales.</p>
+                        <p class="mt-1 text-[10px] text-slate-400">Verifica los filtros o que existan materias con profesor dentro de la sección de horarios.</p>
+                    @endif
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <a
+                        href="{{ route('admin.profesor.checklist.preview', $checklistParametros) }}"
+                        target="_blank"
+                        rel="noopener"
+                        @class([
+                            'inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-black transition',
+                            'border-slate-200 bg-white text-slate-600 hover:border-[#006492] hover:text-[#006492] dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300' => $hayChecklist,
+                            'pointer-events-none border-slate-100 bg-slate-50 text-slate-300 opacity-60 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-600' => ! $hayChecklist,
+                        ])
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                            <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" stroke="currentColor" stroke-width="1.7" />
+                            <circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.7" />
+                        </svg>
+                        Vista previa
+                    </a>
+
+                    <a
+                        href="{{ route('admin.profesor.checklist.pdf', $checklistParametros) }}"
+                        @class([
+                            'inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-black text-white shadow-lg transition',
+                            'bg-rose-600 shadow-rose-900/10 hover:-translate-y-0.5 hover:bg-rose-700' => $hayChecklist,
+                            'pointer-events-none bg-slate-300 opacity-60 dark:bg-neutral-700' => ! $hayChecklist,
+                        ])
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                            <path d="M7 3h7l4 4v14H7V3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                            <path d="M14 3v5h5M9.5 13h5M9.5 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                        </svg>
+                        Descargar PDF
+                    </a>
+
+                    <a
+                        href="{{ route('admin.profesor.checklist.word', $checklistParametros) }}"
+                        @class([
+                            'inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-black text-white shadow-lg transition',
+                            'bg-[#185ABD] shadow-blue-900/10 hover:-translate-y-0.5 hover:bg-[#134a9c]' => $hayChecklist,
+                            'pointer-events-none bg-slate-300 opacity-60 dark:bg-neutral-700' => ! $hayChecklist,
+                        ])
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                            <path d="M4 5.5h16v13H4v-13z" stroke="currentColor" stroke-width="1.7" />
+                            <path d="M7 9l1.5 6L10 11l1.5 4L13 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M15.5 9H18M15.5 12H18M15.5 15H18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                        </svg>
+                        Descargar Word
+                    </a>
+
+                    <a
+                        href="{{ route('admin.profesor.checklist.excel', $checklistParametros) }}"
+                        @class([
+                            'inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-black text-white shadow-lg transition',
+                            'bg-emerald-600 shadow-emerald-900/10 hover:-translate-y-0.5 hover:bg-emerald-700' => $hayChecklist,
+                            'pointer-events-none bg-slate-300 opacity-60 dark:bg-neutral-700' => ! $hayChecklist,
+                        ])
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                            <path d="M4 5h16v14H4V5zM4 10h16M9 5v14" stroke="currentColor" stroke-width="1.7" />
+                            <path d="M12.5 12.5l4 4M16.5 12.5l-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                        </svg>
+                        Descargar Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     {{-- Buscador de profesor --}}
     <section class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950 sm:p-5">
         <div x-data="{

@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Profesor;
 
 use App\Models\Periodo;
 use App\Models\Profesor;
+use App\Services\ListaProfesorChecklistService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -23,6 +24,12 @@ class ListaProfesores extends Component
     public string $buscador_materia = '';
 
     public string $periodo_id = '';
+
+    public string $checklist_licenciatura_id = '';
+
+    public string $checklist_modalidad_id = '';
+
+    public string $checklist_generacion_id = '';
 
     public function updatedQuery(): void
     {
@@ -184,6 +191,22 @@ class ListaProfesores extends Component
         };
     }
 
+    private function filtrosChecklist(): array
+    {
+        return [
+            'licenciatura_id' => $this->checklist_licenciatura_id,
+            'modalidad_id' => $this->checklist_modalidad_id,
+            'generacion_id' => $this->checklist_generacion_id,
+        ];
+    }
+
+    public function limpiarFiltrosChecklist(): void
+    {
+        $this->checklist_licenciatura_id = '';
+        $this->checklist_modalidad_id = '';
+        $this->checklist_generacion_id = '';
+    }
+
     public function render()
     {
         $profesores = Profesor::with('user')
@@ -209,9 +232,17 @@ class ListaProfesores extends Component
             ->values()
             ->toArray();
 
+        $checklistService = app(ListaProfesorChecklistService::class);
+        $checklistContexto = $checklistService->contextoAcademico();
+        $checklistOpciones = $checklistService->opcionesFiltros();
+        $checklistResumen = $checklistService->resumen($this->filtrosChecklist());
+
         return view('livewire.admin.profesor.lista-profesores', [
             'periodos' => Periodo::orderBy('id', 'desc')->get(),
             'profesores' => $profesores,
+            'checklistContexto' => $checklistContexto,
+            'checklistOpciones' => $checklistOpciones,
+            'checklistResumen' => $checklistResumen,
         ]);
     }
 }

@@ -27,6 +27,7 @@ use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\EstadisticaLicenciaturasController;
 
 use App\Http\Controllers\HorarioGeneralController;
+use App\Http\Controllers\ListaProfesorChecklistController;
 use App\Http\Controllers\ListaProfesorController;
 use App\Http\Controllers\MateriaController;
 use App\Http\Controllers\MesController;
@@ -104,6 +105,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profesores', [ProfesorController::class, 'index'])->middleware('can:admin.administracion')->name('admin.profesor.index');
     Route::get('/lista-profesores', [ProfesorController::class, 'lista_profesores'])->middleware('can:admin.administracion')->name('admin.profesor.lista_profesores');
     Route::post('/lista-profesores/masivas', [ListaProfesorController::class, 'masivas'])->middleware('can:admin.administracion')->name('admin.profesor.listas.masivas');
+    Route::get('/lista-profesores/checklist/preview', [ListaProfesorChecklistController::class, 'preview'])->middleware('can:admin.administracion')->name('admin.profesor.checklist.preview');
+    Route::get('/lista-profesores/checklist/pdf', [ListaProfesorChecklistController::class, 'pdf'])->middleware('can:admin.administracion')->name('admin.profesor.checklist.pdf');
+    Route::get('/lista-profesores/checklist/word', [ListaProfesorChecklistController::class, 'word'])->middleware('can:admin.administracion')->name('admin.profesor.checklist.word');
+    Route::get('/lista-profesores/checklist/excel', [ListaProfesorChecklistController::class, 'excel'])->middleware('can:admin.administracion')->name('admin.profesor.checklist.excel');
     Route::get('/credencial-profesor', [ProfesorController::class, 'credencial_profesor'])->middleware('can:admin.administracion')->name('admin.profesor.credencial_profesor');
 
 
