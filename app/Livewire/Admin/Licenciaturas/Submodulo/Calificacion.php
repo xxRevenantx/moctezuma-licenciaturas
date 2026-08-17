@@ -6,14 +6,11 @@ use App\Mail\CalificacionMail;
 use App\Models\AsignacionMateria;
 use App\Models\AsignarGeneracion;
 use App\Models\Calificacion as ModelsCalificacion;
-use App\Models\Cuatrimestre;
-use App\Models\Dashboard as ModelsDashboard;
-use App\Models\Escuela;
-use App\Models\Generacion;
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
 use App\Models\Modalidad;
 use App\Models\Periodo;
+use App\Services\Boletas\BoletaService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\On;
@@ -609,38 +606,45 @@ class Calificacion extends Component
     /** ======================= ENVÍOS ======================= */
     public function enviarCalificacion($alumnoId, $cuatrimestreId, $generacionId, $modalidadId)
     {
-        $periodo = Periodo::with(['cuatrimestre', 'mes'])
-            ->where('generacion_id', $generacionId)
-            ->where('cuatrimestre_id', $cuatrimestreId)
-            ->first();
+        $boletas = app(BoletaService::class);
 
-        $inscripcion = Inscripcion::with('user')->find($alumnoId);
-        if (!$inscripcion) {
-            $this->dispatch('swal', ['icon' => 'error', 'title' => 'Alumno no encontrado', 'position' => 'top-end']);
+        try {
+            $dataset = $boletas->datasetBoleta(
+                (int) $alumnoId,
+                (int) $this->licenciatura->id,
+                (int) $modalidadId,
+                (int) $generacionId,
+                (int) $cuatrimestreId,
+                true
+            );
+        } catch (\Throwable $e) {
+            $this->dispatch('swal', [
+                'icon' => 'error',
+                'title' => 'No fue posible preparar la boleta',
+                'text' => 'Verifica que el alumno siga activo y pertenezca al contexto seleccionado.',
+                'position' => 'top-end',
+            ]);
             return;
         }
 
-        $correo = $inscripcion->user->email ?? null;
+        if ($dataset['calificaciones']->isEmpty()) {
+            $this->dispatch('swal', [
+                'icon' => 'warning',
+                'title' => 'El alumno no tiene calificaciones para este cuatrimestre.',
+                'position' => 'top-end',
+            ]);
+            return;
+        }
+
+        $correo = $dataset['inscripcion']->user->email ?? null;
         if (!$correo) {
-            $this->dispatch('swal', ['icon' => 'error', 'title' => 'El alumno no tiene correo registrado', 'position' => 'top-end']);
+            $this->dispatch('swal', [
+                'icon' => 'error',
+                'title' => 'El alumno no tiene correo registrado',
+                'position' => 'top-end',
+            ]);
             return;
         }
-
-        $calificaciones = ModelsCalificacion::with(['asignacionMateria.materia', 'asignacionMateria.profesor'])
-            ->where('alumno_id', $alumnoId)
-            ->where('modalidad_id', $modalidadId)
-            ->where('licenciatura_id', $inscripcion->licenciatura_id)
-            ->where('generacion_id', $generacionId)
-            ->where('cuatrimestre_id', $cuatrimestreId)
-            ->get()
-            ->sortBy(fn($item) => $item->asignacionMateria->materia->clave ?? '')
-            ->values();
-
-        $escuela = Escuela::first();
-        $licenciatura = Licenciatura::find($inscripcion->licenciatura_id);
-        $generacionObj = Generacion::find($generacionId);
-        $cuatrimestreObj = Cuatrimestre::find($cuatrimestreId);
-        $ciclo_escolar = ModelsDashboard::latest()->first();
 
         $this->dispatch('swal', [
             'icon' => 'info',
@@ -649,14 +653,14 @@ class Calificacion extends Component
         ]);
 
         Mail::to($correo)->queue(new CalificacionMail(
-            $calificaciones,
-            $escuela,
-            $inscripcion,
-            $licenciatura,
-            $generacionObj,
-            $cuatrimestreObj,
-            $ciclo_escolar,
-            $periodo
+            $dataset['calificaciones'],
+            $dataset['escuela'],
+            $dataset['inscripcion'],
+            $dataset['licenciatura'],
+            $dataset['generacion'],
+            $dataset['cuatrimestre'],
+            $dataset['ciclo_escolar'],
+            $dataset['periodo']
         ));
 
         $this->dispatch('swal', [
@@ -669,56 +673,75 @@ class Calificacion extends Component
     public function enviarCalificacionesMasivas()
     {
         if (!$this->filtrar_generacion || !$this->filtrar_cuatrimestre) {
-            $this->dispatch('swal', ['icon' => 'warning', 'title' => 'Debes seleccionar generación y cuatrimestre.', 'position' => 'top-end']);
+            $this->dispatch('swal', [
+                'icon' => 'warning',
+                'title' => 'Debes seleccionar generación y cuatrimestre.',
+                'position' => 'top-end',
+            ]);
             return;
         }
 
+        // Solo alumnos activos. Evita enviar boletas a bajas/no reinscritos.
         $alumnos = Inscripcion::with('user')
             ->where('generacion_id', $this->filtrar_generacion)
             ->where('licenciatura_id', $this->licenciatura->id)
             ->where('modalidad_id', $this->modalidad->id)
+            ->where('status', 'true')
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->orderBy('nombre')
             ->get();
 
-        $periodo = Periodo::with(['cuatrimestre', 'mes'])
-            ->where('generacion_id', $this->filtrar_generacion)
-            ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
-            ->first();
-
-        $escuela       = Escuela::first();
-        $licenciatura  = $this->licenciatura;
-        $generacionObj = Generacion::find($this->filtrar_generacion);
-        $cuatriObj     = Cuatrimestre::find($this->filtrar_cuatrimestre);
-        $ciclo_escolar = ModelsDashboard::latest()->first();
+        $boletas = app(BoletaService::class);
+        $encolados = 0;
+        $sinCorreo = 0;
+        $sinCalificaciones = 0;
 
         foreach ($alumnos as $inscripcion) {
             $correo = $inscripcion->user->email ?? null;
-            if (!$correo) continue;
+            if (!$correo) {
+                $sinCorreo++;
+                continue;
+            }
 
-            $calificaciones = ModelsCalificacion::with(['asignacionMateria.materia', 'asignacionMateria.profesor'])
-                ->where('alumno_id', $inscripcion->id)
-                ->where('modalidad_id', $this->modalidad->id)
-                ->where('licenciatura_id', $licenciatura->id)
-                ->where('generacion_id', $this->filtrar_generacion)
-                ->where('cuatrimestre_id', $this->filtrar_cuatrimestre)
-                ->get()
-                ->sortBy(fn($item) => $item->asignacionMateria->materia->clave ?? '')
-                ->values();
+            try {
+                $dataset = $boletas->datasetBoleta(
+                    (int) $inscripcion->id,
+                    (int) $this->licenciatura->id,
+                    (int) $this->modalidad->id,
+                    (int) $this->filtrar_generacion,
+                    (int) $this->filtrar_cuatrimestre,
+                    true
+                );
+            } catch (\Throwable $e) {
+                continue;
+            }
+
+            if ($dataset['calificaciones']->isEmpty()) {
+                $sinCalificaciones++;
+                continue;
+            }
 
             Mail::to($correo)->queue(new CalificacionMail(
-                $calificaciones,
-                $escuela,
-                $inscripcion,
-                $licenciatura,
-                $generacionObj,
-                $cuatriObj,
-                $ciclo_escolar,
-                $periodo
+                $dataset['calificaciones'],
+                $dataset['escuela'],
+                $dataset['inscripcion'],
+                $dataset['licenciatura'],
+                $dataset['generacion'],
+                $dataset['cuatrimestre'],
+                $dataset['ciclo_escolar'],
+                $dataset['periodo']
             ));
+
+            $encolados++;
         }
 
         $this->dispatch('swal', [
-            'icon' => 'success',
-            'title' => 'Todos los correos fueron encolados.',
+            'icon' => $encolados > 0 ? 'success' : 'warning',
+            'title' => $encolados > 0
+                ? "{$encolados} correo(s) encolado(s) correctamente."
+                : 'No se encolaron correos.',
+            'text' => "Sin correo: {$sinCorreo}. Sin calificaciones: {$sinCalificaciones}.",
             'position' => 'top-end',
         ]);
     }

@@ -653,8 +653,7 @@
                 <div x-show="openAccordion" x-transition
                     class="mt-1 rounded-2xl bg-white dark:bg-neutral-900 shadow-lg ring-1 ring-neutral-200/80 dark:ring-neutral-800 px-4 sm:px-5 py-4 sm:py-5">
                     <p class="text-sm sm:text-base text-neutral-700 dark:text-neutral-200 mb-4">
-                        Para la expedición de Registros de Escolaridad y Actas de Resultados, selecciona la
-                        licenciatura, generación y el tipo de documento que deseas descargar.
+                        Genera Registros de Escolaridad y Actas de Resultados por licenciatura, por alumnos seleccionados o para una generación completa. Solo se muestran licenciaturas y generaciones con alumnos activos.
                     </p>
 
                     <livewire:admin.documentacion.expedicion-documentos />

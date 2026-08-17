@@ -21,6 +21,13 @@ class DocumentacionController extends Controller
         return view('admin.documentacion.constancias.index');
     }
 
+    // Boletas de calificaciones
+    public function boletas()
+    {
+        return view('admin.documentacion.boletas.index');
+    }
+
+
     // Listas Generales
     public function listasGenerales()
     {

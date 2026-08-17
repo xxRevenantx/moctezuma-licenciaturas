@@ -93,6 +93,23 @@
                         </div>
                     </flux:button>
                 </flux:field>
+
+                <div class="lg:col-span-2 flex items-end">
+                    <a href="{{ route('admin.boletas', array_filter([
+                            'licenciatura' => $licenciatura->id,
+                            'modalidad' => $modalidad->id,
+                            'generacion' => $filtrar_generacion,
+                            'cuatrimestre' => $filtrar_cuatrimestre,
+                        ])) }}"
+                        class="flex w-full items-center justify-center gap-2 rounded-xl border border-[#006492] bg-sky-50 px-4 py-2.5 text-sm font-extrabold text-[#006492] transition hover:bg-sky-100 dark:bg-sky-950/30 dark:text-sky-300 dark:hover:bg-sky-950/50"
+                        wire:navigate>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 2h9l5 5v15H6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6M9 13h6M9 17h6" />
+                        </svg>
+                        Boletas masivas
+                    </a>
+                </div>
             </div>
         </div>
     </div>

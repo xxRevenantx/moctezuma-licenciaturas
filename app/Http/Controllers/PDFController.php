@@ -21,10 +21,13 @@ use App\Models\Materia;
 use App\Models\Modalidad;
 use App\Models\Periodo;
 use App\Models\Profesor;
+use App\Services\Boletas\BoletaService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use setasign\Fpdi\Fpdi;
 use ZipArchive;
 
 class PDFController extends Controller
@@ -507,50 +510,200 @@ class PDFController extends Controller
     }
 
 
-    // Expedicion de registros de escolaridad y actas de resultados
+    // Expedición de registros de escolaridad y actas de resultados
 
     public function documento_expedicion(Request $request)
     {
-        $generacion_id = $request->generacion;
-        $documento = $request->documento;
-        $licenciatura_id = $request->licenciatura;
+        // Compatibilidad con los nombres de parámetros usados por la versión anterior.
+        $documentosLegacy = $request->input('documento', $request->route('documento'));
 
-        // Recibe alumno_ids[] y los sanea (int, únicos, sin vacíos)
-        $alumnoIds = collect((array) $request->input('alumno_ids', []))
-            ->map(fn($v) => (int) $v)
-            ->filter()          // quita null/0/empty
+        $request->merge([
+            'modo' => $request->input('modo', 'licenciatura'),
+            'licenciatura_id' => $request->input('licenciatura_id', $request->input('licenciatura')),
+            'generacion_id' => $request->input('generacion_id', $request->input('generacion', $request->route('generacion'))),
+            'documentos' => $request->has('documentos')
+                ? (array) $request->input('documentos')
+                : ($documentosLegacy ? [$documentosLegacy] : []),
+            'salida' => $request->input('salida', 'consolidado'),
+            'accion' => $request->input('accion', 'preview'),
+            'alcance_alumnos' => $request->input('alcance_alumnos', 'seleccion'),
+        ]);
+
+        $datos = $request->validate([
+            'modo' => ['required', 'in:licenciatura,generacion'],
+            'licenciatura_id' => ['nullable', 'integer', 'exists:licenciaturas,id'],
+            'generacion_id' => ['required', 'integer', 'exists:generaciones,id'],
+            'alumno_ids' => ['nullable', 'array'],
+            'alumno_ids.*' => ['integer', 'distinct', 'exists:inscripciones,id'],
+            'documentos' => ['required', 'array', 'min:1', 'max:2'],
+            'documentos.*' => ['required', 'in:registro-escolaridad,acta-resultados'],
+            'salida' => ['required', 'in:consolidado,separados'],
+            'accion' => ['required', 'in:preview,download'],
+            'alcance_alumnos' => ['required', 'in:seleccion,todos'],
+        ], [
+            'generacion_id.required' => 'Selecciona una generación.',
+            'documentos.required' => 'Selecciona al menos un documento.',
+            'documentos.min' => 'Selecciona al menos un documento.',
+        ]);
+
+        $generacionId = (int) $datos['generacion_id'];
+        $modo = $datos['modo'];
+        $accion = $datos['accion'];
+        $salida = $datos['salida'];
+        $documentos = collect($datos['documentos'])
             ->unique()
+            ->sortBy(fn ($documento) => $documento === 'registro-escolaridad' ? 0 : 1)
             ->values()
             ->all();
 
-        // Validación básica
-        if (!$generacion_id || !$documento || !$licenciatura_id) {
-            abort(404, 'Faltan parámetros');
+        // Todos los IDs recibidos son saneados y posteriormente se verifica que
+        // pertenezcan exactamente a la licenciatura + generación seleccionadas.
+        $alumnoIds = collect((array) ($datos['alumno_ids'] ?? []))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $generacion = Generacion::findOrFail($generacionId);
+
+        if ($modo === 'generacion') {
+            // MODO GENERACIÓN COMPLETA:
+            // solo se consideran licenciaturas que realmente tienen alumnos activos
+            // en la generación. Así nunca se generan documentos vacíos.
+            $licenciaturaIds = Inscripcion::query()
+                ->where('generacion_id', $generacionId)
+                ->where('status', 'true')
+                ->whereNotNull('licenciatura_id')
+                ->distinct()
+                ->pluck('licenciatura_id');
+
+            $licenciaturas = Licenciatura::query()
+                ->whereIn('id', $licenciaturaIds)
+                ->orderBy('nombre')
+                ->get();
+
+            abort_if($licenciaturas->isEmpty(), 422, 'La generación seleccionada no tiene alumnos activos.');
+        } else {
+            $licenciaturaId = (int) ($datos['licenciatura_id'] ?? 0);
+            abort_if(! $licenciaturaId, 422, 'Selecciona una licenciatura.');
+
+            // Impide usar manualmente una licenciatura que no tenga alumnos activos
+            // en esa generación aunque se alteren los parámetros del formulario.
+            $licenciatura = Licenciatura::query()
+                ->whereKey($licenciaturaId)
+                ->whereHas('inscripciones', function ($query) use ($generacionId) {
+                    $query
+                        ->where('generacion_id', $generacionId)
+                        ->where('status', 'true');
+                })
+                ->first();
+
+            abort_if(! $licenciatura, 422, 'La licenciatura seleccionada no tiene alumnos activos en esta generación.');
+
+            if ($datos['alcance_alumnos'] === 'seleccion') {
+                abort_if($alumnoIds->isEmpty(), 422, 'Selecciona al menos un alumno.');
+
+                $idsValidos = Inscripcion::query()
+                    ->where('licenciatura_id', $licenciaturaId)
+                    ->where('generacion_id', $generacionId)
+                    ->where('status', 'true')
+                    ->whereIn('id', $alumnoIds)
+                    ->pluck('id')
+                    ->map(fn ($id) => (int) $id)
+                    ->sort()
+                    ->values();
+
+                // Validación estricta contra manipulación de IDs.
+                abort_if(
+                    $idsValidos->all() !== $alumnoIds->sort()->values()->all(),
+                    422,
+                    'La selección contiene alumnos que no corresponden a la licenciatura o generación elegida.'
+                );
+            }
+
+            $licenciaturas = collect([$licenciatura]);
         }
 
-        $materias = Materia::where('licenciatura_id', $licenciatura_id)
-            ->where('calificable', '!=', 'false')
-            ->orderBy('clave', 'asc')
-            ->get();
+        $archivos = [];
 
-        $generacion = Generacion::findOrFail($generacion_id);
-        $licenciatura = Licenciatura::findOrFail($licenciatura_id);
-        $escuela = Escuela::query()->first();
-        $rector = Directivo::where('identificador', 'rector')->first();
-        $directora = Directivo::where('identificador', 'directora')->first();
-        $jefe = Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
+        // Se agrupa por tipo: primero todos los Registros y luego todas las Actas.
+        // Dentro de cada tipo, las licenciaturas van en orden alfabético.
+        foreach ($documentos as $documento) {
+            foreach ($licenciaturas as $licenciatura) {
+                $idsParaLicenciatura = null;
 
-        $periodos = Periodo::where('generacion_id', $generacion_id)->get();
-        $modalidades = Modalidad::all();
+                if ($modo === 'licenciatura' && $datos['alcance_alumnos'] === 'seleccion') {
+                    $idsParaLicenciatura = $alumnoIds->all();
+                }
 
-        // Query base de alumnos por generación y licenciatura
-        $alumnosQuery = Inscripcion::with('calificaciones')
-            ->where('generacion_id', $generacion_id)
-            ->where('licenciatura_id', $licenciatura_id)
+                $archivo = $this->crearDocumentoExpedicion(
+                    $documento,
+                    $licenciatura,
+                    $generacion,
+                    $idsParaLicenciatura
+                );
+
+                // Si por alguna condición extraordinaria no quedan alumnos activos,
+                // el documento se omite en vez de producir una hoja vacía.
+                if ($archivo !== null) {
+                    $archivos[] = $archivo;
+                }
+            }
+        }
+
+        abort_if(empty($archivos), 422, 'No hay información disponible para generar los documentos solicitados.');
+
+        $nombreBase = $modo === 'generacion'
+            ? 'EXPEDICION_COMPLETA_GEN_'.$this->nombreSeguro($generacion->generacion)
+            : 'EXPEDICION_'.$this->nombreSeguro($licenciaturas->first()->nombre).'_GEN_'.$this->nombreSeguro($generacion->generacion);
+
+        // La vista previa siempre es un PDF consolidado, aun cuando el usuario haya
+        // elegido "archivos separados" para la descarga. Un ZIP no se puede previsualizar.
+        if ($accion === 'preview') {
+            $contenido = count($archivos) === 1
+                ? $archivos[0]['contenido']
+                : $this->combinarPdfsExpedicion($archivos);
+
+            return response($contenido, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="'.$nombreBase.'.pdf"',
+                'Cache-Control' => 'private, no-store, max-age=0',
+            ]);
+        }
+
+        if ($salida === 'consolidado' || count($archivos) === 1) {
+            $contenido = count($archivos) === 1
+                ? $archivos[0]['contenido']
+                : $this->combinarPdfsExpedicion($archivos);
+
+            return response($contenido, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$nombreBase.'.pdf"',
+                'Cache-Control' => 'private, no-store, max-age=0',
+            ]);
+        }
+
+        return $this->descargarZipExpedicion($archivos, $nombreBase.'.zip');
+    }
+
+    /**
+     * Genera un PDF individual (por licenciatura + tipo de documento) en memoria.
+     * Si $alumnoIds es null se incluyen todos los alumnos activos de la licenciatura
+     * y generación; si contiene IDs se respeta únicamente esa selección validada.
+     */
+    private function crearDocumentoExpedicion(
+        string $documento,
+        Licenciatura $licenciatura,
+        Generacion $generacion,
+        ?array $alumnoIds = null
+    ): ?array {
+        $alumnosQuery = Inscripcion::query()
+            ->with('calificaciones')
+            ->where('generacion_id', $generacion->id)
+            ->where('licenciatura_id', $licenciatura->id)
             ->where('status', 'true');
 
-        // Si vienen IDs seleccionados, filtramos por ID de Inscripcion
-        if (!empty($alumnoIds)) {
+        if ($alumnoIds !== null) {
             $alumnosQuery->whereIn('id', $alumnoIds);
         }
 
@@ -560,19 +713,140 @@ class PDFController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        if ($documento === 'acta-resultados') {
-            $data = compact('generacion', 'escuela', 'licenciatura', 'materias', 'rector', 'directora', 'jefe', 'alumnos');
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.actaResultadosPDF', $data)
-                ->setPaper('letter', 'portrait');
-            return $pdf->stream("ACTA_DE_RESULTADOS_GEN_{$generacion->generacion}.pdf");
-        } elseif ($documento === 'registro-escolaridad') {
-            $data = compact('generacion', 'escuela', 'materias', 'licenciatura', 'alumnos', 'periodos', 'modalidades', 'rector', 'jefe');
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.registroEscolaridadPDF', $data)
-                ->setPaper('legal', 'landscape');
-            return $pdf->stream("REGISTRO_DE_ESCOLARIDAD_GEN_{$generacion->generacion}.pdf");
+        if ($alumnos->isEmpty()) {
+            return null;
         }
 
-        abort(404, 'Documento no soportado');
+        $escuela = Escuela::query()->first();
+        abort_if(! $escuela, 422, 'No se encontró la información del plantel.');
+
+        $rector = Directivo::where('identificador', 'rector')->first();
+        $directora = Directivo::where('identificador', 'directora')->first();
+        $jefe = Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
+
+        $nombreLicenciatura = $this->nombreSeguro($licenciatura->nombre);
+        $nombreGeneracion = $this->nombreSeguro($generacion->generacion);
+
+        if ($documento === 'acta-resultados') {
+            $materias = Materia::query()
+                ->where('licenciatura_id', $licenciatura->id)
+                ->where('calificable', '!=', 'false')
+                ->orderBy('clave')
+                ->get();
+
+            $pdf = Pdf::loadView(
+                'livewire.admin.licenciaturas.submodulo.pdf.actaResultadosPDF',
+                compact('generacion', 'escuela', 'licenciatura', 'materias', 'rector', 'directora', 'jefe', 'alumnos')
+            )->setPaper('letter', 'portrait');
+
+            return [
+                'nombre' => "ACTA_DE_RESULTADOS_{$nombreLicenciatura}_GEN_{$nombreGeneracion}.pdf",
+                'contenido' => $pdf->output(),
+            ];
+        }
+
+        if ($documento === 'registro-escolaridad') {
+            $materias = Materia::query()
+                ->where('licenciatura_id', $licenciatura->id)
+                ->where('calificable', '!=', 'false')
+                ->orderBy('clave')
+                ->get();
+
+            $periodos = Periodo::where('generacion_id', $generacion->id)->get();
+            $modalidades = Modalidad::all();
+
+            $pdf = Pdf::loadView(
+                'livewire.admin.licenciaturas.submodulo.pdf.registroEscolaridadPDF',
+                compact('generacion', 'escuela', 'materias', 'licenciatura', 'alumnos', 'periodos', 'modalidades', 'rector', 'jefe')
+            )->setPaper('legal', 'landscape');
+
+            return [
+                'nombre' => "REGISTRO_DE_ESCOLARIDAD_{$nombreLicenciatura}_GEN_{$nombreGeneracion}.pdf",
+                'contenido' => $pdf->output(),
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Une PDFs producidos por DomPDF respetando el tamaño y orientación original
+     * de cada página. Esto permite mezclar Registro (legal horizontal) y Acta
+     * (carta vertical) en un único expediente consolidado.
+     */
+    private function combinarPdfsExpedicion(array $archivos): string
+    {
+        $pdf = new Fpdi();
+        $pdf->SetAutoPageBreak(false);
+        $temporales = [];
+
+        try {
+            foreach ($archivos as $archivo) {
+                $temporal = tempnam(sys_get_temp_dir(), 'cum_exp_');
+                abort_if($temporal === false, 500, 'No fue posible preparar los documentos para combinar.');
+
+                file_put_contents($temporal, $archivo['contenido']);
+                $temporales[] = $temporal;
+
+                $totalPaginas = $pdf->setSourceFile($temporal);
+
+                for ($pagina = 1; $pagina <= $totalPaginas; $pagina++) {
+                    $plantilla = $pdf->importPage($pagina);
+                    $tamano = $pdf->getTemplateSize($plantilla);
+                    $orientacion = $tamano['width'] > $tamano['height'] ? 'L' : 'P';
+
+                    $pdf->AddPage($orientacion, [$tamano['width'], $tamano['height']]);
+                    $pdf->useTemplate(
+                        $plantilla,
+                        0,
+                        0,
+                        $tamano['width'],
+                        $tamano['height'],
+                        true
+                    );
+                }
+            }
+
+            return $pdf->Output('S');
+        } finally {
+            foreach ($temporales as $temporal) {
+                if (is_file($temporal)) {
+                    @unlink($temporal);
+                }
+            }
+        }
+    }
+
+    private function descargarZipExpedicion(array $archivos, string $nombreZip)
+    {
+        $rutaZip = tempnam(sys_get_temp_dir(), 'cum_exp_zip_');
+        abort_if($rutaZip === false, 500, 'No fue posible preparar el archivo ZIP.');
+
+        $zip = new ZipArchive();
+        $resultado = $zip->open($rutaZip, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+        if ($resultado !== true) {
+            @unlink($rutaZip);
+            abort(500, 'No fue posible crear el archivo ZIP de expedición.');
+        }
+
+        foreach ($archivos as $archivo) {
+            $zip->addFromString($archivo['nombre'], $archivo['contenido']);
+        }
+
+        $zip->close();
+
+        return response()
+            ->download($rutaZip, $nombreZip, ['Content-Type' => 'application/zip'])
+            ->deleteFileAfterSend(true);
+    }
+
+    private function nombreSeguro(?string $valor): string
+    {
+        $valor = Str::upper(Str::ascii((string) $valor));
+        $valor = preg_replace('/[^A-Z0-9]+/', '_', $valor) ?? 'DOCUMENTO';
+
+        return trim($valor, '_') ?: 'DOCUMENTO';
     }
 
 
@@ -1486,53 +1760,38 @@ class PDFController extends Controller
     }
 
     // CALIFICACION DEL ALUMNO
-    public function calificacion_alumno(Request $request)
+    public function calificacion_alumno(Request $request, BoletaService $boletas)
     {
-        $alumno = $request->alumno_id;
-        $modalidad = $request->modalidad_id;
-        $generacion = $request->generacion_id;
-        $cuatrimestre = $request->cuatrimestre_id;
+        $datos = $request->validate([
+            'alumno_id' => ['required', 'integer', 'exists:inscripciones,id'],
+            'modalidad_id' => ['required', 'integer', 'exists:modalidades,id'],
+            'generacion_id' => ['required', 'integer', 'exists:generaciones,id'],
+            'cuatrimestre_id' => ['required', 'integer', 'exists:cuatrimestres,id'],
+        ]);
 
-        $periodo = Periodo::where('generacion_id', $generacion)
-            ->where('cuatrimestre_id', $cuatrimestre)
-            ->first();
+        $inscripcion = Inscripcion::query()->findOrFail($datos['alumno_id']);
 
+        // Seguridad: el alumno debe pertenecer a la licenciatura, modalidad y generación
+        // desde donde se solicitó la boleta.
+        $dataset = $boletas->datasetBoleta(
+            (int) $datos['alumno_id'],
+            (int) $inscripcion->licenciatura_id,
+            (int) $datos['modalidad_id'],
+            (int) $datos['generacion_id'],
+            (int) $datos['cuatrimestre_id'],
+            true
+        );
 
-        $calificaciones = Calificacion::with(['asignacionMateria.materia', 'asignacionMateria.profesor'])
-            ->where('alumno_id', $alumno)
-            ->whereHas('asignacionMateria', function ($query) use ($modalidad, $generacion, $cuatrimestre) {
-                $query->where('modalidad_id', $modalidad)
-                    ->where('generacion_id', $generacion)
-                    ->where('cuatrimestre_id', $cuatrimestre);
-            })
-            ->get()
-            ->sortBy(function ($item) {
-                return $item->asignacionMateria->materia->clave ?? '';
-            })
-            ->values();
+        abort_if(
+            $dataset['calificaciones']->isEmpty(),
+            422,
+            'No existen calificaciones para generar esta boleta.'
+        );
 
-        $escuela = Escuela::all()->first();
-        $inscripcion = Inscripcion::where('id', $alumno)->first();
-        $licenciatura = Licenciatura::where('id', $inscripcion->licenciatura_id)->first();
-        $profesor = Profesor::where('id', $inscripcion->profesor_id)->first();
-        $generacion = Generacion::where('id', $generacion)->first();
-        $cuatrimestre = Cuatrimestre::where('id', $cuatrimestre)->first();
-
-        $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
-
-        $data = [
-            'cuatrimestre' => $cuatrimestre,
-            'calificaciones' => $calificaciones,
-            'ciclo_escolar' => $ciclo_escolar,
-            'escuela' => $escuela,
-            'licenciatura' => $licenciatura,
-            'generacion' => $generacion,
-            'periodo' => $periodo,
-            'inscripcion' => $inscripcion
-        ];
-        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.boletaCalificacionPDF', $data)
+        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.boletaCalificacionPDF', $dataset)
             ->setPaper('letter', 'portrait');
-        return $pdf->stream("BOLETA_DEL_" . $cuatrimestre->cuatrimestre . "°_CUATRIMESTRE_ALUMNO:" . $inscripcion->nombre . " " . $inscripcion->apellido_paterno . " " . $inscripcion->apellido_materno . ".pdf");
+
+        return $pdf->stream($boletas->nombreArchivo($dataset));
     }
 
     // CALIFICACIONES GENERALES

@@ -10,6 +10,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class CalificacionMail extends Mailable implements ShouldQueue
 {
@@ -72,11 +73,20 @@ class CalificacionMail extends Mailable implements ShouldQueue
             'periodo'        => $this->periodo,
         ])->setPaper('letter', 'portrait');
 
-        $nombrePdf = 'CALIFICACIONES_' .
-            $this->cuatrimestre->cuatrimestre . '°_CUATRIMESTRE_' .
-            $this->inscripcion->nombre . '_' .
+        $nombrePdf = Str::of(
+            'BOLETA_' . $this->cuatrimestre->cuatrimestre . '_CUATRIMESTRE_' .
             $this->inscripcion->apellido_paterno . '_' .
-            $this->inscripcion->apellido_materno . '.pdf';
+            $this->inscripcion->apellido_materno . '_' .
+            $this->inscripcion->nombre . '_' .
+            $this->inscripcion->matricula
+        )
+            ->ascii()
+            ->upper()
+            ->replaceMatches('/[^A-Z0-9_\-]+/', '_')
+            ->replaceMatches('/_+/', '_')
+            ->trim('_')
+            ->append('.pdf')
+            ->toString();
 
         return [
             Attachment::fromData(fn () => $pdf->output(), $nombrePdf)

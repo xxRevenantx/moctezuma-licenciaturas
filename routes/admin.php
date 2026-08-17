@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\SubmoduloController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WordController;
 use App\Http\Controllers\CiudadController;
+use App\Http\Controllers\BoletaController;
 use App\Http\Controllers\ConstanciaController;
 use App\Http\Controllers\DocumentacionController;
 use App\Http\Controllers\DocumentoIdentidadController;
@@ -57,6 +58,8 @@ Route::middleware(['auth'])->group(function () {
     // DOCUMENTACIÓN
     Route::get('/listas-generales', [DocumentacionController::class, 'listasGenerales'])->middleware('can:admin.administracion')->name('admin.listas-generales');
     Route::get('/constancias', [DocumentacionController::class, 'constancias'])->middleware('can:admin.administracion')->name('admin.constancias');
+    Route::get('/boletas', [DocumentacionController::class, 'boletas'])->middleware('can:admin.administracion')->name('admin.boletas');
+    Route::post('/boletas/exportar', [BoletaController::class, 'exportar'])->middleware('can:admin.administracion')->name('admin.boletas.exportar');
     Route::get('/documentacion', [DocumentacionController::class, 'documentacion'])->middleware('can:admin.administracion')->name('admin.documentacion');
     Route::get('/reportes/generacion/pdf', [ReporteGeneracionController::class, 'pdf'])->middleware('can:admin.administracion')->name('admin.reportes.generacion.pdf');
     Route::get('/reportes/generacion/excel', [ReporteGeneracionController::class, 'excel'])->middleware('can:admin.administracion')->name('admin.reportes.generacion.excel');
@@ -174,8 +177,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/horario-general-semiescolarizada', [PDFController::class, 'horario_general_semiescolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.horario-general-semiescolarizada');
 
-    Route::get('/documentacion/{generacion}/{documento}', [PDFController::class, 'documento_expedicion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_expedicion');
-    Route::get('/expedicion-documentacion', [PDFController::class, 'documento_expedicion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_expedicion');
+    Route::get('/documentacion/{generacion}/{documento}', [PDFController::class, 'documento_expedicion'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.pdf.documentacion.documento_expedicion.legacy');
+    Route::match(['get', 'post'], '/expedicion-documentacion', [PDFController::class, 'documento_expedicion'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.pdf.documentacion.documento_expedicion');
     Route::get('/expedicion-sabanas', [PDFController::class, 'documento_sabanas'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_sabanas');
     Route::get('/documento-personal', [PDFController::class, 'documento_personal'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_personal');
     Route::get('/documento-oficios', [PDFController::class, 'documento_oficios'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.documento_oficios');
