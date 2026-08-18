@@ -12,7 +12,7 @@ class Horario extends Model
 
  protected $fillable = [
         'hora', 'dia_id', 'licenciatura_id', 'cuatrimestre_id', 'modalidad_id',
-        'generacion_id', 'asignacion_materia_id', 'profesor_id'
+        'generacion_id', 'asignacion_materia_id'
     ];
 
     public function dia() { return $this->belongsTo(Dia::class); }
@@ -20,11 +20,18 @@ class Horario extends Model
     public function cuatrimestre() { return $this->belongsTo(Cuatrimestre::class); }
     public function modalidad() { return $this->belongsTo(Modalidad::class); }
     public function generacion() { return $this->belongsTo(Generacion::class); }
-    public function materia() {
-    return $this->belongsTo(Materia::class, 'materia_id');
+    // La materia tampoco vive directamente en horarios.
+    public function getMateriaAttribute()
+    {
+        return $this->asignacionMateria?->materia;
     }
     public function asignacionMateria() { return $this->belongsTo(AsignacionMateria::class); }
-    public function profesor() { return $this->belongsTo(Profesor::class); }
+
+    // El profesor no vive en horarios; se resuelve mediante asignacionMateria->profesor.
+    public function getProfesorAttribute()
+    {
+        return $this->asignacionMateria?->profesor;
+    }
 
 
 

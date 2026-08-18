@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WordController;
 use App\Http\Controllers\CiudadController;
 use App\Http\Controllers\BoletaController;
+use App\Http\Controllers\CalificacionesDocenteController;
 use App\Http\Controllers\ConstanciaController;
 use App\Http\Controllers\DocumentacionController;
 use App\Http\Controllers\DocumentoIdentidadController;
@@ -117,6 +118,9 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::resource('horario-general', HorarioGeneralController::class)->middleware('can:admin.administracion')->names('admin.horario-general');
+    Route::get('/calificaciones-docente', [CalificacionesDocenteController::class, 'index'])->middleware('can:calificaciones-docente.ver')->name('admin.calificaciones-docente.index');
+    Route::get('/calificaciones-docente/reporte/pdf', [CalificacionesDocenteController::class, 'pdf'])->middleware('can:calificaciones-docente.ver')->name('admin.calificaciones-docente.pdf');
+    Route::get('/calificaciones-docente/reporte/excel', [CalificacionesDocenteController::class, 'excel'])->middleware('can:calificaciones-docente.ver')->name('admin.calificaciones-docente.excel');
     Route::resource('materias', MateriaController::class)->middleware('can:admin.administracion')->names('admin.materia');
 
 

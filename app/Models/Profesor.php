@@ -35,10 +35,17 @@ class Profesor extends Model
         return $this->hasMany(AsignacionMateria::class);
     }
 
-    // Horarios
+    // Horarios: el vínculo real pasa por asignacion_materias.
     public function horarios()
     {
-        return $this->hasMany(Horario::class);
+        return $this->hasManyThrough(
+            Horario::class,
+            AsignacionMateria::class,
+            'profesor_id',
+            'asignacion_materia_id',
+            'id',
+            'id'
+        );
     }
 
     // Calificaciones

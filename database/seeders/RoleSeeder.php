@@ -12,7 +12,7 @@ class RoleSeeder extends Seeder
     {
         $superAdmin = Role::firstOrCreate(['name' => 'SuperAdmin', 'guard_name' => 'web']);
         $admin = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
-        Role::firstOrCreate(['name' => 'Profesor', 'guard_name' => 'web']);
+        $profesor = Role::firstOrCreate(['name' => 'Profesor', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'Estudiante', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'Invitado', 'guard_name' => 'web']);
 
@@ -24,6 +24,7 @@ class RoleSeeder extends Seeder
             'admin.asignar.generacion' => [$superAdmin],
             'admin.asignacion.licenciaturas' => [$superAdmin, $admin],
             'admin.licenciaturas' => [$superAdmin, $admin],
+            'calificaciones-docente.ver' => [$superAdmin, $admin, $profesor],
             'exportar.licenciaturas' => [$superAdmin],
             'exportar.directivos' => [$superAdmin],
             'documentos-identidad.ver' => [$superAdmin],
