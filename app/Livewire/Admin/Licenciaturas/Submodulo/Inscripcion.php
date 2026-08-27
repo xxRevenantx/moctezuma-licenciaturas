@@ -242,7 +242,7 @@ class Inscripcion extends Component
         $this->status = $this->status == true ? "true" : "false";
 
         try {
-            DB::transaction(function (): void {
+            DB::transaction(function () use ($datos): void {
                 ModelsInscripcion::create([
                     'user_id'                => $this->user_id,
                     'matricula'              => $this->matricula,
