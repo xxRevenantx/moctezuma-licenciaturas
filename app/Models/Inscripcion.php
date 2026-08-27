@@ -12,6 +12,17 @@ use Illuminate\Database\Eloquent\Model;
 class Inscripcion extends Model
 {
     protected $table = 'inscripciones';
+
+    /**
+     * Mantiene en memoria los mismos valores por defecto definidos en MySQL.
+     * Esto es importante porque el evento `created` se ejecuta con la instancia
+     * de Eloquent actual y los defaults aplicados por la BD no se recargan solos.
+     */
+    protected $attributes = [
+        'foraneo' => 'false',
+        'status' => 'true',
+        'egresado' => 'false',
+    ];
     /** @use HasFactory<\Database\Factories\InscripcionFactory> */
     use HasFactory;
 

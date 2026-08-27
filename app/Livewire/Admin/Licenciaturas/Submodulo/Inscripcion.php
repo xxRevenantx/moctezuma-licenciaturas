@@ -14,6 +14,7 @@ use App\Models\Licenciatura;
 use App\Models\Modalidad;
 use App\Models\Periodo;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Nnjeim\World\World;
@@ -226,9 +227,7 @@ class Inscripcion extends Component
             'celular'               => 'nullable|max:10',
             'tutor'                 => 'nullable|max:255',
             'bachillerato_procedente' => 'nullable|max:255',
-            // OJO: si tu <select> de generación envía el ID de la tabla "generaciones",
-            // cambia esta regla a: 'required|exists:generaciones,id'
-            'generacion_id'         => 'required|exists:asignar_generaciones,id',
+            'generacion_id'         => 'required|exists:generaciones,id',
             'cuatrimestre_id'       => 'required|exists:cuatrimestres,id',
             'foto'                  => 'nullable|image|max:2048|mimes:jpeg,jpg,png',
         ]);
@@ -243,40 +242,42 @@ class Inscripcion extends Component
         $this->status = $this->status == true ? "true" : "false";
 
         try {
-            ModelsInscripcion::create([
-                'user_id'                => $this->user_id,
-                'matricula'              => $this->matricula,
-                'folio'                  => $this->folio,
-                'CURP'                   => trim(strtoupper($this->CURP)),
-                'nombre'                 => trim(strtoupper($this->nombre)),
-                'apellido_paterno'       => trim(strtoupper($this->apellido_paterno)),
-                'apellido_materno'       => trim(strtoupper($this->apellido_materno)),
-                'fecha_nacimiento'       => $this->fecha_nacimiento,
-                'sexo'                   => $this->sexo,
-                'pais'                   => trim(strtoupper($this->pais)),
-                'estado_nacimiento_id'   => $this->estado_nacimiento_id,
-                'ciudad_nacimiento_id'   => $this->ciudad_nacimiento_id,
-                'calle'                  => trim(strtoupper($this->calle)),
-                'numero_exterior'        => trim(strtoupper($this->numero_exterior)),
-                'numero_interior'        => trim(strtoupper($this->numero_interior)),
-                'colonia'                => trim(strtoupper($this->colonia)),
-                'codigo_postal'          => trim(strtoupper($this->codigo_postal)),
-                'municipio'              => trim(strtoupper($this->municipio)),
-                'ciudad_id'              => $this->ciudad_id,
-                'estado_id'              => $this->estado_id,
-                'telefono'               => trim(strtoupper($this->telefono)),
-                'celular'                => trim(strtoupper($this->celular)),
-                'tutor'                  => trim(strtoupper($this->tutor)),
-                'bachillerato_procedente'=> trim(strtoupper($this->bachillerato_procedente)),
-                'licenciatura_id'        => $this->licenciatura->id,
-                'generacion_id'          => $this->generacion_id,
-                'cuatrimestre_id'        => $this->cuatrimestre_id,
-                'modalidad_id'           => $this->modalidad->id,
-                'foraneo'                => $this->foraneo == "true" ? "true" : "false",
-                'status'                 => $this->status == "true" ? "true" : "false",
-                'foto'                   => $datos["foto"]
-            ]);
-
+            DB::transaction(function (): void {
+                ModelsInscripcion::create([
+                    'user_id'                => $this->user_id,
+                    'matricula'              => $this->matricula,
+                    'folio'                  => $this->folio,
+                    'CURP'                   => trim(strtoupper($this->CURP)),
+                    'nombre'                 => trim(strtoupper($this->nombre)),
+                    'apellido_paterno'       => trim(strtoupper($this->apellido_paterno)),
+                    'apellido_materno'       => trim(strtoupper($this->apellido_materno)),
+                    'fecha_nacimiento'       => $this->fecha_nacimiento,
+                    'sexo'                   => $this->sexo,
+                    'pais'                   => trim(strtoupper($this->pais)),
+                    'estado_nacimiento_id'   => $this->estado_nacimiento_id,
+                    'ciudad_nacimiento_id'   => $this->ciudad_nacimiento_id,
+                    'calle'                  => trim(strtoupper($this->calle)),
+                    'numero_exterior'        => trim(strtoupper($this->numero_exterior)),
+                    'numero_interior'        => trim(strtoupper($this->numero_interior)),
+                    'colonia'                => trim(strtoupper($this->colonia)),
+                    'codigo_postal'          => trim(strtoupper($this->codigo_postal)),
+                    'municipio'              => trim(strtoupper($this->municipio)),
+                    'ciudad_id'              => $this->ciudad_id,
+                    'estado_id'              => $this->estado_id,
+                    'telefono'               => trim(strtoupper($this->telefono)),
+                    'celular'                => trim(strtoupper($this->celular)),
+                    'tutor'                  => trim(strtoupper($this->tutor)),
+                    'bachillerato_procedente'=> trim(strtoupper($this->bachillerato_procedente)),
+                    'licenciatura_id'        => $this->licenciatura->id,
+                    'generacion_id'          => $this->generacion_id,
+                    'cuatrimestre_id'        => $this->cuatrimestre_id,
+                    'modalidad_id'           => $this->modalidad->id,
+                    'foraneo'                => $this->foraneo == "true" ? "true" : "false",
+                    'status'                 => $this->status == "true" ? "true" : "false",
+                    'egresado'               => 'false',
+                    'foto'                   => $datos["foto"]
+                ]);
+            });
             $this->reset([
                 'user_id',
                 'matricula',
