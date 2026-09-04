@@ -109,7 +109,8 @@ class ReporteGeneracionController extends Controller
             ];
         })->values();
 
-        $dashboard = Dashboard::query()->latest('id')->first();
+        $periodoAcademico = app(\App\Services\AcademicPeriodResolver::class)
+            ->latestForGeneration($generacionId);
 
         return [
             'generacion' => $generacion,
@@ -117,8 +118,8 @@ class ReporteGeneracionController extends Controller
             'procedenciaTexto' => $this->textoProcedencia($procedencia),
             'listas' => $listas,
             'escuela' => Escuela::query()->first(),
-            'cicloEscolar' => $dashboard?->ciclo_escolar ?? 'NO REGISTRADO',
-            'periodoEscolar' => $dashboard?->periodo_escolar ?? 'NO REGISTRADO',
+            'cicloEscolar' => $periodoAcademico?->ciclo_escolar ?? 'NO REGISTRADO',
+            'periodoEscolar' => $periodoAcademico?->mes?->meses_corto ?? 'NO REGISTRADO',
             'totalLocales' => $alumnos->where('foraneo', 'false')->count(),
             'totalForaneos' => $alumnos->where('foraneo', 'true')->count(),
             'totalGeneral' => $alumnos->count(),

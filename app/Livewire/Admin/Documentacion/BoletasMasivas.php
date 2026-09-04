@@ -387,6 +387,7 @@ class BoletasMasivas extends Component
                 'numero' => $periodo->cuatrimestre?->cuatrimestre ?? $periodo->cuatrimestre_id,
                 'ciclo_escolar' => $periodo->ciclo_escolar,
                 'periodo' => $periodo->mes?->meses_corto,
+                'etiqueta_academica' => app(\App\Services\AcademicPeriodResolver::class)->label($periodo),
             ])
             ->values()
             ->all();

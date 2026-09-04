@@ -38,6 +38,11 @@ class CrearPeriodo extends Component
                 }
             }
 
+            if ($propertyName === 'inicio_periodo' && $this->inicio_periodo) {
+                $this->ciclo_escolar = app(\App\Services\AcademicPeriodResolver::class)
+                    ->expectedCycleFromDate($this->inicio_periodo);
+            }
+
             // dd($this->mesesPeriodo);
 
 
@@ -52,8 +57,8 @@ class CrearPeriodo extends Component
             'generacion_id' => 'required|exists:generaciones,id',
             'mesesPeriodo' => 'required|exists:meses,meses',
             'mes_id' => 'required|exists:meses,id',
-            'inicio_periodo' => 'nullable|date',
-            'termino_periodo' => 'nullable|date|after_or_equal:inicio_periodo',
+            'inicio_periodo' => 'required|date',
+            'termino_periodo' => 'required|date|after_or_equal:inicio_periodo',
         ],[
             'ciclo_escolar.required' => 'El ciclo escolar es obligatorio.',
             'ciclo_escolar.string' => 'El ciclo escolar debe ser una cadena de texto.',

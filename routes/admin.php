@@ -16,6 +16,8 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WordController;
 use App\Http\Controllers\CiudadController;
 use App\Http\Controllers\BoletaController;
+use App\Http\Controllers\AcademicDocumentController;
+use App\Http\Controllers\AcademicListaProfesorController;
 use App\Http\Controllers\CalificacionesDocenteController;
 use App\Http\Controllers\ConstanciaController;
 use App\Http\Controllers\DocumentacionController;
@@ -108,7 +110,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/profesores', [ProfesorController::class, 'index'])->middleware('can:admin.administracion')->name('admin.profesor.index');
     Route::get('/lista-profesores', [ProfesorController::class, 'lista_profesores'])->middleware('can:admin.administracion')->name('admin.profesor.lista_profesores');
-    Route::post('/lista-profesores/masivas', [ListaProfesorController::class, 'masivas'])->middleware('can:admin.administracion')->name('admin.profesor.listas.masivas');
+    Route::post('/lista-profesores/masivas', [AcademicListaProfesorController::class, 'masivas'])->middleware('can:admin.administracion')->name('admin.profesor.listas.masivas');
     Route::get('/lista-profesores/checklist/preview', [ListaProfesorChecklistController::class, 'preview'])->middleware('can:admin.administracion')->name('admin.profesor.checklist.preview');
     Route::get('/lista-profesores/checklist/pdf', [ListaProfesorChecklistController::class, 'pdf'])->middleware('can:admin.administracion')->name('admin.profesor.checklist.pdf');
     Route::get('/lista-profesores/checklist/word', [ListaProfesorChecklistController::class, 'word'])->middleware('can:admin.administracion')->name('admin.profesor.checklist.word');
@@ -195,17 +197,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/credencial-profesor-pdf', [PDFController::class, 'credencial_profesor'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.credencial_profesor');
     Route::get('/credencial-profesor-estudiante-pdf', [PDFController::class, 'credencial_profesor_estudiante'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.credencial_profesor_estudiante');
 
-    Route::get('/constancia', [PDFController::class, 'constancia'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.constancia');
+    Route::get('/constancia', [AcademicDocumentController::class, 'constancia'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.constancia');
     Route::get('/etiquetas', [PDFController::class, 'etiquetas'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.etiquetas');
 
 
-    Route::get('/lista-asistencia-escolarizada', [PDFController::class, 'lista_asistencia_escolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_asistencia_escolarizada');
-    Route::get('/lista-asistencia-semiescolarizada', [PDFController::class, 'lista_asistencia_semiescolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_asistencia_semiescolarizada');
-    Route::get('/lista-evaluacion', [PDFController::class, 'lista_evaluacion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_evaluacion');
+    Route::get('/lista-asistencia-escolarizada', [AcademicDocumentController::class, 'lista_asistencia_escolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_asistencia_escolarizada');
+    Route::get('/lista-asistencia-semiescolarizada', [AcademicDocumentController::class, 'lista_asistencia_semiescolarizada'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_asistencia_semiescolarizada');
+    Route::get('/lista-evaluacion', [AcademicDocumentController::class, 'lista_evaluacion'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.lista_evaluacion');
 
     // CALIFICACIONES DEL ALUMNO
     Route::get('/calificacion-alumno', [PDFController::class, 'calificacion_alumno'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.calificacion_alumno');
-    Route::get('/calificaciones-generales', [PDFController::class, 'calificaciones_generales'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.calificaciones_generales');
+    Route::get('/calificaciones-generales', [AcademicDocumentController::class, 'calificaciones_generales'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.calificaciones_generales');
 
     Route::get('/justificantes/{justificante}', [PDFController::class, 'justificante'])->middleware('can:admin.administracion')->name('admin.pdf.documentacion.justificantes');
 

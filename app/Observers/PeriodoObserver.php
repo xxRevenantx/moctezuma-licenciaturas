@@ -12,6 +12,17 @@ class PeriodoObserver
     }
 
 
+    public function saving(Periodo $periodo): void
+    {
+        try {
+            app(\App\Services\AcademicPeriodResolver::class)->assertConsistent($periodo);
+        } catch (\App\Exceptions\AcademicPeriodException $e) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'ciclo_escolar' => $e->getMessage(),
+            ]);
+        }
+    }
+
     public function deleted(Periodo $periodo)
     {
         // Actualizar los estudiantes

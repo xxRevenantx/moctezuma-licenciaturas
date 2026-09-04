@@ -188,11 +188,8 @@ class BoletaService
 
     public function periodo(int $generacionId, int $cuatrimestreId): Periodo
     {
-        return Periodo::query()
-            ->with(['cuatrimestre', 'mes', 'generacion'])
-            ->where('generacion_id', $generacionId)
-            ->where('cuatrimestre_id', $cuatrimestreId)
-            ->firstOrFail();
+        return app(\App\Services\AcademicPeriodResolver::class)
+            ->resolveFor($generacionId, $cuatrimestreId);
     }
 
     /**
@@ -228,7 +225,7 @@ class BoletaService
         return [
             'cuatrimestre' => Cuatrimestre::findOrFail($cuatrimestreId),
             'calificaciones' => $calificaciones,
-            'ciclo_escolar' => Dashboard::query()->latest('id')->first(),
+            'ciclo_escolar' => $periodo,
             'escuela' => Escuela::query()->first(),
             'licenciatura' => Licenciatura::findOrFail($licenciaturaId),
             'modalidad' => Modalidad::findOrFail($modalidadId),

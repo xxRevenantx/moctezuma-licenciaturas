@@ -171,7 +171,7 @@
                     <flux:select.option value="todos">Todos los cuatrimestres</flux:select.option>
                     @foreach ($cuatrimestres as $periodo)
                         <flux:select.option value="{{ $periodo['cuatrimestre_id'] }}">
-                            {{ $periodo['nombre'] }} · {{ $periodo['ciclo_escolar'] }}
+                            {{ $periodo['etiqueta_academica'] }}
                         </flux:select.option>
                     @endforeach
                 </flux:select>
