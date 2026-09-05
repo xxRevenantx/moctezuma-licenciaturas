@@ -142,6 +142,7 @@ class CalificacionesDocenteService
                 $s = trim($buscar);
                 $query->where(function ($q) use ($s) {
                     $q->where('matricula', 'like', "%{$s}%")
+                        ->orWhere('matricula_interna', 'like', "%{$s}%")
                         ->orWhere('nombre', 'like', "%{$s}%")
                         ->orWhere('apellido_paterno', 'like', "%{$s}%")
                         ->orWhere('apellido_materno', 'like', "%{$s}%");

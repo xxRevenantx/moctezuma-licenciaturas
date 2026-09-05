@@ -39,7 +39,8 @@
                             @endforeach
                         </flux:select>
 
-                        <flux:input type="text"  badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula"  />
+                        <flux:input type="text" inputmode="numeric" label="Matrícula SEG" placeholder="Pendiente de asignación SEG" wire:model="matricula" description="Solo números. La cantidad de dígitos puede variar." />
+                        <flux:input type="text" variant="filled" readonly label="ID de control interno" wire:model="matricula_interna" description="Identificador institucional; no sustituye la matrícula oficial SEG." />
                         <flux:input type="text" label="Folio" placeholder="Folio" wire:model="folio" />
                         <flux:input type="text" badge="Requerido" label="CURP" placeholder="CURP" wire:model.live="CURP" />
                         <flux:input type="text" badge="Requerido" label="Nombre" placeholder="Nombre" wire:model="nombre" />
@@ -272,15 +273,15 @@
                                     </div>
 
                                     <div class="mt-4">
-                                        <flux:input label="Confirmación" wire:model.live.debounce.250ms="confirmacionEliminar" placeholder="Escribe {{ $matricula }}" />
-                                        <p class="mt-1.5 text-[11px] text-rose-600 dark:text-rose-300">Escribe exactamente la matrícula <strong>{{ $matricula }}</strong> para habilitar la eliminación.</p>
+                                        <flux:input label="Confirmación" wire:model.live.debounce.250ms="confirmacionEliminar" placeholder="Escribe {{ $confirmacionReferencia }}" />
+                                        <p class="mt-1.5 text-[11px] text-rose-600 dark:text-rose-300">Escribe exactamente el identificador <strong>{{ $confirmacionReferencia }}</strong> para habilitar la eliminación.</p>
                                         @error('confirmacionEliminar') <p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p> @enderror
                                     </div>
 
                                     <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                                         <button type="button" wire:click="cancelarEliminacionPermanente" class="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800">Cancelar</button>
                                         <button type="button" wire:click="eliminarPermanentemente" wire:loading.attr="disabled" wire:target="eliminarPermanentemente"
-                                                @disabled(mb_strtoupper(trim($confirmacionEliminar), 'UTF-8') !== mb_strtoupper(trim((string) $matricula), 'UTF-8'))
+                                                @disabled($confirmacionReferencia === '' || mb_strtoupper(trim($confirmacionEliminar), 'UTF-8') !== mb_strtoupper(trim($confirmacionReferencia), 'UTF-8'))
                                                 class="rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-extrabold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40">
                                             Eliminar inscripción permanentemente
                                         </button>

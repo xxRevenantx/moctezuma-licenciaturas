@@ -48,10 +48,16 @@
                                     <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
                                         <span
                                             class="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
-                                            Matrícula:
+                                            Matrícula SEG:
                                             <span class="font-mono">
-                                                {{ $alumno['matricula'] ?? '----' }}
+                                                {{ $alumno['matricula'] ?: 'Pendiente' }}
                                             </span>
+                                        </span>
+
+                                        <span
+                                            class="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                                            ID interno:
+                                            <span class="font-mono">{{ $alumno['matricula_interna'] ?? '----' }}</span>
                                         </span>
 
                                         <span
@@ -104,8 +110,13 @@
 
                         <div class="mt-1 flex flex-wrap gap-2 text-xs text-neutral-600 dark:text-neutral-300">
                             <span>
-                                Matrícula:
-                                <strong>{{ $selectedAlumno['matricula'] ?? '----' }}</strong>
+                                Matrícula SEG:
+                                <strong>{{ $selectedAlumno['matricula'] ?: 'Pendiente' }}</strong>
+                            </span>
+
+                            <span>
+                                ID interno:
+                                <strong>{{ $selectedAlumno['matricula_interna'] ?? '----' }}</strong>
                             </span>
 
                             <span>
@@ -182,8 +193,13 @@
                                 <span
                                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/15 backdrop-blur">
                                     <span
-                                        class="font-mono text-[11px] sm:text-xs uppercase tracking-wide opacity-80">Matrícula</span>
-                                    <span class="font-semibold">{{ $selectedAlumno['matricula'] ?? '---' }}</span>
+                                        class="font-mono text-[11px] sm:text-xs uppercase tracking-wide opacity-80">Matrícula SEG</span>
+                                    <span class="font-semibold">{{ $selectedAlumno['matricula'] ?: 'Pendiente' }}</span>
+                                </span>
+
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/15 backdrop-blur">
+                                    <span class="font-mono text-[11px] sm:text-xs uppercase tracking-wide opacity-80">ID interno</span>
+                                    <span class="font-semibold">{{ $selectedAlumno['matricula_interna'] ?? '---' }}</span>
                                 </span>
 
                                 <span
@@ -342,8 +358,10 @@
                     <flux:field>
                         <flux:input readonly variant="filled" label="Nombre completo"
                             value="{{ $selectedAlumno['apellido_paterno'] ?? '---' }} {{ $selectedAlumno['apellido_materno'] ?? '' }} {{ $selectedAlumno['nombre'] ?? '' }}" />
-                        <flux:input readonly variant="filled" label="Matrícula"
-                            value="{{ $selectedAlumno['matricula'] ?? '---' }}" />
+                        <flux:input readonly variant="filled" label="Matrícula SEG"
+                            value="{{ $selectedAlumno['matricula'] ?: 'Pendiente' }}" />
+                        <flux:input readonly variant="filled" label="ID de control interno"
+                            value="{{ $selectedAlumno['matricula_interna'] ?? '---' }}" />
                         <flux:input readonly variant="filled" label="CURP"
                             value="{{ $selectedAlumno['CURP'] ?? '---' }}" />
                         <flux:input readonly variant="filled" label="Folio"

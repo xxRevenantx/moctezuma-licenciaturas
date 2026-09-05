@@ -144,7 +144,8 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>MATRÍCULA</th>
+                <th>MATRÍCULA SEG</th>
+                <th>ID INTERNO</th>
                 <th>NOMBRE(S)</th>
                 <th>APELLIDO PATERNO</th>
                 <th>APELLIDO MATERNO</th>
@@ -160,7 +161,8 @@
             @forelse ($matricula as $student)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ $student->matricula }}</td>
+                    <td>{{ $student->matricula ?: 'PENDIENTE' }}</td>
+                    <td>{{ $student->matricula_interna ?: '-' }}</td>
                     <td>{{ $student->nombre }}</td>
                     <td>{{ $student->apellido_paterno }}</td>
                     <td>{{ $student->apellido_materno }}</td>
@@ -172,7 +174,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="10" style="padding: 20px; text-align: center;">
+                    <td colspan="11" style="padding: 20px; text-align: center;">
                         NO HAY ALUMNOS PARA EL FILTRO SELECCIONADO
                     </td>
                 </tr>

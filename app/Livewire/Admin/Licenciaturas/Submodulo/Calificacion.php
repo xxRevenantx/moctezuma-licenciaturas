@@ -286,7 +286,8 @@ class Calificacion extends Component
                 $q->where('nombre', 'like', "%{$s}%")
                     ->orWhere('apellido_paterno', 'like', "%{$s}%")
                     ->orWhere('apellido_materno', 'like', "%{$s}%")
-                    ->orWhere('matricula', 'like', "%{$s}%");
+                    ->orWhere('matricula', 'like', "%{$s}%")
+                    ->orWhere('matricula_interna', 'like', "%{$s}%");
             });
         }
 

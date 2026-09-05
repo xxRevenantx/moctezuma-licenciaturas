@@ -240,7 +240,8 @@
                                             {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} {{ $alumno->nombre }}
                                         </span>
                                         <span class="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                            <span>Matrícula: <strong class="font-medium text-neutral-700 dark:text-neutral-300">{{ $alumno->matricula }}</strong></span>
+                                            <span>SEG: <strong class="font-medium text-neutral-700 dark:text-neutral-300">{{ $alumno->matricula ?: 'Pendiente' }}</strong></span>
+                                            <span>ID interno: <strong class="font-medium text-neutral-700 dark:text-neutral-300">{{ $alumno->matricula_interna ?: '—' }}</strong></span>
                                             <span class="hidden xl:inline">CURP: {{ $alumno->CURP }}</span>
                                         </span>
                                     </span>
@@ -274,7 +275,7 @@
                             </div>
 
                             <div class="space-y-3 p-4">
-                                <input type="search" wire:model.live.debounce.250ms="busquedaAlumno" placeholder="Nombre, matrícula o CURP..." class="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950 dark:text-white">
+                                <input type="search" wire:model.live.debounce.250ms="busquedaAlumno" placeholder="Nombre, matrícula SEG, ID interno o CURP..." class="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm dark:border-neutral-700 dark:bg-neutral-950 dark:text-white">
                                 <div class="grid grid-cols-3 gap-2">
                                     <button type="button" wire:click="seleccionarResultados" class="rounded-lg border border-neutral-200 px-2 py-2 text-[11px] font-semibold dark:border-neutral-700">Resultados</button>
                                     <button type="button" wire:click="seleccionarTodosAlumnos" class="rounded-lg bg-[#006492] px-2 py-2 text-[11px] font-semibold text-white">Todos</button>
@@ -288,7 +289,7 @@
                                         <input type="checkbox" wire:model.live="alumno_ids" value="{{ $alumno->id }}" class="h-4 w-4 rounded text-[#006492]">
                                         <span class="min-w-0 flex-1">
                                             <span class="block text-xs font-semibold uppercase text-neutral-800 dark:text-neutral-100">{{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} {{ $alumno->nombre }}</span>
-                                            <span class="mt-0.5 block text-[11px] text-neutral-500">{{ $alumno->matricula }}</span>
+                                            <span class="mt-0.5 block text-[11px] text-neutral-500">SEG: {{ $alumno->matricula ?: 'Pendiente' }} · ID: {{ $alumno->matricula_interna ?: '—' }}</span>
                                         </span>
                                     </label>
                                 @empty

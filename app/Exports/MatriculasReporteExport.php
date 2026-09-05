@@ -36,8 +36,9 @@ class MatriculasReporteExport implements FromCollection, WithHeadings, ShouldAut
     public function headings(): array
     {
         $base = [
-            'Matrícula',
-            'Estado de matrícula',
+            'Matrícula SEG',
+            'ID de control interno',
+            'Estado de matrícula SEG',
             'CURP',
             'Nombre',
             'Apellido paterno',
@@ -61,7 +62,7 @@ class MatriculasReporteExport implements FromCollection, WithHeadings, ShouldAut
 
     public function styles(Worksheet $sheet): array
     {
-        $ultimaColumna = $this->riesgoAcademico ? 'S' : 'N';
+        $ultimaColumna = $this->riesgoAcademico ? 'T' : 'O';
 
         $sheet->getStyle("A1:{$ultimaColumna}1")->applyFromArray([
             'font' => [
@@ -87,7 +88,7 @@ class MatriculasReporteExport implements FromCollection, WithHeadings, ShouldAut
     {
         return [
             AfterSheet::class => function (AfterSheet $event): void {
-                $ultimaColumna = $this->riesgoAcademico ? 'S' : 'N';
+                $ultimaColumna = $this->riesgoAcademico ? 'T' : 'O';
                 $ultimaFila = max(2, $this->rows->count() + 1);
                 $rango = "A1:{$ultimaColumna}{$ultimaFila}";
 
@@ -127,6 +128,7 @@ class MatriculasReporteExport implements FromCollection, WithHeadings, ShouldAut
         foreach ($alumnos as $alumno) {
             $base = [
                 $alumno->matricula ?: '—',
+                $alumno->matricula_interna ?: '—',
                 $this->estadoMatricula($alumno, $servicio),
                 $alumno->CURP ?: '—',
                 $alumno->nombre,
@@ -174,13 +176,13 @@ class MatriculasReporteExport implements FromCollection, WithHeadings, ShouldAut
         $matricula = $servicio->normalizar($alumno->matricula);
 
         if ($matricula === '') {
-            return 'Vacía';
+            return trim((string) $alumno->matricula_interna) !== '' ? 'Pendiente SEG' : 'Sin identificadores';
         }
 
         if ((int) ($alumno->matricula_coincidencias ?? 1) > 1) {
-            return 'Duplicada';
+            return 'SEG duplicada';
         }
 
-        return $servicio->esValida($matricula) ? 'Válida' : 'Formato incorrecto';
+        return $servicio->esValida($matricula) ? 'SEG válida' : 'SEG formato inválido';
     }
 }

@@ -98,7 +98,7 @@ $sabana = Inscripcion::query()
     })
     ->where('inscripciones.generacion_id', $this->filtrar_generacion)
     ->where('inscripciones.status', 'true')
-    ->whereRaw("CAST(SUBSTRING(inscripciones.matricula, 1, 2) AS UNSIGNED) BETWEEN 20 AND 99")
+    ->whereRaw("TRIM(inscripciones.matricula) REGEXP '^[0-9]+$'")
     ->whereHas('licenciatura', fn ($q) => $q->whereNotNull('RVOE')->where('RVOE','!=',''))
     ->select('inscripciones.*')
     ->addSelect([

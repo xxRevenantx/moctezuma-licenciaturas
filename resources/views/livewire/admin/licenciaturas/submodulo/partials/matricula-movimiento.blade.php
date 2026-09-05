@@ -106,7 +106,9 @@
                                     <div class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 dark:border-neutral-700 dark:bg-neutral-900">
                                         <div class="text-xs font-extrabold text-slate-800 dark:text-white">{{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} {{ $alumno->nombre }}</div>
                                         <div class="mt-1 flex flex-wrap gap-2 text-[10px] font-semibold text-slate-500">
-                                            <span>{{ $alumno->matricula }}</span>
+                                            <span>SEG: {{ $alumno->matricula ?: 'Pendiente' }}</span>
+                                            <span>•</span>
+                                            <span>ID: {{ $alumno->matricula_interna ?: '—' }}</span>
                                             <span>•</span>
                                             <span>{{ $alumno->modalidad?->nombre }}</span>
                                             <span>•</span>

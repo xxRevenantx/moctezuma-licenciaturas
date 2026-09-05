@@ -258,7 +258,7 @@
                                         F/L</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-semibold text-neutral-700 dark:text-neutral-200 uppercase tracking-wider w-40">
-                                        Matrícula</th>
+                                        Matrícula SEG / ID interno</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-semibold text-neutral-700 dark:text-neutral-200 uppercase tracking-wider w-72">
                                         Alumno</th>
@@ -312,7 +312,8 @@
 
                                         <td
                                             class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100 whitespace-nowrap">
-                                            {{ $al->matricula }}
+                                            <div class="font-bold">SEG: {{ $al->matricula ?: 'Pendiente' }}</div>
+                                            <div class="mt-0.5 font-mono text-[10px] text-neutral-400">ID: {{ $al->matricula_interna ?: '—' }}</div>
                                         </td>
 
                                         <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100">

@@ -299,7 +299,9 @@
                                 <div class="min-w-0">
                                     <p class="truncate text-sm font-extrabold uppercase text-slate-900 dark:text-white">{{ $alumno['nombre_completo'] }}</p>
                                     <p class="mt-0.5 text-xs text-slate-500 dark:text-zinc-400">
-                                        Matrícula: <span class="font-bold">{{ $alumno['matricula'] ?: 'Sin matrícula' }}</span>
+                                        Matrícula SEG: <span class="font-bold">{{ $alumno['matricula'] ?: 'Pendiente' }}</span>
+                                        <span class="mx-1.5">·</span>
+                                        ID interno: <span class="font-bold">{{ $alumno['matricula_interna'] ?: '—' }}</span>
                                         <span class="mx-1.5">·</span>
                                         CURP: {{ $alumno['CURP'] ?: 'Sin CURP' }}
                                     </p>

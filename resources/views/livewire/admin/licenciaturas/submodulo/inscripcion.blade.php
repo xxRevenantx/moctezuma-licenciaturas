@@ -17,7 +17,8 @@
                             @endforeach
                         </flux:select>
 
-                        <flux:input type="text" badge="Requerido" label="Matrícula" placeholder="Matrícula" wire:model="matricula" />
+                        <flux:input type="text" inputmode="numeric" label="Matrícula SEG" placeholder="Pendiente de asignación SEG" wire:model="matricula" description="Opcional al inscribir. Solo números; la cantidad de dígitos puede variar." />
+                        <flux:input type="text" variant="filled" readonly label="ID de control interno" placeholder="Se generará automáticamente al guardar" wire:model="matricula_interna" description="Identificador institucional; no sustituye la matrícula oficial SEG." />
                         <flux:input type="text" label="Folio" placeholder="Folio" wire:model="folio" />
                         <flux:input type="text" badge="Requerido" variant="filled" readonly label="CURP" placeholder="CURP" value="{{ $CURP }}" />
 

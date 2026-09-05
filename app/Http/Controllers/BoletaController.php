@@ -374,7 +374,7 @@ class BoletaController extends Controller
     private function slugNombreAlumno($alumno): string
     {
         return Str::of(
-            $alumno->apellido_paterno . '_' . $alumno->apellido_materno . '_' . $alumno->nombre . '_' . $alumno->matricula
+            $alumno->apellido_paterno . '_' . $alumno->apellido_materno . '_' . $alumno->nombre . '_' . ($alumno->matricula ?: $alumno->matricula_interna ?: $alumno->id)
         )
             ->ascii()
             ->upper()

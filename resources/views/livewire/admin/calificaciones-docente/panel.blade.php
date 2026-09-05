@@ -429,7 +429,7 @@
                         <thead>
                             <tr>
                                 <th class="w-14 px-4 py-3 text-left">#</th>
-                                <th class="px-4 py-3 text-left">Matrícula</th>
+                                <th class="px-4 py-3 text-left">Identificadores</th>
                                 <th class="px-4 py-3 text-left">Alumno</th>
                                 @foreach($asignacionesMatriz as $materia)
                                     <th class="min-w-[180px] px-3 py-3 text-center">
@@ -443,7 +443,10 @@
                             @forelse($alumnosVisibles as $index => $alumno)
                                 <tr wire:key="alumno-cal-{{ $alumno['id'] }}">
                                     <td class="px-4 py-3 text-slate-400">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-3 font-extrabold text-slate-700 dark:text-slate-100">{{ $alumno['matricula'] }}</td>
+                                    <td class="px-4 py-3 text-slate-700 dark:text-slate-100">
+                                        <div class="font-extrabold">ID: {{ $alumno['matricula_interna'] ?: '—' }}</div>
+                                        <div class="mt-0.5 text-[10px] font-semibold text-slate-400">SEG: {{ $alumno['matricula'] ?: 'Pendiente' }}</div>
+                                    </td>
                                     <td class="px-4 py-3">
                                         <div class="font-bold text-slate-800 dark:text-white">{{ $alumno['apellido_paterno'] }} {{ $alumno['apellido_materno'] }} {{ $alumno['nombre'] }}</div>
                                         <div class="mt-0.5 inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400">
@@ -516,7 +519,8 @@
                                     <tr>
                                         <td class="whitespace-nowrap px-3 py-2.5">{{ $audit->created_at?->format('d/m/Y H:i') }}</td>
                                         <td class="px-3 py-2.5">
-                                            <strong>{{ $audit->alumno?->matricula ?? '—' }}</strong><br>
+                                            <strong>ID: {{ $audit->alumno?->matricula_interna ?? '—' }}</strong><br>
+                                            <span class="text-[10px] text-slate-400">SEG: {{ $audit->alumno?->matricula ?? 'Pendiente' }}</span><br>
                                             {{ trim(($audit->alumno?->apellido_paterno ?? '').' '.($audit->alumno?->apellido_materno ?? '').' '.($audit->alumno?->nombre ?? '')) ?: 'Alumno eliminado' }}
                                         </td>
                                         <td class="px-3 py-2.5">{{ $audit->usuario?->username ?? 'Usuario eliminado' }}</td>
@@ -563,7 +567,7 @@
                         @foreach($vistaPreviaImportacion as $fila)
                             <tr class="{{ $fila['accion'] === 'error' ? '!bg-rose-50 dark:!bg-rose-950/20' : '' }}">
                                 <td class="px-3 py-2.5">{{ $fila['hoja'] }} / {{ $fila['fila'] }}</td>
-                                <td class="px-3 py-2.5"><strong>{{ $fila['matricula'] }}</strong><br>{{ $fila['alumno'] }}</td>
+                                <td class="px-3 py-2.5"><strong>{{ $fila['identificador'] }}</strong><br>{{ $fila['alumno'] }}</td>
                                 <td class="px-3 py-2.5">{{ $fila['materia'] }}</td>
                                 <td class="px-3 py-2.5 text-center">{{ $fila['anterior'] ?? '—' }}</td>
                                 <td class="px-3 py-2.5 text-center font-extrabold">{{ $fila['nuevo'] ?? '—' }}</td>

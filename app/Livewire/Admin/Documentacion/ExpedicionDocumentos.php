@@ -149,7 +149,7 @@ class ExpedicionDocumentos extends Component
         );
 
         $this->alumnos = (clone $base)
-            ->select('id', 'matricula', 'CURP', 'nombre', 'apellido_paterno', 'apellido_materno')
+            ->select('id', 'matricula', 'matricula_interna', 'CURP', 'nombre', 'apellido_paterno', 'apellido_materno')
             ->where('status', 'true')
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
@@ -237,6 +237,7 @@ class ExpedicionDocumentos extends Component
                     $alumno->apellido_paterno,
                     $alumno->apellido_materno,
                     $alumno->matricula,
+                    $alumno->matricula_interna,
                     $alumno->CURP,
                 ]));
 

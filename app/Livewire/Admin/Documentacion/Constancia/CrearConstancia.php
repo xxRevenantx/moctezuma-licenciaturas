@@ -128,6 +128,7 @@ class CrearConstancia extends Component
                     ->orWhere('apellido_materno', 'like', '%' . $texto . '%')
                     ->orWhere('CURP', 'like', '%' . $texto . '%')
                     ->orWhere('matricula', 'like', '%' . $texto . '%')
+                    ->orWhere('matricula_interna', 'like', '%' . $texto . '%')
                     ->orWhere('folio', 'like', '%' . $texto . '%');
             })
             ->orderBy('apellido_paterno')

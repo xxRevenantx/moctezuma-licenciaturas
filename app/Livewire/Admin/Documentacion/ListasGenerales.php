@@ -125,6 +125,7 @@ class ListasGenerales extends Component
                         ->orWhere('apellido_paterno', 'like', "%{$busqueda}%")
                         ->orWhere('apellido_materno', 'like', "%{$busqueda}%")
                         ->orWhere('matricula', 'like', "%{$busqueda}%")
+                        ->orWhere('matricula_interna', 'like', "%{$busqueda}%")
                         ->orWhere('CURP', 'like', "%{$busqueda}%")
                         ->orWhereRaw(
                             "CONCAT_WS(' ', nombre, apellido_paterno, apellido_materno) LIKE ?",

@@ -366,7 +366,7 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>MATRÍCULA</th>
+                            <th>MATRÍCULA SEG / ID INTERNO</th>
                             <th>NOMBRE(S)</th>
                             <th>APELLIDO PATERNO</th>
                             <th>APELLIDO MATERNO</th>
@@ -381,7 +381,7 @@
                         @foreach ($matricula as $student)
                             <tr>
                                 <td class="numero">{{ $loop->iteration }}</td>
-                                <td>{{ mb_strtoupper($student->matricula ?? '-') }}</td>
+                                <td>SEG: {{ mb_strtoupper($student->matricula ?? 'PENDIENTE') }}<br>ID: {{ mb_strtoupper($student->matricula_interna ?? '-') }}</td>
                                 <td>{{ mb_strtoupper($student->nombre ?? '') }}</td>
                                 <td>{{ mb_strtoupper($student->apellido_paterno ?? '') }}</td>
                                 <td>{{ mb_strtoupper($student->apellido_materno ?? '') }}</td>

@@ -45,7 +45,7 @@
         <table class="reporte">
             <thead>
                 <tr>
-                    <th>#</th><th>Matrícula</th><th>Alumno</th><th>Licenciatura</th><th>Materia</th>
+                    <th>#</th><th>Matrícula SEG</th><th>ID interno</th><th>Alumno</th><th>Licenciatura</th><th>Materia</th>
                     <th>Cuatrimestre</th><th>Profesor</th><th>Calificación</th><th>Riesgo</th>
                 </tr>
             </thead>
@@ -66,6 +66,7 @@
                         <tr>
                             <td>{{ $numero }}</td>
                             <td>{{ $alumno->matricula ?: '—' }}</td>
+                            <td>{{ $alumno->matricula_interna ?: '—' }}</td>
                             <td>{{ trim("{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}") }}</td>
                             <td>{{ optional($alumno->licenciatura)->nombre ?? '—' }}</td>
                             <td>{{ optional(optional($calificacion->asignacionMateria)->materia)->nombre ?? '—' }}</td>
@@ -76,7 +77,7 @@
                         </tr>
                     @endforeach
                 @empty
-                    <tr><td colspan="9" style="text-align:center; padding:20px;">No hay resultados.</td></tr>
+                    <tr><td colspan="10" style="text-align:center; padding:20px;">No hay resultados.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -84,7 +85,7 @@
         <table class="reporte">
             <thead>
                 <tr>
-                    <th>#</th><th>Matrícula</th><th>Estado matrícula</th><th>CURP</th><th>Alumno</th>
+                    <th>#</th><th>Matrícula SEG</th><th>ID interno</th><th>Estado matrícula SEG</th><th>CURP</th><th>Alumno</th>
                     <th>Licenciatura</th><th>Modalidad</th><th>Generación</th><th>Cuatrimestre</th>
                     <th>Sexo</th><th>Procedencia</th><th>Estado</th><th>Inscripción</th>
                 </tr>
@@ -92,15 +93,19 @@
             <tbody>
                 @forelse ($alumnos as $alumno)
                     @php
-                        $matricula = strtoupper(trim((string) $alumno->matricula));
+                        $matricula = trim((string) $alumno->matricula);
+                        $interno = trim((string) $alumno->matricula_interna);
                         $duplicada = (int) ($alumno->matricula_coincidencias ?? 1) > 1;
                         $valida = app(\App\Services\MatriculaService::class)->esValida($matricula) && !$duplicada;
-                        $estadoMatricula = $matricula === '' ? 'Vacía' : ($duplicada ? 'Duplicada' : ($valida ? 'Válida' : 'Formato incorrecto'));
+                        $estadoMatricula = $matricula === ''
+                            ? ($interno !== '' ? 'Pendiente SEG' : 'Sin identificadores')
+                            : ($duplicada ? 'SEG duplicada' : ($valida ? 'SEG válida' : 'SEG formato inválido'));
                         $clase = $valida ? 'ok' : ($duplicada ? 'danger' : 'warn');
                     @endphp
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ $matricula ?: '—' }}</td>
+                        <td>{{ $interno ?: '—' }}</td>
                         <td><span class="badge {{ $clase }}">{{ $estadoMatricula }}</span></td>
                         <td>{{ $alumno->CURP ?: '—' }}</td>
                         <td>{{ trim("{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}") }}</td>
@@ -114,12 +119,12 @@
                         <td>{{ optional($alumno->created_at)?->format('d/m/Y') ?? '—' }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="13" style="text-align:center; padding:20px;">No hay resultados.</td></tr>
+                    <tr><td colspan="14" style="text-align:center; padding:20px;">No hay resultados.</td></tr>
                 @endforelse
             </tbody>
         </table>
     @endif
 
-    <footer>Centro Universitario Moctezuma · Reporte de control de matrículas</footer>
+    <footer>Centro Universitario Moctezuma · Reporte de control de matrículas SEG e ID interno</footer>
 </body>
 </html>

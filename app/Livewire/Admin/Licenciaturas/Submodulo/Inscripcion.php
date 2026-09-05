@@ -3,6 +3,8 @@
 namespace App\Livewire\Admin\Licenciaturas\Submodulo;
 
 use App\Services\CurpService;
+use App\Services\IdControlInternoService;
+use App\Services\MatriculaService;
 
 use App\Models\Accion;
 use App\Models\AsignarGeneracion;
@@ -36,6 +38,7 @@ class Inscripcion extends Component
 
     public $user_id;
     public $matricula;
+    public $matricula_interna;
     public $folio;
     public $CURP;
     public $nombre;
@@ -123,6 +126,10 @@ class Inscripcion extends Component
     {
         // if ($propertyName === 'user_id') ...
         if ($propertyName === 'user_id') {
+            // La matrícula SEG no depende de la CURP y nunca debe heredarse
+            // accidentalmente al cambiar de usuario en el formulario.
+            $this->matricula = null;
+            $this->matricula_interna = null;
 
             if ($this->user_id == 0) {
                 $this->reset([
@@ -136,6 +143,7 @@ class Inscripcion extends Component
                     'fecha_nacimiento',
                     'edad',
                     'matricula',
+                    'matricula_interna',
                 ]);
                 return;
             }
@@ -177,11 +185,6 @@ class Inscripcion extends Component
                 $fecha_nacimiento  = "$anio_completo-$mes-$dia";
                 $this->fecha_nacimiento = $fecha_nacimiento;
 
-                $prefijo      = strtoupper(substr($this->CURP, 0, 4));
-                $ultimoOrder  = \App\Models\Inscripcion::max('orden') ?? 0;
-                $siguienteOrder = $ultimoOrder + 1;
-                $this->matricula = $prefijo . (2000 + $siguienteOrder);
-
                 try {
                     $nacimiento = new \DateTime($fecha_nacimiento);
                     $hoy        = new \DateTime();
@@ -193,7 +196,6 @@ class Inscripcion extends Component
             } else {
                 $this->fecha_nacimiento = null;
                 $this->edad             = null;
-                $this->matricula        = null;
             }
         }
 
@@ -204,7 +206,7 @@ class Inscripcion extends Component
     {
         $datos = $this->validate([
             'user_id'               => 'required|exists:users,id|unique:inscripciones,user_id',
-            'matricula'             => 'required|max:8|unique:inscripciones,matricula',
+            'matricula'             => ['nullable', 'max:255', 'regex:/^[0-9]+$/', 'unique:inscripciones,matricula'],
             'folio'                 => 'nullable|max:10|unique:inscripciones,folio',
             'CURP'                  => 'required|max:18|unique:inscripciones,CURP',
             'nombre'                => 'required|max:50',
@@ -240,12 +242,14 @@ class Inscripcion extends Component
         }
 
         $this->status = $this->status == true ? "true" : "false";
+        $this->matricula = app(MatriculaService::class)->normalizar($this->matricula);
+        $idInternoGenerado = null;
 
         try {
-            DB::transaction(function () use ($datos): void {
-                ModelsInscripcion::create([
+            DB::transaction(function () use ($datos, &$idInternoGenerado): void {
+                $alumno = ModelsInscripcion::create([
                     'user_id'                => $this->user_id,
-                    'matricula'              => $this->matricula,
+                    'matricula'              => $this->matricula !== '' ? $this->matricula : null,
                     'folio'                  => $this->folio,
                     'CURP'                   => trim(strtoupper($this->CURP)),
                     'nombre'                 => trim(strtoupper($this->nombre)),
@@ -277,10 +281,13 @@ class Inscripcion extends Component
                     'egresado'               => 'false',
                     'foto'                   => $datos["foto"]
                 ]);
+
+                $idInternoGenerado = app(IdControlInternoService::class)->generarPara($alumno);
             });
             $this->reset([
                 'user_id',
                 'matricula',
+                'matricula_interna',
                 'folio',
                 'CURP',
                 'nombre',
@@ -322,6 +329,7 @@ class Inscripcion extends Component
 
             $this->dispatch('swal', [
                 'title'    => '¡Nuevo alumno creado correctamente!',
+                'text'     => $idInternoGenerado ? 'ID de control interno: '.$idInternoGenerado : null,
                 'icon'     => 'success',
                 'position' => 'top-end',
             ]);

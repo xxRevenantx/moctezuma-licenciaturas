@@ -1095,7 +1095,7 @@ class PDFController extends Controller
             ($alumno->nombre ?? '') . '_' .
                 ($alumno->apellido_paterno ?? '') . '_' .
                 ($alumno->apellido_materno ?? '') . '_' .
-                ($alumno->matricula ?? '')
+                ($alumno->matricula ?: $alumno->matricula_interna ?: $alumno->id)
         ));
 
         if ($documento === 'kardex') {
@@ -1279,7 +1279,7 @@ class PDFController extends Controller
             'periodo' => $periodo,
         ];
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciasPDF', $data)->setPaper('letter', 'portrait');
-        return $pdf->stream("CONSTANCIA_" . $alumno["nombre"] . "_" . $alumno["apellido_paterno"] . "_" . $alumno["apellido_materno"] . "_" . $alumno->matricula . ".pdf");
+        return $pdf->stream("CONSTANCIA_" . $alumno["nombre"] . "_" . $alumno["apellido_paterno"] . "_" . $alumno["apellido_materno"] . "_" . ($alumno->matricula ?: $alumno->matricula_interna ?: $alumno->id) . ".pdf");
     }
 
 

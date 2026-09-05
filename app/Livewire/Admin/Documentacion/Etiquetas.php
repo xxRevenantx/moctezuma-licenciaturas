@@ -27,6 +27,7 @@ class Etiquetas extends Component
                 ->orWhere('apellido_materno', 'like', '%' . $this->query . '%')
                 ->orWhere('curp', 'like', '%' . $this->query . '%')
                 ->orWhere('matricula', 'like', '%' . $this->query . '%')
+                ->orWhere('matricula_interna', 'like', '%' . $this->query . '%')
                 ->get()
                 ->toArray();
         } else {

@@ -62,6 +62,7 @@ class InscripcionObserver
             'inscripcion_id' => $inscripcion->id,
             'user_id' => $inscripcion->user_id,
             'matricula' => $inscripcion->matricula,
+            'matricula_interna' => $inscripcion->matricula_interna,
             'sexo' => $inscripcion->sexo,
             'licenciatura_id' => $inscripcion->licenciatura_id,
             'generacion_id' => $inscripcion->generacion_id,

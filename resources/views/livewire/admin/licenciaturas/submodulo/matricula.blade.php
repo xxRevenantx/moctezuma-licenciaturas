@@ -97,7 +97,7 @@
                     <flux:label>Buscar estudiante</flux:label>
                     <flux:input
                         wire:model.live.debounce.350ms="search"
-                        placeholder="Nombre, apellidos, matrícula, folio o CURP"
+                        placeholder="Nombre, matrícula SEG, ID interno, folio o CURP"
                     />
                 </flux:field>
             </div>
@@ -205,7 +205,7 @@
                             <th class="px-4 py-3 text-center">Sel.</th>
                             <th class="px-3 py-3">#</th>
                             <th class="px-3 py-3">Alumno</th>
-                            <th class="px-3 py-3">Matrícula / Folio</th>
+                            <th class="px-3 py-3">Identificadores / Folio</th>
                             <th class="px-3 py-3">CURP</th>
                             <th class="px-3 py-3">Origen</th>
                             <th class="px-3 py-3">Género</th>
@@ -267,8 +267,9 @@
                                         </div>
                                     </td>
                                     <td class="px-3 py-3 text-xs text-slate-600 dark:text-neutral-300">
-                                        <div class="font-bold text-slate-700 dark:text-neutral-200">{{ $estudiante->matricula }}</div>
-                                        <div class="mt-0.5 text-slate-400">{{ $estudiante->folio ?: 'Sin folio' }}</div>
+                                        <div class="font-bold text-slate-700 dark:text-neutral-200">SEG: {{ $estudiante->matricula ?: 'Pendiente' }}</div>
+                                        <div class="mt-0.5 font-mono text-[11px] text-slate-500">ID interno: {{ $estudiante->matricula_interna ?: '—' }}</div>
+                                        <div class="mt-0.5 text-slate-400">Folio: {{ $estudiante->folio ?: 'Sin folio' }}</div>
                                     </td>
                                     <td class="px-3 py-3 font-mono text-[11px] text-slate-600 dark:text-neutral-300">{{ $estudiante->CURP }}</td>
                                     <td class="px-3 py-3">

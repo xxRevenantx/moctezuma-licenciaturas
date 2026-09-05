@@ -55,6 +55,7 @@ class Baja extends Component
                     ->orWhere('apellido_paterno', 'like', '%' . $this->search . '%')
                     ->orWhere('apellido_materno', 'like', '%' . $this->search . '%')
                     ->orWhere('matricula', 'like', '%' . $this->search . '%')
+                    ->orWhere('matricula_interna', 'like', '%' . $this->search . '%')
                     ->orWhere('CURP', 'like', '%' . $this->search . '%');
             });
         }

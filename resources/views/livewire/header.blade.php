@@ -39,9 +39,9 @@
                             class="flex w-full items-start gap-3 p-4 text-left transition hover:bg-sky-50 dark:hover:bg-sky-950/20">
                             <span class="mt-1.5 h-2.5 w-2.5 rounded-full bg-indigo-500"></span>
                             <span class="flex-1">
-                                <span class="block font-medium text-neutral-900 dark:text-neutral-100">Alumnos con matrícula válida</span>
+                                <span class="block font-medium text-neutral-900 dark:text-neutral-100">Alumnos con matrícula SEG válida</span>
                                 <span class="mt-1 block text-sm text-neutral-600 dark:text-neutral-300">{{ $conMatricula }} alumnos · {{ $porcConMatricula }}%</span>
-                                <span class="mt-1 block text-[11px] text-neutral-500 dark:text-neutral-400">Formato institucional: cuatro letras y cuatro dígitos.</span>
+                                <span class="mt-1 block text-[11px] text-neutral-500 dark:text-neutral-400">Matrícula oficial asignada por la SEG: solo números, con cantidad de dígitos variable.</span>
                             </span>
                         </button>
 
@@ -49,9 +49,9 @@
                             class="flex w-full items-start gap-3 p-4 text-left transition hover:bg-amber-50 dark:hover:bg-amber-950/20">
                             <span class="mt-1.5 h-2.5 w-2.5 rounded-full bg-amber-500"></span>
                             <span class="flex-1">
-                                <span class="block font-medium text-neutral-900 dark:text-neutral-100">Alumnos sin matrícula válida</span>
+                                <span class="block font-medium text-neutral-900 dark:text-neutral-100">Alumnos pendientes o con matrícula SEG no válida</span>
                                 <span class="mt-1 block text-sm text-neutral-600 dark:text-neutral-300">{{ $sinMatricula }} alumnos · {{ $porcSinMatricula }}%</span>
-                                <span class="mt-1 block text-[11px] text-neutral-500 dark:text-neutral-400">{{ $matriculasVacias }} vacías · {{ $matriculasIncorrectas }} con formato incorrecto · {{ $matriculasDuplicadas }} duplicadas</span>
+                                <span class="mt-1 block text-[11px] text-neutral-500 dark:text-neutral-400">{{ $matriculasPendientes }} pendientes SEG · {{ $matriculasIncorrectas }} con formato inválido · {{ $matriculasDuplicadas }} duplicadas · {{ $sinIdentificadores }} sin identificadores</span>
                             </span>
                         </button>
 
@@ -132,10 +132,10 @@
                         <div class="flex flex-wrap items-center gap-2">
                             <h2 class="text-xl font-extrabold text-neutral-900 dark:text-white sm:text-2xl">
                                 @switch($modalTipo)
-                                    @case('sin') Alumnos sin matrícula válida @break
+                                    @case('sin') Alumnos pendientes o con matrícula SEG no válida @break
                                     @case('bajos') Riesgo académico @break
                                     @case('todos') Total de inscripciones @break
-                                    @default Alumnos con matrícula válida
+                                    @default Alumnos con matrícula SEG válida
                                 @endswitch
                             </h2>
                             <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-[#006492] dark:bg-sky-950/50 dark:text-sky-200">{{ number_format($alumnos->total()) }} resultados</span>
@@ -184,9 +184,10 @@
                         <section class="mt-4 flex flex-wrap gap-2 rounded-2xl border border-amber-200 bg-amber-50/70 p-3 dark:border-amber-900/50 dark:bg-amber-950/20">
                             @foreach ([
                                 'todos' => ['Todos', $sinCounts['todos']],
-                                'vacias' => ['Vacías', $sinCounts['vacias']],
-                                'formato' => ['Formato incorrecto', $sinCounts['formato']],
-                                'duplicadas' => ['Duplicadas', $sinCounts['duplicadas']],
+                                'pendientes' => ['Pendiente SEG', $sinCounts['pendientes']],
+                                'formato' => ['SEG con formato inválido', $sinCounts['formato']],
+                                'duplicadas' => ['SEG duplicada', $sinCounts['duplicadas']],
+                                'sin_identificadores' => ['Sin identificadores', $sinCounts['sin_identificadores']],
                             ] as $valor => [$etiqueta, $cantidad])
                                 <button type="button" wire:click="$set('sinCategoria', '{{ $valor }}')"
                                     class="rounded-xl px-3 py-2 text-sm font-semibold transition {{ $sinCategoria === $valor ? 'bg-amber-500 text-white shadow' : 'bg-white text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100 dark:bg-neutral-800 dark:text-amber-200 dark:ring-amber-900' }}">
@@ -402,7 +403,7 @@
                                             <input type="checkbox" wire:click="togglePagina('{{ implode(',', $pageIds) }}')" @checked($pageAllSelected) class="rounded border-white/50 text-[#88AC2E] focus:ring-white">
                                         </th>
                                         <th class="px-3 py-3 text-left text-[11px] uppercase tracking-wider">#</th>
-                                        <th class="px-3 py-3 text-left text-[11px] uppercase tracking-wider">Matrícula</th>
+                                        <th class="px-3 py-3 text-left text-[11px] uppercase tracking-wider">Matrícula SEG / ID interno</th>
                                         <th class="px-3 py-3 text-left text-[11px] uppercase tracking-wider">Alumno</th>
                                         <th class="px-3 py-3 text-left text-[11px] uppercase tracking-wider">Licenciatura</th>
                                         <th class="px-3 py-3 text-left text-[11px] uppercase tracking-wider">Datos académicos</th>
@@ -422,11 +423,16 @@
                                             $matriculaClases = match($estadoMatricula) {
                                                 'valida' => 'bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:ring-emerald-900',
                                                 'duplicada' => 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-900',
-                                                'formato' => 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900',
+                                                'formato' => 'bg-orange-50 text-orange-700 ring-orange-200 dark:bg-orange-950/40 dark:text-orange-200 dark:ring-orange-900',
+                                                'pendiente' => 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900',
                                                 default => 'bg-neutral-100 text-neutral-600 ring-neutral-200 dark:bg-neutral-700 dark:text-neutral-200 dark:ring-neutral-600',
                                             };
                                             $estadoEtiqueta = match($estadoMatricula) {
-                                                'valida' => 'Válida', 'duplicada' => 'Duplicada', 'formato' => 'Formato incorrecto', default => 'Vacía'
+                                                'valida' => 'SEG válida',
+                                                'duplicada' => 'SEG duplicada',
+                                                'formato' => 'SEG con formato inválido',
+                                                'pendiente' => 'Pendiente SEG',
+                                                default => 'Sin identificadores',
                                             };
                                         @endphp
                                         <tr wire:key="matricula-row-{{ $alumno->id }}" class="align-top transition hover:bg-sky-50/60 dark:hover:bg-sky-950/20">
@@ -435,8 +441,9 @@
                                             </td>
                                             <td class="px-3 py-3 font-bold text-neutral-500">{{ ($alumnos->firstItem() ?? 1) + $index }}</td>
                                             <td class="px-3 py-3">
-                                                <span class="inline-flex rounded-lg px-2 py-1 font-mono text-xs font-bold ring-1 {{ $matriculaClases }}">{{ $alumno->matricula ?: 'SIN MATRÍCULA' }}</span>
+                                                <span class="inline-flex rounded-lg px-2 py-1 font-mono text-xs font-bold ring-1 {{ $matriculaClases }}">{{ $alumno->matricula ?: 'PENDIENTE SEG' }}</span>
                                                 <span class="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{{ $estadoEtiqueta }}</span>
+                                                <span class="mt-1 block font-mono text-[10px] text-slate-500 dark:text-neutral-400">ID interno: <strong>{{ $alumno->matricula_interna ?: '—' }}</strong></span>
                                             </td>
                                             <td class="px-3 py-3">
                                                 <p class="font-bold text-neutral-900 dark:text-white">{{ $nombre ?: '—' }}</p>
@@ -502,7 +509,7 @@
                                                         <a href="{{ route('admin.pdf.historial-academico-alumno', $alumno) }}" target="_blank" class="rounded-lg bg-lime-50 px-2.5 py-1.5 text-[11px] font-bold text-[#5f7e16] transition hover:bg-lime-100 dark:bg-lime-950/40 dark:text-lime-200">Historial</a>
                                                         <button type="button" wire:click="editarAlumno({{ $alumno->id }})" class="rounded-lg bg-violet-50 px-2.5 py-1.5 text-[11px] font-bold text-violet-700 transition hover:bg-violet-100 dark:bg-violet-950/40 dark:text-violet-200">Editar inscripción</button>
                                                         @if ($estadoMatricula !== 'valida')
-                                                            <button type="button" wire:click="generarMatricula({{ $alumno->id }})" wire:confirm="Se reemplazará la matrícula actual por una matrícula institucional disponible. ¿Deseas continuar?" class="rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] font-bold text-amber-700 transition hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-200">Generar matrícula</button>
+                                                            <button type="button" wire:click="abrirRegistroMatriculaSeg({{ $alumno->id }})" class="rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] font-bold text-amber-700 transition hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-200">Registrar matrícula SEG</button>
                                                         @endif
                                                     @else
                                                         <span class="text-xs text-neutral-400">Solo consulta</span>
@@ -530,6 +537,45 @@
                     </div>
                 </main>
             </div>
+        </div>
+    @endif
+
+    @if ($matriculaSegOpen)
+        <div class="fixed inset-0 z-[10020] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-sm" wire:click="cerrarRegistroMatriculaSeg"></div>
+            <form wire:submit.prevent="guardarMatriculaSeg" class="relative w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900">
+                <div class="h-1.5 bg-gradient-to-r from-[#006492] to-[#88AC2E]"></div>
+                <div class="p-5 sm:p-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[0.18em] text-[#006492]">Control escolar</p>
+                            <h3 class="mt-1 text-xl font-extrabold text-slate-900 dark:text-white">Registrar matrícula SEG</h3>
+                            <p class="mt-1 text-sm text-slate-500 dark:text-neutral-400">{{ $matriculaSegAlumnoNombre }}</p>
+                        </div>
+                        <button type="button" wire:click="cerrarRegistroMatriculaSeg" class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-xl text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:bg-neutral-800">×</button>
+                    </div>
+
+                    <div class="mt-5 rounded-2xl border border-sky-100 bg-sky-50/70 p-4 text-sm text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/20 dark:text-sky-200">
+                        La matrícula oficial es asignada por la <strong>SEG</strong>. El sistema no la genera automáticamente. Debe contener únicamente números y no puede repetirse.
+                    </div>
+
+                    <div class="mt-5">
+                        <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-neutral-300">Matrícula SEG</label>
+                        <input type="text" inputmode="numeric" autocomplete="off" wire:model.live.debounce.250ms="matriculaSeg" placeholder="Ej. 22124088"
+                            class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 font-mono text-lg font-extrabold tracking-wider text-slate-900 outline-none transition focus:border-[#006492] focus:ring-4 focus:ring-[#006492]/10 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white">
+                        <p class="mt-1.5 text-xs text-slate-500">Cantidad de dígitos variable. No se permiten letras, espacios ni símbolos.</p>
+                        @error('matriculaSeg') <p class="mt-2 text-sm font-semibold text-rose-600">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                        <button type="button" wire:click="cerrarRegistroMatriculaSeg" class="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800">Cancelar</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="guardarMatriculaSeg" class="rounded-xl bg-[#006492] px-5 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:bg-[#005477] disabled:cursor-not-allowed disabled:opacity-50">
+                            <span wire:loading.remove wire:target="guardarMatriculaSeg">Guardar matrícula SEG</span>
+                            <span wire:loading wire:target="guardarMatriculaSeg">Guardando…</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     @endif
 

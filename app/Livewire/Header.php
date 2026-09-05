@@ -38,7 +38,9 @@ class Header extends Component
 
     public int $sinMatricula = 0;
 
-    public int $matriculasVacias = 0;
+    public int $matriculasPendientes = 0;
+
+    public int $sinIdentificadores = 0;
 
     public int $matriculasIncorrectas = 0;
 
@@ -56,7 +58,15 @@ class Header extends Component
 
     public string $modalTipo = 'con'; // con | sin | bajos | todos
 
-    public string $sinCategoria = 'todos'; // todos | vacias | formato | duplicadas
+    public bool $matriculaSegOpen = false;
+
+    public ?int $matriculaSegAlumnoId = null;
+
+    public string $matriculaSeg = '';
+
+    public string $matriculaSegAlumnoNombre = '';
+
+    public string $sinCategoria = 'todos'; // todos | pendientes | formato | duplicadas | sin_identificadores
 
     public string $search = '';
 
@@ -140,6 +150,7 @@ class Header extends Component
     public function closeModal(): void
     {
         $this->modalOpen = false;
+        $this->cerrarRegistroMatriculaSeg();
         $this->resetSelection();
         $this->resetPage('matriculasPage');
     }
@@ -275,19 +286,63 @@ class Header extends Component
         $this->dispatch('abrirEstudiante', id: $id);
     }
 
-    public function generarMatricula(int $id, MatriculaService $servicio): void
+    public function abrirRegistroMatriculaSeg(int $id): void
     {
         $this->autorizarAdministracion();
 
-        try {
-            $alumno = Inscripcion::query()->findOrFail($id);
-            $matricula = $servicio->generarPara($alumno);
+        $alumno = Inscripcion::query()->findOrFail($id);
+        $this->matriculaSegAlumnoId = (int) $alumno->id;
+        $this->matriculaSeg = trim((string) $alumno->matricula);
+        $this->matriculaSegAlumnoNombre = trim("{$alumno->apellido_paterno} {$alumno->apellido_materno} {$alumno->nombre}");
+        $this->matriculaSegOpen = true;
+        $this->resetValidation('matriculaSeg');
+    }
 
+    public function cerrarRegistroMatriculaSeg(): void
+    {
+        $this->matriculaSegOpen = false;
+        $this->matriculaSegAlumnoId = null;
+        $this->matriculaSeg = '';
+        $this->matriculaSegAlumnoNombre = '';
+        $this->resetValidation('matriculaSeg');
+    }
+
+    public function guardarMatriculaSeg(MatriculaService $servicio): void
+    {
+        $this->autorizarAdministracion();
+
+        if (! $this->matriculaSegAlumnoId) {
+            return;
+        }
+
+        $this->matriculaSeg = $servicio->normalizar($this->matriculaSeg);
+
+        $this->validate([
+            'matriculaSeg' => [
+                'required',
+                'max:255',
+                'regex:/^[0-9]+$/',
+                'unique:inscripciones,matricula,'.$this->matriculaSegAlumnoId,
+            ],
+        ], [
+            'matriculaSeg.required' => 'Captura la matrícula oficial asignada por la SEG.',
+            'matriculaSeg.regex' => 'La matrícula SEG debe contener únicamente números.',
+            'matriculaSeg.unique' => 'La matrícula SEG ya está registrada para otro alumno.',
+            'matriculaSeg.max' => 'La matrícula SEG excede la longitud permitida por el sistema.',
+        ]);
+
+        try {
+            $alumno = Inscripcion::query()->findOrFail($this->matriculaSegAlumnoId);
+            $matricula = $servicio->registrarPara($alumno, $this->matriculaSeg);
+
+            $this->cerrarRegistroMatriculaSeg();
             $this->cargarEstadisticas();
             $this->resetSelection();
+            $this->resetPage('matriculasPage');
 
+            $this->dispatch('refreshMatricula');
             $this->dispatch('swal', [
-                'title' => 'Matrícula generada correctamente',
+                'title' => 'Matrícula SEG registrada correctamente',
                 'text' => $matricula,
                 'icon' => 'success',
                 'position' => 'top-end',
@@ -295,12 +350,7 @@ class Header extends Component
         } catch (Throwable $exception) {
             report($exception);
 
-            $this->dispatch('swal', [
-                'title' => 'No fue posible generar la matrícula',
-                'text' => $exception->getMessage(),
-                'icon' => 'error',
-                'position' => 'top-end',
-            ]);
+            $this->addError('matriculaSeg', $exception->getMessage());
         }
     }
 
@@ -352,9 +402,10 @@ class Header extends Component
     public function matriculaEstado(Inscripcion $alumno): string
     {
         $matricula = app(MatriculaService::class)->normalizar($alumno->matricula);
+        $interno = trim((string) $alumno->matricula_interna);
 
         if ($matricula === '') {
-            return 'vacia';
+            return $interno !== '' ? 'pendiente' : 'sin_identificadores';
         }
 
         if ((int) ($alumno->matricula_coincidencias ?? 1) > 1) {
@@ -386,7 +437,7 @@ class Header extends Component
     {
         $alumnos = null;
         $modalStats = $this->modalStatsVacias();
-        $sinCounts = ['vacias' => 0, 'formato' => 0, 'duplicadas' => 0, 'todos' => 0];
+        $sinCounts = ['pendientes' => 0, 'sin_identificadores' => 0, 'formato' => 0, 'duplicadas' => 0, 'todos' => 0];
         $licenciaturas = collect();
         $modalidades = collect();
         $generaciones = collect();
@@ -444,7 +495,8 @@ class Header extends Component
 
         $this->total = (clone $base)->count();
         $this->conMatricula = (clone $base)->where(fn (Builder $query) => $this->aplicarMatriculaValida($query))->count();
-        $this->matriculasVacias = (clone $base)->where(fn (Builder $query) => $this->aplicarMatriculaVacia($query))->count();
+        $this->matriculasPendientes = (clone $base)->where(fn (Builder $query) => $this->aplicarMatriculaPendiente($query))->count();
+        $this->sinIdentificadores = (clone $base)->where(fn (Builder $query) => $this->aplicarSinIdentificadores($query))->count();
         $this->matriculasDuplicadas = (clone $base)->where(fn (Builder $query) => $this->aplicarMatriculaDuplicada($query))->count();
         $this->matriculasIncorrectas = (clone $base)->where(fn (Builder $query) => $this->aplicarMatriculaFormatoIncorrecto($query))->count();
         $this->sinMatricula = max(0, $this->total - $this->conMatricula);
@@ -530,6 +582,7 @@ class Header extends Component
             $query->where(function (Builder $where) use ($like): void {
                 $where
                     ->where('inscripciones.matricula', 'like', $like)
+                    ->orWhere('inscripciones.matricula_interna', 'like', $like)
                     ->orWhere('inscripciones.CURP', 'like', $like)
                     ->orWhere('inscripciones.nombre', 'like', $like)
                     ->orWhere('inscripciones.apellido_paterno', 'like', $like)
@@ -567,11 +620,23 @@ class Header extends Component
         });
     }
 
-    private function aplicarMatriculaVacia(Builder $query): void
+    private function aplicarMatriculaPendiente(Builder $query): void
     {
         $query->where(function (Builder $where): void {
             $where->whereNull('inscripciones.matricula')
                 ->orWhereRaw("TRIM(COALESCE(inscripciones.matricula, '')) = ''");
+        })->whereNotNull('inscripciones.matricula_interna')
+            ->whereRaw("TRIM(inscripciones.matricula_interna) <> ''");
+    }
+
+    private function aplicarSinIdentificadores(Builder $query): void
+    {
+        $query->where(function (Builder $where): void {
+            $where->whereNull('inscripciones.matricula')
+                ->orWhereRaw("TRIM(COALESCE(inscripciones.matricula, '')) = ''");
+        })->where(function (Builder $where): void {
+            $where->whereNull('inscripciones.matricula_interna')
+                ->orWhereRaw("TRIM(COALESCE(inscripciones.matricula_interna, '')) = ''");
         });
     }
 
@@ -588,7 +653,7 @@ class Header extends Component
                     ->whereNotNull('matriculas_duplicadas.matricula')
                     ->whereRaw("TRIM(matriculas_duplicadas.matricula) <> ''")
                     ->whereRaw(
-                        'UPPER(TRIM(matriculas_duplicadas.matricula)) = UPPER(TRIM(inscripciones.matricula))'
+                        'TRIM(matriculas_duplicadas.matricula) = TRIM(inscripciones.matricula)'
                     );
             });
     }
@@ -598,7 +663,7 @@ class Header extends Component
         $query
             ->whereNotNull('inscripciones.matricula')
             ->whereRaw("TRIM(inscripciones.matricula) <> ''")
-            ->whereRaw('UPPER(TRIM(inscripciones.matricula)) REGEXP ?', [MatriculaService::REGEX_SQL])
+            ->whereRaw('TRIM(inscripciones.matricula) REGEXP ?', [MatriculaService::REGEX_SQL])
             ->whereNotExists(function ($duplicada): void {
                 $duplicada
                     ->selectRaw('1')
@@ -607,7 +672,7 @@ class Header extends Component
                     ->whereNotNull('matriculas_duplicadas.matricula')
                     ->whereRaw("TRIM(matriculas_duplicadas.matricula) <> ''")
                     ->whereRaw(
-                        'UPPER(TRIM(matriculas_duplicadas.matricula)) = UPPER(TRIM(inscripciones.matricula))'
+                        'TRIM(matriculas_duplicadas.matricula) = TRIM(inscripciones.matricula)'
                     );
             });
     }
@@ -617,7 +682,7 @@ class Header extends Component
         $query
             ->whereNotNull('inscripciones.matricula')
             ->whereRaw("TRIM(inscripciones.matricula) <> ''")
-            ->whereRaw('UPPER(TRIM(inscripciones.matricula)) NOT REGEXP ?', [MatriculaService::REGEX_SQL])
+            ->whereRaw('TRIM(inscripciones.matricula) NOT REGEXP ?', [MatriculaService::REGEX_SQL])
             ->whereNotExists(function ($duplicada): void {
                 $duplicada
                     ->selectRaw('1')
@@ -626,7 +691,7 @@ class Header extends Component
                     ->whereNotNull('matriculas_duplicadas.matricula')
                     ->whereRaw("TRIM(matriculas_duplicadas.matricula) <> ''")
                     ->whereRaw(
-                        'UPPER(TRIM(matriculas_duplicadas.matricula)) = UPPER(TRIM(inscripciones.matricula))'
+                        'TRIM(matriculas_duplicadas.matricula) = TRIM(inscripciones.matricula)'
                     );
             });
     }
@@ -634,11 +699,13 @@ class Header extends Component
     private function aplicarSinMatricula(Builder $query): void
     {
         match ($this->sinCategoria) {
-            'vacias' => $this->aplicarMatriculaVacia($query),
+            'pendientes' => $this->aplicarMatriculaPendiente($query),
             'formato' => $this->aplicarMatriculaFormatoIncorrecto($query),
             'duplicadas' => $this->aplicarMatriculaDuplicada($query),
+            'sin_identificadores' => $this->aplicarSinIdentificadores($query),
             default => $query->where(function (Builder $where): void {
-                $where->where(fn (Builder $q) => $this->aplicarMatriculaVacia($q))
+                $where->where(fn (Builder $q) => $this->aplicarMatriculaPendiente($q))
+                    ->orWhere(fn (Builder $q) => $this->aplicarSinIdentificadores($q))
                     ->orWhere(fn (Builder $q) => $this->aplicarMatriculaFormatoIncorrecto($q))
                     ->orWhere(fn (Builder $q) => $this->aplicarMatriculaDuplicada($q));
             }),
@@ -705,15 +772,17 @@ class Header extends Component
         $base = Inscripcion::query();
         $this->aplicarFiltrosComunes($base);
 
-        $vacias = (clone $base)->where(fn (Builder $q) => $this->aplicarMatriculaVacia($q))->count();
+        $pendientes = (clone $base)->where(fn (Builder $q) => $this->aplicarMatriculaPendiente($q))->count();
+        $sinIdentificadores = (clone $base)->where(fn (Builder $q) => $this->aplicarSinIdentificadores($q))->count();
         $formato = (clone $base)->where(fn (Builder $q) => $this->aplicarMatriculaFormatoIncorrecto($q))->count();
         $duplicadas = (clone $base)->where(fn (Builder $q) => $this->aplicarMatriculaDuplicada($q))->count();
 
         return [
-            'vacias' => $vacias,
+            'pendientes' => $pendientes,
+            'sin_identificadores' => $sinIdentificadores,
             'formato' => $formato,
             'duplicadas' => $duplicadas,
-            'todos' => $vacias + $formato + $duplicadas,
+            'todos' => $pendientes + $sinIdentificadores + $formato + $duplicadas,
         ];
     }
 
@@ -876,10 +945,10 @@ class Header extends Component
     private function tituloModal(): string
     {
         return match ($this->modalTipo) {
-            'sin' => 'Alumnos sin matrícula válida',
+            'sin' => 'Alumnos sin matrícula SEG válida',
             'bajos' => 'Alumnos con riesgo académico',
             'todos' => 'Total de inscripciones',
-            default => 'Alumnos con matrícula válida',
+            default => 'Alumnos con matrícula SEG válida',
         };
     }
 

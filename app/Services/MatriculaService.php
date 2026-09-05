@@ -11,9 +11,13 @@ use RuntimeException;
 
 class MatriculaService
 {
-    public const REGEX_PHP = '/^[A-ZÑ&]{4}[0-9]{4}$/u';
+    /**
+     * La matrícula oficial es asignada por la SEG.
+     * Puede tener una cantidad variable de dígitos, pero nunca letras.
+     */
+    public const REGEX_PHP = '/^[0-9]+$/';
 
-    public const REGEX_SQL = '^[A-ZÑ&]{4}[0-9]{4}$';
+    public const REGEX_SQL = '^[0-9]+$';
 
     public function esValida(?string $matricula): bool
     {
@@ -24,71 +28,51 @@ class MatriculaService
 
     public function normalizar(?string $matricula): string
     {
-        return mb_strtoupper(trim((string) $matricula), 'UTF-8');
+        return trim((string) $matricula);
     }
 
-    public function generarPara(Inscripcion $alumno): string
+    /**
+     * Registra o corrige manualmente la matrícula oficial SEG.
+     * El sistema nunca genera una matrícula SEG por su cuenta.
+     */
+    public function registrarPara(Inscripcion $alumno, string $matricula, string $origen = 'modal_matriculas'): string
     {
-        return DB::transaction(function () use ($alumno): string {
-            // Todos los generadores toman primero el mismo bloqueo para evitar matrículas repetidas por concurrencia.
-            Inscripcion::query()->orderBy('id')->lockForUpdate()->value('id');
+        $matricula = $this->normalizar($matricula);
 
+        if (! $this->esValida($matricula)) {
+            throw new RuntimeException('La matrícula SEG debe contener únicamente números.');
+        }
+
+        return DB::transaction(function () use ($alumno, $matricula, $origen): string {
             /** @var Inscripcion $bloqueado */
             $bloqueado = Inscripcion::query()->lockForUpdate()->findOrFail($alumno->getKey());
             $anterior = $this->normalizar($bloqueado->matricula);
 
-            $matriculaActualEsUnica = $anterior !== ''
-                && $this->esValida($anterior)
-                && ! Inscripcion::query()
-                    ->where('id', '!=', $bloqueado->getKey())
-                    ->whereRaw('UPPER(TRIM(matricula)) = ?', [$anterior])
-                    ->exists();
+            $duplicada = Inscripcion::query()
+                ->where('id', '!=', $bloqueado->getKey())
+                ->where('matricula', $matricula)
+                ->exists();
 
-            if ($matriculaActualEsUnica) {
-                return $anterior;
+            if ($duplicada) {
+                throw new RuntimeException('La matrícula SEG ya está registrada para otro alumno.');
             }
 
-            $nueva = $this->proponer($bloqueado);
-
-            if ($anterior === $nueva) {
-                return $nueva;
+            if ($anterior === $matricula) {
+                return $matricula;
             }
 
-            $bloqueado->forceFill(['matricula' => $nueva])->save();
+            $bloqueado->forceFill(['matricula' => $matricula])->save();
 
             $this->registrarCambio(
                 $bloqueado,
-                'generacion_automatica',
+                $anterior === '' ? 'registro_seg' : 'correccion_seg',
                 $anterior !== '' ? $anterior : null,
-                $nueva,
-                ['origen' => 'modal_matriculas']
+                $matricula,
+                ['origen' => $origen, 'tipo_identificador' => 'matricula_seg']
             );
 
-            return $nueva;
+            return $matricula;
         }, 3);
-    }
-
-    public function proponer(Inscripcion $alumno): string
-    {
-        $prefijo = $this->prefijoDesdeCurp($alumno->CURP);
-        $secuencia = max(1, (int) ($alumno->orden ?: 1));
-
-        while ($secuencia <= 7999) {
-            $candidato = $prefijo . str_pad((string) (2000 + $secuencia), 4, '0', STR_PAD_LEFT);
-
-            $ocupada = Inscripcion::query()
-                ->where('id', '!=', $alumno->getKey())
-                ->whereRaw('UPPER(TRIM(matricula)) = ?', [$candidato])
-                ->exists();
-
-            if (! $ocupada) {
-                return $candidato;
-            }
-
-            $secuencia++;
-        }
-
-        throw new RuntimeException('No fue posible encontrar una matrícula disponible para este alumno.');
     }
 
     public function registrarCambio(
@@ -113,23 +97,5 @@ class MatriculaService
             'ip' => request()?->ip(),
             'user_agent' => Str::limit((string) request()?->userAgent(), 1000, ''),
         ]);
-    }
-
-    private function prefijoDesdeCurp(?string $curp): string
-    {
-        $curp = mb_strtoupper(trim((string) $curp), 'UTF-8');
-
-        if (mb_strlen($curp, 'UTF-8') < 4) {
-            throw new RuntimeException('La CURP debe tener al menos cuatro caracteres para generar la matrícula.');
-        }
-
-        $prefijo = mb_substr($curp, 0, 4, 'UTF-8');
-        $prefijo = preg_replace('/[^A-ZÑ&]/u', 'X', $prefijo) ?: '';
-
-        if (mb_strlen($prefijo, 'UTF-8') !== 4) {
-            throw new RuntimeException('No fue posible obtener un prefijo válido desde la CURP.');
-        }
-
-        return $prefijo;
     }
 }

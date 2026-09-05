@@ -575,6 +575,7 @@ class Matricula extends Component
                         ->orWhere('apellido_paterno', 'like', '%'.$search.'%')
                         ->orWhere('apellido_materno', 'like', '%'.$search.'%')
                         ->orWhere('matricula', 'like', '%'.$search.'%')
+                        ->orWhere('matricula_interna', 'like', '%'.$search.'%')
                         ->orWhere('folio', 'like', '%'.$search.'%')
                         ->orWhere('CURP', 'like', '%'.$search.'%');
                 });

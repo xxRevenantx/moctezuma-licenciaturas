@@ -53,7 +53,7 @@
                             <td class="px-5 py-3 font-mono text-xs font-bold text-[#006492] dark:text-sky-300">{{ $movimiento->lote }}</td>
                             <td class="px-3 py-3">
                                 <div class="text-xs font-extrabold text-slate-800 dark:text-white">{{ $movimiento->alumno_snapshot }}</div>
-                                <div class="mt-0.5 text-[10px] text-slate-400">{{ $movimiento->matricula_snapshot }}</div>
+                                <div class="mt-0.5 text-[10px] text-slate-400">SEG: {{ $movimiento->matricula_snapshot ?: 'Pendiente' }} · ID: {{ $movimiento->matricula_interna_snapshot ?: '—' }}</div>
                             </td>
                             <td class="px-3 py-3 text-xs text-slate-600 dark:text-neutral-300">
                                 @if($movimiento->tipo === 'cambio_modalidad')

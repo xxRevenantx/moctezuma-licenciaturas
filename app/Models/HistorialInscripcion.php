@@ -15,6 +15,7 @@ class HistorialInscripcion extends Model
         'inscripcion_id',
         'user_id',
         'matricula',
+        'matricula_interna',
         'sexo',
         'licenciatura_id',
         'generacion_id',

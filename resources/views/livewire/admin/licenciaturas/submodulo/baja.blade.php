@@ -123,7 +123,7 @@
             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">ID</th>
             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foráneo</th>
             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Foto</th>
-            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Matrícula</th>
+            <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Matrícula SEG / ID interno</th>
             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">CURP</th>
             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Nombre</th>
             <th class="border px-4 py-2 bg-gray-100 dark:bg-neutral-700">Género</th>
@@ -169,7 +169,7 @@
                             </div>
                         @endif
                     </td>
-                    <td class="border px-4 py-2">{{ $estudiante->matricula }}</td>
+                    <td class="border px-4 py-2"><strong>SEG:</strong> {{ $estudiante->matricula ?: 'Pendiente' }}<br><span class="text-xs text-gray-500"><strong>ID:</strong> {{ $estudiante->matricula_interna ?: '—' }}</span></td>
                     <td class="border px-4 py-2">{{ $estudiante->CURP }}</td>
                     <td class="border px-4 py-2">{{ $estudiante->apellido_paterno }} {{ $estudiante->apellido_materno }} {{ $estudiante->nombre }}</td>
                     <td class="border px-4 py-2 text-center">

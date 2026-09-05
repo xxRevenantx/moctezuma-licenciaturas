@@ -10,6 +10,7 @@ use App\Models\Inscripcion;
 use App\Models\Licenciatura;
 use App\Models\Modalidad;
 use App\Models\User;
+use App\Services\IdControlInternoService;
 use App\Services\MatriculaService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -29,6 +30,7 @@ class MatriculaEditar extends Component
 
     public $user_id;
     public $matricula;
+    public $matricula_interna;
     public $folio;
     public $CURP;
     public $nombre;
@@ -79,6 +81,7 @@ class MatriculaEditar extends Component
     public bool $permitirMovimientoAcademico = false;
     public bool $eliminacionOpen = false;
     public string $confirmacionEliminar = '';
+    public string $confirmacionReferencia = '';
     public array $impactoEliminar = [];
 
       // Método para abrir el modal con datos
@@ -87,6 +90,12 @@ class MatriculaEditar extends Component
       {
 
             $estudiante = Inscripcion::findOrFail($id);
+
+            if (Schema::hasColumn('inscripciones', 'matricula_interna') && blank($estudiante->matricula_interna)) {
+                app(IdControlInternoService::class)->generarPara($estudiante);
+                $estudiante->refresh();
+            }
+
             $this->estudianteId = $estudiante->id;
 
             if ($estudiante->CURP && strlen($estudiante->CURP) === 18) {
@@ -114,6 +123,7 @@ class MatriculaEditar extends Component
 
             $this->user_id = $estudiante->user_id;
             $this->matricula = $estudiante->matricula;
+            $this->matricula_interna = $estudiante->matricula_interna;
             $this->folio = $estudiante->folio;
             $this->CURP = $estudiante->CURP;
             $this->nombre = $estudiante->nombre;
@@ -147,6 +157,7 @@ class MatriculaEditar extends Component
             $this->fecha_baja = $estudiante->fecha_baja;
             $this->eliminacionOpen = false;
             $this->confirmacionEliminar = '';
+            $this->confirmacionReferencia = trim((string) ($estudiante->matricula ?: $estudiante->matricula_interna ?: $estudiante->CURP));
             $this->impactoEliminar = [];
 
             $this->open = true;
@@ -207,9 +218,10 @@ class MatriculaEditar extends Component
 
      public function cerrarModal()
       {
-          $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente', 'generacion_id', 'cuatrimestre_id', 'CURP_documento', 'certificado_estudios', 'acta_nacimiento', 'comprobante_domicilio', 'certificado_medico', 'fotos_infantiles', 'fotoUrl','otros','foraneo','status']);
+          $this->reset(['open', 'estudianteId', 'matricula', 'matricula_interna', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente', 'generacion_id', 'cuatrimestre_id', 'CURP_documento', 'certificado_estudios', 'acta_nacimiento', 'comprobante_domicilio', 'certificado_medico', 'fotos_infantiles', 'fotoUrl','otros','foraneo','status']);
           $this->eliminacionOpen = false;
           $this->confirmacionEliminar = '';
+          $this->confirmacionReferencia = '';
           $this->impactoEliminar = [];
           $this->resetValidation();
       }
@@ -230,17 +242,10 @@ class MatriculaEditar extends Component
         $this->validate([
             'user_id' => 'required|exists:users,id|unique:inscripciones,user_id,'.$this->estudianteId,
             'matricula' => [
-                'required',
-                'max:8',
+                'nullable',
+                'max:255',
+                'regex:/^[0-9]+$/',
                 'unique:inscripciones,matricula,'.$this->estudianteId,
-                function (string $attribute, mixed $value, \Closure $fail) use ($matriculaService, $matriculaAnterior): void {
-                    $matricula = $matriculaService->normalizar((string) $value);
-
-                    // Permite conservar temporalmente una matrícula heredada, pero toda corrección debe usar el formato institucional.
-                    if ($matricula !== $matriculaAnterior && ! $matriculaService->esValida($matricula)) {
-                        $fail('La matrícula debe contener cuatro letras y cuatro dígitos, por ejemplo: CAGL2001.');
-                    }
-                },
             ],
             'folio' => 'nullable|max:10|unique:inscripciones,folio,'.$this->estudianteId,
             'CURP' => 'required|max:18|unique:inscripciones,CURP,'.$this->estudianteId,
@@ -269,8 +274,9 @@ class MatriculaEditar extends Component
             'user_id.required' => 'El campo usuario es obligatorio.',
             'user_id.exists' => 'El usuario seleccionado no existe.',
             'user_id.unique' => 'El usuario ya está asignado a otro estudiante.',
-            'matricula.required' => 'El campo matrícula es obligatorio.',
-            'matricula.unique' => 'La matrícula ya está registrada.',
+            'matricula.regex' => 'La matrícula SEG debe contener únicamente números.',
+            'matricula.unique' => 'La matrícula SEG ya está registrada para otro alumno.',
+            'matricula.max' => 'La matrícula SEG no puede exceder 255 dígitos.',
             'folio.unique' => 'El folio ya está registrado.',
             'CURP.required' => 'El campo CURP es obligatorio.',
             'CURP.unique' => 'El CURP ya está registrado.',
@@ -321,7 +327,7 @@ class MatriculaEditar extends Component
         if ($estudiante) {
             $estudiante->update([
                 'user_id' => $this->user_id,
-                'matricula' => $matriculaNueva,
+                'matricula' => $matriculaNueva !== '' ? $matriculaNueva : null,
                 'folio' => strtoupper(trim($this->folio)),
                 'CURP' => strtoupper(trim($this->CURP)),
                 'nombre' => strtoupper(trim($this->nombre)),
@@ -358,7 +364,7 @@ class MatriculaEditar extends Component
                     'correccion_manual',
                     $matriculaAnterior !== '' ? $matriculaAnterior : null,
                     $matriculaNueva !== '' ? $matriculaNueva : null,
-                    ['origen' => 'edicion_inscripcion']
+                    ['origen' => 'edicion_inscripcion', 'tipo_identificador' => 'matricula_seg']
                 );
             }
         }
@@ -367,7 +373,7 @@ class MatriculaEditar extends Component
           $this->dispatch('refreshNavbar');
           $this->dispatch('refreshHeader');
 
-        $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente','licenciatura_id','generacion_id','cuatrimestre_id','modalidad_id','foto_nueva','foraneo','status', 'fecha_baja']);
+        $this->reset(['open', 'estudianteId', 'matricula', 'matricula_interna', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente','licenciatura_id','generacion_id','cuatrimestre_id','modalidad_id','foto_nueva','foraneo','status', 'fecha_baja']);
 
          $this->dispatch('swal', [
               'title' => 'Estudiante actualizado correctamente!',
@@ -413,6 +419,7 @@ class MatriculaEditar extends Component
         ];
 
         $this->confirmacionEliminar = '';
+        $this->confirmacionReferencia = trim((string) ($alumno->matricula ?: $alumno->matricula_interna ?: $alumno->CURP));
         $this->eliminacionOpen = true;
     }
 
@@ -431,8 +438,9 @@ class MatriculaEditar extends Component
 
         $alumno = Inscripcion::query()->findOrFail($this->estudianteId);
 
-        if (mb_strtoupper(trim($this->confirmacionEliminar), 'UTF-8') !== mb_strtoupper(trim((string) $alumno->matricula), 'UTF-8')) {
-            $this->addError('confirmacionEliminar', 'Escribe exactamente la matrícula del alumno para confirmar la eliminación permanente.');
+        $referencia = trim((string) ($alumno->matricula ?: $alumno->matricula_interna ?: $alumno->CURP));
+        if ($referencia === '' || mb_strtoupper(trim($this->confirmacionEliminar), 'UTF-8') !== mb_strtoupper($referencia, 'UTF-8')) {
+            $this->addError('confirmacionEliminar', 'Escribe exactamente el identificador mostrado para confirmar la eliminación permanente.');
             return;
         }
 
@@ -453,6 +461,7 @@ class MatriculaEditar extends Component
         $this->eliminacionOpen = false;
         $this->open = false;
         $this->confirmacionEliminar = '';
+        $this->confirmacionReferencia = '';
         $this->impactoEliminar = [];
 
         $this->dispatch('refreshMatricula');

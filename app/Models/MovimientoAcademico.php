@@ -16,6 +16,7 @@ class MovimientoAcademico extends Model
         'tipo',
         'inscripcion_id',
         'matricula_snapshot',
+        'matricula_interna_snapshot',
         'alumno_snapshot',
         'licenciatura_id',
         'generacion_id',

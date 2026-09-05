@@ -29,6 +29,7 @@ class Inscripcion extends Model
     protected $fillable = [
         'user_id',
         'matricula',
+        'matricula_interna',
         'folio',
         'CURP',
         'nombre',

@@ -29,6 +29,7 @@ class PlantillaMateriaSheet implements FromArray, WithHeadings, WithStyles, With
         return $this->alumnos->values()->map(function ($alumno, $index) {
             return [
                 $index + 1,
+                $alumno->matricula_interna,
                 $alumno->matricula,
                 $alumno->apellido_paterno,
                 $alumno->apellido_materno,
@@ -45,7 +46,8 @@ class PlantillaMateriaSheet implements FromArray, WithHeadings, WithStyles, With
     {
         return [
             'No.',
-            'Matrícula',
+            'ID de control interno',
+            'Matrícula SEG',
             'Apellido paterno',
             'Apellido materno',
             'Nombre',
@@ -86,17 +88,17 @@ class PlantillaMateriaSheet implements FromArray, WithHeadings, WithStyles, With
                 $ultimaFila = max(2, $this->alumnos->count() + 1);
 
                 $sheet->freezePane('A2');
-                $sheet->setAutoFilter("A1:I{$ultimaFila}");
-                $sheet->getColumnDimension('G')->setVisible(false);
+                $sheet->setAutoFilter("A1:J{$ultimaFila}");
                 $sheet->getColumnDimension('H')->setVisible(false);
                 $sheet->getColumnDimension('I')->setVisible(false);
+                $sheet->getColumnDimension('J')->setVisible(false);
                 $sheet->getRowDimension(1)->setRowHeight(24);
-                $sheet->getStyle("A1:I{$ultimaFila}")->getBorders()->getAllBorders()
+                $sheet->getStyle("A1:J{$ultimaFila}")->getBorders()->getAllBorders()
                     ->setBorderStyle('thin')->getColor()->setARGB('FFD1D5DB');
-                $sheet->getStyle("F2:F{$ultimaFila}")->getNumberFormat()->setFormatCode('0.0');
+                $sheet->getStyle("G2:G{$ultimaFila}")->getNumberFormat()->setFormatCode('0.0');
 
                 for ($row = 2; $row <= $ultimaFila; $row++) {
-                    $validation = $sheet->getCell("F{$row}")->getDataValidation();
+                    $validation = $sheet->getCell("G{$row}")->getDataValidation();
                     $validation->setType(DataValidation::TYPE_CUSTOM);
                     $validation->setErrorStyle(DataValidation::STYLE_STOP);
                     $validation->setAllowBlank(true);
@@ -106,11 +108,11 @@ class PlantillaMateriaSheet implements FromArray, WithHeadings, WithStyles, With
                     $validation->setError('Captura un valor de 5 a 10 (puede tener decimales) o NP.');
                     $validation->setPromptTitle('Calificación');
                     $validation->setPrompt('Valores válidos: 5 a 10 o NP. Vacío = no modificar.');
-                    $validation->setFormula1("OR(F{$row}=\"\",F{$row}=\"NP\",AND(ISNUMBER(F{$row}),F{$row}>=5,F{$row}<=10))");
+                    $validation->setFormula1("OR(G{$row}=\"\",G{$row}=\"NP\",AND(ISNUMBER(G{$row}),G{$row}>=5,G{$row}<=10))");
                 }
 
                 // Protege identificadores y datos del alumno; sólo la calificación queda editable.
-                $sheet->getStyle("F2:F{$ultimaFila}")->getProtection()->setLocked(Protection::PROTECTION_UNPROTECTED);
+                $sheet->getStyle("G2:G{$ultimaFila}")->getProtection()->setLocked(Protection::PROTECTION_UNPROTECTED);
                 $sheet->getProtection()->setSheet(true);
                 $sheet->getProtection()->setSort(true);
                 $sheet->getProtection()->setAutoFilter(true);

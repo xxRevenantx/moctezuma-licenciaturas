@@ -408,6 +408,7 @@ class BoletasMasivas extends Component
                 'apellido_materno' => $alumno->apellido_materno,
                 'nombre_completo' => trim("{$alumno->apellido_paterno} {$alumno->apellido_materno} {$alumno->nombre}"),
                 'matricula' => $alumno->matricula,
+                'matricula_interna' => $alumno->matricula_interna,
                 'CURP' => $alumno->CURP,
                 'email' => $alumno->user?->email,
             ])
@@ -464,6 +465,7 @@ class BoletasMasivas extends Component
                     $haystack = mb_strtolower(implode(' ', [
                         $alumno['nombre_completo'],
                         $alumno['matricula'],
+                        $alumno['matricula_interna'] ?? '',
                         $alumno['CURP'],
                     ]));
 

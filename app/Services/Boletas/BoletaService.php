@@ -114,6 +114,7 @@ class BoletaService
                         ->orWhere('apellido_paterno', 'like', "%{$s}%")
                         ->orWhere('apellido_materno', 'like', "%{$s}%")
                         ->orWhere('matricula', 'like', "%{$s}%")
+                        ->orWhere('matricula_interna', 'like', "%{$s}%")
                         ->orWhere('CURP', 'like', "%{$s}%");
                 });
             })
@@ -422,7 +423,7 @@ class BoletaService
             $alumno->apellido_paterno,
             $alumno->apellido_materno,
             $alumno->nombre,
-            $alumno->matricula
+            $alumno->matricula ?: $alumno->matricula_interna ?: $alumno->id
         );
 
         return Str::of($base)

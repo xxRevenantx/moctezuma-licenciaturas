@@ -28,7 +28,8 @@ class MatriculaExport implements FromCollection, WithHeadings, WithStyles, Shoul
         return $this->matricula->map(function ($estudiante) {
             return [
                 "#" => $estudiante->orden,
-                "Matrícula" => $estudiante->matricula,
+                "Matrícula SEG" => $estudiante->matricula ?: 'Pendiente',
+                "ID de control interno" => $estudiante->matricula_interna ?: '—',
                 "CURP" => $estudiante->CURP,
                 "Nombre" => $estudiante->nombre,
                 "Apellido Paterno" => $estudiante->apellido_paterno,
@@ -47,7 +48,8 @@ class MatriculaExport implements FromCollection, WithHeadings, WithStyles, Shoul
     {
         return [
             '#',
-            'Matrícula',
+            'Matrícula SEG',
+            'ID de control interno',
             'CURP',
             'Nombre',
             'Apellido Paterno',
@@ -64,7 +66,7 @@ class MatriculaExport implements FromCollection, WithHeadings, WithStyles, Shoul
      public function styles(Worksheet $sheet)
     {
         // Estilo del encabezado
-        $sheet->getStyle('A1:K1')->applyFromArray([
+        $sheet->getStyle('A1:L1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
@@ -78,7 +80,7 @@ class MatriculaExport implements FromCollection, WithHeadings, WithStyles, Shoul
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $rowCount = count($this->matricula) + 1;
-                $range = "A1:K{$rowCount}";
+                $range = "A1:L{$rowCount}";
 
                 // Apply border styles
                 $event->sheet->getStyle($range)->applyFromArray([
@@ -90,12 +92,12 @@ class MatriculaExport implements FromCollection, WithHeadings, WithStyles, Shoul
                     ],
                 ]);
 
-                // Apply conditional formatting for the "Estatus" column (J9:J$rowCount)
-                for ($row = 9; $row <= $rowCount; $row++) {
-                    $cellValue = $event->sheet->getCell("J{$row}")->getValue();
+                // Apply conditional formatting for the "Status" column (K2:K$rowCount)
+                for ($row = 2; $row <= $rowCount; $row++) {
+                    $cellValue = $event->sheet->getCell("K{$row}")->getValue();
                     $color = $cellValue === 'Activo' ? '00FF00' : 'FF0000'; // Green for "Activa", Red for "Inactivo"
 
-                    $event->sheet->getStyle("J{$row}")->applyFromArray([
+                    $event->sheet->getStyle("K{$row}")->applyFromArray([
                         'fill' => [
                             'fillType' => Fill::FILL_SOLID,
                             'startColor' => ['rgb' => $color],

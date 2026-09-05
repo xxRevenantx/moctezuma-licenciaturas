@@ -159,7 +159,7 @@ class ExpedienteIdentidadExportService
                 $carpetaAlumno = $nombreBase;
 
                 if (($duplicados[$claveDuplicado] ?? 0) > 1) {
-                    $identificador = $this->normalizarNombre((string) ($alumno->matricula ?: $alumno->id));
+                    $identificador = $this->normalizarNombre((string) ($alumno->matricula ?: $alumno->matricula_interna ?: $alumno->id));
                     $carpetaAlumno .= '_' . $identificador;
                 }
 

@@ -52,7 +52,7 @@ class AcademicDocumentController extends Controller
         )->setPaper('letter', 'portrait');
 
         return $pdf->stream(
-            'CONSTANCIA_'.$alumno->nombre.'_'.$alumno->apellido_paterno.'_'.$alumno->apellido_materno.'_'.$alumno->matricula.'.pdf'
+            'CONSTANCIA_'.$alumno->nombre.'_'.$alumno->apellido_paterno.'_'.$alumno->apellido_materno.'_'.($alumno->matricula ?: $alumno->matricula_interna ?: $alumno->id).'.pdf'
         );
     }
 

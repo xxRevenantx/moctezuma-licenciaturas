@@ -330,13 +330,17 @@ class Panel extends Component
 
             foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
                 $headers = [];
-                foreach (range(1, 9) as $column) {
+                $ultimaColumna = min(20, Coordinate::columnIndexFromString($sheet->getHighestColumn()));
+                foreach (range(1, max(1, $ultimaColumna)) as $column) {
                     $headers[$column] = $this->normalizarEncabezado((string) $sheet->getCell(Coordinate::stringFromColumnIndex($column).'1')->getValue());
                 }
 
                 $idx = array_flip($headers);
-                $required = ['matricula', 'calificacion', 'alumno_id', 'asignacion_materia_id', 'generacion_id'];
-                if (collect($required)->contains(fn ($h) => !isset($idx[$h]))) {
+                $identificadorHeader = isset($idx['id_de_control_interno'])
+                    ? 'id_de_control_interno'
+                    : (isset($idx['matricula']) ? 'matricula' : null); // compatibilidad con plantillas anteriores
+                $required = ['calificacion', 'alumno_id', 'asignacion_materia_id', 'generacion_id'];
+                if (!$identificadorHeader || collect($required)->contains(fn ($h) => !isset($idx[$h]))) {
                     continue; // p.ej. hoja INSTRUCCIONES
                 }
 
@@ -352,7 +356,7 @@ class Panel extends Component
                         (int) $sheet->getCell(Coordinate::stringFromColumnIndex($idx['alumno_id']).$row)->getValue(),
                         (int) $sheet->getCell(Coordinate::stringFromColumnIndex($idx['asignacion_materia_id']).$row)->getValue(),
                         (int) $sheet->getCell(Coordinate::stringFromColumnIndex($idx['generacion_id']).$row)->getValue(),
-                        (string) $sheet->getCell(Coordinate::stringFromColumnIndex($idx['matricula']).$row)->getFormattedValue(),
+                        (string) $sheet->getCell(Coordinate::stringFromColumnIndex($idx[$identificadorHeader]).$row)->getFormattedValue(),
                         $valor
                     );
 
@@ -573,7 +577,7 @@ class Panel extends Component
             $needle = Str::lower(trim($this->buscarAlumno));
             $alumnosVisibles = $alumnosVisibles->filter(function ($a) use ($needle) {
                 $texto = Str::lower(trim(collect([
-                    $a['matricula'] ?? '', $a['nombre'] ?? '', $a['apellido_paterno'] ?? '', $a['apellido_materno'] ?? '',
+                    $a['matricula'] ?? '', $a['matricula_interna'] ?? '', $a['nombre'] ?? '', $a['apellido_paterno'] ?? '', $a['apellido_materno'] ?? '',
                 ])->implode(' ')));
                 return str_contains($texto, $needle);
             })->values();
@@ -588,7 +592,7 @@ class Panel extends Component
                 $auditoriaReciente = CalificacionAuditoria::query()
                     ->with([
                         'usuario:id,username',
-                        'alumno:id,matricula,nombre,apellido_paterno,apellido_materno',
+                        'alumno:id,matricula,matricula_interna,nombre,apellido_paterno,apellido_materno',
                     ])
                     ->where('asignacion_materia_id', (int) $contexto->asignacion_materia_id)
                     ->where('licenciatura_id', (int) $contexto->licenciatura_id)
@@ -620,6 +624,7 @@ class Panel extends Component
         $this->alumnos = $alumnos->map(fn ($a) => [
             'id' => (int) $a->id,
             'matricula' => $a->matricula,
+            'matricula_interna' => $a->matricula_interna,
             'nombre' => $a->nombre,
             'apellido_paterno' => $a->apellido_paterno,
             'apellido_materno' => $a->apellido_materno,
@@ -767,7 +772,7 @@ class Panel extends Component
         int $alumnoId,
         int $asignacionId,
         int $generacionId,
-        string $matricula,
+        string $identificador,
         mixed $valor
     ): array {
         $base = [
@@ -776,7 +781,7 @@ class Panel extends Component
             'alumno_id' => $alumnoId,
             'asignacion_materia_id' => $asignacionId,
             'generacion_id' => $generacionId,
-            'matricula' => trim($matricula),
+            'identificador' => trim($identificador),
             'alumno' => '',
             'materia' => '',
             'anterior' => null,
@@ -816,8 +821,14 @@ class Panel extends Component
         }
 
         $base['alumno'] = trim("{$alumno->apellido_paterno} {$alumno->apellido_materno} {$alumno->nombre}");
-        if (trim((string) $alumno->matricula) !== trim($matricula)) {
-            $base['mensaje'] = 'La matrícula no coincide con el alumno_id. No se importará.';
+        $identificador = trim($identificador);
+        $coincideInterno = trim((string) $alumno->matricula_interna) !== ''
+            && trim((string) $alumno->matricula_interna) === $identificador;
+        $coincideSeg = trim((string) $alumno->matricula) !== ''
+            && trim((string) $alumno->matricula) === $identificador;
+
+        if (!$coincideInterno && !$coincideSeg) {
+            $base['mensaje'] = 'El identificador de la plantilla no coincide con el alumno_id. No se importará.';
             return $base;
         }
 
