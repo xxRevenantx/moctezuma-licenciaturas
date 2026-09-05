@@ -112,32 +112,54 @@
 
                     <flux:field>
                         <flux:input type="text" label="Bachillerato Procedente" placeholder="Bachillerato Procedente" wire:model="bachillerato_procedente" />
-
-                        <flux:select label="Licenciatura" wire:model.live="licenciatura_id">
-                            <option value="">--Seleccione una licenciatura--</option>
-                            @foreach($licenciaturas as $licenciatura)
-                                <option value="{{ $licenciatura->id }}">{{ $licenciatura->nombre }}</option>
-                            @endforeach
-                        </flux:select>
-
-                        <flux:select label="Generación" wire:model.live="generacion_id">
-                            @foreach($generaciones as $generacion)
-                                <option value="{{ $generacion->generacion_id }}">{{ $generacion->generacion->generacion }}</option>
-                            @endforeach
-                        </flux:select>
-
-                        <flux:select label="Cuatrimestre" wire:model="cuatrimestre_id">
-                            @foreach($cuatrimestres as $cuatrimestre)
-                                <option value="{{ $cuatrimestre->cuatrimestre_id }}">{{ $cuatrimestre->cuatrimestre->cuatrimestre }}° Cuatrimestre</option>
-                            @endforeach
-                        </flux:select>
-
-                        <flux:select label="Modalidad" wire:model="modalidad_id">
-                            @foreach($modalidades as $modalidad)
-                                <option value="{{ $modalidad->id }}">{{ $modalidad->nombre }}</option>
-                            @endforeach
-                        </flux:select>
                     </flux:field>
+
+                    <div class="mt-5 overflow-hidden rounded-2xl border border-[#006492]/20 bg-[#006492]/5 dark:border-sky-900/60 dark:bg-sky-950/20">
+                        <div class="flex flex-col gap-3 border-b border-[#006492]/10 px-4 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-sky-900/50">
+                            <div class="flex items-start gap-3">
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#006492] text-white">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m0 0 4-4m-4 4-4-4M5 7h4m6 0h4"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-extrabold text-slate-800 dark:text-white">Contexto académico protegido</p>
+                                    <p class="mt-0.5 max-w-2xl text-xs leading-5 text-slate-500 dark:text-neutral-400">
+                                        Licenciatura, generación, cuatrimestre y modalidad no se modifican desde la edición personal. Los cambios de contexto se realizan desde <strong>Matrícula → Movimiento académico</strong>, donde se validan materias, calificaciones y auditoría antes de aplicar el cambio.
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if($permitirMovimientoAcademico)
+                                <button type="button" wire:click="abrirMovimientoAcademico"
+                                        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#006492] px-4 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-[#005477]">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-4 w-4" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h11m0 0-3-3m3 3-3 3M17 17H6m0 0 3 3m-3-3 3-3"/>
+                                    </svg>
+                                    Abrir movimiento académico
+                                </button>
+                            @endif
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
+                            <div class="rounded-xl border border-white/80 bg-white px-3.5 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                                <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Licenciatura</div>
+                                <div class="mt-1 text-sm font-extrabold text-slate-800 dark:text-white">{{ $licenciaturaActual?->nombre ?: 'Sin asignar' }}</div>
+                            </div>
+                            <div class="rounded-xl border border-white/80 bg-white px-3.5 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                                <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Generación</div>
+                                <div class="mt-1 text-sm font-extrabold text-slate-800 dark:text-white">{{ $generacionActual?->generacion ?: 'Sin asignar' }}</div>
+                            </div>
+                            <div class="rounded-xl border border-white/80 bg-white px-3.5 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                                <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Cuatrimestre</div>
+                                <div class="mt-1 text-sm font-extrabold text-slate-800 dark:text-white">{{ $cuatrimestreActual?->nombre_cuatrimestre ?: 'Sin asignar' }}</div>
+                            </div>
+                            <div class="rounded-xl border border-white/80 bg-white px-3.5 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                                <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Modalidad</div>
+                                <div class="mt-1 text-sm font-extrabold text-[#006492] dark:text-sky-300">{{ $modalidadActual?->nombre ?: 'Sin asignar' }}</div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="mx-auto border rounded-md p-4 mt-4 shadow-sm">
                         <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-200 border-b pb-2 mb-4">REGISTRO DE DOCUMENTACIÓN</h2>
@@ -194,15 +216,79 @@
                         <flux:switch label="Foráneo" wire:model="foraneo" align="left" />
                     </flux:fieldset>
 
-                    <flux:fieldset class="mt-4">
-                        <flux:legend>Status</flux:legend>
-                        <flux:switch label="Status"  wire:model="status"  align="left" />
-                    </flux:fieldset>
+                    <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-neutral-700 dark:bg-neutral-900/70">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm font-extrabold text-slate-800 dark:text-white">Estado académico</p>
+                                <p class="mt-0.5 text-xs text-slate-500 dark:text-neutral-400">El cambio de estado se aplica únicamente al guardar este formulario.</p>
+                            </div>
+                            <flux:switch label="Alumno activo" wire:model.live="status" align="left" />
+                        </div>
 
-                    @if(!$status)
-                        <p class="text-sm text-red-600 mt-2">
-                            Fecha de baja: {{ \Carbon\Carbon::parse($fecha_baja)->format('d/m/Y H:i') }}
-                        </p>
+                        @if(!$status && $fecha_baja)
+                            <div class="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                                Fecha de baja: {{ \Carbon\Carbon::parse($fecha_baja)->format('d/m/Y H:i') }}
+                            </div>
+                        @endif
+                    </div>
+
+                    @if($permitirMovimientoAcademico)
+                    <div class="mt-5 overflow-hidden rounded-2xl border border-rose-200 bg-rose-50/70 dark:border-rose-900/60 dark:bg-rose-950/20">
+                        <div class="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm font-extrabold text-rose-800 dark:text-rose-200">Zona de peligro</p>
+                                <p class="mt-0.5 max-w-2xl text-xs leading-5 text-rose-700/80 dark:text-rose-300/80">
+                                    La baja académica conserva expediente y calificaciones. La eliminación permanente es excepcional y puede borrar registros relacionados por cascada.
+                                </p>
+                            </div>
+                            @if(!$eliminacionOpen)
+                                <button type="button" wire:click="prepararEliminacionPermanente"
+                                        class="inline-flex shrink-0 items-center justify-center rounded-xl border border-rose-300 bg-white px-4 py-2.5 text-xs font-extrabold text-rose-700 transition hover:bg-rose-100 dark:border-rose-800 dark:bg-neutral-900 dark:text-rose-300">
+                                    Revisar eliminación permanente
+                                </button>
+                            @endif
+                        </div>
+
+                        @if($eliminacionOpen)
+                            <div class="border-t border-rose-200 px-4 py-4 dark:border-rose-900/60">
+                                @php($totalImpactoEliminar = array_sum($impactoEliminar))
+                                <div class="rounded-xl border border-rose-200 bg-white p-4 dark:border-rose-900/60 dark:bg-neutral-900">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <div>
+                                            <p class="text-sm font-black text-rose-800 dark:text-rose-200">Impacto detectado</p>
+                                            <p class="mt-0.5 text-xs text-slate-500 dark:text-neutral-400">{{ $totalImpactoEliminar }} registro(s) relacionados podrían verse afectados.</p>
+                                        </div>
+                                        <span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">Irreversible</span>
+                                    </div>
+
+                                    <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                        <div class="rounded-lg bg-slate-50 px-3 py-2 dark:bg-neutral-800"><span class="block text-[10px] uppercase text-slate-400">Calificaciones</span><strong class="text-sm text-slate-800 dark:text-white">{{ $impactoEliminar['calificaciones'] ?? 0 }}</strong></div>
+                                        <div class="rounded-lg bg-slate-50 px-3 py-2 dark:bg-neutral-800"><span class="block text-[10px] uppercase text-slate-400">Constancias</span><strong class="text-sm text-slate-800 dark:text-white">{{ $impactoEliminar['constancias'] ?? 0 }}</strong></div>
+                                        <div class="rounded-lg bg-slate-50 px-3 py-2 dark:bg-neutral-800"><span class="block text-[10px] uppercase text-slate-400">Justificantes</span><strong class="text-sm text-slate-800 dark:text-white">{{ $impactoEliminar['justificantes'] ?? 0 }}</strong></div>
+                                        <div class="rounded-lg bg-slate-50 px-3 py-2 dark:bg-neutral-800"><span class="block text-[10px] uppercase text-slate-400">Títulos</span><strong class="text-sm text-slate-800 dark:text-white">{{ $impactoEliminar['titulos'] ?? 0 }}</strong></div>
+                                        <div class="rounded-lg bg-slate-50 px-3 py-2 dark:bg-neutral-800"><span class="block text-[10px] uppercase text-slate-400">Docs. identidad</span><strong class="text-sm text-slate-800 dark:text-white">{{ $impactoEliminar['documentos_identidad'] ?? 0 }}</strong></div>
+                                        <div class="rounded-lg bg-slate-50 px-3 py-2 dark:bg-neutral-800"><span class="block text-[10px] uppercase text-slate-400">Fuentes</span><strong class="text-sm text-slate-800 dark:text-white">{{ $impactoEliminar['fuentes_documentos'] ?? 0 }}</strong></div>
+                                        <div class="rounded-lg bg-slate-50 px-3 py-2 dark:bg-neutral-800"><span class="block text-[10px] uppercase text-slate-400">Organizaciones</span><strong class="text-sm text-slate-800 dark:text-white">{{ $impactoEliminar['organizaciones_documentos'] ?? 0 }}</strong></div>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <flux:input label="Confirmación" wire:model.live.debounce.250ms="confirmacionEliminar" placeholder="Escribe {{ $matricula }}" />
+                                        <p class="mt-1.5 text-[11px] text-rose-600 dark:text-rose-300">Escribe exactamente la matrícula <strong>{{ $matricula }}</strong> para habilitar la eliminación.</p>
+                                        @error('confirmacionEliminar') <p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p> @enderror
+                                    </div>
+
+                                    <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                                        <button type="button" wire:click="cancelarEliminacionPermanente" class="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800">Cancelar</button>
+                                        <button type="button" wire:click="eliminarPermanentemente" wire:loading.attr="disabled" wire:target="eliminarPermanentemente"
+                                                @disabled(mb_strtoupper(trim($confirmacionEliminar), 'UTF-8') !== mb_strtoupper(trim((string) $matricula), 'UTF-8'))
+                                                class="rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-extrabold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40">
+                                            Eliminar inscripción permanentemente
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                     @endif
                 </div>
             </div>

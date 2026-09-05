@@ -2,18 +2,21 @@
 
 namespace App\Livewire\Admin\Licenciaturas\Submodulo;
 
-use App\Models\Accion;
-use App\Models\AsignarGeneracion;
 use App\Models\Ciudad;
+use App\Models\Cuatrimestre;
 use App\Models\Estado;
+use App\Models\Generacion;
 use App\Models\Inscripcion;
+use App\Models\Licenciatura;
 use App\Models\Modalidad;
-use App\Models\Periodo;
 use App\Models\User;
 use App\Services\MatriculaService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Throwable;
 
 class MatriculaEditar extends Component
 {
@@ -72,6 +75,11 @@ class MatriculaEditar extends Component
 
     public $certificado_estudios_archivo;
     public $ruta_certificado_estudios; // Para mostrar en el modal
+
+    public bool $permitirMovimientoAcademico = false;
+    public bool $eliminacionOpen = false;
+    public string $confirmacionEliminar = '';
+    public array $impactoEliminar = [];
 
       // Método para abrir el modal con datos
       #[On('abrirEstudiante')]
@@ -137,6 +145,9 @@ class MatriculaEditar extends Component
             $this->pais = $estudiante->pais;
             $this->status = $estudiante->status == "true" ? true : false;
             $this->fecha_baja = $estudiante->fecha_baja;
+            $this->eliminacionOpen = false;
+            $this->confirmacionEliminar = '';
+            $this->impactoEliminar = [];
 
             $this->open = true;
 
@@ -197,28 +208,18 @@ class MatriculaEditar extends Component
      public function cerrarModal()
       {
           $this->reset(['open', 'estudianteId', 'matricula', 'folio', 'CURP', 'user_id', 'nombre', 'apellido_paterno', 'apellido_materno', 'fecha_nacimiento', 'edad', 'sexo', 'estado_nacimiento_id', 'ciudad_nacimiento_id', 'calle', 'numero_exterior', 'numero_interior', 'colonia', 'codigo_postal', 'municipio', 'ciudad_id', 'estado_id', 'telefono', 'celular', 'tutor', 'bachillerato_procedente', 'generacion_id', 'cuatrimestre_id', 'CURP_documento', 'certificado_estudios', 'acta_nacimiento', 'comprobante_domicilio', 'certificado_medico', 'fotos_infantiles', 'fotoUrl','otros','foraneo','status']);
+          $this->eliminacionOpen = false;
+          $this->confirmacionEliminar = '';
+          $this->impactoEliminar = [];
           $this->resetValidation();
       }
 
-      public function updatedStatus($value)
-        {
-            if ($value === false) {
-                $this->fecha_baja = now();
-            } else {
-                $this->fecha_baja = null;
-                // Dispatch al navbar (cuando se reactive un estudiante)
-                  $this->dispatch('refreshNavbar');
-            }
-
-            if ($this->estudianteId) {
-                Inscripcion::find($this->estudianteId)->update([
-                    'status' => $this->status ? "true" : "false",
-                    'fecha_baja' => $this->fecha_baja,
-                ]);
-            }
-
-            $this->dispatch('refreshNavbar');
-        }
+      public function updatedStatus($value): void
+      {
+          // No persistir el cambio al mover el switch. Se guarda únicamente
+          // al confirmar el formulario, evitando bajas/reactivaciones accidentales.
+          $this->fecha_baja = $value ? null : ($this->fecha_baja ?: now()->format('Y-m-d H:i:s'));
+      }
 
 
       public function actualizarEstudiante(MatriculaService $matriculaService){
@@ -263,8 +264,6 @@ class MatriculaEditar extends Component
             'celular' => 'nullable|max:10',
             'tutor' => 'nullable|max:255',
             'bachillerato_procedente' => 'nullable|max:255',
-            'generacion_id' => 'required|exists:asignar_generaciones,id',
-            'cuatrimestre_id' => 'required|exists:cuatrimestres,id',
             'foto_nueva' => 'nullable|image|max:2048|mimes:jpeg,jpg,png',
         ],[
             'user_id.required' => 'El campo usuario es obligatorio.',
@@ -298,10 +297,6 @@ class MatriculaEditar extends Component
             'ciudad_id.exists' => 'La ciudad seleccionada no existe.',
             'estado_id.exists' => 'El estado seleccionado no existe.',
             'tutor.max' => 'El campo tutor no debe exceder 255 caracteres.',
-            'generacion_id.required' => 'El campo generación es obligatorio.',
-            'generacion_id.exists' => 'La generación seleccionada no existe.',
-            'cuatrimestre_id.required' => 'El campo cuatrimestre es obligatorio.',
-            'cuatrimestre_id.exists' => 'El cuatrimestre seleccionado no existe.',
             'foto_nueva.image' => 'El archivo debe ser una imagen',
             'foto_nueva.max' => 'El archivo no debe pesar más de 2MB',
             'foto_nueva.mimes' => 'El archivo debe ser formato jpeg, jpg o png',
@@ -321,6 +316,7 @@ class MatriculaEditar extends Component
 
 
         $matriculaNueva = $matriculaService->normalizar($this->matricula);
+        $this->fecha_baja = $this->status ? null : ($this->fecha_baja ?: now()->format('Y-m-d H:i:s'));
 
         if ($estudiante) {
             $estudiante->update([
@@ -348,10 +344,6 @@ class MatriculaEditar extends Component
                 'celular' => strtoupper(trim($this->celular)),
                 'tutor' => strtoupper(trim($this->tutor)),
                 'bachillerato_procedente' => strtoupper(trim($this->bachillerato_procedente)),
-                'licenciatura_id' => $this->licenciatura_id,
-                'generacion_id' => $this->generacion_id,
-                'cuatrimestre_id' => $this->cuatrimestre_id,
-                'modalidad_id' => $this->modalidad_id,
                  'foto' => $this->foto_nueva ? $datos['foto'] : $this->foto,
                 'foraneo' => $this->foraneo ? "true" : "false",
                 'status' => $this->status ? "true" : "false",
@@ -391,34 +383,114 @@ class MatriculaEditar extends Component
 
 
 
+    public function abrirMovimientoAcademico(): void
+    {
+        if (! $this->permitirMovimientoAcademico || ! $this->estudianteId) {
+            return;
+        }
 
-    #[On('resfreshMatricula')]
+        $id = (int) $this->estudianteId;
+        $this->cerrarModal();
+        $this->dispatch('solicitarMovimientoAcademico', estudianteId: $id);
+    }
+
+    public function prepararEliminacionPermanente(): void
+    {
+        if (! $this->permitirMovimientoAcademico || ! $this->estudianteId) {
+            return;
+        }
+
+        $alumno = Inscripcion::query()->findOrFail($this->estudianteId);
+
+        $this->impactoEliminar = [
+            'calificaciones' => Schema::hasTable('calificaciones') ? DB::table('calificaciones')->where('alumno_id', $alumno->id)->count() : 0,
+            'constancias' => Schema::hasTable('constancias') ? DB::table('constancias')->where('alumno_id', $alumno->id)->count() : 0,
+            'justificantes' => Schema::hasTable('justificantes') ? DB::table('justificantes')->where('alumno_id', $alumno->id)->count() : 0,
+            'titulos' => Schema::hasTable('titulos') ? DB::table('titulos')->where('alumno_id', $alumno->id)->count() : 0,
+            'documentos_identidad' => Schema::hasTable('documentos_identidad') ? DB::table('documentos_identidad')->where('inscripcion_id', $alumno->id)->count() : 0,
+            'fuentes_documentos' => Schema::hasTable('documentos_identidad_fuentes') ? DB::table('documentos_identidad_fuentes')->where('inscripcion_id', $alumno->id)->count() : 0,
+            'organizaciones_documentos' => Schema::hasTable('organizaciones_documentos_identidad') ? DB::table('organizaciones_documentos_identidad')->where('inscripcion_id', $alumno->id)->count() : 0,
+        ];
+
+        $this->confirmacionEliminar = '';
+        $this->eliminacionOpen = true;
+    }
+
+    public function cancelarEliminacionPermanente(): void
+    {
+        $this->eliminacionOpen = false;
+        $this->confirmacionEliminar = '';
+        $this->resetErrorBag('confirmacionEliminar');
+    }
+
+    public function eliminarPermanentemente(): void
+    {
+        if (! $this->permitirMovimientoAcademico || ! $this->estudianteId) {
+            return;
+        }
+
+        $alumno = Inscripcion::query()->findOrFail($this->estudianteId);
+
+        if (mb_strtoupper(trim($this->confirmacionEliminar), 'UTF-8') !== mb_strtoupper(trim((string) $alumno->matricula), 'UTF-8')) {
+            $this->addError('confirmacionEliminar', 'Escribe exactamente la matrícula del alumno para confirmar la eliminación permanente.');
+            return;
+        }
+
+        try {
+            DB::transaction(function () use ($alumno): void {
+                $alumno->delete();
+            }, 3);
+        } catch (Throwable $e) {
+            report($e);
+            $this->dispatch('swal', [
+                'title' => 'No fue posible eliminar la inscripción. No se aplicaron cambios parciales.',
+                'icon' => 'error',
+                'position' => 'top-end',
+            ]);
+            return;
+        }
+
+        $this->eliminacionOpen = false;
+        $this->open = false;
+        $this->confirmacionEliminar = '';
+        $this->impactoEliminar = [];
+
+        $this->dispatch('refreshMatricula');
+        $this->dispatch('refreshNavbar');
+        $this->dispatch('refreshHeader');
+        $this->dispatch('swal', [
+            'title' => 'Inscripción eliminada permanentemente. Se conservaron las bitácoras configuradas con SET NULL.',
+            'icon' => 'success',
+            'position' => 'top-end',
+        ]);
+    }
+
+
+    #[On('refreshMatricula')]
     public function render()
     {
-        $estados =Estado::orderBy('nombre')->get();
+        $estados = Estado::orderBy('nombre')->get();
         $ciudades = Ciudad::orderBy('nombre')->get();
-        $acciones = Accion::all();
-        $licenciaturas = \App\Models\Licenciatura::orderBy('id')->get();
-
-        $generaciones = AsignarGeneracion::where('licenciatura_id', $this->licenciatura_id)
-        ->where('modalidad_id', $this->modalidad_id)
-        ->whereHas('generacion', function ($query) {
-        $query->where('activa', "true");
-        })
-        ->get();
-
-         $cuatrimestres = Periodo::where('generacion_id', $this->generacion_id)
-                ->limit(1)
-                ->orderBy('id', 'desc')
-                ->get();
-
         $usuarios = User::role('Estudiante')
-        ->orderBy('id', 'desc')
-        ->get();
+            ->orderBy('id', 'desc')
+            ->get();
 
-        $modalidades = Modalidad::all();
+        // El contexto académico es informativo en este modal. Los cambios de
+        // modalidad/cuatrimestre se realizan únicamente mediante el flujo
+        // transaccional de Movimiento académico.
+        $licenciaturaActual = $this->licenciatura_id ? Licenciatura::query()->find($this->licenciatura_id) : null;
+        $generacionActual = $this->generacion_id ? Generacion::query()->find($this->generacion_id) : null;
+        $cuatrimestreActual = $this->cuatrimestre_id ? Cuatrimestre::query()->find($this->cuatrimestre_id) : null;
+        $modalidadActual = $this->modalidad_id ? Modalidad::query()->find($this->modalidad_id) : null;
 
-
-        return view('livewire.admin.licenciaturas.submodulo.matricula-editar', compact('estados', 'ciudades', 'acciones',  'generaciones', 'usuarios', 'cuatrimestres', 'modalidades', 'licenciaturas'));
+        return view('livewire.admin.licenciaturas.submodulo.matricula-editar', compact(
+            'estados',
+            'ciudades',
+            'usuarios',
+            'licenciaturaActual',
+            'generacionActual',
+            'cuatrimestreActual',
+            'modalidadActual'
+        ));
     }
 }
