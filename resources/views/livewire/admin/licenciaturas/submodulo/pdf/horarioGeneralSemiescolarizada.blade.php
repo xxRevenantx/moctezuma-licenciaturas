@@ -138,7 +138,13 @@
             text-align: center;
             vertical-align: middle;
             padding: 3px 2px;
-            word-break: break-word;
+            word-wrap: break-word;
+            white-space: normal;
+            height: auto;
+        }
+
+        .schedule tr {
+            height: auto;
         }
 
         .schedule thead th {
@@ -154,28 +160,43 @@
             font-size: 7.5px;
         }
 
+        /*
+         * IMPORTANTE PARA DOMPDF 3.x:
+         * dentro de celdas no usamos DIV/BLOCK. Dompdf puede calcular la altura
+         * de un bloque interno tomando como referencia la altura de la pagina,
+         * haciendo que cada fila ocupe casi una hoja completa.
+         */
+        .group-name,
+        .group-meta,
+        .subject,
+        .teacher,
+        .pill {
+            display: inline;
+            margin: 0;
+            padding: 0;
+            height: auto;
+        }
+
         .group-name {
-            font-weight: 700;
-            line-height: 1.04;
-        }
-
-        .group-meta {
-            display: block;
-            margin-top: 2px;
-            color: #475569;
-            font-size: 6.8px;
-            font-weight: 400;
-        }
-
-        .subject {
             font-weight: 700;
             line-height: 1.05;
         }
 
-        .teacher {
-            margin-top: 2px;
+        .group-meta {
+            color: #475569;
             font-size: 6.8px;
-            line-height: 1.02;
+            font-weight: 400;
+            line-height: 1.05;
+        }
+
+        .subject {
+            font-weight: 700;
+            line-height: 1.08;
+        }
+
+        .teacher {
+            font-size: 6.8px;
+            line-height: 1.05;
             font-style: italic;
         }
 
@@ -260,6 +281,13 @@
             border: 1px solid #cbd5e1;
             padding: 5px 6px;
             vertical-align: top;
+            height: auto;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        .summary-table tr {
+            height: auto;
         }
 
         .summary-table th {
@@ -274,11 +302,9 @@
         }
 
         .pill {
-            display: block;
-            margin: 0 0 2px 0;
-            padding: 0;
             border: 0;
             background: transparent;
+            line-height: 1.18;
         }
 
         .summary-total {
@@ -374,9 +400,8 @@
                                 <th class="hour">HORA</th>
                                 @foreach ($columnasBloque as $col)
                                     <th>
-                                        <div class="group-name">{{ mb_strtoupper($col['licenciatura_corta']) }}</div>
-                                        <span class="group-meta">{{ $col['cuatrimestre'] }}° · GEN.
-                                            {{ $col['generacion'] }}</span>
+                                        <span class="group-name">{{ mb_strtoupper($col['licenciatura_corta']) }}</span><br>
+                                        <span class="group-meta">{{ $col['cuatrimestre'] }}° · GEN. {{ $col['generacion'] }}</span>
                                     </th>
                                 @endforeach
                             </tr>
@@ -403,11 +428,8 @@
                                         <td class="{{ $item ? '' : 'empty' }}"
                                             style="background-color:{{ $fondo }};">
                                             @if ($item)
-                                                <div class="subject">{{ $materia?->nombre ?? 'Materia no disponible' }}
-                                                </div>
-                                                <div class="teacher">
-                                                    {{ $profesor ? mb_strtoupper(trim($profesor->nombre . ' ' . $profesor->apellido_paterno . ' ' . $profesor->apellido_materno)) : 'SIN PROFESOR' }}
-                                                </div>
+                                                <span class="subject">{{ $materia?->nombre ?? 'Materia no disponible' }}</span><br>
+                                                <span class="teacher">{{ $profesor ? mb_strtoupper(trim($profesor->nombre . ' ' . $profesor->apellido_paterno . ' ' . $profesor->apellido_materno)) : 'SIN PROFESOR' }}</span>
                                             @endif
                                         </td>
                                     @endforeach
@@ -442,11 +464,7 @@
                                     {{ $row['nombre'] }}</td>
                                 <td>
                                     @forelse($row['materias'] as $m)
-                                        <div class="pill"><strong>{{ $m['nombre'] }}</strong>
-                                            @if ($m['clave'])
-                                                ({{ $m['clave'] }})
-                                            @endif · {{ $m['licenciatura'] }}
-                                        </div>
+                                        <span class="pill"><strong>{{ $m['nombre'] }}</strong>@if ($m['clave']) ({{ $m['clave'] }})@endif · {{ $m['licenciatura'] }}</span><br>
                                     @empty
                                         Sin materias
                                     @endforelse
