@@ -3,21 +3,14 @@
 namespace App\Livewire\Admin\Licenciaturas\Submodulo;
 
 use App\Models\AsignacionMateria;
-use App\Models\Calificacion;
-use App\Models\CalificacionDocenteCaptura;
 use App\Models\Cuatrimestre;
-use App\Models\Horario;
 use App\Models\Licenciatura;
 use App\Models\Materia;
 use App\Models\Modalidad;
 use App\Models\Profesor;
-use App\Services\HorarioTraslapeService;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use App\Services\AsignacionDocenteService;
 use Livewire\Component;
 use Livewire\WithPagination;
-use RuntimeException;
-use Throwable;
 
 class AsignarMateria extends Component
 {
@@ -447,25 +440,17 @@ class AsignarMateria extends Component
 
     public function confirmarOperacionPendiente(): void
     {
-        if (empty($this->operacion_pendiente['materia_ids'])) {
+        if (empty($this->operacion_pendiente['objetivos'])) {
             $this->cancelarOperacionPendiente();
             return;
         }
 
-        $materiaIds = collect($this->operacion_pendiente['materia_ids'])
-            ->map(fn ($id) => (int) $id)
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-
-        $profesorId = isset($this->operacion_pendiente['profesor_id'])
+        $profesorId = array_key_exists('profesor_id', $this->operacion_pendiente)
             ? $this->normalizarProfesorId($this->operacion_pendiente['profesor_id'])
             : null;
 
         $tipo = $this->operacion_pendiente['tipo'] ?? 'individual';
-
-        $this->ejecutarAsignacion($materiaIds, $profesorId, $tipo);
+        $this->ejecutarAsignacion($this->operacion_pendiente['objetivos'], $profesorId, $tipo);
     }
 
     public function cancelarOperacionPendiente(): void
@@ -489,218 +474,59 @@ class AsignarMateria extends Component
             return;
         }
 
-        if ($profesorId !== null) {
-            $profesor = Profesor::query()->find($profesorId);
-
-            if (! $profesor) {
-                $this->dispatch('asignacion-docente-error', message: 'El profesor seleccionado ya no existe.');
-                return;
-            }
-
-            if ($profesor->status !== 'true') {
-                $this->dispatch('asignacion-docente-error', message: 'No se permiten nuevas asignaciones a profesores inactivos.');
-                return;
-            }
-        }
-
-        $materias = Materia::query()
+        $materiasValidas = Materia::query()
             ->where('licenciatura_id', $this->licenciatura->id)
             ->whereIn('id', $materiaIds->all())
-            ->get(['id', 'nombre', 'clave', 'cuatrimestre_id']);
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
 
-        if ($materias->count() !== $materiaIds->count()) {
+        if ($materiasValidas->count() !== $materiaIds->count()) {
             $this->dispatch('asignacion-docente-error', message: 'Una o más materias ya no pertenecen a esta licenciatura.');
             return;
         }
 
-        $asignaciones = AsignacionMateria::query()
-            ->where('licenciatura_id', $this->licenciatura->id)
-            ->where('modalidad_id', $this->modalidad->id)
-            ->whereIn('materia_id', $materiaIds->all())
-            ->get(['id', 'materia_id', 'cuatrimestre_id', 'profesor_id'])
-            ->groupBy('materia_id');
+        $objetivos = $materiasValidas->map(fn (int $materiaId) => [
+            'materia_id' => $materiaId,
+            'modalidad_id' => (int) $this->modalidad->id,
+        ])->all();
 
-        foreach ($asignaciones as $materiaId => $grupo) {
-            if ($grupo->count() > 1) {
-                $this->dispatch(
-                    'asignacion-docente-error',
-                    message: "La materia ID {$materiaId} tiene asignaciones duplicadas. Debe corregirse antes de cambiar el profesor."
-                );
+        try {
+            $preparacion = app(AsignacionDocenteService::class)->preparar($objetivos, $profesorId);
+
+            if ($preparacion['sin_cambios']) {
+                $this->dispatch('asignacion-docente-actualizada', message: 'No hay cambios por guardar.');
                 return;
             }
-        }
 
-        $materiasConCambio = $materias
-            ->filter(function ($materia) use ($asignaciones, $profesorId) {
-                $asignacion = $asignaciones->get($materia->id)?->first();
-                return (int) ($asignacion?->profesor_id ?? 0) !== (int) ($profesorId ?? 0);
-            })
-            ->values();
-
-        if ($materiasConCambio->isEmpty()) {
-            $this->dispatch('asignacion-docente-actualizada', message: 'No hay cambios por guardar.');
-            return;
-        }
-
-        $asignacionIds = $materiasConCambio
-            ->map(fn ($materia) => $asignaciones->get($materia->id)?->first()?->id)
-            ->filter()
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
-
-        if ($profesorId === null && ! empty($asignacionIds)) {
-            $capturas = CalificacionDocenteCaptura::query()
-                ->whereIn('asignacion_materia_id', $asignacionIds)
-                ->count();
-
-            if ($capturas > 0) {
-                $this->dispatch(
-                    'asignacion-docente-error',
-                    message: 'No puedes dejar sin profesor una materia que ya tiene capturas del módulo Calificaciones por docente. Reasígnala directamente a otro profesor.'
-                );
+            if ($preparacion['requiere_confirmacion']) {
+                $this->operacion_pendiente = [
+                    'tipo' => $tipo,
+                    'objetivos' => $preparacion['objetivos'],
+                    'profesor_id' => $profesorId,
+                ];
+                $this->conflictos_pendientes = $preparacion['conflictos'];
+                $this->impacto_pendiente = $preparacion['impacto'];
+                $this->dispatch('asignacion-requiere-confirmacion');
                 return;
             }
+
+            $this->ejecutarAsignacion($preparacion['objetivos'], $profesorId, $tipo);
+        } catch (\Throwable $exception) {
+            report($exception);
+            $this->dispatch('asignacion-docente-error', message: $exception->getMessage());
         }
-
-        $conflictos = [];
-
-        if ($profesorId !== null && ! empty($asignacionIds)) {
-            $conflictos = app(HorarioTraslapeService::class)
-                ->conflictosParaCambioProfesor($profesorId, (int) $this->modalidad->id, $asignacionIds);
-        }
-
-        $impacto = $this->calcularImpacto($asignacionIds);
-        $requiereConfirmacion = ! empty($conflictos)
-            || $impacto['calificaciones'] > 0
-            || $impacto['capturas'] > 0;
-
-        $idsCambio = $materiasConCambio->pluck('id')->map(fn ($id) => (int) $id)->all();
-
-        if ($requiereConfirmacion) {
-            $this->operacion_pendiente = [
-                'tipo' => $tipo,
-                'materia_ids' => $idsCambio,
-                'profesor_id' => $profesorId,
-            ];
-            $this->conflictos_pendientes = $conflictos;
-            $this->impacto_pendiente = $impacto;
-            $this->dispatch('asignacion-requiere-confirmacion');
-            return;
-        }
-
-        $this->ejecutarAsignacion($idsCambio, $profesorId, $tipo);
     }
 
-    private function calcularImpacto(array $asignacionIds): array
-    {
-        if (empty($asignacionIds)) {
-            return [
-                'horarios' => 0,
-                'calificaciones' => 0,
-                'capturas' => 0,
-                'entregadas' => 0,
-                'validadas' => 0,
-            ];
-        }
-
-        return [
-            'horarios' => Horario::query()->whereIn('asignacion_materia_id', $asignacionIds)->count(),
-            'calificaciones' => Calificacion::query()->whereIn('asignacion_materia_id', $asignacionIds)->count(),
-            'capturas' => CalificacionDocenteCaptura::query()->whereIn('asignacion_materia_id', $asignacionIds)->count(),
-            'entregadas' => CalificacionDocenteCaptura::query()
-                ->whereIn('asignacion_materia_id', $asignacionIds)
-                ->where('estado', 'entregada')
-                ->count(),
-            'validadas' => CalificacionDocenteCaptura::query()
-                ->whereIn('asignacion_materia_id', $asignacionIds)
-                ->where('estado', 'validada')
-                ->count(),
-        ];
-    }
-
-    private function ejecutarAsignacion(array $materiaIds, ?int $profesorId, string $tipo): void
+    /** @param array<int,array{materia_id:int,modalidad_id:int}> $objetivos */
+    private function ejecutarAsignacion(array $objetivos, ?int $profesorId, string $tipo): void
     {
         try {
-            $materias = Materia::query()
-                ->where('licenciatura_id', $this->licenciatura->id)
-                ->whereIn('id', $materiaIds)
-                ->get(['id', 'nombre', 'clave', 'cuatrimestre_id']);
-
-            if ($materias->count() !== count($materiaIds)) {
-                throw new RuntimeException('Una o más materias dejaron de estar disponibles durante la operación.');
-            }
-
-            $resultado = DB::transaction(function () use ($materias, $profesorId) {
-                $cambios = 0;
-                $auditoria = [];
-
-                foreach ($materias as $materia) {
-                    $criterios = [
-                        'materia_id' => (int) $materia->id,
-                        'licenciatura_id' => (int) $this->licenciatura->id,
-                        'modalidad_id' => (int) $this->modalidad->id,
-                        'cuatrimestre_id' => (int) $materia->cuatrimestre_id,
-                    ];
-
-                    $coincidentes = AsignacionMateria::query()
-                        ->where($criterios)
-                        ->lockForUpdate()
-                        ->get();
-
-                    if ($coincidentes->count() > 1) {
-                        throw new RuntimeException("La materia {$materia->nombre} tiene asignaciones duplicadas.");
-                    }
-
-                    $asignacion = $coincidentes->first();
-
-                    if (! $asignacion && $profesorId === null) {
-                        continue;
-                    }
-
-                    if (! $asignacion) {
-                        $asignacion = new AsignacionMateria($criterios);
-                    }
-
-                    $profesorAnteriorId = $asignacion->profesor_id ? (int) $asignacion->profesor_id : null;
-
-                    if ($profesorAnteriorId === $profesorId) {
-                        continue;
-                    }
-
-                    // Importante: NO se elimina la asignación al dejarla sin profesor.
-                    // El borrado cascada eliminaría horarios y calificaciones vinculadas.
-                    $asignacion->profesor_id = $profesorId;
-                    $asignacion->save();
-                    $cambios++;
-
-                    $auditoria[] = [
-                        'user_id' => auth()->id(),
-                        'asignacion_materia_id' => $asignacion->id,
-                        'materia_id' => $materia->id,
-                        'licenciatura_id' => $this->licenciatura->id,
-                        'modalidad_id' => $this->modalidad->id,
-                        'cuatrimestre_id' => $materia->cuatrimestre_id,
-                        'profesor_anterior_id' => $profesorAnteriorId,
-                        'profesor_nuevo_id' => $profesorId,
-                    ];
-                }
-
-                return [
-                    'cambios' => $cambios,
-                    'auditoria' => $auditoria,
-                ];
-            });
-
+            $resultado = app(AsignacionDocenteService::class)->ejecutar($objetivos, $profesorId, auth()->id());
             $cambios = (int) ($resultado['cambios'] ?? 0);
 
-            foreach (($resultado['auditoria'] ?? []) as $registroAuditoria) {
-                Log::info('Cambio de profesor en asignación de materia', $registroAuditoria);
-            }
-
-            foreach ($materiaIds as $materiaId) {
-                $this->profesor_seleccionado[(int) $materiaId] = $profesorId ?? '';
+            foreach ($objetivos as $objetivo) {
+                $this->profesor_seleccionado[(int) $objetivo['materia_id']] = $profesorId ?? '';
             }
 
             if ($tipo === 'masiva') {
@@ -728,13 +554,9 @@ class AsignarMateria extends Component
             }
 
             $this->dispatch('asignacion-docente-actualizada', message: $mensaje);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             report($exception);
-
-            $this->dispatch(
-                'asignacion-docente-error',
-                message: 'No se pudo guardar la asignación. ' . $exception->getMessage()
-            );
+            $this->dispatch('asignacion-docente-error', message: 'No se pudo guardar la asignación. ' . $exception->getMessage());
         }
     }
 

@@ -1,533 +1,269 @@
-<div x-data="{
-    open: false,
-    destroyHorario(modalidad) {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: `El horario de semiescolarizada se eliminará de forma permanente`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#2563EB',
-            cancelButtonColor: '#EF4444',
-            cancelButtonText: 'Cancelar',
-            confirmButtonText: 'Sí, eliminar'
-        }).then((r) => r.isConfirmed && @this.call('destroyHorario', modalidad))
-    }
-}" x-cloak>
-    @php
-        // Helper de contraste (evita redeclaración si se incluye varias veces)
-        if (!function_exists('esColorOscuro')) {
-            function esColorOscuro($hexColor)
-            {
-                $hexColor = ltrim($hexColor ?: '#ffffff', '#');
-                if (strlen($hexColor) == 3) {
-                    $hexColor = $hexColor[0] . $hexColor[0] . $hexColor[1] . $hexColor[1] . $hexColor[2] . $hexColor[2];
-                }
-                $r = hexdec(substr($hexColor, 0, 2));
-                $g = hexdec(substr($hexColor, 2, 2));
-                $b = hexdec(substr($hexColor, 4, 2));
-                $l = 0.299 * $r + 0.587 * $g + 0.114 * $b;
-                return $l < 128; // true si el fondo es oscuro
-            }
+<div
+    x-data="{
+        pdf: false,
+        pdfUrl: 'about:blank',
+        pdfLoaded: false,
+        eliminar: false,
+        abrirPdf(url) {
+            if (!url) return;
+            this.pdfLoaded = false;
+            this.pdfUrl = url;
+            this.pdf = true;
+            document.documentElement.classList.add('overflow-hidden');
+        },
+        cerrarPdf() {
+            this.pdf = false;
+            this.pdfLoaded = false;
+            this.pdfUrl = 'about:blank';
+            document.documentElement.classList.remove('overflow-hidden');
         }
-    @endphp
-
-    <!-- Búsqueda -->
-    <div
-        class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm p-4 md:p-5 mb-4">
-        <flux:input label="Buscar por profesor o materia" wire:model.live="busqueda"
-            placeholder="Ej. Matemáticas o Juan Pérez" class="w-full md:w-1/2" />
-    </div>
-
-
-
-    {{-- Sin resultados --}}
-    @if ($horarios->isEmpty())
-        <div
-            class="mt-6 p-4 text-center text-red-700 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl shadow-sm">
-            No se encontraron resultados.
-        </div>
-    @else
-        <!-- Botón PDF + Modal -->
-        <div class="mb-4 flex items-center gap-3">
-            <x-button x-on:click="open=true" variant="primary"
-                class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
-                <flux:icon.download />
-                Ver PDF
-            </x-button>
-
-            <flux:button variant="danger" class="cursor-pointer bg-rose-600 hover:bg-rose-700 text-white"
-                @click="destroyHorario({{ 2 }})" title="Eliminar" aria-label="Eliminar">
-                <flux:icon.trash />
-                Eliminar Horario Semiescolarizada
-            </flux:button>
-        </div>
-
-        <div x-show="open" x-transition.opacity @keydown.escape.window="open=false" @click.self="open=false"
-            x-effect="document.body.classList.toggle('overflow-hidden', open)"
-            class="fixed inset-0 z-[120] grid place-items-center bg-black/40 dark:bg-black/50 backdrop-blur-sm p-4"
-            style="display:none" tabindex="0">
-            <div
-                class="relative w-full max-w-7xl rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-2xl">
-                <div
-                    class="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-                    <h3 class="text-sm md:text-base font-semibold text-neutral-900 dark:text-neutral-100">Vista previa ·
-                        Horario Semiescolarizada</h3>
-                    <button @click="open=false"
-                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white">
-                        <span class="sr-only">Cerrar</span>
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.7 2.88 18.3 9.17 12 2.88 5.71 4.29 4.3l6.3 6.29 6.29-6.3z" />
-                        </svg>
-                    </button>
+    }"
+    x-on:abrir-eliminar-horario-general.window="eliminar=true"
+    x-on:cerrar-eliminar-horario-general.window="eliminar=false"
+    x-on:horario-general-ok.window="Swal.fire({icon:'success',title:'Listo',text:$event.detail.message,timer:2600,showConfirmButton:false})"
+    x-on:horario-general-error.window="Swal.fire({icon:'error',title:'No se pudo continuar',text:$event.detail.message})"
+    x-cloak
+    class="space-y-4"
+>
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <div class="h-1.5 bg-gradient-to-r from-[#006492] via-sky-500 to-[#88AC2E]"></div>
+        <div class="p-4 sm:p-5">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h2 class="text-xl font-black text-slate-900 dark:text-white">Horario General Semiescolarizado</h2>
+                        <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-[#006492] ring-1 ring-sky-200 dark:bg-sky-950/30 dark:text-sky-300 dark:ring-sky-900">{{ $ciclo_escolar }} · {{ $periodo_escolar }}</span>
+                        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-neutral-800 dark:text-slate-300">{{ $columnasUnicas->count() }} grupos</span>
+                    </div>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Filtra por periodo académico y genera una versión compacta o una versión legible del PDF.</p>
                 </div>
-                <div class="p-3">
-                    <iframe src="{{ route('admin.pdf.horario-general-semiescolarizada') }}"
-                        class="w-full h-[80vh] rounded-lg border border-neutral-200 dark:border-neutral-800"></iframe>
+                <div class="flex flex-wrap gap-2">
+                    <flux:button
+                        type="button"
+                        variant="primary"
+                        class="cursor-pointer"
+                        data-url="{{ $pdfLegible }}"
+                        x-on:click.prevent="abrirPdf($el.dataset.url)"
+                    >PDF legible</flux:button>
+                    <flux:button
+                        type="button"
+                        variant="filled"
+                        class="cursor-pointer"
+                        data-url="{{ $pdfCompacto }}"
+                        x-on:click.prevent="abrirPdf($el.dataset.url)"
+                    >PDF compacto</flux:button>
+                    <flux:button variant="danger" wire:click="abrirEliminarHorario" class="cursor-pointer">Administrar eliminación</flux:button>
                 </div>
             </div>
-        </div>
 
-        <!-- Loader general -->
-        <div wire:loading.flex class="justify-center items-center py-10">
-            <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg"
-                fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                </circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-            </svg>
-            <span class="text-neutral-600 dark:text-neutral-300 text-sm">Cargando…</span>
-        </div>
+            <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                <flux:select wire:model.live="ciclo_escolar" label="Ciclo escolar">
+                    @foreach($opciones['ciclos'] as $ciclo)
+                        <flux:select.option value="{{ $ciclo }}">{{ $ciclo }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:select wire:model.live="periodo_escolar" label="Periodo">
+                    @foreach($opciones['periodos'] as $periodo)
+                        <flux:select.option value="{{ $periodo }}">{{ $periodo }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:select wire:model.live="filtrar_cuatrimestre" label="Cuatrimestre">
+                    <flux:select.option value="">Todos</flux:select.option>
+                    @foreach($opciones['cuatrimestres'] as $op)
+                        <flux:select.option value="{{ $op['id'] }}">{{ $op['nombre'] }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:select wire:model.live="filtrar_licenciatura" label="Licenciatura">
+                    <flux:select.option value="">Todas</flux:select.option>
+                    @foreach($opciones['licenciaturas'] as $op)
+                        <flux:select.option value="{{ $op['id'] }}">{{ $op['nombre'] }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:select wire:model.live="filtrar_generacion" label="Generación">
+                    <flux:select.option value="">Todas</flux:select.option>
+                    @foreach($opciones['generaciones'] as $op)
+                        <flux:select.option value="{{ $op['id'] }}">{{ $op['nombre'] }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <div>
+                    <flux:input wire:model.live.debounce.300ms="busqueda" label="Buscar" placeholder="Materia o profesor" icon="magnifying-glass" />
+                </div>
+            </div>
 
-        <!-- Tabla principal -->
-        <div wire:loading.remove
-            class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden">
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap gap-2">
+                    @foreach($opciones['cuatrimestres'] as $op)
+                        <button type="button" wire:click="$set('filtrar_cuatrimestre','{{ $op['id'] }}')" class="cursor-pointer rounded-full border px-3 py-1.5 text-xs font-bold transition {{ (string)$filtrar_cuatrimestre === (string)$op['id'] ? 'border-[#006492] bg-[#006492] text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-sky-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-300' }}">{{ $op['nombre'] }}</button>
+                    @endforeach
+                </div>
+                <flux:button wire:click="limpiarFiltros" variant="ghost" class="cursor-pointer">Limpiar filtros</flux:button>
+            </div>
+        </div>
+    </section>
+
+    @if($horarios->isEmpty())
+        <section class="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center text-amber-800 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-300">
+            No hay horarios semiescolarizados para los filtros seleccionados.
+        </section>
+    @else
+        <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-neutral-100 dark:bg-neutral-700 sticky top-0 z-10">
+                <table class="min-w-max border-collapse text-[12px]">
+                    <thead class="sticky top-0 z-20 bg-slate-100 dark:bg-neutral-800">
                         <tr>
-                            <th
-                                class="px-3 py-2 text-left font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
-                                Hora</th>
-                            @foreach ($columnasUnicas as $col)
-                                <th
-                                    class="px-3 py-2 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
-                                    {{ $col['etiqueta'] }}
-
-                                    {{-- Botón atractivo que lanza el modal de PDF --}}
-                                    <flux:button variant="primary"
-                                        class="inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600
-                                                hover:from-sky-600 hover:via-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl
-                                                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                        @click.prevent="$dispatch('open-pdf-modal', {
-                                                url: '{{ route('admin.pdf.horario-semiescolarizada', [
-                                                    'licenciatura_id' => $col['licenciatura_id'],
-                                                    'modalidad_id' => 2,
-                                                    'filtrar_generacion' => $col['generacion_id'],
-                                                    'filtrar_cuatrimestre' => $col['cuatrimestre_id'],
-                                                ]) }}',
-                                                title: 'Horario (Semiescolarizada)'
-                                            })">
-                                        {{-- Ícono de documento/PDF --}}
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M7 7v10a2 2 0 002 2h6m0 0l4-4m-4 4V7a2 2 0 00-2-2H7m6 0l4 4" />
-                                        </svg>
-                                        <span>Ver PDF</span>
-                                    </flux:button>
-
-
-
+                            <th class="sticky left-0 z-30 min-w-[120px] border-b border-r border-slate-200 bg-slate-100 px-3 py-3 text-left font-black text-slate-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white">Hora</th>
+                            @foreach($columnasUnicas as $col)
+                                <th class="min-w-[190px] border-b border-r border-slate-200 px-3 py-3 text-center dark:border-neutral-700">
+                                    <div class="font-black text-slate-900 dark:text-white">{{ $col['licenciatura_corta'] }}</div>
+                                    <div class="mt-1 text-[11px] font-semibold text-slate-500">{{ $col['cuatrimestre'] }}° CUATRIMESTRE · {{ $col['generacion'] }}</div>
+                                    <form action="{{ route('admin.pdf.horario-semiescolarizada') }}" method="GET" target="_blank" class="mt-2">
+                                        <input type="hidden" name="licenciatura_id" value="{{ $col['licenciatura_id'] }}">
+                                        <input type="hidden" name="modalidad_id" value="2">
+                                        <input type="hidden" name="filtrar_generacion" value="{{ $col['generacion_id'] }}">
+                                        <input type="hidden" name="filtrar_cuatrimestre" value="{{ $col['cuatrimestre_id'] }}">
+                                        <button class="cursor-pointer rounded-lg bg-[#006492] px-2.5 py-1 text-[10px] font-bold text-white hover:bg-[#075a81]">Ver grupo</button>
+                                    </form>
                                 </th>
                             @endforeach
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($horasUnicas as $hora)
-                            <tr class="odd:bg-neutral-50/60 dark:odd:bg-neutral-800/60">
-                                <td
-                                    class="px-3 py-2 font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
-                                    {{ $hora }}
-                                </td>
-
-                                @foreach ($columnasUnicas as $col)
+                        @foreach($horasUnicas as $hora)
+                            @php
+                                $partesHora = array_map('trim', explode('-', strtolower((string)$hora), 2));
+                                $finTs = isset($partesHora[1]) ? strtotime($partesHora[1]) : false;
+                                $insertarReceso = $finTs !== false && date('H:i', $finTs) === '10:00';
+                            @endphp
+                            <tr>
+                                <td class="sticky left-0 z-10 border-b border-r border-slate-200 bg-white px-3 py-4 text-center font-black text-slate-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-200">{{ strtoupper($hora) }}</td>
+                                @foreach($columnasUnicas as $col)
                                     @php
-                                        $item = $horarios->first(function ($h) use ($hora, $col) {
-                                            return $h->hora === $hora &&
-                                                $h->cuatrimestre_id === $col['cuatrimestre_id'] &&
-                                                $h->licenciatura_id === $col['licenciatura_id'];
-                                        });
-
-                                        $materia = optional(optional($item)->asignacionMateria)->materia?->nombre;
-                                        $profesorObj = optional(optional($item)->asignacionMateria)->profesor;
-                                        $profesor = $profesorObj
-                                            ? trim(
-                                                $profesorObj->nombre .
-                                                    ' ' .
-                                                    $profesorObj->apellido_paterno .
-                                                    ' ' .
-                                                    $profesorObj->apellido_materno,
-                                            )
-                                            : null;
-                                        $color =
-                                            optional(optional($item)->asignacionMateria)->profesor?->color ?? '#ffffff';
-                                        $txt = esColorOscuro($color) ? '#ffffff' : '#111827'; // blanco o slate-900
+                                        $key = $hora.'|'.$col['cuatrimestre_id'].'|'.$col['licenciatura_id'].'|'.$col['generacion_id'];
+                                        $item = $celdas->get($key);
+                                        $prof = $item?->asignacionMateria?->profesor;
+                                        $materia = $item?->asignacionMateria?->materia;
+                                        $color = $prof?->color ?: '#f8fafc';
                                     @endphp
-
-                                    <td class="px-3 py-2 text-sm text-center align-middle border-b border-neutral-200 dark:border-neutral-700"
-                                        style="background-color: {{ $color }}; color: {{ $txt }};">
-                                        @if ($item)
-                                            <div class="font-medium">{{ $materia }}</div>
-                                            <div class="text-xs italic font-semibold">{{ $profesor }}</div>
+                                    <td class="border-b border-r border-slate-200 p-2 text-center align-middle dark:border-neutral-700" style="background:{{ $item ? $color : '#ffffff' }};">
+                                        @if($item)
+                                            <div class="font-black leading-tight text-black drop-shadow-[0_1px_0_rgba(255,255,255,.3)]">{{ $materia?->nombre ?? 'Materia no disponible' }}</div>
+                                            <div class="mt-1 text-[10px] font-bold italic leading-tight text-black/80">{{ $prof ? trim($prof->nombre.' '.$prof->apellido_paterno.' '.$prof->apellido_materno) : 'SIN PROFESOR' }}</div>
                                         @endif
                                     </td>
                                 @endforeach
                             </tr>
+                            @if($insertarReceso)
+                                <tr>
+                                    <td class="sticky left-0 z-10 border-b border-r border-slate-200 bg-slate-100 px-3 py-2 text-center font-black text-slate-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-slate-200">10:00AM-10:30AM</td>
+                                    <td colspan="{{ $columnasUnicas->count() }}" class="border-b border-slate-200 bg-[repeating-linear-gradient(45deg,#f8fafc,#f8fafc_8px,#e2e8f0_8px,#e2e8f0_16px)] py-2 text-center text-xs font-black tracking-[.35em] text-slate-500">RECESO</td>
+                                </tr>
+                            @endif
                         @endforeach
                     </tbody>
                 </table>
             </div>
-        </div>
+        </section>
 
-        <!-- Materias del Profesor y Horas Totales (Semiescolarizada) -->
-        <div class="mt-8">
-            <h4 class="text-lg md:text-xl font-semibold text-neutral-900 dark:text-white mb-4">
-                Materias del Profesor y Horas Totales
-            </h4>
-
-            <!-- Loader recalculo -->
-            <div wire:loading.delay wire:target="busqueda"
-                class="w-full flex flex-col items-center justify-center gap-3 p-6 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 text-center">
-                <svg class="animate-spin h-8 w-8 text-indigo-600 dark:text-indigo-400"
-                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                        stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4z"></path>
-                </svg>
-                <span class="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                    Recalculando materias y horas del profesorado…
-                </span>
+        <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div><h3 class="font-black text-slate-900 dark:text-white">Carga programada por docente</h3><p class="text-xs text-slate-500">Las horas se calculan por duración real de cada bloque, no por cantidad de registros.</p></div>
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 dark:bg-neutral-800 dark:text-slate-200">Total programado: {{ $totalHoras }} h</span>
             </div>
-
-            @php
-                // Preparación de datos para la tabla de profesores
-                $ordenHoras = isset($horas) && is_array($horas) ? array_values($horas) : [];
-                $posHora = $ordenHoras ? array_flip($ordenHoras) : [];
-                $porProfesor = [];
-                foreach ($horarios as $h) {
-                    $asig = $h->asignacionMateria ?? null;
-                    $prof = optional($asig)->profesor;
-                    $mat = optional($asig)->materia;
-
-                    $pid = $prof?->id ?? 'sin';
-                    if (!isset($porProfesor[$pid])) {
-                        $porProfesor[$pid] = [
-                            'profesor' => $prof
-                                ? $prof
-                                : (object) [
-                                    'nombre' => 'Sin asignar',
-                                    'apellido_paterno' => '',
-                                    'apellido_materno' => '',
-                                ],
-                            'color' => $prof?->color ?? '#e5e7eb',
-                            'horas' => 0,
-                            'materias' => [],
-                        ];
-                    }
-                    $porProfesor[$pid]['horas']++;
-
-                    if ($mat) {
-                        if (!isset($porProfesor[$pid]['materias'][$mat->id])) {
-                            $porProfesor[$pid]['materias'][$mat->id] = [
-                                'nombre' => $mat->nombre,
-                                'clave' => $mat->clave,
-                                'licenciatura' => $mat->licenciatura->nombre ?? 'N/A',
-                                'count' => 0,
-                                'slots' => [],
-                            ];
-                        }
-                        $porProfesor[$pid]['materias'][$mat->id]['count']++;
-                        $porProfesor[$pid]['materias'][$mat->id]['slots'][] = [
-                            'dia' => $h->dia->dia ?? 'Día ' . $h->dia_id,
-                            'hora' => $h->hora,
-                        ];
-                    }
-                }
-                // Orden alfabético (los 'sin' van al final)
-                uksort($porProfesor, function ($a, $b) use ($porProfesor) {
-                    if ($a === 'sin' && $b === 'sin') {
-                        return 0;
-                    }
-                    if ($a === 'sin') {
-                        return 1;
-                    }
-                    if ($b === 'sin') {
-                        return -1;
-                    }
-                    $na = trim(
-                        ($porProfesor[$a]['profesor']->nombre ?? '') .
-                            ' ' .
-                            ($porProfesor[$a]['profesor']->apellido_paterno ?? '') .
-                            ' ' .
-                            ($porProfesor[$a]['profesor']->apellido_materno ?? ''),
-                    );
-                    $nb = trim(
-                        ($porProfesor[$b]['profesor']->nombre ?? '') .
-                            ' ' .
-                            ($porProfesor[$b]['profesor']->apellido_paterno ?? '') .
-                            ' ' .
-                            ($porProfesor[$b]['profesor']->apellido_materno ?? ''),
-                    );
-                    return mb_strtolower($na, 'UTF-8') <=> mb_strtolower($nb, 'UTF-8');
-                });
-                $totalHoras = array_sum(array_map(fn($x) => $x['horas'], $porProfesor));
-
-                $formatearChips = function (array $slots) use ($posHora) {
-                    $porDia = [];
-                    foreach ($slots as $s) {
-                        $porDia[$s['dia']][] = $s['hora'];
-                    }
-                    $chips = [];
-                    foreach ($porDia as $dia => $horasDia) {
-                        if ($posHora) {
-                            usort($horasDia, fn($a, $b) => ($posHora[$a] ?? 999) <=> ($posHora[$b] ?? 999));
-                        } else {
-                            sort($horasDia);
-                        }
-                        $chips[] = ['dia' => $dia, 'horas' => $horasDia];
-                    }
-                    return $chips;
-                };
-            @endphp
-
-            <div wire:loading.remove wire:target="busqueda"
-                class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden">
-                @if (count($porProfesor))
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm">
-                            <thead class="bg-neutral-100 dark:bg-neutral-700">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
-                                        #</th>
-                                    <th
-                                        class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
-                                        Profesor</th>
-                                    <th
-                                        class="px-4 py-3 font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
-                                        Materia (horas) y desglose por día</th>
-                                    <th
-                                        class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
-                                        Total de Horas</th>
-                                    <th
-                                        class="px-4 py-3 text-center font-semibold text-neutral-700 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
-                                        Horario</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php $i=1; @endphp
-                                @foreach ($porProfesor as $pid => $data)
-                                    @php
-                                        $p = $data['profesor'];
-                                        $profColor = $data['color'] ?? '#e5e7eb';
-                                        $txtColor = esColorOscuro($profColor) ? '#ffffff' : '#222222';
-                                        $nombre = trim(
-                                            ($p->nombre ?? '') .
-                                                ' ' .
-                                                ($p->apellido_paterno ?? '') .
-                                                ' ' .
-                                                ($p->apellido_materno ?? ''),
-                                        );
-                                    @endphp
-                                    <tr class="odd:bg-neutral-50/60 dark:odd:bg-neutral-800/60">
-                                        <td
-                                            class="px-4 py-3 text-center font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
-                                            {{ $i++ }}</td>
-                                        <td
-                                            class="px-4 py-3 text-center border-b border-neutral-200 dark:border-neutral-700">
-                                            <span class="inline-block px-2 py-1 rounded-md"
-                                                style="background-color: {{ $profColor }}; color: {{ $txtColor }};">
-                                                {{ $nombre ?: 'Sin asignar' }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700">
-                                            @if (count($data['materias']))
-                                                <ul class="space-y-2">
-                                                    @foreach ($data['materias'] as $m)
-                                                        @php $chips = $formatearChips($m['slots']); @endphp
-                                                        <li
-                                                            class="rounded-lg border border-neutral-200 dark:border-neutral-700 p-2">
-                                                            <div class="flex items-center justify-between gap-2">
-                                                                <div
-                                                                    class="font-medium text-neutral-900 dark:text-neutral-100">
-                                                                    {{ $m['nombre'] }}
-                                                                    <span
-                                                                        class="text-xs text-neutral-500">({{ $m['clave'] }})</span>
-                                                                    <span
-                                                                        class="text-xs text-neutral-500">({{ $m['licenciatura'] }})</span>
-                                                                </div>
-                                                                <span
-                                                                    class="inline-flex items-center text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
-                                                                    {{ $m['count'] }} h
-                                                                </span>
-                                                            </div>
-                                                            @if (count($chips))
-                                                                <div class="mt-2 flex flex-wrap gap-1">
-                                                                    @foreach ($chips as $c)
-                                                                        <span
-                                                                            class="inline-flex items-center text-[11px] px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200">
-                                                                            <strong
-                                                                                class="mr-1">{{ $c['dia'] }}:</strong>
-                                                                            {{ implode(', ', $c['horas']) }}
-                                                                        </span>
-                                                                    @endforeach
-                                                                </div>
-                                                            @endif
-                                                        </li>
-                                                    @endforeach
-                                                </ul>
-                                            @else
-                                                <span class="text-neutral-400 italic">Sin materias</span>
-                                            @endif
-                                        </td>
-                                        <td
-                                            class="px-4 py-3 text-center font-medium text-neutral-900 dark:text-neutral-100 border-b border-neutral-200 dark:border-neutral-700">
-                                            {{ $data['horas'] }}
-                                            <div class="text-[11px] text-neutral-500">Total de horas</div>
-                                        </td>
-                                        <td
-                                            class="px-4 py-3 text-center border-b border-neutral-200 dark:border-neutral-700">
-                                            @if ($pid !== 'sin')
-                                                <form
-                                                    action="{{ route('admin.pdf.horario-docente-semiescolarizada') }}"
-                                                    method="GET" target="_blank">
-                                                    <input type="hidden" name="profesor_id"
-                                                        value="{{ $pid }}">
-                                                    <input type="hidden" name="modalidad_id" value="2">
-                                                    <button type="submit"
-                                                        class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg">
-                                                        <flux:icon.file-text />
-                                                        Horario
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <span class="text-neutral-400 text-xs italic">No disponible</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-
-                                <tr>
-                                    <td colspan="5"
-                                        class="px-4 py-4 text-center text-sm font-semibold text-indigo-700 dark:text-indigo-300 border-t border-neutral-200 dark:border-neutral-700">
-                                        Total global de horas: {{ $totalHoras }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+            <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                @foreach($horasPorDocente as $docente)
+                    <div class="flex items-center justify-between rounded-xl border border-slate-200 p-3 dark:border-neutral-800">
+                        <div class="flex min-w-0 items-center gap-2"><span class="h-3 w-3 shrink-0 rounded-full" style="background:{{ $docente['color'] }}"></span><span class="truncate text-xs font-bold text-slate-700 dark:text-slate-200">{{ $docente['nombre'] }}</span></div>
+                        <span class="ml-2 text-xs font-black text-[#006492] dark:text-sky-300">{{ $docente['horas'] }}</span>
                     </div>
-                @else
-                    <div class="p-6 text-center text-neutral-600 dark:text-neutral-300">No hay datos para mostrar.
-                    </div>
-                @endif
-            </div>
-        </div>
-    @endif
-
-
-    {{-- Modal de Preview PDF (reutilizable) --}}
-    <div x-data="{ open: false, url: '', title: '', loaded: false }"
-        x-on:open-pdf-modal.window="
-        open = true;
-        url = $event.detail.url;
-        title = $event.detail.title || 'Documento PDF';
-        loaded = false;
-        document.documentElement.classList.add('overflow-hidden');
-    "
-        x-on:keydown.escape.window="
-        open = false;
-        document.documentElement.classList.remove('overflow-hidden');
-    "
-        x-cloak aria-live="polite">
-        {{-- Overlay --}}
-        <div x-show="open" x-transition.opacity.duration.200ms
-            class="fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm"
-            @click="open=false; document.documentElement.classList.remove('overflow-hidden')" aria-hidden="true">
-        </div>
-
-        {{-- Panel --}}
-        <section x-show="open" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 translate-y-6 sm:translate-y-0 sm:scale-95 blur-sm"
-            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100 blur-0"
-            x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-            x-transition:leave-end="opacity-0 translate-y-6 sm:translate-y-0 sm:scale-95"
-            class="fixed inset-0 z-[90] grid place-items-center p-4" role="dialog" aria-modal="true"
-            :aria-label="title">
-            <div
-                class="relative w-full max-w-5xl rounded-2xl shadow-2xl ring-1 ring-black/5
-                    bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700">
-
-                {{-- Top bar --}}
-                <header
-                    class="flex items-center justify-between px-5 py-3
-                           bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 text-white rounded-t-2xl">
-                    <h3 class="text-base sm:text-lg font-semibold truncate" x-text="title"></h3>
-
-                    <div class="flex items-center gap-2">
-                        <a :href="url" target="_blank" rel="noopener"
-                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25">
-                            {{-- Icono abrir en nueva pestaña --}}
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M14 3h7m0 0v7m0-7L10 14" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 7v12a2 2 0 002 2h12" />
-                            </svg>
-                            <span class="text-sm font-medium">Abrir</span>
-                        </a>
-
-
-
-                        <button type="button" class="ml-1 p-1.5 rounded-lg hover:bg-white/20"
-                            @click="open=false; document.documentElement.classList.remove('overflow-hidden')"
-                            aria-label="Cerrar">
-                            {{-- Icono cerrar --}}
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                </header>
-
-                {{-- Contenido --}}
-                <div class="relative p-4">
-                    {{-- Loader mientras carga el PDF --}}
-                    <div x-show="!loaded" class="absolute inset-0 grid place-items-center">
-                        <div class="flex flex-col items-center gap-2 text-neutral-600 dark:text-neutral-300">
-                            <svg class="animate-spin h-6 w-6" viewBox="0 0 24 24" fill="none">
-                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                    stroke="currentColor" stroke-width="4" />
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                            </svg>
-                            <span class="text-sm">Cargando documento…</span>
-                        </div>
-                    </div>
-
-                    {{-- Iframe del PDF --}}
-                    <iframe :src="url"
-                        class="w-full h-[80vh] rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white"
-                        @load="loaded = true"></iframe>
-                </div>
+                @endforeach
             </div>
         </section>
+    @endif
+
+    <div
+        x-show="pdf"
+        x-cloak
+        x-transition.opacity
+        class="fixed inset-0 z-[120] grid place-items-center bg-black/45 p-4 backdrop-blur-sm"
+        x-on:click.self="cerrarPdf()"
+        x-on:keydown.escape.window="if (pdf) cerrarPdf()"
+        role="dialog"
+        aria-modal="true"
+    >
+        <div class="w-full max-w-[1500px] overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-neutral-900">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
+                <div class="min-w-0">
+                    <h3 class="font-black text-slate-900 dark:text-white">Vista previa · Horario General</h3>
+                    <p class="text-xs text-slate-500">{{ $ciclo_escolar }} · {{ $periodo_escolar }}</p>
+                </div>
+                <div class="flex shrink-0 items-center gap-2">
+                    <a
+                        x-bind:href="pdfUrl"
+                        target="_blank"
+                        rel="noopener"
+                        class="cursor-pointer rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-[#006492] transition hover:bg-sky-50 dark:border-neutral-700 dark:text-sky-300 dark:hover:bg-neutral-800"
+                    >Abrir en pestaña</a>
+                    <button
+                        type="button"
+                        x-on:click="cerrarPdf()"
+                        class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg border border-slate-200 text-slate-600 dark:border-neutral-700 dark:text-slate-300"
+                        aria-label="Cerrar vista previa"
+                    >×</button>
+                </div>
+            </div>
+
+            <div class="relative h-[82vh] bg-slate-100 dark:bg-neutral-950">
+                <div
+                    x-show="!pdfLoaded"
+                    class="absolute inset-0 z-10 grid place-items-center bg-white/90 dark:bg-neutral-900/90"
+                >
+                    <div class="text-center">
+                        <svg class="mx-auto h-8 w-8 animate-spin text-[#006492]" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        </svg>
+                        <p class="mt-2 text-xs font-semibold text-slate-500">Generando vista previa del PDF…</p>
+                    </div>
+                </div>
+
+                {{-- IMPORTANTE: el iframe solo existe cuando el modal está abierto.
+                     Evita src="" (que recarga la página actual dentro del iframe y puede provocar carga recursiva). --}}
+                <template x-if="pdf">
+                    <iframe
+                        x-bind:src="pdfUrl"
+                        x-on:load="pdfLoaded = true"
+                        class="h-full w-full border-0"
+                        title="Vista previa del horario general semiescolarizado"
+                    ></iframe>
+                </template>
+            </div>
+        </div>
     </div>
 
-
-
+    <div x-show="eliminar" x-cloak class="fixed inset-0 z-[130] grid place-items-center bg-black/50 p-4 backdrop-blur-sm" @click.self="eliminar=false">
+        <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-neutral-900">
+            <div class="border-b border-slate-200 p-5 dark:border-neutral-800">
+                <h3 class="text-lg font-black text-rose-700">Eliminar horario por grupo</h3>
+                <p class="mt-1 text-sm text-slate-500">Ya no se elimina toda la modalidad. Solo se borrarán los grupos que selecciones dentro de {{ $ciclo_escolar }} · {{ $periodo_escolar }}.</p>
+            </div>
+            <div class="max-h-[55vh] overflow-y-auto p-5">
+                <div class="mb-3 flex justify-between gap-2">
+                    <span class="text-xs font-bold text-slate-500">{{ count($grupos_eliminar) }} seleccionados</span>
+                    <flux:button wire:click="seleccionarTodosGruposEliminar" variant="ghost" size="sm" class="cursor-pointer">Seleccionar todos</flux:button>
+                </div>
+                <div class="grid gap-2 sm:grid-cols-2">
+                    @foreach($gruposDisponibles as $grupo)
+                        <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 hover:border-rose-300 dark:border-neutral-800">
+                            <input type="checkbox" wire:model.live="grupos_eliminar" value="{{ $grupo['clave_grupo'] }}" class="mt-1 rounded border-slate-300 text-rose-600 focus:ring-rose-600">
+                            <span><b class="block text-sm text-slate-900 dark:text-white">{{ $grupo['licenciatura_corta'] }}</b><span class="text-xs text-slate-500">{{ $grupo['cuatrimestre'] }}° · Gen. {{ $grupo['generacion'] }} · {{ $grupo['registros'] }} registros</span></span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 border-t border-slate-200 p-4 dark:border-neutral-800">
+                <flux:button variant="ghost" @click="eliminar=false" class="cursor-pointer">Cancelar</flux:button>
+                <flux:button variant="danger" wire:click="eliminarGruposSeleccionados" class="cursor-pointer">Eliminar seleccionados</flux:button>
+            </div>
+        </div>
+    </div>
 </div>

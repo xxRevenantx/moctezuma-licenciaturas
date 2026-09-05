@@ -1,134 +1,469 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <title>Horario General Semiescolarizada</title>
+    <title>Horario General Semiescolarizado</title>
     <style>
-  @page { margin: 10px 14px; }
-  body { font-family: 'figtree', sans-serif; font-size: 11px; color:#111; }
-  h2 { margin: 0 0 8px 0; line-height: 1.25; }
-  table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-  th, td { border: 1px solid #000; padding: 6px 4px; text-align: center; word-wrap: break-word; }
-  th { background-color: #eee; font-weight: 700; }
-  .left { text-align: left; }
-  .page-break { page-break-before: always; }
-  /* Cabeceras pegajosas por página (cuando hay saltos) */
-  thead { display: table-header-group; }
-  tfoot { display: table-row-group; }
-  tr { page-break-inside: avoid; }
-  /* Tipos un poco más compactos dentro de celdas de horario */
-  .hora { font-weight: 700; }
-  .materia { font-size: 10px; font-weight: 700; line-height: 1.15; }
-  .prof { font-size: 9px; line-height: 1.1; }
-</style>
+        @page {
+            margin: 78px 20px 34px 20px;
+        }
+
+        /* Dompdf 3.x: no usar box-sizing global ni page-break-inside:avoid alrededor de tablas largas. */
+        @font-face {
+            font-family: 'calibri';
+            src: url('{{ storage_path('fonts/calibri/calibri.ttf') }}') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'calibri';
+            font-weight: 700;
+            src: url('{{ storage_path('fonts/calibri/calibri-bold.ttf') }}') format('truetype');
+        }
+
+        body {
+            margin: 0;
+            font-family: calibri, DejaVu Sans, Arial, sans-serif;
+            color: #0f172a;
+            font-size: 9px;
+        }
+
+        header {
+            position: fixed;
+            top: -67px;
+            left: 0;
+            right: 0;
+            height: 58px;
+            border-bottom: 2px solid #006492;
+        }
+
+        footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: -25px;
+            height: 18px;
+            border-top: 1px solid #cbd5e1;
+            color: #64748b;
+            font-size: 7.5px;
+            padding-top: 5px;
+        }
+
+        .logo-left {
+            position: absolute;
+            left: 2px;
+            top: 7px;
+            height: 45px;
+        }
+
+        .logo-right {
+            position: absolute;
+            right: 2px;
+            top: 8px;
+            height: 42px;
+        }
+
+        .head-center {
+            text-align: center;
+            padding: 5px 90px 0;
+        }
+
+        .school {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f355e;
+            letter-spacing: .3px;
+        }
+
+        .title {
+            margin-top: 1px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .meta {
+            margin-top: 3px;
+            font-size: 8px;
+            color: #475569;
+        }
+
+        .footer-left {
+            float: left;
+            width: 78%;
+        }
+
+        .footer-right {
+            float: right;
+            width: 20%;
+            text-align: right;
+        }
+
+        .page-number:after {
+            content: "Página " counter(page);
+        }
+
+        .watermark {
+            position: fixed;
+            left: 365px;
+            top: 205px;
+            width: 500px;
+            text-align: center;
+            opacity: .028;
+            z-index: -1;
+        }
+
+        .watermark img {
+            width: 100%;
+        }
+
+        .section-title {
+            margin: 0 0 6px;
+            padding: 5px 8px;
+            background: #edf7fb;
+            border-left: 4px solid #006492;
+            font-size: 10px;
+            font-weight: 700;
+            color: #0f355e;
+        }
+
+        .schedule {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+
+        .schedule th,
+        .schedule td {
+            border: 1px solid #64748b;
+            text-align: center;
+            vertical-align: middle;
+            padding: 3px 2px;
+            word-break: break-word;
+        }
+
+        .schedule thead th {
+            background: #e2e8f0;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .hour {
+            width: 66px;
+            font-weight: 700;
+            background: #f8fafc;
+            font-size: 7.5px;
+        }
+
+        .group-name {
+            font-weight: 700;
+            line-height: 1.04;
+        }
+
+        .group-meta {
+            display: block;
+            margin-top: 2px;
+            color: #475569;
+            font-size: 6.8px;
+            font-weight: 400;
+        }
+
+        .subject {
+            font-weight: 700;
+            line-height: 1.05;
+        }
+
+        .teacher {
+            margin-top: 2px;
+            font-size: 6.8px;
+            line-height: 1.02;
+            font-style: italic;
+        }
+
+        .empty {
+            background: #fff;
+        }
+
+        .receso-time {
+            background: #e2e8f0;
+            font-weight: 700;
+        }
+
+        .receso {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 700;
+            letter-spacing: 6px;
+            font-size: 8px;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .block+.block {
+            margin-top: 8px;
+        }
+
+        .legible-block+.legible-block {
+            page-break-before: always;
+        }
+
+        .compacto .schedule th,
+        .compacto .schedule td {
+            padding: 2.2px 1.2px;
+        }
+
+        .compacto .group-name {
+            font-size: 6.6px;
+        }
+
+        .compacto .group-meta {
+            font-size: 5.7px;
+        }
+
+        .compacto .subject {
+            font-size: 6.2px;
+        }
+
+        .compacto .teacher {
+            font-size: 5.4px;
+        }
+
+        .compacto .hour {
+            width: 58px;
+            font-size: 6.4px;
+        }
+
+        .legible .group-name {
+            font-size: 8px;
+        }
+
+        .legible .group-meta {
+            font-size: 6.8px;
+        }
+
+        .legible .subject {
+            font-size: 7.8px;
+        }
+
+        .legible .teacher {
+            font-size: 6.5px;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            border: 1px solid #cbd5e1;
+            padding: 5px 6px;
+            vertical-align: top;
+        }
+
+        .summary-table th {
+            background: #0f355e;
+            color: #fff;
+            font-size: 8px;
+            text-transform: uppercase;
+        }
+
+        .summary-table td {
+            font-size: 7.5px;
+        }
+
+        .pill {
+            display: block;
+            margin: 0 0 2px 0;
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+
+        .summary-total {
+            margin-top: 6px;
+            padding: 6px;
+            background: #edf7fb;
+            border: 1px solid #b8dbea;
+            text-align: right;
+            font-weight: 700;
+        }
+    </style>
 </head>
-<body>
 
-    <h2 style="text-align:center; line-height:18px">
-        Centro Universitario Moctezuma<br>
-        Horario General Semiescolarizada
-    </h2>
+<body class="{{ $modo }}">
+    @php
+        $pastel = function (?string $hex, float $mezcla = 0.78) {
+            $hex = ltrim((string) ($hex ?: '#cbd5e1'), '#');
+            if (strlen($hex) === 3) {
+                $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+            }
+            if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
+                $hex = 'cbd5e1';
+            }
+            $r = hexdec(substr($hex, 0, 2));
+            $g = hexdec(substr($hex, 2, 2));
+            $b = hexdec(substr($hex, 4, 2));
+            $r = (int) round($r + (255 - $r) * $mezcla);
+            $g = (int) round($g + (255 - $g) * $mezcla);
+            $b = (int) round($b + (255 - $b) * $mezcla);
+            return sprintf('#%02x%02x%02x', $r, $g, $b);
+        };
+        $esFinReceso = function ($hora) {
+            $partes = array_map('trim', explode('-', strtolower((string) $hora), 2));
+            if (count($partes) !== 2) {
+                return false;
+            }
+            $ts = strtotime($partes[1]);
+            return $ts !== false && date('H:i', $ts) === '10:00';
+        };
+    @endphp
 
-    {{-- Tabla de horarios por Cuatrimestre/Licenciatura --}}
-    <table>
-        <thead>
-            <tr>
-                <th>Hora</th>
-                @foreach($columnasUnicas as $col)
-                    <th>{{ $col['etiqueta'] }}</th>
-                @endforeach
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($horasUnicas as $hora)
-                <tr>
-                    <td><strong>{{ $hora }}</strong></td>
-                    @foreach ($columnasUnicas as $col)
-                        @php
-                            $item = $horarios->first(function ($h) use ($hora, $col) {
-                                return $h->hora === $hora
-                                    && $h->cuatrimestre_id === $col['cuatrimestre_id']
-                                    && $h->licenciatura_id === $col['licenciatura_id'];
-                            });
+    <header>
+        <img class="logo-left" src="{{ public_path('storage/letra2.jpg') }}" alt="Centro Universitario Moctezuma">
+        <img class="logo-right" src="{{ public_path('storage/letra.png') }}" alt="Centro Universitario Moctezuma">
+        <div class="head-center">
+            <div class="school">CENTRO UNIVERSITARIO MOCTEZUMA</div>
+            <div class="title">HORARIO GENERAL · {{ mb_strtoupper($modalidad?->nombre ?? 'SEMIESCOLARIZADA') }}</div>
+            <div class="meta">Ciclo {{ $cicloEscolar }} · Periodo {{ $periodoEscolar }} · C.C.T.
+                {{ $escuela?->CCT ?? '—' }} · Versión {{ mb_strtoupper($modo) }}</div>
+        </div>
+    </header>
 
-                            $materia     = optional(optional($item)->asignacionMateria)->materia?->nombre;
-                            $profesorObj = optional(optional($item)->asignacionMateria)->profesor;
-                            $profesor    = $profesorObj
-                                ? trim($profesorObj->nombre . ' ' . $profesorObj->apellido_paterno . ' ' . $profesorObj->apellido_materno)
-                                : '';
-                            $color       = $profesorObj?->color ?? '#FFFFFF';
+    <footer>
+        <div class="footer-left">
+            {{ $escuela?->nombre ?? 'Centro Universitario Moctezuma' }} · Generado:
+            {{ $fechaGeneracion->format('d/m/Y H:i') }}
+        </div>
+        <div class="footer-right"><span class="page-number"></span></div>
+    </footer>
 
-                            // Texto negro/blanco según luminancia
-                            $r = hexdec(substr($color,1,2)); $g = hexdec(substr($color,3,2)); $b = hexdec(substr($color,5,2));
-                            $l = (0.299*$r + 0.587*$g + 0.114*$b);
-                            $textoColor = $l > 186 ? '#000000' : '#FFFFFF';
-                        @endphp
-                        <td style="background-color: {{ $color }}; color: {{ $textoColor }}; min-height: 34px;">
-                            @if ($item)
-                                <div class="materia">{{ $materia }}</div>
-                                <div class="prof">{{ $profesor }}</div>
-                            @endif
-                            </td>
-                    @endforeach
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+    <div class="watermark"><img src="{{ public_path('storage/letra.png') }}" alt=""></div>
 
-    <div class="page-break"></div>
-
-    {{-- ===== Materias del Profesor y Horas Totales ===== --}}
-    <h2 style="text-align:center; margin: 6px 0 10px;">Materias del Profesor y Horas Totales</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Profesor</th>
-                <th>Materias (únicas)</th>
-                <th>Total de horas</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($resumenDocentes as $row)
+    <main>
+        @if ($horarios->isEmpty())
+            <div style="margin-top:30px; text-align:center; padding:30px; border:1px solid #cbd5e1;">
+                <strong>No hay horarios para los filtros seleccionados.</strong>
+            </div>
+        @else
+            @foreach ($bloques as $bloqueIndex => $columnasBloque)
                 @php
-                    $bg = $row['color'] ?? '#e5e7eb';
-                    $r = hexdec(substr($bg,1,2)); $g = hexdec(substr($bg,3,2)); $b = hexdec(substr($bg,5,2));
-                    $l = (0.299*$r + 0.587*$g + 0.114*$b);
-                    $txt = $l > 186 ? '#000' : '#FFF';
+                    $primerCol = $columnasBloque->first();
+                    $tituloBloque =
+                        $modo === 'compacto'
+                            ? 'Horario consolidado'
+                            : ($primerCol['cuatrimestre'] ?? ($primerCol['cuatrimestre_id'] ?? '—')) . '° CUATRIMESTRE';
                 @endphp
-                <tr>
-                    <td style="background-color: {{ $bg }}; color: {{ $txt }}; font-weight:600;">
-                        {{ $row['nombre'] }}
-                    </td>
-                    <td class="left">
-                        @if(count($row['materias']))
-                            @foreach($row['materias'] as $m)
-                                • {{ $m['nombre'] }}
-                                  <span style="color:#555;">({{ $m['clave'] }})</span>
-                                  — Lic.: <span style="color:#444;">{{ $m['licenciatura'] }}</span><br>
+                <section class="{{ $modo === 'legible' ? 'legible-block' : '' }}">
+                    <div class="section-title">{{ $tituloBloque }} · {{ $columnasBloque->count() }} grupo(s)</div>
+                    @php
+                        $cantidadGrupos = max(1, $columnasBloque->count());
+                        $anchoHora = $modo === 'compacto' ? 4.5 : 7.5;
+                        $anchoGrupo = (100 - $anchoHora) / $cantidadGrupos;
+                    @endphp
+                    <table class="schedule">
+                        <colgroup>
+                            <col style="width:{{ number_format($anchoHora, 3, '.', '') }}%;">
+                            @foreach ($columnasBloque as $col)
+                                <col style="width:{{ number_format($anchoGrupo, 3, '.', '') }}%;">
                             @endforeach
-                        @else
-                            <em style="color:#888;">Sin materias</em>
-                        @endif
-                    </td>
-                    <td>{{ $row['total_horas'] }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="3">Sin información de docentes.</td>
-                </tr>
-            @endforelse
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="hour">HORA</th>
+                                @foreach ($columnasBloque as $col)
+                                    <th>
+                                        <div class="group-name">{{ mb_strtoupper($col['licenciatura_corta']) }}</div>
+                                        <span class="group-meta">{{ $col['cuatrimestre'] }}° · GEN.
+                                            {{ $col['generacion'] }}</span>
+                                    </th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($horasUnicas as $hora)
+                                <tr>
+                                    <td class="hour">{{ strtoupper($hora) }}</td>
+                                    @foreach ($columnasBloque as $col)
+                                        @php
+                                            $key =
+                                                $hora .
+                                                '|' .
+                                                $col['cuatrimestre_id'] .
+                                                '|' .
+                                                $col['licenciatura_id'] .
+                                                '|' .
+                                                $col['generacion_id'];
+                                            $item = $celdas->get($key);
+                                            $materia = $item?->asignacionMateria?->materia;
+                                            $profesor = $item?->asignacionMateria?->profesor;
+                                            $fondo = $item ? $pastel($profesor?->color) : '#ffffff';
+                                        @endphp
+                                        <td class="{{ $item ? '' : 'empty' }}"
+                                            style="background-color:{{ $fondo }};">
+                                            @if ($item)
+                                                <div class="subject">{{ $materia?->nombre ?? 'Materia no disponible' }}
+                                                </div>
+                                                <div class="teacher">
+                                                    {{ $profesor ? mb_strtoupper(trim($profesor->nombre . ' ' . $profesor->apellido_paterno . ' ' . $profesor->apellido_materno)) : 'SIN PROFESOR' }}
+                                                </div>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                </tr>
+                                @if ($esFinReceso($hora))
+                                    <tr>
+                                        <td class="receso-time">10:00AM-10:30AM</td>
+                                        <td class="receso" colspan="{{ $columnasBloque->count() }}">RECESO</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        </tbody>
+                    </table>
+                </section>
+            @endforeach
 
-            <tr>
-                <td colspan="3" style="text-align:center; font-weight:700;">
-                    Total general de horas: {{ $totalGeneralHoras }}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
+            <div class="page-break"></div>
+            <section>
+                <div class="section-title">RESUMEN DE CARGA DOCENTE</div>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th style="width:24%">Profesor</th>
+                            <th>Materias</th>
+                            <th style="width:12%">Horas programadas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($resumenDocentes as $row)
+                            <tr>
+                                <td style="background:{{ $pastel($row['color'], 0.84) }}; font-weight:700;">
+                                    {{ $row['nombre'] }}</td>
+                                <td>
+                                    @forelse($row['materias'] as $m)
+                                        <div class="pill"><strong>{{ $m['nombre'] }}</strong>
+                                            @if ($m['clave'])
+                                                ({{ $m['clave'] }})
+                                            @endif · {{ $m['licenciatura'] }}
+                                        </div>
+                                    @empty
+                                        Sin materias
+                                    @endforelse
+                                </td>
+                                <td style="text-align:center; font-weight:700;">{{ $row['total_horas'] }} h</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" style="text-align:center;">Sin información de docentes.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                <div class="summary-total">TOTAL PROGRAMADO: {{ $totalGeneralHoras }} h</div>
+            </section>
+        @endif
+    </main>
 </body>
+
 </html>

@@ -120,6 +120,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::resource('horario-general', HorarioGeneralController::class)->middleware('can:admin.administracion')->names('admin.horario-general');
+    Route::view('/asignacion-docente', 'admin.asignacion-docente.index')->middleware('can:admin.administracion')->name('admin.asignacion-docente.index');
     Route::get('/calificaciones-docente', [CalificacionesDocenteController::class, 'index'])->middleware('can:calificaciones-docente.ver')->name('admin.calificaciones-docente.index');
     Route::get('/calificaciones-docente/reporte/pdf', [CalificacionesDocenteController::class, 'pdf'])->middleware('can:calificaciones-docente.ver')->name('admin.calificaciones-docente.pdf');
     Route::get('/calificaciones-docente/reporte/excel', [CalificacionesDocenteController::class, 'excel'])->middleware('can:calificaciones-docente.ver')->name('admin.calificaciones-docente.excel');

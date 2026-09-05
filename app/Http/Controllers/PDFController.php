@@ -22,6 +22,7 @@ use App\Models\Modalidad;
 use App\Models\Periodo;
 use App\Models\Profesor;
 use App\Services\Boletas\BoletaService;
+use App\Services\HorarioGeneralService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -1320,93 +1321,106 @@ class PDFController extends Controller
 
     // HORARIO GENERAL SEMIESCOLARIZADA
 
-    public function horario_general_semiescolarizada()
+    public function horario_general_semiescolarizada(Request $request)
     {
-        $horarios = Horario::with([
-            'asignacionMateria.materia.licenciatura',
-            'asignacionMateria.profesor',
-            'licenciatura',
-            'dia',
-        ])
-            ->where('modalidad_id', 2)
-            ->get();
+        $dashboard = Dashboard::query()->latest('id')->first();
+        $cicloEscolar = trim((string) $request->input('ciclo_escolar', $dashboard?->ciclo_escolar ?? ''));
+        $periodoEscolar = trim((string) $request->input('periodo_escolar', ''));
+        $modo = $request->input('modo') === 'compacto' ? 'compacto' : 'legible';
 
-        // Columnas únicas (Cuat. + Lic.)
-        $columnasUnicas = $horarios
-            ->unique(fn($item) => $item->cuatrimestre_id . '-' . $item->licenciatura_id)
-            ->map(fn($item) => [
-                'cuatrimestre_id' => $item->cuatrimestre_id,
-                'licenciatura_id' => $item->licenciatura_id,
-                'etiqueta' => "Cuat. {$item->cuatrimestre_id} - Lic. " . (
-                    $item->licenciatura->nombre_corto ?? $item->licenciatura->nombre
-                ),
-            ])
-            ->sortBy(fn($col) => sprintf('%03d-%03d', $col['licenciatura_id'], $col['cuatrimestre_id']))
-            ->values();
+        if ($periodoEscolar === '') {
+            if ($dashboard && $dashboard->ciclo_escolar === $cicloEscolar) {
+                $periodoEscolar = (string) $dashboard->periodo_escolar;
+            } else {
+                $periodoEscolar = (string) (Periodo::query()
+                    ->where('ciclo_escolar', $cicloEscolar)
+                    ->with('mes:id,meses_corto')
+                    ->orderBy('mes_id')
+                    ->first()?->mes?->meses_corto ?? '');
+            }
+        }
 
-        // Horas únicas (ASC por hora inicial)
-        $horasUnicas = $horarios->pluck('hora')
-            ->unique()
-            ->sortBy(function ($hora) {
-                $inicio = trim(explode('-', (string) $hora)[0] ?? '');
-                return strtotime(strtolower($inicio)) ?: 0;
-            })
-            ->values();
+        $filtros = [
+            'cuatrimestre_id' => $request->integer('cuatrimestre_id') ?: null,
+            'licenciatura_id' => $request->integer('licenciatura_id') ?: null,
+            'generacion_id' => $request->integer('generacion_id') ?: null,
+        ];
+
+        $servicio = app(HorarioGeneralService::class);
+        $horarios = $servicio->horarios(2, $cicloEscolar, $filtros, null, $periodoEscolar ?: null);
+        $columnasUnicas = $servicio->columnas($horarios);
+        $horasUnicas = $servicio->horas($horarios);
+        $celdas = $servicio->celdas($horarios);
+
+        $bloques = $modo === 'compacto'
+            ? collect([$columnasUnicas])
+            : $columnasUnicas->groupBy('cuatrimestre_id')->values();
 
         $resumenDocentes = $horarios
-            ->groupBy(function ($h) {
-                return optional(optional($h->asignacionMateria)->profesor)->id ?: 'sin';
-            })
-            ->map(function ($items) {
-                $prof = optional(optional($items->first()->asignacionMateria)->profesor);
+            ->groupBy(fn ($h) => $h->asignacionMateria?->profesor?->id ?: 'sin')
+            ->map(function ($items) use ($servicio) {
+                $prof = $items->first()->asignacionMateria?->profesor;
                 $materias = $items->map(function ($i) {
-                    $m = optional(optional($i->asignacionMateria)->materia);
-                    if (!$m)
-                        return null;
+                    $m = $i->asignacionMateria?->materia;
+                    if (! $m) return null;
                     return [
                         'id' => $m->id,
                         'nombre' => $m->nombre,
                         'clave' => $m->clave,
-                        'licenciatura' => optional($m->licenciatura)->nombre ?? 'N/A',
+                        'licenciatura' => $i->licenciatura?->nombre_corto ?: ($i->licenciatura?->nombre ?? 'N/A'),
                     ];
-                })
-                    ->filter()
-                    ->unique('id')
-                    ->values();
+                })->filter()->unique(fn ($m) => $m['id'] . ':' . $m['licenciatura'])->values();
 
+                $minutos = $items->sum(fn ($h) => $servicio->minutosRango($h->hora));
                 $nombre = trim(
-                    ($prof->nombre ?? 'Sin asignar') . ' ' .
-                        ($prof->apellido_paterno ?? '') . ' ' .
-                        ($prof->apellido_materno ?? '')
+                    ($prof->apellido_paterno ?? '') . ' ' .
+                    ($prof->apellido_materno ?? '') . ' ' .
+                    ($prof->nombre ?? 'Sin asignar')
                 );
 
                 return [
                     'nombre' => preg_replace('/\s+/', ' ', $nombre),
-                    'color' => $prof->color ?? '#e5e7eb',
+                    'color' => $prof->color ?? '#cbd5e1',
                     'materias' => $materias,
-                    'total_horas' => $items->count(),
+                    'minutos' => $minutos,
+                    'total_horas' => $servicio->formatoHoras($minutos),
                 ];
             })
             ->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)
             ->values();
 
+        $totalMinutos = (int) $resumenDocentes->sum('minutos');
+        $escuela = Escuela::query()->first();
+        $modalidad = Modalidad::query()->find(2);
+
         $data = [
             'horarios' => $horarios,
             'columnasUnicas' => $columnasUnicas,
+            'bloques' => $bloques,
             'horasUnicas' => $horasUnicas,
+            'celdas' => $celdas,
             'resumenDocentes' => $resumenDocentes,
-            'totalGeneralHoras' => $resumenDocentes->sum('total_horas'),
+            'totalGeneralHoras' => $servicio->formatoHoras($totalMinutos),
+            'cicloEscolar' => $cicloEscolar,
+            'periodoEscolar' => $periodoEscolar,
+            'modo' => $modo,
+            'escuela' => $escuela,
+            'modalidad' => $modalidad,
+            'fechaGeneracion' => now('America/Mexico_City'),
         ];
 
-        // Doble carta horizontal (17x11) — orientación portrait para mantener 1224x792 sin rotar
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+        $pdf = Pdf::loadView(
             'livewire.admin.licenciaturas.submodulo.pdf.horarioGeneralSemiescolarizada',
             $data
         )->setPaper([0, 0, 1224, 792], 'portrait');
 
-        return $pdf->stream('horario_general-semiescolarizada.pdf');
-    }
+        $cicloArchivo = strtoupper(Str::slug($cicloEscolar, '-'));
+        $periodoArchivo = strtoupper(Str::slug($periodoEscolar, '-'));
 
+        return $pdf->stream(
+            'HORARIO_GENERAL_SEMIESCOLARIZADO_' . $cicloArchivo . '_' . $periodoArchivo . '_' . strtoupper($modo) . '.pdf'
+        );
+    }
 
 
 

@@ -75,6 +75,7 @@
                                 <flux:navlist.item icon="identification" :href="route('admin.profesor.credencial_profesor')" :current="request()->routeIs('admin.profesor.credencial_profesor')" wire:navigate>{{ __('Credencial') }}</flux:navlist.item>
                             </flux:navlist.group>
 
+                            <flux:navlist.item icon="user-group" :href="route('admin.asignacion-docente.index')" :current="request()->routeIs('admin.asignacion-docente.*')" wire:navigate>{{ __('Asignación docente') }}</flux:navlist.item>
                             <flux:navlist.item icon="calendar-days" :href="route('admin.horario-general.index')" :current="request()->routeIs('admin.horario-general.index')" wire:navigate>{{ __('Horario General') }}</flux:navlist.item>
                         @endcan
 
