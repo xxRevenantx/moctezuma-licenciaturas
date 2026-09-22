@@ -1914,27 +1914,60 @@ class PDFController extends Controller
     // HORARIO DOCENTE SEMIESCOLARIZADA
     public function horario_docente_semiescolarizada(Request $request)
     {
-        $profesor_id = (int) $request->input('profesor_id');
-        $modalidad_id = (int) $request->input('modalidad_id', 2); // 2 = Semiescolarizada
+        $datos = $request->validate([
+            'profesor_id' => ['required', 'integer', 'exists:profesores,id'],
+            'ciclo_escolar' => ['nullable', 'string', 'max:20'],
+            'periodo_escolar' => ['nullable', 'string', 'max:30'],
+            'cuatrimestre_id' => ['nullable', 'integer', 'exists:cuatrimestres,id'],
+            'licenciatura_id' => ['nullable', 'integer', 'exists:licenciaturas,id'],
+            'generacion_id' => ['nullable', 'integer', 'exists:generaciones,id'],
+        ]);
 
-        $profesor = Profesor::findOrFail($profesor_id);
-        $modalidad = Modalidad::findOrFail($modalidad_id);
-        $escuela = Escuela::first();
+        $profesorId = (int) $datos['profesor_id'];
+        $dashboard = Dashboard::query()->latest('id')->first();
+        $cicloEscolar = trim((string) ($datos['ciclo_escolar'] ?? $dashboard?->ciclo_escolar ?? ''));
+        $periodoEscolar = trim((string) ($datos['periodo_escolar'] ?? ''));
 
-        $registros = Horario::with([
-            'asignacionMateria.materia.licenciatura',
-            'asignacionMateria.profesor',
-            'licenciatura',
-            'dia',
-        ])
-            ->where('modalidad_id', $modalidad_id)
-            ->whereHas('asignacionMateria', fn($q) => $q->where('profesor_id', $profesor_id))
-            // 8:00am-9:00am -> toma la hora de inicio y ordena ASC (más temprano primero)
-            ->orderByRaw("STR_TO_DATE(LOWER(TRIM(SUBSTRING_INDEX(hora,'-',1))), '%h:%i%p') ASC")
-            ->get();
+        if ($periodoEscolar === '') {
+            if ($dashboard && $dashboard->ciclo_escolar === $cicloEscolar) {
+                $periodoEscolar = (string) $dashboard->periodo_escolar;
+            } else {
+                $periodoEscolar = (string) (Periodo::query()
+                    ->where('ciclo_escolar', $cicloEscolar)
+                    ->with('mes:id,meses_corto')
+                    ->orderBy('mes_id')
+                    ->first()?->mes?->meses_corto ?? '');
+            }
+        }
 
+        $profesor = Profesor::findOrFail($profesorId);
+        $modalidad = Modalidad::findOrFail(2);
+        $escuela = Escuela::query()->first();
+        $servicio = app(HorarioGeneralService::class);
 
-        $data = compact('profesor', 'modalidad', 'escuela', 'registros');
+        $filtros = [
+            'profesor_id' => $profesorId,
+            'cuatrimestre_id' => isset($datos['cuatrimestre_id']) ? (int) $datos['cuatrimestre_id'] : null,
+            'licenciatura_id' => isset($datos['licenciatura_id']) ? (int) $datos['licenciatura_id'] : null,
+            'generacion_id' => isset($datos['generacion_id']) ? (int) $datos['generacion_id'] : null,
+        ];
+
+        $registros = $servicio->horarios(
+            2,
+            $cicloEscolar,
+            $filtros,
+            null,
+            $periodoEscolar ?: null,
+        );
+
+        $data = [
+            'profesor' => $profesor,
+            'modalidad' => $modalidad,
+            'escuela' => $escuela,
+            'registros' => $registros,
+            'cicloEscolar' => $cicloEscolar,
+            'periodoEscolar' => $periodoEscolar,
+        ];
 
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.horarioDocenteSemiescolarizadaPDF', $data)
             ->setPaper('letter', 'landscape');

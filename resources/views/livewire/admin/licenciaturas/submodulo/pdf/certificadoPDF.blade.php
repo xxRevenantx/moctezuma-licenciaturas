@@ -122,7 +122,8 @@
                         {{ $licenciatura->nombre }} </b> <br>
                     CON RECONOCIMIENTO DE VALIDEZ OFICIAL DE ESTUDIOS DE LA SECRETARÍA DE EDUCACIÓN GUERRERO.
                     SEGÚN ACUERDO NÚMERO: <b><u>{{ $licenciatura->RVOE }}</u></b>, DE FECHA
-                    <b><u>{{ mb_strtoupper($licenciatura->fecha_acuerdo_formateada ?? 'FECHA NO REGISTRADA', 'UTF-8') }}</u></b>, Y CON CLAVE
+                    <b><u>{{ mb_strtoupper($licenciatura->fecha_acuerdo_formateada ?? 'FECHA NO REGISTRADA', 'UTF-8') }}</u></b>,
+                    Y CON CLAVE
                     CENTRO DE TRABAJO <b>{{ $escuela->CCT }}.
                 </p>
 
@@ -539,6 +540,7 @@
         $anio = anioALetras($fechaObj->year);
 
         $nombreJefe = "{$jefe->nombre} {$jefe->apellido_paterno} {$jefe->apellido_materno}";
+        $cargoJefe = "{$jefe->cargo}";
         $nombreRevisado = "{$revisado->nombre} {$revisado->apellido_paterno} {$revisado->apellido_materno}";
     @endphp
 
@@ -586,9 +588,9 @@
                 style="border:1px solid #000; width:250px; text-align:center; font-size:16px; border-bottom:1px transparent">
                 REVISADO Y CONFRONTADO POR:</td>
             <td style="width:220px"></td>
-            <td style="border:1px solid #000; width:250px; text-align:center; font-size:16px; line-height:13px ">
-                ENCARGADO
-                DEL DEPARTAMENTO DE <br> REGISTRO Y CERTIFICACIÓN SEG</td>
+            <td
+                style="border:1px solid #000; width:250px; text-align:center; font-size:16px; line-height:13px; text-transform:uppercase;">
+                {{ $cargoJefe }} SEG</td>
         </tr>
         <tr>
             <td

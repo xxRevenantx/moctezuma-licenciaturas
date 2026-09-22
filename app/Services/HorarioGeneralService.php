@@ -43,7 +43,7 @@ class HorarioGeneralService
     }
 
     /**
-     * @param array{cuatrimestre_id?:int|null,licenciatura_id?:int|null,generacion_id?:int|null} $filtros
+     * @param array{cuatrimestre_id?:int|null,licenciatura_id?:int|null,generacion_id?:int|null,profesor_id?:int|null} $filtros
      */
     public function horarios(int $modalidadId, string $cicloEscolar, array $filtros = [], ?string $busqueda = null, ?string $periodoEscolar = null): Collection
     {
@@ -65,6 +65,11 @@ class HorarioGeneralService
             if (! empty($filtros[$campo])) {
                 $query->where($campo, (int) $filtros[$campo]);
             }
+        }
+
+        if (! empty($filtros['profesor_id'])) {
+            $profesorId = (int) $filtros['profesor_id'];
+            $query->whereHas('asignacionMateria', fn (Builder $asignacion) => $asignacion->where('profesor_id', $profesorId));
         }
 
         $termino = trim((string) $busqueda);

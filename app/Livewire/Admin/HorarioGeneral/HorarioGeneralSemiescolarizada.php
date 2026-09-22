@@ -193,22 +193,6 @@ class HorarioGeneralSemiescolarizada extends Component
         $horas = $servicio->horas($horarios);
         $celdas = $servicio->celdas($horarios);
 
-        $horasPorDocente = $horarios
-            ->groupBy(fn ($h) => $h->asignacionMateria?->profesor?->id ?: 'sin')
-            ->map(function ($items) use ($servicio) {
-                $profesor = $items->first()->asignacionMateria?->profesor;
-                $minutos = $items->sum(fn ($h) => $servicio->minutosRango($h->hora));
-                return [
-                    'id' => $profesor?->id,
-                    'nombre' => trim(($profesor?->apellido_paterno ?? '') . ' ' . ($profesor?->apellido_materno ?? '') . ' ' . ($profesor?->nombre ?? 'Sin asignar')),
-                    'color' => $profesor?->color ?? '#cbd5e1',
-                    'minutos' => $minutos,
-                    'horas' => $servicio->formatoHoras($minutos),
-                ];
-            })
-            ->sortBy('nombre')
-            ->values();
-
         $paramsPdf = array_filter([
             'ciclo_escolar' => $this->ciclo_escolar,
             'periodo_escolar' => $this->periodo_escolar,
@@ -216,6 +200,32 @@ class HorarioGeneralSemiescolarizada extends Component
             'licenciatura_id' => $this->filtrar_licenciatura,
             'generacion_id' => $this->filtrar_generacion,
         ], fn ($v) => $v !== '' && $v !== null);
+
+        $horasPorDocente = $horarios
+            ->groupBy(fn ($h) => $h->asignacionMateria?->profesor?->id ?: 'sin')
+            ->map(function ($items) use ($servicio, $paramsPdf) {
+                $profesor = $items->first()->asignacionMateria?->profesor;
+                $minutos = $items->sum(fn ($h) => $servicio->minutosRango($h->hora));
+                $materias = $items
+                    ->pluck('asignacion_materia_id')
+                    ->filter()
+                    ->unique()
+                    ->count();
+
+                return [
+                    'id' => $profesor?->id,
+                    'nombre' => trim(($profesor?->apellido_paterno ?? '') . ' ' . ($profesor?->apellido_materno ?? '') . ' ' . ($profesor?->nombre ?? 'Sin asignar')),
+                    'color' => $profesor?->color ?? '#cbd5e1',
+                    'minutos' => $minutos,
+                    'horas' => $servicio->formatoHoras($minutos),
+                    'materias' => $materias,
+                    'url' => $profesor?->id
+                        ? route('admin.pdf.horario-docente-semiescolarizada', $paramsPdf + ['profesor_id' => $profesor->id])
+                        : null,
+                ];
+            })
+            ->sortBy('nombre')
+            ->values();
 
         return view('livewire.admin.horario-general.horario-general-semiescolarizada', [
             'horarios' => $horarios,

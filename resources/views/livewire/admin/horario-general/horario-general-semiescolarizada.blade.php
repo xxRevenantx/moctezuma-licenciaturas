@@ -3,11 +3,13 @@
         pdf: false,
         pdfUrl: 'about:blank',
         pdfLoaded: false,
+        pdfTitulo: 'Horario General',
         eliminar: false,
-        abrirPdf(url) {
+        abrirPdf(url, titulo = 'Horario General') {
             if (!url) return;
             this.pdfLoaded = false;
             this.pdfUrl = url;
+            this.pdfTitulo = titulo;
             this.pdf = true;
             document.documentElement.classList.add('overflow-hidden');
         },
@@ -15,6 +17,7 @@
             this.pdf = false;
             this.pdfLoaded = false;
             this.pdfUrl = 'about:blank';
+            this.pdfTitulo = 'Horario General';
             document.documentElement.classList.remove('overflow-hidden');
         }
     }"
@@ -171,9 +174,29 @@
             </div>
             <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 @foreach($horasPorDocente as $docente)
-                    <div class="flex items-center justify-between rounded-xl border border-slate-200 p-3 dark:border-neutral-800">
-                        <div class="flex min-w-0 items-center gap-2"><span class="h-3 w-3 shrink-0 rounded-full" style="background:{{ $docente['color'] }}"></span><span class="truncate text-xs font-bold text-slate-700 dark:text-slate-200">{{ $docente['nombre'] }}</span></div>
-                        <span class="ml-2 text-xs font-black text-[#006492] dark:text-sky-300">{{ $docente['horas'] }}</span>
+                    <div class="flex min-w-0 items-center gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-sky-300 hover:shadow-sm dark:border-neutral-800 dark:hover:border-sky-900">
+                        <span class="h-3 w-3 shrink-0 rounded-full" style="background:{{ $docente['color'] }}"></span>
+
+                        <div class="min-w-0 flex-1">
+                            <div class="truncate text-xs font-bold text-slate-700 dark:text-slate-200">{{ $docente['nombre'] }}</div>
+                            <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold text-slate-500">
+                                <span>{{ $docente['materias'] }} {{ $docente['materias'] === 1 ? 'materia' : 'materias' }}</span>
+                                <span aria-hidden="true">·</span>
+                                <span class="font-black text-[#006492] dark:text-sky-300">{{ $docente['horas'] }} h</span>
+                            </div>
+                        </div>
+
+                        @if($docente['url'])
+                            <button
+                                type="button"
+                                data-url="{{ $docente['url'] }}"
+                                data-titulo="Horario docente · {{ $docente['nombre'] }}"
+                                x-on:click.prevent="abrirPdf($el.dataset.url, $el.dataset.titulo)"
+                                class="shrink-0 cursor-pointer rounded-lg bg-[#006492] px-2.5 py-1.5 text-[10px] font-black text-white transition hover:bg-[#075a81] focus:outline-none focus:ring-2 focus:ring-sky-300"
+                            >Ver horario</button>
+                        @else
+                            <span class="shrink-0 rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-400 dark:bg-neutral-800">Sin docente</span>
+                        @endif
                     </div>
                 @endforeach
             </div>
@@ -193,7 +216,7 @@
         <div class="w-full max-w-[1500px] overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-neutral-900">
             <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-neutral-800">
                 <div class="min-w-0">
-                    <h3 class="font-black text-slate-900 dark:text-white">Vista previa · Horario General</h3>
+                    <h3 class="font-black text-slate-900 dark:text-white" x-text="'Vista previa · ' + pdfTitulo"></h3>
                     <p class="text-xs text-slate-500">{{ $ciclo_escolar }} · {{ $periodo_escolar }}</p>
                 </div>
                 <div class="flex shrink-0 items-center gap-2">

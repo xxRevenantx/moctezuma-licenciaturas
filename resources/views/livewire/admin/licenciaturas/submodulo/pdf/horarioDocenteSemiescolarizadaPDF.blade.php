@@ -326,6 +326,14 @@
                 {{ mb_strtoupper(trim($profesor->nombre.' '.$profesor->apellido_paterno.' '.$profesor->apellido_materno)) }}
             </td>
         </tr>
+        @if(!empty($cicloEscolar) || !empty($periodoEscolar))
+            <tr>
+                <td style="font-size: 12px;">
+                    <strong>PERIODO ACADÉMICO:</strong>
+                    {{ $cicloEscolar ?: '—' }}{{ !empty($periodoEscolar) ? ' · '.$periodoEscolar : '' }}
+                </td>
+            </tr>
+        @endif
     </table>
         </div>
 
@@ -391,7 +399,7 @@
                         <td class="col-clave">
 
                             <div style="display:flex; gap:6px; align-items:center; justify-content:center;">
-                                <span style=" font-size:14px" class="chip"> {{ $mat->cuatrimestre->cuatrimestre ?? '—' }}°</span>
+                                <span style=" font-size:14px" class="chip">{{ $r->cuatrimestre?->cuatrimestre ?? $r->cuatrimestre_id ?? '—' }}°</span>
                             </div>
                         </td>
 
