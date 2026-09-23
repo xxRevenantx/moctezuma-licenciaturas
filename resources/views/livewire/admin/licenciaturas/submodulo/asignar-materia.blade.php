@@ -38,8 +38,13 @@
             buscarProfesor = '';
         }
     "
+    x-on:reasignacion-masiva-completada.window="$wire.$refresh()"
     class="space-y-5"
 >
+    @can('admin.administracion')
+        <livewire:admin.asignacion-docente.reasignar-profesor :licenciatura-actual="(int) $licenciatura->id" :modalidad-actual="(int) $modalidad->id" />
+    @endcan
+
     @php
         $esColorClaro = static function (?string $hex): bool {
             if (!$hex || !preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) {

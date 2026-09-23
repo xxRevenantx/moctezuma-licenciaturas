@@ -6,8 +6,13 @@
     x-on:cerrar-confirmacion-global.window="confirmar=false"
     x-on:asignacion-global-ok.window="Swal.fire({icon:'success',title:'Listo',text:$event.detail.message,timer:2600,showConfirmButton:false})"
     x-on:asignacion-global-error.window="Swal.fire({icon:'error',title:'No se pudo continuar',text:$event.detail.message})"
+    x-on:reasignacion-masiva-completada.window="$wire.$refresh()"
     class="space-y-5"
 >
+    @can('admin.administracion')
+        <livewire:admin.asignacion-docente.reasignar-profesor />
+    @endcan
+
     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div class="h-1.5 bg-gradient-to-r from-[#006492] via-sky-500 to-[#88AC2E]"></div>
         <div class="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">

@@ -10,13 +10,13 @@ class HorarioTraslapeService
 {
     /**
      * Detecta choques que se producirían si las asignaciones indicadas pasan
-     * al mismo profesor. La comparación se limita a la misma modalidad y al
+     * al mismo profesor. Con modalidad null incluye todas las modalidades; compara el
      * mismo día, pero admite rangos de hora que se intersecten parcialmente.
      *
      * @param  array<int>  $asignacionIds
      * @return array<int, array<string, mixed>>
      */
-    public function conflictosParaCambioProfesor(int $profesorId, int $modalidadId, array $asignacionIds): array
+    public function conflictosParaCambioProfesor(int $profesorId, ?int $modalidadId, array $asignacionIds): array
     {
         $asignacionIds = collect($asignacionIds)
             ->map(fn ($id) => (int) $id)
@@ -25,7 +25,7 @@ class HorarioTraslapeService
             ->values()
             ->all();
 
-        if ($profesorId <= 0 || $modalidadId <= 0 || empty($asignacionIds)) {
+        if ($profesorId <= 0 || ($modalidadId !== null && $modalidadId <= 0) || empty($asignacionIds)) {
             return [];
         }
 
@@ -39,7 +39,7 @@ class HorarioTraslapeService
 
         $afectados = Horario::query()
             ->with($relaciones)
-            ->where('modalidad_id', $modalidadId)
+            ->when($modalidadId !== null, fn ($q) => $q->where('modalidad_id', $modalidadId))
             ->whereIn('asignacion_materia_id', $asignacionIds)
             ->whereNotNull('dia_id')
             ->whereNotNull('hora')
@@ -51,7 +51,7 @@ class HorarioTraslapeService
 
         $ocupados = Horario::query()
             ->with($relaciones)
-            ->where('modalidad_id', $modalidadId)
+            ->when($modalidadId !== null, fn ($q) => $q->where('modalidad_id', $modalidadId))
             ->whereNotIn('asignacion_materia_id', $asignacionIds)
             ->whereIn('dia_id', $afectados->pluck('dia_id')->filter()->unique()->all())
             ->whereNotNull('hora')
