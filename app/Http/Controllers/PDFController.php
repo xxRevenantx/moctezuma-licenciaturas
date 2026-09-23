@@ -756,10 +756,16 @@ class PDFController extends Controller
             $periodos = Periodo::where('generacion_id', $generacion->id)->get();
             $modalidades = Modalidad::all();
 
-            $pdf = Pdf::loadView(
+            $pdf = app('dompdf.wrapper');
+            $pdf->setPaper('legal', 'landscape');
+            $registroHeader = new \App\Support\Pdf\RegistroEscolaridadHeader(
+                $pdf->getDomPDF(),
+                storage_path('fonts/calibri/calibri.ttf')
+            );
+            $pdf->loadView(
                 'livewire.admin.licenciaturas.submodulo.pdf.registroEscolaridadPDF',
-                compact('generacion', 'escuela', 'materias', 'licenciatura', 'alumnos', 'periodos', 'modalidades', 'rector', 'jefe')
-            )->setPaper('legal', 'landscape');
+                compact('generacion', 'escuela', 'materias', 'licenciatura', 'alumnos', 'periodos', 'modalidades', 'rector', 'jefe', 'registroHeader')
+            );
 
             return [
                 'nombre' => "REGISTRO_DE_ESCOLARIDAD_{$nombreLicenciatura}_GEN_{$nombreGeneracion}.pdf",

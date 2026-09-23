@@ -67,6 +67,49 @@
 
     }
 
+    /* La caja reserva espacio. Sus líneas se miden antes de girarlas. */
+    table.tblPrincipal th.materia-celda {
+        width: 37.5pt;
+        height: 75pt;
+        padding: 0;
+        border: 1px solid #000;
+        vertical-align: middle;
+        font-weight: normal;
+    }
+
+    .materia-marco {
+        position: relative;
+        width: 37.5pt;
+        height: 75pt;
+        margin: 0 auto;
+    }
+
+    .materia-texto {
+        position: absolute;
+        width: 67.5pt;
+        left: 18.75pt;
+        top: 37.5pt;
+        margin-left: -33.75pt;
+        padding: 0;
+        font-weight: normal;
+        font-style: normal;
+        text-align: center;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+    }
+
+    .materia-linea {
+        display: block;
+        width: 67.5pt;
+        margin: 0;
+        padding: 0;
+        border: none;
+        white-space: nowrap;
+        text-align: center;
+        letter-spacing: 0;
+        word-spacing: 0;
+    }
+
     table.inscripcion td {
         padding: 0 30px 0 0;
         font-size: 12px;
@@ -264,7 +307,6 @@
                     style="font-size:10px; width:30px; text-align:center;font-weight:normal;  padding:0px; margin:0px;">
                     <div style="white-space:nowrap;  width:30px;" class="rotate"><b>NÚMERO DE REGISTRO</b></div>
                 </td>
-                |
 
 
                 <td colspan="2"><b>ANTECEDENTES</b></td>
@@ -297,19 +339,19 @@
                 </th>
                 <th style="width:100px;;"><b>NOMBRE(S)</b></th>
                 <th style="width:100px;"><b>PRIMER APELLIDO</b></th>
-                <th style="width:100px;"><b>SEGUNDO APELLIDO</b></th>';
+                <th style="width:100px;"><b>SEGUNDO APELLIDO</b></th>
 
                 @foreach ($materiasUnicas as $materia)
-                    {{-- <th style="font-size:10px; font-weight:normal; width:10px;  padding:0px; margin:0px; height:0px;  border:1px solid #000 ">
-                              <div style="white-space: wrap; font-size:10px; line-height:10px; font-weight:normal;padding:0 ; text-transform:uppercase" class="rotate">
-
+                    @php
+                        $encabezado = $registroHeader->fit((string) $materia->nombre);
+                    @endphp
+                    <th class="materia-celda">
+                        <div class="materia-marco">
+                            <div class="materia-texto" style="font-family: '{{ $encabezado['family'] }}'; font-size: {{ $encabezado['size'] }}pt; height: {{ $encabezado['height'] }}pt; margin-top: -{{ $encabezado['height'] / 2 }}pt;">
+                                @foreach ($encabezado['lines'] as $linea)
+                                    <div class="materia-linea" style="height: {{ $encabezado['line_height'] }}pt; line-height: {{ $encabezado['line_height'] }}pt;">{{ $linea }}</div>
+                                @endforeach
                             </div>
-                        </th> --}}
-
-                    <th
-                        style="font-size:10px; font-weight:normal; width:50px;  padding:0px; margin:0px; height:0px;  border:1px solid #000 ">
-                        <div style="text-align:center;  text-transform:uppercase" class="rotate">
-                            {{ $materia->nombre }}
                         </div>
                     </th>
                 @endforeach
