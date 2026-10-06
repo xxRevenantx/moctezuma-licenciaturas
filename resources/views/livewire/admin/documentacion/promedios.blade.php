@@ -7,7 +7,7 @@
             </h2>
 
             <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                Selecciona una licenciatura y una generación para generar el PDF con los promedios de los alumnos.
+                Selecciona una licenciatura y una generación para generar el reporte de promedios en PDF o Word.
             </p>
         </div>
 
@@ -35,11 +35,19 @@
                 @endforeach
             </flux:select>
 
-            <div class="flex items-end">
-                <flux:button type="submit" variant="primary" class="w-full bg-red-600 text-white hover:bg-red-700"
-                    :disabled="!$licenciatura_id || !$generacion_id">
-                    Generar PDF
-                </flux:button>
+            <div class="flex flex-wrap items-end gap-2">
+                <button type="submit"
+                    formaction="{{ route('admin.pdf.documentacion.promedios') }}"
+                    @disabled(!$licenciatura_id || !$generacion_id)
+                    class="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    PDF
+                </button>
+                <button type="submit"
+                    formaction="{{ route('admin.word.documentacion.promedios') }}"
+                    @disabled(!$licenciatura_id || !$generacion_id)
+                    class="flex-1 rounded-xl bg-[#006492] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#00547b] disabled:cursor-not-allowed disabled:opacity-50">
+                    Word
+                </button>
             </div>
         </form>
     </div>

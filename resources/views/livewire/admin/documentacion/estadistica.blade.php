@@ -20,6 +20,11 @@
                     Descargar PDF
                 </flux:button>
 
+                <flux:button href="{{ $this->wordUrl }}" variant="primary" icon="document-text"
+                    class="!bg-[#006492] hover:!bg-[#00547b]">
+                    Descargar Word
+                </flux:button>
+
                 <flux:button href="{{ $this->excelUrl }}" variant="primary" icon="sheet"
                     class="!bg-[#88AC2E] hover:!bg-[#779929]">
                     Descargar Excel

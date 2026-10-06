@@ -60,7 +60,7 @@
 
                             <span
                                 class="inline-flex items-center gap-1 rounded-full bg-neutral-900/5 px-2.5 py-1 text-[11px] text-neutral-600 dark:bg-neutral-700/60 dark:text-neutral-100">
-                                PDF
+                                PDF + Word
                             </span>
 
                             <span
@@ -247,13 +247,27 @@
                             class="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100">
                     </div>
 
-                    <!-- Botón -->
-                    <div class="flex md:col-span-12 md:items-end">
-                        <flux:button type="submit"
-                            class="w-full md:w-auto md:mt-2 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 hover:from-indigo-600 hover:via-violet-600 hover:to-fuchsia-600 shadow-lg shadow-fuchsia-900/30"
-                            variant="primary">
-                            Descargar
-                        </flux:button>
+                    @if ($modo_documento !== 'alumno')
+                        <div class="md:col-span-3">
+                            <flux:select name="word_salida" label="Salida Word" class="w-full">
+                                <flux:select.option value="consolidado">Un solo Word editable</flux:select.option>
+                                <flux:select.option value="separados">ZIP · un Word por alumno</flux:select.option>
+                            </flux:select>
+                        </div>
+                    @endif
+
+                    <!-- Formatos de descarga -->
+                    <div class="flex flex-wrap gap-2 md:col-span-12 md:items-end">
+                        <button type="submit"
+                            formaction="{{ route('admin.pdf.documentacion.documento_personal') }}"
+                            class="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700">
+                            Descargar PDF
+                        </button>
+                        <button type="submit"
+                            formaction="{{ route('admin.word.documentacion.documento_personal') }}"
+                            class="inline-flex items-center justify-center rounded-xl bg-[#006492] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00547b]">
+                            Descargar Word
+                        </button>
                     </div>
                 </div>
 
@@ -607,12 +621,17 @@
                             <flux:input required label="Fecha de expedición" name="fecha_expedicion" id="fecha_of"
                                 type="date" placeholder="Selecciona una fecha" class="w-full" />
 
-                            <div class="flex md:items-end">
-                                <flux:button type="submit"
-                                    class="w-full md:w-auto md:mt-6 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 hover:from-indigo-600 hover:via-violet-600 hover:to-fuchsia-600 shadow-md shadow-fuchsia-900/30"
-                                    variant="primary">
-                                    Descargar
-                                </flux:button>
+                            <div class="flex flex-wrap gap-2 md:items-end">
+                                <button type="submit"
+                                    formaction="{{ route('admin.pdf.documentacion.documento_oficios') }}"
+                                    class="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700">
+                                    PDF
+                                </button>
+                                <button type="submit"
+                                    formaction="{{ route('admin.word.documentacion.documento_oficios') }}"
+                                    class="inline-flex items-center justify-center rounded-xl bg-[#006492] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00547b]">
+                                    Word
+                                </button>
                             </div>
                         </div>
                     </form>

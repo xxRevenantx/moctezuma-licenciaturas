@@ -4,8 +4,12 @@
         confirmar: false,
         procesando: false,
         accion: 'preview',
-        preparar(accion) {
+        formato: 'pdf',
+        pdfUrl: @js(route('admin.pdf.documentacion.documento_expedicion')),
+        wordUrl: @js(route('admin.word.documentacion.documento_expedicion')),
+        preparar(accion, formato = 'pdf') {
             this.accion = accion;
+            this.formato = formato;
             this.$refs.accion.value = accion;
             this.confirmar = true;
         },
@@ -13,6 +17,7 @@
             if (this.procesando) return;
             this.procesando = true;
             this.confirmar = false;
+            this.$refs.form.action = this.formato === 'word' ? this.wordUrl : this.pdfUrl;
             this.$refs.form.submit();
             window.setTimeout(() => this.procesando = false, 1800);
         }
@@ -404,7 +409,7 @@
                     <input type="radio" wire:model.live="salida" name="salida" value="consolidado" class="peer sr-only">
                     <span class="flex items-start gap-3 rounded-xl border border-neutral-200 p-3 transition peer-checked:border-[#006492] peer-checked:bg-[#006492]/5 dark:border-neutral-700 dark:peer-checked:border-sky-400">
                         <span class="mt-0.5 h-4 w-4 rounded-full border-4 border-white bg-neutral-300 ring-1 ring-neutral-300 peer-checked:bg-[#006492]"></span>
-                        <span><span class="block text-sm font-semibold text-neutral-800 dark:text-neutral-100">PDF consolidado</span><span class="mt-0.5 block text-xs text-neutral-500">Integra los documentos seleccionados en un solo PDF.</span></span>
+                        <span><span class="block text-sm font-semibold text-neutral-800 dark:text-neutral-100">Documento consolidado</span><span class="mt-0.5 block text-xs text-neutral-500">Integra lo seleccionado en un solo archivo PDF o Word.</span></span>
                     </span>
                 </label>
                 <label class="cursor-pointer">
@@ -441,14 +446,14 @@
                             <div><span class="text-neutral-400">Incluye:</span> <span class="font-medium">{{ $this->resumenGeneracionCompleta['licenciaturas'] }} licenciaturas · {{ $this->resumenGeneracionCompleta['alumnos'] }} alumnos</span></div>
                         @endif
                         <div><span class="text-neutral-400">Documentos:</span> <span class="font-medium">{{ $documentosTexto ?: 'Pendiente' }}</span></div>
-                        <div><span class="text-neutral-400">Salida:</span> <span class="font-medium">{{ $salida === 'consolidado' ? 'PDF consolidado' : 'Archivos separados' }}</span></div>
+                        <div><span class="text-neutral-400">Salida:</span> <span class="font-medium">{{ $salida === 'consolidado' ? 'Documento consolidado' : 'Archivos separados' }}</span></div>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-2 sm:flex-row lg:flex-col xl:flex-row">
                     <button
                         type="button"
-                        @click="preparar('preview')"
+                        @click="preparar('preview', 'pdf')"
                         @disabled(!$puedeGenerar)
                         class="inline-flex min-w-36 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40"
                     >
@@ -457,12 +462,21 @@
                     </button>
                     <button
                         type="button"
-                        @click="preparar('download')"
+                        @click="preparar('download', 'pdf')"
                         @disabled(!$puedeGenerar)
-                        class="inline-flex min-w-36 items-center justify-center gap-2 rounded-xl bg-[#88AC2E] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
+                        class="inline-flex min-w-36 items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M5 20h14" /></svg>
-                        Descargar
+                        Descargar PDF
+                    </button>
+                    <button
+                        type="button"
+                        @click="preparar('download', 'word')"
+                        @disabled(!$puedeGenerar)
+                        class="inline-flex min-w-36 items-center justify-center gap-2 rounded-xl bg-[#006492] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#00547b] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3h7l3 3v15H7zM14 3v4h4M9 12h6M9 16h6" /></svg>
+                        Descargar Word
                     </button>
                 </div>
             </div>
@@ -493,7 +507,7 @@
             <div class="p-5">
                 <div class="rounded-2xl bg-neutral-50 p-4 text-sm dark:bg-neutral-950/50">
                     <div class="flex justify-between gap-4"><span class="text-neutral-500">Documentos</span><span class="text-right font-semibold text-neutral-800 dark:text-neutral-100">{{ $documentosTexto }}</span></div>
-                    <div class="mt-2 flex justify-between gap-4"><span class="text-neutral-500">Acción</span><span class="font-semibold text-neutral-800 dark:text-neutral-100" x-text="accion === 'preview' ? 'Abrir vista previa' : 'Descargar archivos'"></span></div>
+                    <div class="mt-2 flex justify-between gap-4"><span class="text-neutral-500">Acción</span><span class="font-semibold text-neutral-800 dark:text-neutral-100" x-text="accion === 'preview' ? 'Abrir vista previa PDF' : (formato === 'word' ? 'Descargar Word' : 'Descargar PDF')"></span></div>
                 </div>
                 <div class="mt-5 flex justify-end gap-2">
                     <button type="button" @click="confirmar = false" class="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">Cancelar</button>

@@ -43,7 +43,7 @@ class ListasGeneracionWordService
         $phpWord->setDefaultFontSize(9);
         $phpWord->getSettings()->setUpdateFields(true);
 
-        $section = $phpWord->addSection($this->configuracionCartaVertical());
+        $section = $phpWord->addSection($this->configuracionCartaHorizontal());
         $this->agregarPiePagina($section, $reporte);
 
         foreach ($reporte['listas'] as $indice => $lista) {
@@ -101,7 +101,7 @@ class ListasGeneracionWordService
             $this->rutaImagenLicenciatura($lista['licenciatura']->imagen)
         );
 
-        $this->agregarMetadatos($section, $reporte);
+        $this->agregarMetadatos($section, $reporte, true);
 
         $tablaTitulo = $section->addTable([
             'cellMarginTop' => 70,
@@ -110,7 +110,7 @@ class ListasGeneracionWordService
             'cellMarginRight' => 100,
         ]);
         $filaTitulo = $tablaTitulo->addRow(null, ['cantSplit' => true]);
-        $celdaTitulo = $filaTitulo->addCell(10640, [
+        $celdaTitulo = $filaTitulo->addCell(14100, [
             'bgColor' => self::AZUL,
             'valign' => 'center',
         ]);
@@ -132,16 +132,19 @@ class ListasGeneracionWordService
 
         $tabla = $section->addTable($this->estiloTabla());
         $this->agregarCabeceraTabla($tabla, [
-            ['N.º', 700],
-            ['MATRÍCULA', 2050],
-            ['NOMBRE COMPLETO', 5950],
-            ['PROCEDENCIA', 1940],
+            ['MATRÍCULA', 1750],
+            ['NOMBRE', 2100],
+            ['APELLIDO PATERNO', 2100],
+            ['APELLIDO MATERNO', 2100],
+            ['CURP', 2850],
+            ['MODALIDAD', 1650],
+            ['MES INGRESO', 1550],
         ]);
 
         if ($lista['alumnos']->isEmpty()) {
             $fila = $tabla->addRow(null, ['cantSplit' => true]);
-            $celda = $fila->addCell(10640, [
-                'gridSpan' => 4,
+            $celda = $fila->addCell(14100, [
+                'gridSpan' => 7,
                 'valign' => 'center',
             ]);
             $celda->addText(
@@ -150,40 +153,28 @@ class ListasGeneracionWordService
                 ['alignment' => Jc::CENTER, 'spaceAfter' => 0, 'spaceBefore' => 0]
             );
         } else {
-            foreach ($lista['alumnos'] as $indice => $alumno) {
+            foreach ($lista['alumnos'] as $alumno) {
                 $fila = $tabla->addRow(null, ['cantSplit' => true]);
 
-                $this->agregarCelda(
-                    $fila,
-                    (string) ($indice + 1),
-                    700,
-                    ['alignment' => Jc::CENTER]
-                );
-                $this->agregarCelda(
-                    $fila,
-                    (string) $alumno->matricula,
-                    2050,
-                    ['alignment' => Jc::CENTER]
-                );
-                $this->agregarCelda(
-                    $fila,
-                    mb_strtoupper(trim(
-                        $alumno->apellido_paterno . ' ' .
-                        $alumno->apellido_materno . ' ' .
-                        $alumno->nombre
-                    )),
-                    5950
-                );
-                $this->agregarCelda(
-                    $fila,
-                    $alumno->foraneo === 'true' ? 'FORÁNEO' : 'LOCAL',
-                    1940,
-                    [
-                        'alignment' => Jc::CENTER,
-                        'bold' => true,
-                        'color' => $alumno->foraneo === 'true' ? self::FORANEO : self::LOCAL,
-                    ]
-                );
+                $this->agregarCelda($fila, $this->matriculaAlumno($alumno), 1750, [
+                    'alignment' => Jc::CENTER,
+                    'size' => 7.5,
+                ]);
+                $this->agregarCelda($fila, mb_strtoupper(trim((string) $alumno->nombre)), 2100, ['size' => 7.5]);
+                $this->agregarCelda($fila, mb_strtoupper(trim((string) $alumno->apellido_paterno)), 2100, ['size' => 7.5]);
+                $this->agregarCelda($fila, mb_strtoupper(trim((string) $alumno->apellido_materno)), 2100, ['size' => 7.5]);
+                $this->agregarCelda($fila, mb_strtoupper(trim((string) $alumno->CURP)), 2850, [
+                    'alignment' => Jc::CENTER,
+                    'size' => 7.2,
+                ]);
+                $this->agregarCelda($fila, $this->nombreModalidad($alumno->modalidad?->nombre), 1650, [
+                    'alignment' => Jc::CENTER,
+                    'size' => 7.2,
+                ]);
+                $this->agregarCelda($fila, (string) $reporte['mesIngreso'], 1550, [
+                    'alignment' => Jc::CENTER,
+                    'size' => 7.2,
+                ]);
             }
         }
 
@@ -201,18 +192,19 @@ class ListasGeneracionWordService
 
         $tabla = $section->addTable($this->estiloTabla());
         $this->agregarCabeceraTabla($tabla, [
-            ['N.º', 650],
-            ['MATRÍCULA', 1800],
-            ['NOMBRE COMPLETO', 3900],
-            ['LICENCIATURA', 4300],
-            ['GENERACIÓN', 1750],
-            ['PROCEDENCIA', 1700],
+            ['MATRÍCULA', 1750],
+            ['NOMBRE', 2100],
+            ['APELLIDO PATERNO', 2100],
+            ['APELLIDO MATERNO', 2100],
+            ['CURP', 2850],
+            ['MODALIDAD', 1650],
+            ['MES INGRESO', 1550],
         ]);
 
         foreach ($reporte['listas'] as $lista) {
             $filaGrupo = $tabla->addRow(null, ['cantSplit' => true]);
             $celdaGrupo = $filaGrupo->addCell(14100, [
-                'gridSpan' => 6,
+                'gridSpan' => 7,
                 'bgColor' => 'EAF3F6',
                 'valign' => 'center',
             ]);
@@ -226,7 +218,7 @@ class ListasGeneracionWordService
             if ($lista['alumnos']->isEmpty()) {
                 $fila = $tabla->addRow(null, ['cantSplit' => true]);
                 $celda = $fila->addCell(14100, [
-                    'gridSpan' => 6,
+                    'gridSpan' => 7,
                     'valign' => 'center',
                 ]);
                 $celda->addText(
@@ -238,50 +230,28 @@ class ListasGeneracionWordService
                 continue;
             }
 
-            foreach ($lista['alumnos'] as $indice => $alumno) {
+            foreach ($lista['alumnos'] as $alumno) {
                 $fila = $tabla->addRow(null, ['cantSplit' => true]);
 
-                $this->agregarCelda($fila, (string) ($indice + 1), 650, [
+                $this->agregarCelda($fila, $this->matriculaAlumno($alumno), 1750, [
                     'alignment' => Jc::CENTER,
-                    'size' => 7.8,
+                    'size' => 7.5,
                 ]);
-                $this->agregarCelda($fila, (string) $alumno->matricula, 1800, [
+                $this->agregarCelda($fila, mb_strtoupper(trim((string) $alumno->nombre)), 2100, ['size' => 7.5]);
+                $this->agregarCelda($fila, mb_strtoupper(trim((string) $alumno->apellido_paterno)), 2100, ['size' => 7.5]);
+                $this->agregarCelda($fila, mb_strtoupper(trim((string) $alumno->apellido_materno)), 2100, ['size' => 7.5]);
+                $this->agregarCelda($fila, mb_strtoupper(trim((string) $alumno->CURP)), 2850, [
                     'alignment' => Jc::CENTER,
-                    'size' => 7.8,
+                    'size' => 7.2,
                 ]);
-                $this->agregarCelda(
-                    $fila,
-                    mb_strtoupper(trim(
-                        $alumno->apellido_paterno . ' ' .
-                        $alumno->apellido_materno . ' ' .
-                        $alumno->nombre
-                    )),
-                    3900,
-                    ['size' => 7.8]
-                );
-                $this->agregarCelda(
-                    $fila,
-                    mb_strtoupper((string) $lista['licenciatura']->nombre),
-                    4300,
-                    ['size' => 7.6]
-                );
-                $this->agregarCelda(
-                    $fila,
-                    (string) $reporte['generacion']->generacion,
-                    1750,
-                    ['alignment' => Jc::CENTER, 'size' => 7.8]
-                );
-                $this->agregarCelda(
-                    $fila,
-                    $alumno->foraneo === 'true' ? 'FORÁNEO' : 'LOCAL',
-                    1700,
-                    [
-                        'alignment' => Jc::CENTER,
-                        'bold' => true,
-                        'size' => 7.8,
-                        'color' => $alumno->foraneo === 'true' ? self::FORANEO : self::LOCAL,
-                    ]
-                );
+                $this->agregarCelda($fila, $this->nombreModalidad($alumno->modalidad?->nombre), 1650, [
+                    'alignment' => Jc::CENTER,
+                    'size' => 7.2,
+                ]);
+                $this->agregarCelda($fila, (string) $reporte['mesIngreso'], 1550, [
+                    'alignment' => Jc::CENTER,
+                    'size' => 7.2,
+                ]);
             }
         }
 
@@ -303,7 +273,7 @@ class ListasGeneracionWordService
         $fila = $tabla->addRow(1100, ['cantSplit' => true]);
 
         $logoInstitucional = $this->rutaLogoInstitucional();
-        $izquierda = $fila->addCell(1900, ['valign' => 'center']);
+        $izquierda = $fila->addCell(2200, ['valign' => 'center']);
         if ($logoInstitucional) {
             $izquierda->addImage($logoInstitucional, [
                 'width' => 66,
@@ -312,7 +282,7 @@ class ListasGeneracionWordService
             ]);
         }
 
-        $centro = $fila->addCell(6840, ['valign' => 'center']);
+        $centro = $fila->addCell(9700, ['valign' => 'center']);
         $centro->addText(
             'CENTRO UNIVERSITARIO MOCTEZUMA',
             ['bold' => true, 'size' => 15.5, 'color' => self::AZUL],
@@ -324,7 +294,7 @@ class ListasGeneracionWordService
             ['alignment' => Jc::CENTER, 'spaceAfter' => 0, 'spaceBefore' => 0]
         );
 
-        $derecha = $fila->addCell(1900, ['valign' => 'center']);
+        $derecha = $fila->addCell(2200, ['valign' => 'center']);
         if ($imagenDerecha) {
             $derecha->addImage($imagenDerecha, [
                 'width' => 62,
@@ -435,6 +405,20 @@ class ListasGeneracionWordService
                 'spaceBefore' => 0,
             ]
         );
+    }
+
+    private function matriculaAlumno($alumno): string
+    {
+        return (string) ($alumno->matricula ?: $alumno->matricula_interna ?: '—');
+    }
+
+    private function nombreModalidad(?string $modalidad): string
+    {
+        if (! $modalidad) {
+            return 'No registrada';
+        }
+
+        return mb_convert_case(mb_strtolower(trim($modalidad), 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
     }
 
     private function agregarEstadistica(Section $section, array $reporte): void

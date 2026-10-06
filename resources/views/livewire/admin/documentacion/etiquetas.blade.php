@@ -56,10 +56,16 @@
                     </li>
                 @endforeach
             </ul>
-
-            <button type="submit" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                Generar Etiquetas
-            </button>
+            <div class="mt-4 flex flex-wrap gap-2">
+                <button type="submit" formaction="{{ route('admin.pdf.documentacion.etiquetas') }}"
+                    class="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700">
+                    Generar PDF
+                </button>
+                <button type="submit" formaction="{{ route('admin.word.documentacion.etiquetas') }}"
+                    class="rounded-xl bg-[#006492] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#00547b]">
+                    Generar Word
+                </button>
+            </div>
         </div>
     @endif
 </form>

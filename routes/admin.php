@@ -77,6 +77,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('can:admin.administracion')
         ->name('admin.estadistica-licenciaturas.excel');
 
+    Route::get('/estadistica-licenciaturas/word', [WordController::class, 'estadistica'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.estadistica-licenciaturas.word');
+
 
     ////////
     Route::resource('usuarios', UserController::class)->middleware('can:admin.usuarios')->names('admin.usuarios');
@@ -224,6 +228,33 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promedios', [PDFController::class, 'promedios'])
         ->middleware('can:admin.administracion')
         ->name('admin.pdf.documentacion.promedios');
+
+
+    // WORD - DOCUMENTACIÓN INTERNA
+    Route::get('/word/documento-personal', [WordController::class, 'documento_personal'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.word.documentacion.documento_personal');
+    Route::get('/word/documento-oficios', [WordController::class, 'documento_oficios'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.word.documentacion.documento_oficios');
+    Route::post('/word/expedicion-documentacion', [WordController::class, 'documento_expedicion'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.word.documentacion.documento_expedicion');
+    Route::get('/word/credencial-alumno', [WordController::class, 'credencial_alumno'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.word.documentacion.credencial_alumno');
+    Route::get('/word/etiquetas', [WordController::class, 'etiquetas'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.word.documentacion.etiquetas');
+    Route::get('/word/justificantes/{justificante}', [WordController::class, 'justificante'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.word.documentacion.justificantes');
+    Route::get('/word/alumnos-documentacion/{licenciatura}', [WordController::class, 'alumnos_documentacion'])
+        ->middleware('can:documentos-identidad.auditar')
+        ->name('admin.word.documentacion.alumnos.documentacion');
+    Route::get('/word/promedios', [WordController::class, 'promedios'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.word.documentacion.promedios');
 
     Route::prefix('licenciaturas')->group(function () {
         // Paso 1: Selección de modalidad

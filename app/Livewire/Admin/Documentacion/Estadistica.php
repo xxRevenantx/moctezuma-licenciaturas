@@ -103,6 +103,12 @@ class Estadistica extends Component
         return route('admin.estadistica-licenciaturas.excel', $this->parametrosUrl());
     }
 
+    #[Computed]
+    public function wordUrl(): string
+    {
+        return route('admin.estadistica-licenciaturas.word', $this->parametrosUrl());
+    }
+
     private function filtros(): array
     {
         return [

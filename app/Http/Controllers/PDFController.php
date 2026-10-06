@@ -22,6 +22,7 @@ use App\Models\Modalidad;
 use App\Models\Periodo;
 use App\Models\Profesor;
 use App\Services\Boletas\BoletaService;
+use App\Services\Documentacion\DocumentacionExportService;
 use App\Services\HorarioGeneralService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
@@ -698,82 +699,36 @@ class PDFController extends Controller
         Generacion $generacion,
         ?array $alumnoIds = null
     ): ?array {
-        $alumnosQuery = Inscripcion::query()
-            ->with('calificaciones')
-            ->where('generacion_id', $generacion->id)
-            ->where('licenciatura_id', $licenciatura->id)
-            ->where('status', 'true');
+        $definition = app(DocumentacionExportService::class)->expedicion(
+            $documento,
+            $licenciatura,
+            $generacion,
+            $alumnoIds
+        );
 
-        if ($alumnoIds !== null) {
-            $alumnosQuery->whereIn('id', $alumnoIds);
-        }
-
-        $alumnos = $alumnosQuery
-            ->orderBy('apellido_paterno')
-            ->orderBy('apellido_materno')
-            ->orderBy('nombre')
-            ->get();
-
-        if ($alumnos->isEmpty()) {
+        if ($definition === null) {
             return null;
         }
 
-        $escuela = Escuela::query()->first();
-        abort_if(! $escuela, 422, 'No se encontró la información del plantel.');
-
-        $rector = Directivo::where('identificador', 'rector')->first();
-        $directora = Directivo::where('identificador', 'directora')->first();
-        $jefe = Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
-
-        $nombreLicenciatura = $this->nombreSeguro($licenciatura->nombre);
-        $nombreGeneracion = $this->nombreSeguro($generacion->generacion);
-
-        if ($documento === 'acta-resultados') {
-            $materias = Materia::query()
-                ->where('licenciatura_id', $licenciatura->id)
-                ->where('calificable', '!=', 'false')
-                ->orderBy('clave')
-                ->get();
-
-            $pdf = Pdf::loadView(
-                'livewire.admin.licenciaturas.submodulo.pdf.actaResultadosPDF',
-                compact('generacion', 'escuela', 'licenciatura', 'materias', 'rector', 'directora', 'jefe', 'alumnos')
-            )->setPaper('letter', 'portrait');
-
-            return [
-                'nombre' => "ACTA_DE_RESULTADOS_{$nombreLicenciatura}_GEN_{$nombreGeneracion}.pdf",
-                'contenido' => $pdf->output(),
-            ];
-        }
+        $data = $definition['data'];
 
         if ($documento === 'registro-escolaridad') {
-            $materias = Materia::query()
-                ->where('licenciatura_id', $licenciatura->id)
-                ->where('calificable', '!=', 'false')
-                ->orderBy('clave')
-                ->get();
-
-            $periodos = Periodo::where('generacion_id', $generacion->id)->get();
-            $modalidades = Modalidad::all();
-
             $pdf = app('dompdf.wrapper');
             $pdf->setPaper('legal', 'landscape');
-            $registroHeader = new \App\Support\Pdf\RegistroEscolaridadHeader(
+            $data['registroHeader'] = new \App\Support\Pdf\RegistroEscolaridadHeader(
                 $pdf->getDomPDF(),
                 storage_path('fonts/calibri/calibri.ttf')
             );
-            $pdf->loadView(
-                'livewire.admin.licenciaturas.submodulo.pdf.registroEscolaridadPDF',
-                compact('generacion', 'escuela', 'materias', 'licenciatura', 'alumnos', 'periodos', 'modalidades', 'rector', 'jefe', 'registroHeader')
-            );
-
-            return [
-                'nombre' => "REGISTRO_DE_ESCOLARIDAD_{$nombreLicenciatura}_GEN_{$nombreGeneracion}.pdf",
-                'contenido' => $pdf->output(),
-            ];
+            $pdf->loadView($definition['view'], $data);
+        } else {
+            $pdf = Pdf::loadView($definition['view'], $data)
+                ->setPaper($definition['paper'], $definition['orientation']);
         }
 
-        return null;
+        return [
+            'nombre' => $definition['filenameBase'] . '.pdf',
+            'contenido' => $pdf->output(),
+        ];
     }
 
     /**
@@ -863,112 +818,22 @@ class PDFController extends Controller
 
     public function documento_oficios(Request $request)
     {
-        $documento = $request->tipo_documento;
-        $fecha = $request->fecha_expedicion;
-        $generacion_id = $request->generacion;
+        $datos = $request->validate([
+            'generacion' => ['required', 'integer', 'exists:generaciones,id'],
+            'tipo_documento' => ['required', 'in:matriculas,kardex,registro-boletos,folios,certificados'],
+            'fecha_expedicion' => ['required', 'date'],
+        ]);
 
-        $escuela = Escuela::all()->first();
+        $definition = app(DocumentacionExportService::class)->oficio(
+            (int) $datos['generacion'],
+            $datos['tipo_documento'],
+            $datos['fecha_expedicion']
+        );
 
-        // Validación básica
-        if (!$generacion_id || !$documento || !$fecha) {
-            abort(404, 'Faltan parámetros');
-        }
+        $pdf = Pdf::loadView($definition['view'], $definition['data'])
+            ->setPaper($definition['paper'], $definition['orientation']);
 
-        $generacion = Generacion::find($generacion_id);
-
-        $escuela = Escuela::all()->first();
-        $rector = Directivo::where('identificador', 'rector')->first();
-        $directora = Directivo::where('identificador', 'directora')->first();
-
-        $jefe = Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
-        $subjefe = Directivo::where('identificador', 'subjefe')->where('status', 'true')->first();
-
-        $revisado = Directivo::where('identificador', 'revisado')->where('status', 'true')->first();
-
-
-
-        $licenciaturas = AsignarGeneracion::where('generacion_id', $generacion_id)
-            ->whereHas('licenciatura', function ($query) {
-                $query->whereNotNull('RVOE');
-            })
-            ->with('licenciatura') // Para poder acceder al nombre, RVOE, etc.
-            ->get()
-            ->unique('licenciatura_id') // Evita duplicados aunque haya varias modalidades
-            ->pluck('licenciatura'); // Trae solo los modelos de licenciatura
-
-
-        if ($documento == 'matriculas') {
-            $data = [
-                'generacion' => $generacion,
-                'escuela' => $escuela,
-                'rector' => $rector,
-                'directora' => $directora,
-                'fecha' => $fecha,
-                'jefe' => $jefe,
-                'subjefe' => $subjefe,
-                'licenciaturas' => $licenciaturas
-            ];
-
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.matriculasOficioPDF', $data)->setPaper('letter', 'portrait');
-            return $pdf->stream("OFICIO_MATRICULAS_" . $generacion->generacion . ".pdf");
-        } else if ($documento == 'kardex') {
-            $data = [
-                'generacion' => $generacion,
-                'escuela' => $escuela,
-                'rector' => $rector,
-                'directora' => $directora,
-                'fecha' => $fecha,
-                'jefe' => $jefe,
-                'subjefe' => $subjefe,
-                'licenciaturas' => $licenciaturas
-            ];
-
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexOficioPDF', $data)->setPaper('letter', 'portrait');
-            return $pdf->stream("OFICIO_KARDEX_" . $generacion->generacion . ".pdf");
-        } else if ($documento == 'registro-boletos') {
-            $data = [
-                'generacion' => $generacion,
-                'escuela' => $escuela,
-                'rector' => $rector,
-                'directora' => $directora,
-                'fecha' => $fecha,
-                'jefe' => $jefe,
-                'subjefe' => $subjefe,
-                'licenciaturas' => $licenciaturas
-            ];
-
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.registrosBoletasOficioPDF', $data)->setPaper('letter', 'portrait');
-            return $pdf->stream("OFICIO_REGISTROS_ESCOLARIDAD_ACTA_RESULTADOS_" . $generacion->generacion . ".pdf");
-        } else if ($documento == 'folios') {
-            $data = [
-                'generacion' => $generacion,
-                'escuela' => $escuela,
-                'rector' => $rector,
-                'directora' => $directora,
-                'fecha' => $fecha,
-                'jefe' => $jefe,
-                'subjefe' => $subjefe,
-                'licenciaturas' => $licenciaturas
-            ];
-
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.foliosOficioPDF', $data)->setPaper('letter', 'portrait');
-            return $pdf->stream("OFICIO_FOLIOS_" . $generacion->generacion . ".pdf");
-        } else if ($documento == 'certificados') {
-            $data = [
-                'generacion' => $generacion,
-                'escuela' => $escuela,
-                'rector' => $rector,
-                'directora' => $directora,
-                'fecha' => $fecha,
-                'jefe' => $jefe,
-                'subjefe' => $subjefe,
-                'revisado' => $revisado,
-                'licenciaturas' => $licenciaturas
-            ];
-
-            $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.certificadosOficioPDF', $data)->setPaper('letter', 'portrait');
-            return $pdf->stream("OFICIO_CERTIFICADOS_" . $generacion->generacion . ".pdf");
-        }
+        return $pdf->stream($definition['filenameBase'] . '.pdf');
     }
 
     // DOCUMENTO PERSONAL
@@ -1087,131 +952,17 @@ class PDFController extends Controller
 
     private function generarDocumentoAlumno(Inscripcion $alumno, string $documento, string $fecha): array
     {
-        $escuela = Escuela::query()->first();
-        $licenciatura = Licenciatura::query()->find($alumno->licenciatura_id);
-        $cuatrimestres = Cuatrimestre::query()->get();
+        $definition = app(DocumentacionExportService::class)->documentoPersonal(
+            $alumno,
+            $documento,
+            $fecha
+        );
 
-        $rector = Directivo::where('cargo', 'Rector')->first();
-        $directora = Directivo::where('cargo', 'Directora General')->first();
-        $jefe = Directivo::where('identificador', 'jefe')->where('status', 'true')->first();
-        $revisado = Directivo::where('identificador', 'revisado')->where('status', 'true')->first();
-
-        $periodos = Periodo::where('generacion_id', $alumno->generacion_id)->get();
-
-        $nombreAlumno = $this->limpiarNombreArchivo(trim(
-            ($alumno->nombre ?? '') . '_' .
-                ($alumno->apellido_paterno ?? '') . '_' .
-                ($alumno->apellido_materno ?? '') . '_' .
-                ($alumno->matricula ?: $alumno->matricula_interna ?: $alumno->id)
-        ));
-
-        if ($documento === 'kardex') {
-            $data = [
-                'alumno' => $alumno,
-                'escuela' => $escuela,
-                'licenciatura' => $licenciatura,
-                'cuatrimestres' => $cuatrimestres,
-                'rector' => $rector,
-            ];
-
-            return [
-                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.kardexPDF', $data)
-                    ->setPaper('legal', 'portrait'),
-                'filename' => "KARDEX_{$nombreAlumno}.pdf",
-            ];
-        }
-
-        if ($documento === 'historial-academico') {
-            $data = [
-                'alumno' => $alumno,
-                'escuela' => $escuela,
-                'licenciatura' => $licenciatura,
-                'cuatrimestres' => $cuatrimestres,
-                'rector' => $rector,
-                'directora' => $directora,
-                'fecha' => $fecha,
-                'periodos' => $periodos,
-            ];
-
-            return [
-                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.historialAcademicoPDF', $data)
-                    ->setPaper('legal', 'portrait'),
-                'filename' => "HISTORIAL_ACADEMICO_{$nombreAlumno}.pdf",
-            ];
-        }
-
-        if ($documento === 'diploma') {
-            $data = [
-                'alumno' => $alumno,
-                'escuela' => $escuela,
-                'licenciatura' => $licenciatura,
-                'fecha' => $fecha,
-                'rector' => $rector,
-                'directora' => $directora,
-            ];
-
-            return [
-                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.diplomaPDF', $data)
-                    ->setPaper('letter', 'portrait'),
-                'filename' => "DIPLOMA_{$nombreAlumno}.pdf",
-            ];
-        }
-
-        if ($documento === 'carta-de-pasante') {
-            $data = [
-                'alumno' => $alumno,
-                'escuela' => $escuela,
-                'licenciatura' => $licenciatura,
-                'fecha' => $fecha,
-                'rector' => $rector,
-                'directora' => $directora,
-            ];
-
-            return [
-                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.cartaPasantePDF', $data)
-                    ->setPaper('letter', 'portrait'),
-                'filename' => "CARTA_DE_PASANTE_{$nombreAlumno}.pdf",
-            ];
-        }
-
-        if ($documento === 'constancia-de-termino') {
-            $data = [
-                'alumno' => $alumno,
-                'escuela' => $escuela,
-                'licenciatura' => $licenciatura,
-                'fecha' => $fecha,
-                'rector' => $rector,
-                'directora' => $directora,
-            ];
-
-            return [
-                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.constanciaTerminoPDF', $data)
-                    ->setPaper('letter', 'portrait'),
-                'filename' => "CONSTANCIA_DE_TERMINO_{$nombreAlumno}.pdf",
-            ];
-        }
-
-        if ($documento === 'certificado-de-estudios') {
-            $data = [
-                'alumno' => $alumno,
-                'escuela' => $escuela,
-                'licenciatura' => $licenciatura,
-                'fecha' => $fecha,
-                'cuatrimestres' => $cuatrimestres,
-                'rector' => $rector,
-                'jefe' => $jefe,
-                'revisado' => $revisado,
-                'directora' => $directora,
-            ];
-
-            return [
-                'pdf' => Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.certificadoPDF', $data)
-                    ->setPaper('legal', 'portrait'),
-                'filename' => "CERTIFICADO_DE_ESTUDIOS_{$nombreAlumno}.pdf",
-            ];
-        }
-
-        abort(404, 'Tipo de documento no válido.');
+        return [
+            'pdf' => Pdf::loadView($definition['view'], $definition['data'])
+                ->setPaper($definition['paper'], $definition['orientation']),
+            'filename' => $definition['filenameBase'] . '.pdf',
+        ];
     }
 
     private function limpiarNombreArchivo(?string $texto): string
@@ -1227,35 +978,17 @@ class PDFController extends Controller
 
     public function credencial_alumno(Request $request)
     {
-        // Obtén los IDs como un array desde el input "alumnos_ids[]"
-        $alumnosIds = $request->input('alumnos_ids', []);
-
-
-        // Verifica si llegaron datos
+        $alumnosIds = (array) $request->input('alumnos_ids', []);
         if (empty($alumnosIds)) {
             return redirect()->back()->with('error', 'No se seleccionaron alumnos.');
         }
 
-        // Obtiene los datos de los alumnos
-        $alumnos = Inscripcion::whereIn('id', $alumnosIds)->get();
-
-        // CICLO ESCOLAR
-        $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
-
-
-        // Puedes ver los datos si estás probando
-        // dd($alumnos);
-
-        // Genera el PDF
-        $data = [
-            'alumnos' => $alumnos,
-            'ciclo_escolar' => $ciclo_escolar
-        ];
+        $data = app(DocumentacionExportService::class)->credenciales($alumnosIds);
 
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialPDF', $data)
             ->setPaper('letter', 'portrait');
 
-        return $pdf->stream("CREDENCIAL(S).pdf");
+        return $pdf->stream('CREDENCIAL(S).pdf');
     }
 
     // CONSTANCIAS DEL ALUMNO
@@ -1294,34 +1027,17 @@ class PDFController extends Controller
 
     public function etiquetas(Request $request)
     {
-        // Obtén los IDs como un array desde el input "alumnos_ids[]"
-        $alumnosIds = $request->input('alumnos_ids', []);
-
-
-        // Verifica si llegaron datos
+        $alumnosIds = (array) $request->input('alumnos_ids', []);
         if (empty($alumnosIds)) {
             return redirect()->back()->with('error', 'No se seleccionaron alumnos.');
         }
 
-        // Obtiene los datos de los alumnos
-        $alumnos = Inscripcion::whereIn('id', $alumnosIds)->get();
-
-        // CICLO ESCOLAR
-        $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
-
-
-        // Puedes ver los datos si estás probando
-        // dd($alumnos);
-
-        // Genera el PDF
-        $data = [
-            'alumnos' => $alumnos,
-            'ciclo_escolar' => $ciclo_escolar
-        ];
+        $data = app(DocumentacionExportService::class)->etiquetas($alumnosIds);
 
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.etiquetaPDF', $data)
             ->setPaper('letter', 'portrait');
-        return $pdf->stream("ETIQUETA(S).pdf");
+
+        return $pdf->stream('ETIQUETA(S).pdf');
     }
 
 
@@ -1905,16 +1621,15 @@ class PDFController extends Controller
 
     public function justificante($justificante)
     {
-
-        $justificantes = Justificante::findOrFail($justificante);
-
-
-        $data = [
-            'justificantes' => $justificantes,
-        ];
-        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.justificantePDF', $data)
+        $justificantes = app(DocumentacionExportService::class)->justificante((int) $justificante);
+        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.justificantePDF', compact('justificantes'))
             ->setPaper('letter', 'portrait');
-        return $pdf->stream("JUSTIFICANTE_" . $justificantes->alumno->nombre . "_" . $justificantes->alumno->apellido_paterno . "_" . $justificantes->alumno->apellido_materno . ".pdf");
+
+        return $pdf->stream(
+            'JUSTIFICANTE_' . $justificantes->alumno->nombre . '_' .
+            $justificantes->alumno->apellido_paterno . '_' .
+            $justificantes->alumno->apellido_materno . '.pdf'
+        );
     }
 
     // HORARIO DOCENTE SEMIESCOLARIZADA
@@ -2039,85 +1754,13 @@ class PDFController extends Controller
             'estado' => ['nullable', 'in:activos,egresados,bajas,todos'],
         ]);
 
-        $generacionId = (int) ($datos['generacion'] ?? 0);
-        $estado = $datos['estado'] ?? 'activos';
-        $licenciaturaNombre = 'Todas las licenciaturas';
-        $generacionNombre = 'Todas las generaciones';
-        $tipos = config('documentos_identidad.types', []);
-        $disk = (string) config('documentos_identidad.disk', 'local');
-
-        $query = Inscripcion::query()
-            ->with([
-                'generacion:id,generacion',
-                'licenciatura:id,nombre',
-                'documentosIdentidadActuales',
-            ]);
-
-        if ($licenciatura !== 0) {
-            $lic = Licenciatura::findOrFail($licenciatura);
-            $licenciaturaNombre = $lic->nombre;
-            $query->where('licenciatura_id', $lic->id);
-        }
-
-        if ($generacionId !== 0) {
-            $generacion = Generacion::findOrFail($generacionId);
-            $generacionNombre = $generacion->generacion;
-            $query->where('generacion_id', $generacionId);
-        }
-
-        match ($estado) {
-            'activos' => $query->where('status', 'true')->where('egresado', 'false'),
-            'egresados' => $query->where('egresado', 'true'),
-            'bajas' => $query->where('status', 'false'),
-            default => null,
-        };
-
-        $alumnos = $query
-            ->orderBy('generacion_id')
-            ->orderBy('apellido_paterno')
-            ->orderBy('apellido_materno')
-            ->orderBy('nombre')
-            ->get()
-            ->map(function (Inscripcion $alumno) use ($tipos, $disk): Inscripcion {
-                $actuales = $alumno->documentosIdentidadActuales->keyBy('tipo');
-                $estados = [];
-                $entregados = 0;
-
-                foreach ($tipos as $tipo => $config) {
-                    $documento = $actuales->get($tipo);
-                    $existe = $documento && Storage::disk($disk)->exists($documento->ruta);
-                    $estados[$tipo] = $existe;
-                    $entregados += $existe ? 1 : 0;
-                }
-
-                $alumno->setAttribute('documentos_estado', $estados);
-                $alumno->setAttribute('documentos_entregados', $entregados);
-                $alumno->setAttribute('documentos_total', count($tipos));
-                $alumno->setAttribute('documentos_porcentaje', count($tipos) > 0
-                    ? (int) round(($entregados / count($tipos)) * 100)
-                    : 0);
-
-                return $alumno;
-            });
-
-        $grupos = $alumnos->groupBy(fn ($alumno) => optional($alumno->generacion)->generacion ?: 'Sin generación')->sortKeys();
-        $resumen = [
-            'alumnos' => $alumnos->count(),
-            'completos' => $alumnos->where('documentos_porcentaje', 100)->count(),
-            'con_documentos' => $alumnos->where('documentos_entregados', '>', 0)->count(),
-            'sin_documentos' => $alumnos->where('documentos_entregados', 0)->count(),
-        ];
-
-        $data = compact(
-            'licenciaturaNombre',
-            'generacionNombre',
-            'estado',
-            'grupos',
-            'tipos',
-            'resumen'
+        $data = app(DocumentacionExportService::class)->controlDocumental(
+            $licenciatura,
+            (int) ($datos['generacion'] ?? 0),
+            $datos['estado'] ?? 'activos'
         );
 
-        $filename = 'CONTROL_DOCUMENTAL_' . strtoupper(str_replace(' ', '_', $licenciaturaNombre)) . '.pdf';
+        $filename = 'CONTROL_DOCUMENTAL_' . strtoupper(str_replace(' ', '_', $data['licenciaturaNombre'])) . '.pdf';
 
         return Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.alumnosDocumentacionPDF', $data)
             ->setPaper('letter', 'landscape')
@@ -2157,80 +1800,22 @@ class PDFController extends Controller
 
     public function promedios(Request $request)
     {
-        $licenciaturaId = $request->input('licenciatura_id');
-        $generacionId = $request->input('generacion_id');
+        $datos = $request->validate([
+            'licenciatura_id' => ['required', 'integer', 'exists:licenciaturas,id'],
+            'generacion_id' => ['required', 'integer', 'exists:generaciones,id'],
+        ]);
 
-        if (!$licenciaturaId || !$generacionId) {
-            abort(404, 'Faltan filtros para generar el PDF.');
-        }
+        $data = app(DocumentacionExportService::class)->promedios(
+            (int) $datos['licenciatura_id'],
+            (int) $datos['generacion_id']
+        );
 
-        $licenciatura = Licenciatura::findOrFail($licenciaturaId);
-        $generacion = Generacion::findOrFail($generacionId);
-        $escuela = Escuela::query()->first();
-        $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
-
-        $stats = DB::table('calificaciones as c')
-            ->select([
-                'c.alumno_id',
-                'c.licenciatura_id',
-                'c.generacion_id',
-                DB::raw("
-                TRUNCATE(AVG(
-                    CASE
-                        WHEN c.calificacion REGEXP '^[0-9]+(\\.[0-9]+)?$'
-                        THEN c.calificacion + 0
-                        ELSE NULL
-                    END
-                ), 1) AS promedio_final
-            "),
-                DB::raw("
-                COUNT(DISTINCT CASE
-                    WHEN c.calificacion REGEXP '^[0-9]+(\\.[0-9]+)?$'
-                    THEN c.asignacion_materia_id
-                    ELSE NULL
-                END) AS total_materias
-            "),
-            ])
-            ->where('c.licenciatura_id', $licenciaturaId)
-            ->where('c.generacion_id', $generacionId)
-            ->groupBy('c.alumno_id', 'c.licenciatura_id', 'c.generacion_id');
-
-        $alumnos = Inscripcion::query()
-            ->leftJoinSub($stats, 'stats', function ($join) {
-                $join->on('stats.alumno_id', '=', 'inscripciones.id')
-                    ->on('stats.licenciatura_id', '=', 'inscripciones.licenciatura_id')
-                    ->on('stats.generacion_id', '=', 'inscripciones.generacion_id');
-            })
-            ->where('inscripciones.licenciatura_id', $licenciaturaId)
-            ->where('inscripciones.generacion_id', $generacionId)
-            ->where('inscripciones.status', 'true')
-            ->select('inscripciones.*')
-            ->addSelect([
-                'stats.promedio_final',
-                'stats.total_materias',
-            ])
-            ->orderBy('inscripciones.apellido_paterno', 'asc')
-            ->orderBy('inscripciones.apellido_materno', 'asc')
-            ->orderBy('inscripciones.nombre', 'asc')
-            ->get();
-
-        $data = [
-            'alumnos' => $alumnos,
-            'licenciatura' => $licenciatura,
-            'generacion' => $generacion,
-            'escuela' => $escuela,
-            'ciclo_escolar' => $ciclo_escolar,
-        ];
-
-        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.promediosPDF', $data)
+        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.promediosPdf', $data)
             ->setPaper('letter', 'portrait');
 
         return $pdf->stream(
-            'LISTA_PROMEDIOS_' .
-                strtoupper($licenciatura->nombre) .
-                '_GEN_' .
-                strtoupper($generacion->generacion) .
-                '.pdf'
+            'LISTA_PROMEDIOS_' . strtoupper($data['licenciatura']->nombre) .
+            '_GEN_' . strtoupper($data['generacion']->generacion) . '.pdf'
         );
     }
 }

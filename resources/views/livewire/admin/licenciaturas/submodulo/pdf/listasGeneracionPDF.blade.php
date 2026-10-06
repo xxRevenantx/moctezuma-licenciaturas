@@ -6,7 +6,8 @@
     <title>Listas por generación</title>
     <style>
         @page {
-            margin: 17mm 11mm 18mm 11mm;
+            size: letter landscape;
+            margin: 12mm 10mm 15mm 10mm;
         }
 
         * {
@@ -16,7 +17,7 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             color: #1f2937;
-            font-size: 9px;
+            font-size: 8.5px;
         }
 
         .page-break {
@@ -92,6 +93,7 @@
         table.data {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         table.data thead {
@@ -105,14 +107,14 @@
         table.data th,
         table.data td {
             border: .6px solid #94a3b8;
-            padding: 4px;
+            padding: 3px;
         }
 
         table.data th {
             background: #88AC2E;
             color: white;
             text-align: center;
-            font-size: 8.2px;
+            font-size: 7.3px;
         }
 
         .center {
@@ -260,32 +262,41 @@
 
             <table class="data">
                 <colgroup>
-                    <col>
-                    <col>
-                    <col>
-                    <col>
+                    <col style="width:11%">
+                    <col style="width:15%">
+                    <col style="width:15%">
+                    <col style="width:15%">
+                    <col style="width:20%">
+                    <col style="width:13%">
+                    <col style="width:11%">
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>N.º</th>
                         <th>MATRÍCULA</th>
-                        <th>NOMBRE COMPLETO</th>
-                        <th>PROCEDENCIA</th>
+                        <th>NOMBRE</th>
+                        <th>APELLIDO PATERNO</th>
+                        <th>APELLIDO MATERNO</th>
+                        <th>CURP</th>
+                        <th>MODALIDAD</th>
+                        <th>MES INGRESO</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($lista['alumnos'] as $alumno)
                         <tr>
-                            <td class="center">{{ $loop->iteration }}</td>
-                            <td class="center">{{ $alumno->matricula }}</td>
-                            <td>{{ mb_strtoupper(trim($alumno->apellido_paterno . ' ' . $alumno->apellido_materno . ' ' . $alumno->nombre)) }}
+                            <td class="center">{{ $alumno->matricula ?: $alumno->matricula_interna ?: '—' }}</td>
+                            <td>{{ mb_strtoupper(trim((string) $alumno->nombre)) }}</td>
+                            <td>{{ mb_strtoupper(trim((string) $alumno->apellido_paterno)) }}</td>
+                            <td>{{ mb_strtoupper(trim((string) $alumno->apellido_materno)) }}</td>
+                            <td class="center">{{ mb_strtoupper(trim((string) $alumno->CURP)) }}</td>
+                            <td class="center">
+                                {{ $alumno->modalidad?->nombre ? mb_convert_case(mb_strtolower($alumno->modalidad->nombre, 'UTF-8'), MB_CASE_TITLE, 'UTF-8') : 'No registrada' }}
                             </td>
-                            <td class="center {{ $alumno->foraneo === 'true' ? 'badge-foraneo' : 'badge-local' }}">
-                                {{ $alumno->foraneo === 'true' ? 'FORÁNEO' : 'LOCAL' }}</td>
+                            <td class="center">{{ $mesIngreso }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="empty">SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO</td>
+                            <td colspan="7" class="empty">SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -336,43 +347,46 @@
 
         <table class="data">
             <colgroup>
-                <col style="width:1%">
+                <col style="width:11%">
+                <col style="width:15%">
+                <col style="width:15%">
+                <col style="width:15%">
+                <col style="width:20%">
                 <col style="width:13%">
-                <col style="width:27%">
-                <col style="width:28%">
-                <col style="width:14%">
-                <col style="width:13%">
+                <col style="width:11%">
             </colgroup>
             <thead>
                 <tr>
-                    <th>N.º</th>
                     <th>MATRÍCULA</th>
-                    <th>NOMBRE COMPLETO</th>
-                    <th>LICENCIATURA</th>
-                    <th>GENERACIÓN</th>
-                    <th>PROCEDENCIA</th>
+                    <th>NOMBRE</th>
+                    <th>APELLIDO PATERNO</th>
+                    <th>APELLIDO MATERNO</th>
+                    <th>CURP</th>
+                    <th>MODALIDAD</th>
+                    <th>MES INGRESO</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($listas as $lista)
                     <tr class="group-row">
-                        <td colspan="6">LICENCIATURA EN {{ mb_strtoupper($lista['licenciatura']->nombre) }} — TOTAL:
+                        <td colspan="7">LICENCIATURA EN {{ mb_strtoupper($lista['licenciatura']->nombre) }} — TOTAL:
                             {{ $lista['total'] }}</td>
                     </tr>
                     @forelse ($lista['alumnos'] as $alumno)
                         <tr>
-                            <td class="center">{{ $loop->iteration }}</td>
-                            <td class="center">{{ $alumno->matricula }}</td>
-                            <td>{{ mb_strtoupper(trim($alumno->apellido_paterno . ' ' . $alumno->apellido_materno . ' ' . $alumno->nombre)) }}
+                            <td class="center">{{ $alumno->matricula ?: $alumno->matricula_interna ?: '—' }}</td>
+                            <td>{{ mb_strtoupper(trim((string) $alumno->nombre)) }}</td>
+                            <td>{{ mb_strtoupper(trim((string) $alumno->apellido_paterno)) }}</td>
+                            <td>{{ mb_strtoupper(trim((string) $alumno->apellido_materno)) }}</td>
+                            <td class="center">{{ mb_strtoupper(trim((string) $alumno->CURP)) }}</td>
+                            <td class="center">
+                                {{ $alumno->modalidad?->nombre ? mb_convert_case(mb_strtolower($alumno->modalidad->nombre, 'UTF-8'), MB_CASE_TITLE, 'UTF-8') : 'No registrada' }}
                             </td>
-                            <td>{{ mb_strtoupper($lista['licenciatura']->nombre) }}</td>
-                            <td class="center">{{ $generacion->generacion }}</td>
-                            <td class="center {{ $alumno->foraneo === 'true' ? 'badge-foraneo' : 'badge-local' }}">
-                                {{ $alumno->foraneo === 'true' ? 'FORÁNEO' : 'LOCAL' }}</td>
+                            <td class="center">{{ $mesIngreso }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="empty">SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO</td>
+                            <td colspan="7" class="empty">SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO</td>
                         </tr>
                     @endforelse
                 @endforeach
@@ -418,7 +432,7 @@
     <script type="text/php">
     if (isset($pdf)) {
         $font = $fontMetrics->get_font('DejaVu Sans', 'normal');
-        $pdf->page_text(505, 760, 'Página {PAGE_NUM} de {PAGE_COUNT}', $font, 7, array(0.35, 0.35, 0.35));
+        $pdf->page_text(680, 585, 'Página {PAGE_NUM} de {PAGE_COUNT}', $font, 7, array(0.35, 0.35, 0.35));
     }
 </script>
 </body>

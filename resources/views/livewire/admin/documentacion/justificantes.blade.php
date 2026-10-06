@@ -48,7 +48,7 @@
                             </h1>
                             <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400 max-w-2xl">
                                 Crea justificantes por alumno, registra las fechas justificadas y controla la descarga
-                                de los documentos en PDF.
+                                de los documentos en PDF o Word.
                             </p>
                         </div>
                     </div>
@@ -325,19 +325,25 @@
                                     <!-- Acciones -->
                                     <td class="px-4 py-3 align-top text-neutral-900 dark:text-neutral-50">
                                         <div class="flex flex-wrap gap-2 items-center">
-                                            <!-- Descargar -->
+                                            <!-- Descargar PDF / Word -->
                                             <form
                                                 action="{{ route('admin.pdf.documentacion.justificantes', $justificante->id) }}"
                                                 method="GET"
                                                 target="_blank"
+                                                class="flex gap-2"
                                             >
-                                                <flux:button
-                                                    variant="primary"
-                                                    type="submit"
-                                                    class="px-3 py-2 rounded-xl cursor-pointer bg-indigo-500 hover:bg-indigo-600 text-white shadow-sm"
-                                                >
-                                                    <flux:icon.download class="w-4 h-4" />
-                                                </flux:button>
+                                                <button type="submit"
+                                                    formaction="{{ route('admin.pdf.documentacion.justificantes', $justificante->id) }}"
+                                                    title="Descargar PDF"
+                                                    class="inline-flex items-center gap-1 rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700">
+                                                    <flux:icon.download class="w-4 h-4" /> PDF
+                                                </button>
+                                                <button type="submit"
+                                                    formaction="{{ route('admin.word.documentacion.justificantes', $justificante->id) }}"
+                                                    title="Descargar Word"
+                                                    class="inline-flex items-center gap-1 rounded-xl bg-[#006492] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#00547b]">
+                                                    <flux:icon.document-text class="w-4 h-4" /> Word
+                                                </button>
                                             </form>
 
                                             <!-- Editar -->

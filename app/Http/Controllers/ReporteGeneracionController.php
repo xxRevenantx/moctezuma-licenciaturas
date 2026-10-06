@@ -8,6 +8,7 @@ use App\Models\Escuela;
 use App\Models\Generacion;
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
+use App\Models\Periodo;
 use App\Services\ListasGeneracionWordService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,7 +25,7 @@ class ReporteGeneracionController extends Controller
         $reporte = $this->construirReporte((int) $datos['generacion_id'], $datos['procedencia']);
 
         $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.listasGeneracionPDF', $reporte)
-            ->setPaper('letter', 'portrait');
+            ->setPaper('letter', 'landscape');
 
         return $pdf->stream($this->nombreArchivo($reporte, 'pdf'));
     }
@@ -82,6 +83,7 @@ class ReporteGeneracionController extends Controller
             ->with([
                 'licenciatura:id,nombre,nombre_corto,RVOE',
                 'generacion:id,generacion,activa',
+                'modalidad:id,nombre,slug',
             ])
             ->where('generacion_id', $generacionId)
             ->where('status', 'true')
@@ -120,6 +122,7 @@ class ReporteGeneracionController extends Controller
             'escuela' => Escuela::query()->first(),
             'cicloEscolar' => $periodoAcademico?->ciclo_escolar ?? 'NO REGISTRADO',
             'periodoEscolar' => $periodoAcademico?->mes?->meses_corto ?? 'NO REGISTRADO',
+            'mesIngreso' => $this->mesIngreso($generacionId),
             'totalLocales' => $alumnos->where('foraneo', 'false')->count(),
             'totalForaneos' => $alumnos->where('foraneo', 'true')->count(),
             'totalGeneral' => $alumnos->count(),
@@ -128,6 +131,37 @@ class ReporteGeneracionController extends Controller
             'alumnosGenerales' => $alumnos->groupBy('licenciatura_id'),
             'fechaEmision' => now(),
         ];
+    }
+
+    private function mesIngreso(int $generacionId): string
+    {
+        $inicioPeriodo = Periodo::query()
+            ->where('generacion_id', $generacionId)
+            ->whereNotNull('inicio_periodo')
+            ->orderBy('inicio_periodo')
+            ->value('inicio_periodo');
+
+        if (! $inicioPeriodo) {
+            return 'NO REGISTRADO';
+        }
+
+        $mes = (int) substr((string) $inicioPeriodo, 5, 2);
+
+        return match ($mes) {
+            1 => 'Enero',
+            2 => 'Febrero',
+            3 => 'Marzo',
+            4 => 'Abril',
+            5 => 'Mayo',
+            6 => 'Junio',
+            7 => 'Julio',
+            8 => 'Agosto',
+            9 => 'Septiembre',
+            10 => 'Octubre',
+            11 => 'Noviembre',
+            12 => 'Diciembre',
+            default => 'NO REGISTRADO',
+        };
     }
 
     private function textoProcedencia(string $procedencia): string

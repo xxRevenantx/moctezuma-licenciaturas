@@ -37,10 +37,22 @@
                                 'estado' => $estado,
                             ]) }}"
                             target="_blank"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600/30"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5V5.625A3.375 3.375 0 0011.25 2.25h-4.5A2.25 2.25 0 004.5 4.5v15a2.25 2.25 0 002.25 2.25h10.5a2.25 2.25 0 002.25-2.25v-5.25z"/></svg>
+                            Control PDF
+                        </a>
+                        <a
+                            href="{{ route('admin.word.documentacion.alumnos.documentacion', [
+                                'licenciatura' => $selectedLicenciatura ?: 0,
+                                'generacion' => $selectedGeneracion ?: 0,
+                                'estado' => $estado,
+                            ]) }}"
+                            target="_blank"
                             class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#006492] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00547b] focus:outline-none focus:ring-2 focus:ring-[#006492]/30"
                         >
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5V5.625A3.375 3.375 0 0011.25 2.25h-4.5A2.25 2.25 0 004.5 4.5v15a2.25 2.25 0 002.25 2.25h10.5a2.25 2.25 0 002.25-2.25v-5.25z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.25 2.25V6a2.25 2.25 0 002.25 2.25H19.5M9 15.75h6m-6 3h3"/></svg>
-                            Control documental
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7.5 3.75h6l3 3v13.5H7.5zM13.5 3.75v3h3M9.75 11.25h4.5m-4.5 3h4.5"/></svg>
+                            Control Word
                         </a>
                     @endcan
                 </div>

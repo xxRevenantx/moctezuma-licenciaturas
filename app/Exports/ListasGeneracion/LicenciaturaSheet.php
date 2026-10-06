@@ -24,26 +24,27 @@ class LicenciaturaSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
             ['Generación', $this->reporte['generacion']->generacion],
             ['Procedencia', $this->reporte['procedenciaTexto']],
             [],
-            ['N.º', 'Matrícula', 'Nombre', 'Apellido paterno', 'Apellido materno', 'Procedencia'],
+            ['Matrícula', 'Nombre', 'Apellido paterno', 'Apellido materno', 'CURP', 'Modalidad', 'Mes ingreso'],
         ];
 
         if ($this->lista['alumnos']->isEmpty()) {
-            $filas[] = ['', '', 'SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO', '', '', ''];
+            $filas[] = ['SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO', '', '', '', '', '', ''];
         } else {
-            foreach ($this->lista['alumnos'] as $indice => $alumno) {
+            foreach ($this->lista['alumnos'] as $alumno) {
                 $filas[] = [
-                    $indice + 1,
-                    $alumno->matricula,
+                    $alumno->matricula ?: $alumno->matricula_interna ?: '—',
                     trim((string) $alumno->nombre),
                     trim((string) $alumno->apellido_paterno),
                     trim((string) $alumno->apellido_materno),
-                    $alumno->foraneo === 'true' ? 'FORÁNEO' : 'LOCAL',
+                    trim((string) $alumno->CURP),
+                    $this->nombreModalidad($alumno->modalidad?->nombre),
+                    $this->reporte['mesIngreso'],
                 ];
             }
         }
 
         $filas[] = [];
-        $filas[] = ['', '', '', '', 'TOTAL', $this->lista['total']];
+        $filas[] = ['', '', '', '', '', 'TOTAL', $this->lista['total']];
 
         return $filas;
     }
@@ -55,11 +56,20 @@ class LicenciaturaSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
 
     public function styles(Worksheet $sheet): array
     {
-        $sheet->mergeCells('A1:F1');
-        $sheet->getStyle('A1:F1')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A6:F6')->getFont()->setBold(true);
+        $sheet->mergeCells('A1:G1');
+        $sheet->getStyle('A1:G1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A6:G6')->getFont()->setBold(true);
         $sheet->freezePane('A7');
 
         return [];
+    }
+
+    private function nombreModalidad(?string $modalidad): string
+    {
+        if (! $modalidad) {
+            return 'No registrada';
+        }
+
+        return mb_convert_case(mb_strtolower(trim($modalidad), 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
     }
 }

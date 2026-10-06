@@ -23,46 +23,44 @@ class ListaGeneralSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
             ['Procedencia', $this->reporte['procedenciaTexto']],
             ['Fecha de emisión', $this->reporte['fechaEmision']->format('d/m/Y')],
             [],
-            ['N.º', 'Matrícula', 'Nombre', 'Apellido paterno', 'Apellido materno', 'Licenciatura', 'Generación', 'Procedencia'],
+            ['Matrícula', 'Nombre', 'Apellido paterno', 'Apellido materno', 'CURP', 'Modalidad', 'Mes ingreso'],
         ];
 
         foreach ($this->reporte['listas'] as $lista) {
             $filas[] = [
-                '',
-                '',
-                'LICENCIATURA EN ' . mb_strtoupper($lista['licenciatura']->nombre),
-                '',
+                'LICENCIATURA EN ' . mb_strtoupper($lista['licenciatura']->nombre) . ' — TOTAL: ' . $lista['total'],
                 '',
                 '',
                 '',
-                'TOTAL: ' . $lista['total'],
+                '',
+                '',
+                '',
             ];
 
             if ($lista['alumnos']->isEmpty()) {
-                $filas[] = ['', '', 'SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO', '', '', '', '', ''];
+                $filas[] = ['SIN ALUMNOS REGISTRADOS PARA EL FILTRO SELECCIONADO', '', '', '', '', '', ''];
                 continue;
             }
 
-            foreach ($lista['alumnos'] as $indice => $alumno) {
+            foreach ($lista['alumnos'] as $alumno) {
                 $filas[] = [
-                    $indice + 1,
-                    $alumno->matricula,
+                    $alumno->matricula ?: $alumno->matricula_interna ?: '—',
                     trim((string) $alumno->nombre),
                     trim((string) $alumno->apellido_paterno),
                     trim((string) $alumno->apellido_materno),
-                    $lista['licenciatura']->nombre,
-                    $this->reporte['generacion']->generacion,
-                    $alumno->foraneo === 'true' ? 'FORÁNEO' : 'LOCAL',
+                    trim((string) $alumno->CURP),
+                    $this->nombreModalidad($alumno->modalidad?->nombre),
+                    $this->reporte['mesIngreso'],
                 ];
             }
         }
 
         $filas[] = [];
-        $filas[] = ['', '', '', '', '', '', 'HOMBRES', $this->reporte['totalHombres']];
-        $filas[] = ['', '', '', '', '', '', 'MUJERES', $this->reporte['totalMujeres']];
-        $filas[] = ['', '', '', '', '', '', 'LOCALES', $this->reporte['totalLocales']];
-        $filas[] = ['', '', '', '', '', '', 'FORÁNEOS', $this->reporte['totalForaneos']];
-        $filas[] = ['', '', '', '', '', '', 'TOTAL GENERAL', $this->reporte['totalGeneral']];
+        $filas[] = ['', '', '', '', '', 'HOMBRES', $this->reporte['totalHombres']];
+        $filas[] = ['', '', '', '', '', 'MUJERES', $this->reporte['totalMujeres']];
+        $filas[] = ['', '', '', '', '', 'LOCALES', $this->reporte['totalLocales']];
+        $filas[] = ['', '', '', '', '', 'FORÁNEOS', $this->reporte['totalForaneos']];
+        $filas[] = ['', '', '', '', '', 'TOTAL GENERAL', $this->reporte['totalGeneral']];
 
         return $filas;
     }
@@ -74,23 +72,33 @@ class ListaGeneralSheet implements FromArray, ShouldAutoSize, WithStyles, WithTi
 
     public function styles(Worksheet $sheet): array
     {
-        $sheet->mergeCells('A1:H1');
-        $sheet->mergeCells('A2:H2');
-        $sheet->getStyle('A1:H2')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A9:H9')->getFont()->setBold(true);
+        $sheet->mergeCells('A1:G1');
+        $sheet->mergeCells('A2:G2');
+        $sheet->getStyle('A1:G2')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A9:G9')->getFont()->setBold(true);
         $sheet->freezePane('A10');
 
         $ultimaFila = $sheet->getHighestRow();
-        $sheet->getStyle('G' . ($ultimaFila - 4) . ":H{$ultimaFila}")->getFont()->setBold(true);
+        $sheet->getStyle('F' . ($ultimaFila - 4) . ":G{$ultimaFila}")->getFont()->setBold(true);
 
         for ($fila = 10; $fila <= $ultimaFila - 6; $fila++) {
-            $valor = (string) $sheet->getCell("C{$fila}")->getValue();
+            $valor = (string) $sheet->getCell("A{$fila}")->getValue();
 
             if (str_starts_with($valor, 'LICENCIATURA EN ')) {
-                $sheet->getStyle("A{$fila}:H{$fila}")->getFont()->setBold(true);
+                $sheet->mergeCells("A{$fila}:G{$fila}");
+                $sheet->getStyle("A{$fila}:G{$fila}")->getFont()->setBold(true);
             }
         }
 
         return [];
+    }
+
+    private function nombreModalidad(?string $modalidad): string
+    {
+        if (! $modalidad) {
+            return 'No registrada';
+        }
+
+        return mb_convert_case(mb_strtolower(trim($modalidad), 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
     }
 }
