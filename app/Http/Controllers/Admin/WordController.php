@@ -207,33 +207,75 @@ class WordController extends Controller
     public function credencial_alumno(Request $request, DocumentacionExportService $exports)
     {
         $data = $exports->credenciales((array) $request->input('alumnos_ids', []));
-        $phpWord = $this->nuevoDocumento();
-        $section = $this->agregarSeccion($phpWord, 'letter', 'portrait', 0.45);
+        $phpWord = $this->nuevoDocumento('Calibri', 10);
+        $section = $this->agregarSeccion($phpWord, 'letter', 'portrait', 0.4);
         $this->encabezadoInstitucional($section, 'CREDENCIALES DE ESTUDIANTE');
 
-        $style = $this->tablaEstilo();
+        $temporalesFoto = [];
+        $style = [
+            'borderSize' => 6,
+            'borderColor' => 'B7C5CE',
+            'cellMarginTop' => 70,
+            'cellMarginBottom' => 70,
+            'cellMarginLeft' => 90,
+            'cellMarginRight' => 90,
+            'width' => 100 * 50,
+            'unit' => 'pct',
+        ];
+
         foreach ($data['alumnos'] as $index => $alumno) {
             $card = $section->addTable($style);
-            $card->addRow();
-            $cell = $card->addCell(9600, ['bgColor' => 'F7FAFC']);
-            $run = $cell->addTextRun(['alignment' => Jc::LEFT]);
-            $run->addText('CREDENCIAL DEL ESTUDIANTE', ['bold' => true, 'size' => 13, 'color' => '006492']);
-            $cell->addText(trim("{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}"), ['bold' => true, 'size' => 11]);
-            $cell->addText('Matrícula: ' . ($alumno->matricula ?: $alumno->matricula_interna ?: 'N/A'));
-            $cell->addText('CURP: ' . ($alumno->CURP ?: 'N/A'));
-            $cell->addText('Licenciatura: ' . ($alumno->licenciatura?->nombre_corto ?: $alumno->licenciatura?->nombre ?: 'N/A'));
+            $card->addRow(1900, ['cantSplit' => true]);
+
+            $photoCell = $card->addCell(1900, [
+                'bgColor' => 'F8FAFC',
+                'valign' => 'center',
+            ]);
+
+            $fotoTemporal = $this->fotoTemporalWord($alumno, $temporalesFoto);
+            if ($fotoTemporal) {
+                $photoCell->addImage($fotoTemporal, [
+                    'width' => 95,
+                    'height' => 113,
+                    'alignment' => Jc::CENTER,
+                ]);
+            } else {
+                $photoCell->addText(
+                    "FOTO\n+ SELLO",
+                    ['bold' => true, 'size' => 9, 'color' => '9AA5B1'],
+                    ['alignment' => Jc::CENTER, 'spaceBefore' => 420, 'spaceAfter' => 0]
+                );
+            }
+
+            $cell = $card->addCell(7700, ['bgColor' => 'FFFFFF', 'valign' => 'center']);
+            $cell->addText('CREDENCIAL DEL ESTUDIANTE', ['bold' => true, 'size' => 12, 'color' => '006492'], ['spaceAfter' => 60]);
+            $cell->addText(trim("{$alumno->nombre} {$alumno->apellido_paterno} {$alumno->apellido_materno}"), ['bold' => true, 'size' => 10.5]);
+            $cell->addText('Matrícula: ' . ($alumno->matricula ?: $alumno->matricula_interna ?: 'N/A'), ['size' => 9]);
+            $cell->addText('CURP: ' . ($alumno->CURP ?: 'N/A'), ['size' => 9]);
+            $cell->addText('Licenciatura: ' . ($alumno->licenciatura?->nombre_corto ?: $alumno->licenciatura?->nombre ?: 'N/A'), ['size' => 9]);
+
             $ciclo = $data['ciclo_escolar']?->ciclo_escolar ?: 'N/A';
-            $cell->addText('Ciclo escolar: ' . $ciclo);
+            $cell->addText('Ciclo escolar: ' . $ciclo, ['size' => 9]);
             $vigencia = preg_match('/(\d{4})$/', (string) $ciclo, $m) ? 'Agosto ' . $m[1] : 'N/A';
-            $cell->addText('Vigencia: ' . $vigencia);
+            $cell->addText('Vigencia: ' . $vigencia, ['size' => 9]);
+
             $section->addTextBreak(1);
             if (($index + 1) % 4 === 0 && ($index + 1) < $data['alumnos']->count()) {
-                // Conserva una distribución compacta de cuatro credenciales por página.
                 $section->addPageBreak();
             }
         }
 
-        return $this->descargar($phpWord, 'CREDENCIALES_ESTUDIANTES.docx');
+        $path = null;
+        try {
+            // El writer necesita las imágenes temporales hasta terminar de crear el DOCX.
+            $path = $this->guardarTemporal($phpWord);
+        } finally {
+            foreach ($temporalesFoto as $temporal) {
+                @unlink($temporal);
+            }
+        }
+
+        return response()->download($path, 'CREDENCIALES_ESTUDIANTES.docx')->deleteFileAfterSend(true);
     }
 
     public function etiquetas(Request $request, DocumentacionExportService $exports)
@@ -743,6 +785,43 @@ class WordController extends Controller
             trim((string) ($directivo->apellido_paterno ?? '')),
             trim((string) ($directivo->apellido_materno ?? '')),
         ], fn ($valor) => $valor !== '')));
+    }
+
+    /**
+     * Convierte el data URI de la fotografía a un archivo temporal que PhpWord
+     * pueda incrustar, incluso si en el futuro la foto vive en un disco remoto.
+     *
+     * @param array<int, string> $temporales
+     */
+    private function fotoTemporalWord(Inscripcion $alumno, array &$temporales): ?string
+    {
+        $dataUri = $alumno->foto_data_uri;
+        if (! is_string($dataUri) || ! preg_match('#^data:image/(jpeg|jpg|png|webp);base64,(.+)$#s', $dataUri, $m)) {
+            return null;
+        }
+
+        $bytes = base64_decode($m[2], true);
+        if ($bytes === false || $bytes === '') {
+            return null;
+        }
+
+        $extension = in_array(strtolower($m[1]), ['jpeg', 'jpg'], true) ? 'jpg' : strtolower($m[1]);
+        $base = tempnam(storage_path('app/phpword-temp'), 'cum_foto_');
+        if ($base === false) {
+            return null;
+        }
+
+        $path = $base . '.' . $extension;
+        @rename($base, $path);
+
+        if (file_put_contents($path, $bytes) === false) {
+            @unlink($path);
+            return null;
+        }
+
+        $temporales[] = $path;
+
+        return $path;
     }
 
     private function descargarDefiniciones(array $definitions, string $filename)

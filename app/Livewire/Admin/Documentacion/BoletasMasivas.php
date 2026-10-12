@@ -18,6 +18,7 @@ class BoletasMasivas extends Component
     public string $modo = 'generacion';
     public string $search = '';
     public string $filtroEstado = 'todos';
+    public string $filtroOrigen = 'todos';
     public string $formato = 'consolidado';
     public bool $incluirIncompletas = false;
 
@@ -50,6 +51,8 @@ class BoletasMasivas extends Component
         $modalidad = request()->integer('modalidad');
         $generacion = request()->integer('generacion');
         $cuatrimestre = request()->integer('cuatrimestre');
+        $origen = request()->query('origen', 'todos');
+        $this->filtroOrigen = in_array($origen, ['todos', 'local', 'foraneo'], true) ? $origen : 'todos';
 
         if ($licenciatura && collect($this->licenciaturas)->contains('id', $licenciatura)) {
             $this->licenciaturaId = $licenciatura;
@@ -172,9 +175,34 @@ class BoletasMasivas extends Component
         }
     }
 
+    public function updatedFiltroOrigen(string $origen): void
+    {
+        if (!in_array($origen, ['todos', 'local', 'foraneo'], true)) {
+            $this->filtroOrigen = 'todos';
+        }
+        if (in_array($this->modo, ['generacion', 'cuatrimestre'], true)) {
+            $this->seleccionarTodos();
+        } elseif ($this->modo === 'alumno') {
+            $this->seleccionados = [];
+        } else {
+            $permitidos = $this->alumnosDelOrigen()->pluck('id')->map(fn ($v) => (int) $v);
+            $this->seleccionados = collect($this->seleccionados)->map(fn ($v) => (int) $v)
+                ->intersect($permitidos)->values()->all();
+        }
+    }
+
+    private function alumnosDelOrigen(): Collection
+    {
+        return collect($this->alumnos)->filter(fn (array $alumno) => match ($this->filtroOrigen) {
+            'local' => ($alumno['foraneo'] ?? 'false') === 'false',
+            'foraneo' => ($alumno['foraneo'] ?? 'false') === 'true',
+            default => true,
+        })->values();
+    }
+
     public function toggleAlumno(int $id): void
     {
-        if (!collect($this->alumnos)->contains('id', $id)) {
+        if (!$this->alumnosDelOrigen()->contains('id', $id)) {
             return;
         }
 
@@ -193,7 +221,7 @@ class BoletasMasivas extends Component
 
     public function seleccionarTodos(): void
     {
-        $this->seleccionados = collect($this->alumnos)
+        $this->seleccionados = $this->alumnosDelOrigen()
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->values()
@@ -236,9 +264,11 @@ class BoletasMasivas extends Component
             return;
         }
 
+        $idsPermitidos = $this->alumnosDelOrigen()->pluck('id')->map(fn ($id) => (int) $id);
         $seleccionados = collect($this->seleccionados)
             ->map(fn ($id) => (int) $id)
             ->unique()
+            ->intersect($idsPermitidos)
             ->values();
 
         if ($seleccionados->isEmpty()) {
@@ -265,7 +295,12 @@ class BoletasMasivas extends Component
             (int) $this->licenciaturaId,
             (int) $this->modalidadId,
             (int) $this->generacionId
-        )->whereIn('id', $seleccionados)->values();
+        )->whereIn('id', $seleccionados)
+          ->filter(fn ($alumno) => match ($this->filtroOrigen) {
+              'local' => $alumno->foraneo === 'false',
+              'foraneo' => $alumno->foraneo === 'true',
+              default => true,
+          })->values();
 
         $analisis = $boletas->analizarAlumnos(
             $alumnos,
@@ -341,6 +376,7 @@ class BoletasMasivas extends Component
         $this->cuatrimestreId = 'todos';
         $this->modo = 'generacion';
         $this->filtroEstado = 'todos';
+        $this->filtroOrigen = 'todos';
         $this->formato = 'consolidado';
         $this->incluirIncompletas = false;
         $this->modalidades = [];
@@ -411,6 +447,7 @@ class BoletasMasivas extends Component
                 'matricula_interna' => $alumno->matricula_interna,
                 'CURP' => $alumno->CURP,
                 'email' => $alumno->user?->email,
+                'foraneo' => $alumno->foraneo,
             ])
             ->values()
             ->all();
@@ -459,7 +496,7 @@ class BoletasMasivas extends Component
         $search = mb_strtolower(trim($this->search));
         $seleccionados = collect($this->seleccionados)->map(fn ($id) => (int) $id);
 
-        return collect($this->alumnos)
+        return $this->alumnosDelOrigen()
             ->filter(function (array $alumno) use ($search, $seleccionados) {
                 if ($search !== '') {
                     $haystack = mb_strtolower(implode(' ', [
@@ -509,7 +546,7 @@ class BoletasMasivas extends Component
     {
         $visibles = $this->alumnosVisibles();
         $seleccionados = collect($this->seleccionados)->map(fn ($id) => (int) $id)->unique()->values();
-        $seleccionadosValidos = collect($this->alumnos)->pluck('id')->map(fn ($id) => (int) $id)->intersect($seleccionados)->values();
+        $seleccionadosValidos = $this->alumnosDelOrigen()->pluck('id')->map(fn ($id) => (int) $id)->intersect($seleccionados)->values();
 
         return view('livewire.admin.documentacion.boletas-masivas', [
             'alumnosVisibles' => $visibles,

@@ -206,6 +206,7 @@ class DocumentacionExportService
         return [
             'alumnos' => Inscripcion::query()
                 ->with(['licenciatura', 'generacion'])
+                ->where('status', 'true')
                 ->whereIn('id', $alumnoIds)
                 ->orderBy('apellido_paterno')
                 ->orderBy('apellido_materno')

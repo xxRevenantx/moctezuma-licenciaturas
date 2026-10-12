@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\SeleccionarModalidadController;
 use App\Http\Controllers\Admin\SubmoduloController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WordController;
+use App\Http\Controllers\Admin\FotografiaEstudianteController;
 use App\Http\Controllers\CiudadController;
 use App\Http\Controllers\BoletaController;
 use App\Http\Controllers\AcademicDocumentController;
@@ -57,6 +58,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('escuela', EscuelaController::class)->middleware('can:admin.administracion')->names('admin.escuela');
 
+
+    Route::get('/fotografias-estudiantes/{inscripcion}', [FotografiaEstudianteController::class, 'show'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.fotografias.estudiante');
 
     // DOCUMENTACIÓN
     Route::get('/listas-generales', [DocumentacionController::class, 'listasGenerales'])->middleware('can:admin.administracion')->name('admin.listas-generales');

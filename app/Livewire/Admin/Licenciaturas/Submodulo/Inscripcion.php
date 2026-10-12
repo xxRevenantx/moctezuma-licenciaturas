@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Licenciaturas\Submodulo;
 
 use App\Services\CurpService;
 use App\Services\IdControlInternoService;
+use App\Services\FotografiaEstudianteService;
 use App\Services\MatriculaService;
 
 use App\Models\Accion;
@@ -17,7 +18,6 @@ use App\Models\Modalidad;
 use App\Models\Periodo;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Nnjeim\World\World;
 
@@ -231,19 +231,26 @@ class Inscripcion extends Component
             'bachillerato_procedente' => 'nullable|max:255',
             'generacion_id'         => 'required|exists:generaciones,id',
             'cuatrimestre_id'       => 'required|exists:cuatrimestres,id',
-            'foto'                  => 'nullable|image|max:2048|mimes:jpeg,jpg,png',
+            'foto'                  => 'nullable|image|max:5120|mimes:jpeg,jpg,png,webp',
         ]);
 
-        if ($this->foto) {
-            $foto           = $this->foto->store('estudiantes');
-            $datos["foto"]  = str_replace('estudiantes/', '', $foto);
-        } else {
-            $datos["foto"]  = NULL;
+        $fotoGuardada = null;
+        try {
+            if ($this->foto) {
+                $fotoGuardada = app(FotografiaEstudianteService::class)->guardar($this->foto);
+                $datos["foto"] = $fotoGuardada;
+            } else {
+                $datos["foto"] = null;
+            }
+        } catch (\Throwable $e) {
+            $this->addError('foto', $e->getMessage());
+            return;
         }
 
         $this->status = $this->status == true ? "true" : "false";
         $this->matricula = app(MatriculaService::class)->normalizar($this->matricula);
         $idInternoGenerado = null;
+        $transaccionCompletada = false;
 
         try {
             DB::transaction(function () use ($datos, &$idInternoGenerado): void {
@@ -284,6 +291,8 @@ class Inscripcion extends Component
 
                 $idInternoGenerado = app(IdControlInternoService::class)->generarPara($alumno);
             });
+            $transaccionCompletada = true;
+
             $this->reset([
                 'user_id',
                 'matricula',
@@ -334,6 +343,10 @@ class Inscripcion extends Component
                 'position' => 'top-end',
             ]);
         } catch (\Exception $e) {
+            if ($fotoGuardada && ! $transaccionCompletada) {
+                app(FotografiaEstudianteService::class)->eliminar($fotoGuardada);
+            }
+
             $this->dispatch('swal', [
                 'title'    => 'Error al crear el alumno'.$e->getMessage(),
                 'icon'     => 'error',

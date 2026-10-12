@@ -178,7 +178,7 @@
                             <!-- Subir foto -->
                             <div class="flex flex-col items-center flex-1 text-center">
                                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">SUBIR FOTO</h3>
-                                <flux:input wire:model.live="foto_nueva" type="file" accept="image/jpeg,image/jpg,image/png" />
+                                <flux:input wire:model.live="foto_nueva" type="file" accept="image/jpeg,image/jpg,image/png,image/webp" />
 
                                 @if ($foto)
                                     <div class="rounded-full flex flex-col items-center justify-center mb-2 mt-2">

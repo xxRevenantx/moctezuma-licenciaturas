@@ -11,10 +11,10 @@ use App\Models\Licenciatura;
 use App\Models\Modalidad;
 use App\Models\User;
 use App\Services\IdControlInternoService;
+use App\Services\FotografiaEstudianteService;
 use App\Services\MatriculaService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Throwable;
@@ -269,7 +269,7 @@ class MatriculaEditar extends Component
             'celular' => 'nullable|max:10',
             'tutor' => 'nullable|max:255',
             'bachillerato_procedente' => 'nullable|max:255',
-            'foto_nueva' => 'nullable|image|max:2048|mimes:jpeg,jpg,png',
+            'foto_nueva' => 'nullable|image|max:5120|mimes:jpeg,jpg,png,webp',
         ],[
             'user_id.required' => 'El campo usuario es obligatorio.',
             'user_id.exists' => 'El usuario seleccionado no existe.',
@@ -304,20 +304,24 @@ class MatriculaEditar extends Component
             'estado_id.exists' => 'El estado seleccionado no existe.',
             'tutor.max' => 'El campo tutor no debe exceder 255 caracteres.',
             'foto_nueva.image' => 'El archivo debe ser una imagen',
-            'foto_nueva.max' => 'El archivo no debe pesar más de 2MB',
-            'foto_nueva.mimes' => 'El archivo debe ser formato jpeg, jpg o png',
+            'foto_nueva.max' => 'El archivo no debe pesar más de 5MB',
+            'foto_nueva.mimes' => 'El archivo debe ser formato jpeg, jpg, png o webp',
 
 
         ]);
 
-         if ($this->foto_nueva) {
-            // Eliminar la imagen anterior si existe
-            if ($this->foto) {
-            Storage::delete('estudiantes/' . $this->foto);
-            }
+        $fotoAnterior = $this->foto;
+        $fotoNuevaGuardada = null;
+        $fotoParaGuardar = $this->foto;
 
-            $foto = $this->foto_nueva->store('estudiantes');
-            $datos['foto'] = str_replace('estudiantes/', '', $foto);
+        if ($this->foto_nueva) {
+            try {
+                $fotoNuevaGuardada = app(FotografiaEstudianteService::class)->guardar($this->foto_nueva);
+                $fotoParaGuardar = $fotoNuevaGuardada;
+            } catch (\Throwable $e) {
+                $this->addError('foto_nueva', $e->getMessage());
+                return;
+            }
         }
 
 
@@ -325,7 +329,8 @@ class MatriculaEditar extends Component
         $this->fecha_baja = $this->status ? null : ($this->fecha_baja ?: now()->format('Y-m-d H:i:s'));
 
         if ($estudiante) {
-            $estudiante->update([
+            try {
+                $estudiante->update([
                 'user_id' => $this->user_id,
                 'matricula' => $matriculaNueva !== '' ? $matriculaNueva : null,
                 'folio' => strtoupper(trim($this->folio)),
@@ -350,13 +355,23 @@ class MatriculaEditar extends Component
                 'celular' => strtoupper(trim($this->celular)),
                 'tutor' => strtoupper(trim($this->tutor)),
                 'bachillerato_procedente' => strtoupper(trim($this->bachillerato_procedente)),
-                 'foto' => $this->foto_nueva ? $datos['foto'] : $this->foto,
+                'foto' => $fotoParaGuardar,
                 'foraneo' => $this->foraneo ? "true" : "false",
                 'status' => $this->status ? "true" : "false",
                 'fecha_baja' => $this->fecha_baja,
 
 
-            ]);
+                ]);
+            } catch (\Throwable $e) {
+                if ($fotoNuevaGuardada) {
+                    app(FotografiaEstudianteService::class)->eliminar($fotoNuevaGuardada);
+                }
+                throw $e;
+            }
+
+            if ($fotoNuevaGuardada && $fotoAnterior && $fotoAnterior !== $fotoNuevaGuardada) {
+                app(FotografiaEstudianteService::class)->eliminar($fotoAnterior);
+            }
 
             if ($matriculaAnterior !== $matriculaNueva) {
                 $matriculaService->registrarCambio(

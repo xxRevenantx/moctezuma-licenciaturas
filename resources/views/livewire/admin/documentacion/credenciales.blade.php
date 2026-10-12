@@ -1,4 +1,4 @@
-<div class="space-y-5" x-data="{ exportando: false }">
+<div class="space-y-5" x-data="credencialesFotosPro">
     {{-- Encabezado --}}
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="h-1.5 bg-gradient-to-r from-[#006492] via-cyan-500 to-[#88AC2E]"></div>
@@ -25,6 +25,11 @@
 
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="inline-flex items-center rounded-full bg-sky-50 px-3 py-1.5 text-xs font-bold text-[#006492] dark:bg-sky-950/40 dark:text-sky-300">PDF + Word</span>
+                    <button type="button" @click="gestorFotos = !gestorFotos"
+                        class="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/35 dark:text-emerald-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/></svg>
+                        Gestionar fotografías
+                    </button>
                     <button type="button" wire:click="restablecer"
                         class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -173,6 +178,88 @@
         @endif
     </section>
 
+    {{-- Gestión de fotografías institucionales --}}
+    <section x-show="gestorFotos" x-cloak x-transition.opacity
+        class="overflow-hidden rounded-3xl border border-emerald-200 bg-white shadow-sm dark:border-emerald-900/70 dark:bg-zinc-900">
+        <div class="border-b border-emerald-100 bg-emerald-50/60 px-5 py-4 dark:border-emerald-900/60 dark:bg-emerald-950/20 sm:px-6">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/></svg>
+                        </span>
+                        <h3 class="font-black text-slate-900 dark:text-white">Fotografías para credenciales</h3>
+                    </div>
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-zinc-300">
+                        Igual que en Moctezuma Básica: las fotos nuevas se convierten a JPG, se corrige orientación EXIF y se recortan al centro a <strong>2.5 × 3 cm (295 × 354 px, 300 ppp)</strong> sin deformarlas.
+                    </p>
+                </div>
+
+                @if ($resultados->isNotEmpty())
+                    <div class="flex gap-2">
+                        <span class="rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">{{ $resultadosConFoto }} con foto</span>
+                        <span class="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-black text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">{{ $resultadosSinFoto }} sin foto</span>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <div class="grid gap-5 p-5 sm:p-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <div>
+                <p class="text-sm font-black text-slate-900 dark:text-white">Carga masiva por matrícula o CURP</p>
+                <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-zinc-400">
+                    Nombra cada archivo con la matrícula, matrícula interna o CURP del alumno; también se aceptan nombres como <strong>FOTO_MATRICULA.jpg</strong>. Se buscan coincidencias únicamente entre alumnos activos.
+                </p>
+
+                <label class="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-emerald-200 bg-emerald-50/40 px-5 py-7 text-center transition hover:border-emerald-400 hover:bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/15">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L7 9m5-5 5 5M5 20h14"/></svg>
+                    <span class="mt-2 text-sm font-extrabold text-slate-800 dark:text-zinc-100">Selecciona o arrastra fotografías</span>
+                    <span class="mt-1 text-xs text-slate-500 dark:text-zinc-400">JPG, JPEG, PNG o WebP · máximo 5 MB por foto · hasta 100 por lote</span>
+                    <input type="file" class="hidden" wire:model="fotosMasivas" multiple accept="image/jpeg,image/jpg,image/png,image/webp">
+                </label>
+
+                @error('fotosMasivas') <p class="mt-2 text-xs font-bold text-red-600">{{ $message }}</p> @enderror
+                @error('fotosMasivas.*') <p class="mt-2 text-xs font-bold text-red-600">{{ $message }}</p> @enderror
+
+                @if (count($fotosMasivas))
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                        <span class="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-bold text-[#006492] dark:bg-sky-950/30 dark:text-sky-300">{{ count($fotosMasivas) }} archivo(s) listo(s)</span>
+                        <button type="button" wire:click="guardarFotosMasivas" wire:loading.attr="disabled" wire:target="guardarFotosMasivas,fotosMasivas"
+                            class="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50">
+                            <span wire:loading.remove wire:target="guardarFotosMasivas">Procesar fotografías</span>
+                            <span wire:loading wire:target="guardarFotosMasivas">Procesando...</span>
+                        </button>
+                        <button type="button" wire:click="limpiarCargaMasiva" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">Limpiar</button>
+                    </div>
+                @endif
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+                <p class="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-zinc-400">Resultado del último lote</p>
+                <div class="mt-3 grid grid-cols-2 gap-3">
+                    <div class="rounded-xl bg-white p-3 dark:bg-zinc-900">
+                        <p class="text-2xl font-black text-emerald-600">{{ $cargaMasivaGuardadas }}</p>
+                        <p class="text-[11px] font-bold text-slate-500">Guardadas</p>
+                    </div>
+                    <div class="rounded-xl bg-white p-3 dark:bg-zinc-900">
+                        <p class="text-2xl font-black text-amber-600">{{ $cargaMasivaNoAsignadas }}</p>
+                        <p class="text-[11px] font-bold text-slate-500">Por revisar</p>
+                    </div>
+                </div>
+
+                @if (count($erroresCargaMasiva))
+                    <div class="mt-3 max-h-40 overflow-auto rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-5 text-amber-900 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
+                        @foreach ($erroresCargaMasiva as $errorCarga)
+                            <p>• {{ $errorCarga }}</p>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-zinc-400">Si un archivo no coincide o es ambiguo, aquí aparecerá el detalle sin afectar las fotografías válidas.</p>
+                @endif
+            </div>
+        </div>
+    </section>
+
     {{-- Resultados --}}
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div class="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 dark:border-zinc-700 sm:flex-row sm:items-center sm:justify-between">
@@ -209,16 +296,18 @@
             </div>
         @else
             <div class="max-h-[430px] overflow-auto">
-                <table class="min-w-[980px] w-full text-left text-sm">
+                <table class="min-w-[1240px] w-full text-left text-sm">
                     <thead class="sticky top-0 z-10 bg-slate-50 text-[11px] font-black uppercase tracking-wide text-slate-500 dark:bg-zinc-800 dark:text-zinc-300">
                         <tr>
                             <th class="w-14 px-4 py-3 text-center">Sel.</th>
+                            <th class="w-24 px-4 py-3">Foto</th>
                             <th class="px-4 py-3">Alumno</th>
                             <th class="px-4 py-3">Matrícula</th>
                             <th class="px-4 py-3">Licenciatura</th>
                             <th class="px-4 py-3">Generación</th>
                             <th class="px-4 py-3">Cuatrimestre</th>
                             <th class="px-4 py-3">Modalidad</th>
+                            <th class="w-56 px-4 py-3">Fotografía</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -233,6 +322,15 @@
                                     </button>
                                 </td>
                                 <td class="px-4 py-3">
+                                    <div class="relative h-[60px] w-[50px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+                                        @if ($alumno->foto_existe && $alumno->foto_url)
+                                            <img src="{{ $alumno->foto_url }}" alt="Foto de {{ $alumno->nombre }}" class="h-full w-full object-cover">
+                                        @else
+                                            <div class="flex h-full w-full items-center justify-center px-1 text-center text-[8px] font-black leading-3 text-slate-400">FOTO<br>+ SELLO</div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
                                     <button type="button" wire:click="seleccionarAlumno({{ $alumno->id }})" class="text-left">
                                         <span class="block font-extrabold uppercase text-slate-900 dark:text-white">{{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} {{ $alumno->nombre }}</span>
                                         <span class="mt-0.5 block text-[11px] text-slate-500 dark:text-zinc-400">{{ $alumno->CURP ?: 'CURP no registrada' }}</span>
@@ -244,6 +342,31 @@
                                 <td class="px-4 py-3 text-slate-600 dark:text-zinc-300">{{ $alumno->cuatrimestre?->nombre_cuatrimestre ?: $alumno->cuatrimestre?->cuatrimestre ?: '—' }}</td>
                                 <td class="px-4 py-3">
                                     <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">{{ $alumno->modalidad?->nombre ?: '—' }}</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black {{ $alumno->foto_existe ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' }}">
+                                            {{ $alumno->foto_existe ? 'Con foto' : 'Sin foto' }}
+                                        </span>
+
+                                        <label class="cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-black text-slate-600 transition hover:border-[#006492] hover:text-[#006492] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+                                            {{ $alumno->foto_existe ? 'Reemplazar' : 'Subir foto' }}
+                                            <input type="file" class="hidden"
+                                                accept="image/jpeg,image/jpg,image/png,image/webp"
+                                                @change="abrirEditor($event, {{ (int) $alumno->id }}, @js(trim($alumno->apellido_paterno.' '.$alumno->apellido_materno.' '.$alumno->nombre)))">
+                                        </label>
+
+                                        @if ($alumno->foto_existe && $alumno->foto_url)
+                                            <button type="button"
+                                                @click="abrirEditorUrl(@js($alumno->foto_url), {{ (int) $alumno->id }}, @js(trim($alumno->apellido_paterno.' '.$alumno->apellido_materno.' '.$alumno->nombre)))"
+                                                class="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1.5 text-[10px] font-black text-[#006492] transition hover:bg-sky-100 dark:border-sky-900 dark:bg-sky-950/30 dark:text-sky-300">
+                                                Ajustar
+                                            </button>
+                                        @endif
+                                    </div>
+                                    @error('fotoEditor')
+                                        <p class="mt-1 max-w-[220px] text-[10px] font-bold leading-4 text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </td>
                             </tr>
                         @endforeach
@@ -309,4 +432,261 @@
             </div>
         </div>
     </form>
+
+
+    {{-- Editor visual de fotografía: encuadre institucional 5:6 --}}
+    <div x-cloak x-show="editorOpen" x-transition.opacity
+        class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm"
+        @keydown.escape.window="if (!uploadingEditor) cerrarEditor()">
+        <div x-show="editorOpen" x-transition.scale.origin.center
+            class="max-h-[96vh] w-full max-w-4xl overflow-y-auto rounded-[30px] bg-white shadow-2xl dark:bg-zinc-900">
+            <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-zinc-800">
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-[.2em] text-[#88AC2E]">Credencial institucional</p>
+                    <h3 class="mt-1 text-lg font-black text-slate-900 dark:text-white">Ajustar fotografía</h3>
+                    <p class="mt-0.5 text-xs font-semibold text-slate-500" x-text="editorName"></p>
+                </div>
+                <button type="button" @click="cerrarEditor()" :disabled="uploadingEditor"
+                    class="grid h-9 w-9 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50 dark:hover:bg-zinc-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+            </div>
+
+            <div class="grid gap-6 p-5 lg:grid-cols-[1fr_300px] lg:p-6">
+                <div class="rounded-[26px] bg-slate-100 p-4 dark:bg-zinc-950">
+                    <div class="mx-auto w-full max-w-[420px]">
+                        <p class="mb-2 text-center text-[11px] font-black uppercase tracking-[.2em] text-slate-400">Vista final · 2.5 × 3 cm</p>
+                        <canvas x-ref="cropCanvas" width="295" height="354"
+                            class="mx-auto aspect-[5/6] w-full max-w-[295px] touch-none cursor-grab rounded-2xl bg-white shadow-xl ring-1 ring-black/10 active:cursor-grabbing"
+                            @pointerdown="iniciarArrastre($event)"
+                            @pointermove="moverArrastre($event)"
+                            @pointerup="terminarArrastre()"
+                            @pointercancel="terminarArrastre()"
+                            @pointerleave="terminarArrastre()"></canvas>
+                        <p class="mt-3 text-center text-xs text-slate-500">Arrastra la fotografía dentro del marco hasta dejar el rostro centrado.</p>
+                    </div>
+                </div>
+
+                <aside class="space-y-4">
+                    <div class="rounded-2xl border border-slate-200 p-4 dark:border-zinc-800">
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-500">Zoom</span>
+                            <span class="rounded-lg bg-slate-100 px-2 py-1 text-xs font-black text-slate-700 dark:bg-zinc-800 dark:text-zinc-200" x-text="Math.round(zoom * 100) + '%'">100%</span>
+                        </div>
+                        <input type="range" min="1" max="3" step="0.01" x-model.number="zoom" @input="dibujarEditor()"
+                            class="mt-3 w-full accent-[#006492]">
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-200 p-4 dark:border-zinc-800">
+                        <span class="text-xs font-black uppercase tracking-wider text-slate-500">Rotación</span>
+                        <div class="mt-3 grid grid-cols-2 gap-2">
+                            <button type="button" @click="rotar(-90)" class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-200">↶ -90°</button>
+                            <button type="button" @click="rotar(90)" class="rounded-xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-200">↷ +90°</button>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-xs leading-5 text-sky-800 dark:border-sky-900/60 dark:bg-sky-950/25 dark:text-sky-200">
+                        <p class="font-black">Salida final</p>
+                        <p class="mt-1">295 × 354 px, relación 5:6, JPG institucional. El servidor vuelve a normalizar la imagen antes de guardarla.</p>
+                    </div>
+
+                    <button type="button" @click="reiniciarEditor()" :disabled="uploadingEditor"
+                        class="w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-black text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                        Restablecer encuadre
+                    </button>
+                </aside>
+            </div>
+
+            <div class="flex flex-col-reverse gap-2 border-t border-slate-200 px-5 py-4 dark:border-zinc-800 sm:flex-row sm:justify-end">
+                <button type="button" @click="cerrarEditor()" :disabled="uploadingEditor"
+                    class="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-black text-slate-600 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300">Cancelar</button>
+                <button type="button" @click="exportarEditor()" :disabled="uploadingEditor"
+                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#006492] px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-sky-900/15 disabled:opacity-60">
+                    <template x-if="!uploadingEditor"><span>Guardar fotografía ajustada</span></template>
+                    <template x-if="uploadingEditor"><span class="inline-flex items-center gap-2"><span class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span> Guardando…</span></template>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @script
+        <script>
+            Alpine.data('credencialesFotosPro', () => ({
+                exportando: false,
+                gestorFotos: false,
+                editorOpen: false,
+                editorStudentId: null,
+                editorName: '',
+                image: null,
+                zoom: 1,
+                rotation: 0,
+                offsetX: 0,
+                offsetY: 0,
+                dragging: false,
+                lastX: 0,
+                lastY: 0,
+                uploadingEditor: false,
+
+                abrirEditor(event, id, nombre) {
+                    const file = event.target.files?.[0];
+                    event.target.value = '';
+                    this.abrirEditorArchivo(file, id, nombre);
+                },
+
+                abrirEditorArchivo(file, id, nombre) {
+                    if (!file) return;
+
+                    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                        Swal.fire('Formato no válido', 'Selecciona una fotografía JPG, PNG o WebP.', 'warning');
+                        return;
+                    }
+
+                    if (file.size > 5 * 1024 * 1024) {
+                        Swal.fire('Fotografía demasiado grande', 'La fotografía puede pesar hasta 5 MB.', 'warning');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = () => this.cargarImagenEditor(reader.result, id, nombre);
+                    reader.readAsDataURL(file);
+                },
+
+                async abrirEditorUrl(url, id, nombre) {
+                    if (!url) return;
+
+                    try {
+                        const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+                        if (!response.ok) throw new Error('No fue posible leer la imagen.');
+                        const blob = await response.blob();
+                        const file = new File([blob], `foto-${id}.jpg`, { type: blob.type || 'image/jpeg' });
+                        this.abrirEditorArchivo(file, id, nombre);
+                    } catch (error) {
+                        Swal.fire('No se pudo abrir la fotografía', 'La imagen existe en el expediente, pero el navegador no pudo leerla. Prueba recargando la página o vuelve a seleccionar el archivo.', 'warning');
+                    }
+                },
+
+                cargarImagenEditor(src, id, nombre) {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.image = img;
+                        this.editorStudentId = Number(id);
+                        this.editorName = nombre || 'Alumno';
+                        this.zoom = 1;
+                        this.rotation = 0;
+                        this.offsetX = 0;
+                        this.offsetY = 0;
+                        this.editorOpen = true;
+                        this.$nextTick(() => this.dibujarEditor());
+                    };
+                    img.onerror = () => Swal.fire('Imagen inválida', 'No fue posible leer la fotografía seleccionada.', 'error');
+                    img.src = src;
+                },
+
+                dibujarEditor() {
+                    const canvas = this.$refs.cropCanvas;
+                    if (!canvas || !this.image) return;
+
+                    const ctx = canvas.getContext('2d');
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    ctx.clearRect(0, 0, w, h);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, w, h);
+
+                    const normalRotation = ((this.rotation % 360) + 360) % 360;
+                    const quarter = normalRotation === 90 || normalRotation === 270;
+                    const rotatedW = quarter ? this.image.height : this.image.width;
+                    const rotatedH = quarter ? this.image.width : this.image.height;
+                    const cover = Math.max(w / rotatedW, h / rotatedH) * this.zoom;
+
+                    ctx.save();
+                    ctx.translate(w / 2 + this.offsetX, h / 2 + this.offsetY);
+                    ctx.rotate(this.rotation * Math.PI / 180);
+                    ctx.scale(cover, cover);
+                    ctx.drawImage(this.image, -this.image.width / 2, -this.image.height / 2);
+                    ctx.restore();
+                },
+
+                iniciarArrastre(event) {
+                    this.dragging = true;
+                    this.lastX = event.clientX;
+                    this.lastY = event.clientY;
+                    event.currentTarget.setPointerCapture?.(event.pointerId);
+                },
+
+                moverArrastre(event) {
+                    if (!this.dragging) return;
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    const scaleX = event.currentTarget.width / rect.width;
+                    const scaleY = event.currentTarget.height / rect.height;
+                    this.offsetX += (event.clientX - this.lastX) * scaleX;
+                    this.offsetY += (event.clientY - this.lastY) * scaleY;
+                    this.lastX = event.clientX;
+                    this.lastY = event.clientY;
+                    this.dibujarEditor();
+                },
+
+                terminarArrastre() {
+                    this.dragging = false;
+                },
+
+                rotar(grados) {
+                    this.rotation += grados;
+                    this.offsetX = 0;
+                    this.offsetY = 0;
+                    this.dibujarEditor();
+                },
+
+                reiniciarEditor() {
+                    this.zoom = 1;
+                    this.rotation = 0;
+                    this.offsetX = 0;
+                    this.offsetY = 0;
+                    this.dibujarEditor();
+                },
+
+                cerrarEditor() {
+                    if (this.uploadingEditor) return;
+                    this.editorOpen = false;
+                    this.image = null;
+                    this.editorStudentId = null;
+                },
+
+                exportarEditor() {
+                    const canvas = this.$refs.cropCanvas;
+                    const alumnoId = this.editorStudentId;
+                    if (!canvas || !alumnoId || this.uploadingEditor) return;
+
+                    this.uploadingEditor = true;
+                    canvas.toBlob((blob) => {
+                        if (!blob) {
+                            this.uploadingEditor = false;
+                            Swal.fire('No se pudo preparar la fotografía', 'Intenta nuevamente.', 'error');
+                            return;
+                        }
+
+                        const file = new File([blob], `alumno-${alumnoId}.jpg`, { type: 'image/jpeg' });
+                        this.$wire.upload('fotoEditor', file,
+                            async () => {
+                                try {
+                                    await this.$wire.guardarFotoEditor(alumnoId);
+                                    this.editorOpen = false;
+                                    this.image = null;
+                                    this.editorStudentId = null;
+                                } catch (error) {
+                                    Swal.fire('No se pudo guardar', 'Revisa el archivo e inténtalo nuevamente.', 'error');
+                                } finally {
+                                    this.uploadingEditor = false;
+                                }
+                            },
+                            () => {
+                                this.uploadingEditor = false;
+                                Swal.fire('No se pudo cargar la fotografía', 'Revisa el archivo e inténtalo nuevamente.', 'error');
+                            }
+                        );
+                    }, 'image/jpeg', 0.92);
+                },
+            }));
+        </script>
+    @endscript
 </div>

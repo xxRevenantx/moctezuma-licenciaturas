@@ -415,6 +415,22 @@
                 </div>
             </div>
 
+            <div class="flex flex-col gap-3 border-b border-slate-200 bg-slate-50/60 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/20 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <div>
+                    <p class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Origen de estudiantes</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Se guardarán únicamente calificaciones de los {{ $alumnosVisibles->count() }} alumnos visibles.</p>
+                </div>
+                <div class="inline-flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-600 dark:bg-slate-900" role="group" aria-label="Origen del estudiante">
+                    @foreach (['todos' => 'Todos', 'local' => 'Locales', 'foraneo' => 'Foráneos'] as $clave => $etiqueta)
+                        <button type="button" wire:click="$set('origenFiltro', '{{ $clave }}')"
+                            aria-pressed="{{ $origenFiltro === $clave ? 'true' : 'false' }}"
+                            class="cursor-pointer rounded-lg px-3 py-2 text-xs font-bold transition {{ $origenFiltro === $clave ? 'bg-[#006492] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800' }}">
+                            {{ $etiqueta }} <span class="ml-1 opacity-70">{{ $conteosOrigen[$clave] }}</span>
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
             <div class="relative">
                 <div wire:loading.flex wire:target="guardarCalificaciones,eliminarCalificacion,previsualizarImportacion,confirmarImportacion,entregar,validarEntrega,reabrirCaptura"
                      class="absolute inset-0 z-40 items-start justify-center bg-white/80 pt-20 backdrop-blur-sm dark:bg-slate-950/75">
@@ -486,7 +502,7 @@
             <div class="flex flex-col gap-3 border-t border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-800/30 sm:flex-row sm:items-center sm:justify-between sm:p-5">
                 <p class="flex items-start gap-2 text-xs leading-5 text-slate-500">
                     <flux:icon.information-circle class="mt-0.5 size-4 shrink-0 text-blue-500" />
-                    <span><strong>Vacío = no modificar.</strong> Para borrar una calificación existente usa el botón × de forma explícita.</span>
+                    <span><strong>Vacío = no modificar.</strong> El guardado solo afecta alumnos visibles; para borrar una calificación existente usa ×.</span>
                 </p>
                 <div class="flex flex-wrap gap-2">
                     @if($modo === 'materia' && $estadoActual === 'completa')

@@ -230,7 +230,7 @@
                         <p class="mt-1 text-sm text-slate-500 dark:text-zinc-400">
                             Ordenados por apellido paterno, apellido materno y nombre.
                             @if (in_array($modo, ['generacion', 'cuatrimestre'], true))
-                                <span class="font-bold text-[#006492] dark:text-sky-300">Este modo incluye a todos los alumnos activos.</span>
+                                <span class="font-bold text-[#006492] dark:text-sky-300">Este modo incluye automáticamente a los alumnos activos del origen seleccionado.</span>
                             @endif
                         </p>
                     </div>
@@ -238,7 +238,7 @@
                     <div class="flex flex-wrap gap-2">
                         <button type="button" wire:click="seleccionarTodos" @disabled($modo === 'alumno')
                             class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
-                            Seleccionar todos
+                            Seleccionar todos del origen
                         </button>
                         <button type="button" wire:click="seleccionarResultados"
                             class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
@@ -248,6 +248,22 @@
                             class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                             Limpiar
                         </button>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-zinc-700 dark:bg-zinc-800/40 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <span class="text-sm font-extrabold text-slate-800 dark:text-white">Origen de los alumnos</span>
+                        <p class="text-xs text-slate-500 dark:text-zinc-400">La selección, descarga y los correos respetan el origen elegido.</p>
+                    </div>
+                    <div class="inline-flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-900" role="group" aria-label="Origen de alumnos para boletas">
+                        @foreach (['todos' => 'Todos', 'local' => 'Locales', 'foraneo' => 'Foráneos'] as $clave => $texto)
+                            <button type="button" wire:click="$set('filtroOrigen', '{{ $clave }}')"
+                                class="cursor-pointer rounded-lg px-3 py-2 text-xs font-bold transition {{ $filtroOrigen === $clave ? 'bg-[#006492] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800' }}"
+                                aria-pressed="{{ $filtroOrigen === $clave ? 'true' : 'false' }}">
+                                {{ $texto }}
+                            </button>
+                        @endforeach
                     </div>
                 </div>
 

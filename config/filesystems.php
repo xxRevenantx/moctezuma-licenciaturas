@@ -15,6 +15,10 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    // Fotografías institucionales de estudiantes. Se mantiene en `public`
+    // para conservar compatibilidad con storage/estudiantes y storage:link.
+    'fotos_disk' => env('FOTOS_DISK', 'public'),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

@@ -31,6 +31,7 @@ class Panel extends Component
 
     public string $modo = 'materia';
     public string $buscarAlumno = '';
+    public string $origenFiltro = 'todos';
     public array $contextoSeleccionado = [];
     public array $asignacionesMatriz = [];
     public array $alumnos = [];
@@ -69,6 +70,7 @@ class Panel extends Component
         $this->generacionId = null;
         $this->cuatrimestreId = null;
         $this->estadoFiltro = '';
+        $this->origenFiltro = 'todos';
         $this->cerrarCaptura();
     }
 
@@ -152,7 +154,7 @@ class Panel extends Component
             return;
         }
 
-        $alumnosPermitidos = collect($this->alumnos)->pluck('id')->map(fn ($id) => (int) $id)->flip();
+        $alumnosPermitidos = $this->alumnosVisiblesCaptura()->pluck('id')->map(fn ($id) => (int) $id)->flip();
         $contextosPorId = $contextosEditables->keyBy('asignacion_materia_id');
         $errores = [];
         $cambios = 0;
@@ -225,6 +227,7 @@ class Panel extends Component
             return;
         }
 
+        abort_unless($this->alumnosVisiblesCaptura()->contains('id', $alumnoId), 403);
         $alumno = $this->service()->alumnosParaContexto($contexto)->firstWhere('id', $alumnoId);
         abort_unless($alumno, 403);
 
@@ -572,16 +575,12 @@ class Panel extends Component
             ? $asignacionesBase->where('estado', $this->estadoFiltro)->values()
             : $asignacionesBase;
 
-        $alumnosVisibles = collect($this->alumnos);
-        if (trim($this->buscarAlumno) !== '') {
-            $needle = Str::lower(trim($this->buscarAlumno));
-            $alumnosVisibles = $alumnosVisibles->filter(function ($a) use ($needle) {
-                $texto = Str::lower(trim(collect([
-                    $a['matricula'] ?? '', $a['matricula_interna'] ?? '', $a['nombre'] ?? '', $a['apellido_paterno'] ?? '', $a['apellido_materno'] ?? '',
-                ])->implode(' ')));
-                return str_contains($texto, $needle);
-            })->values();
-        }
+        $alumnosVisibles = $this->alumnosVisiblesCaptura();
+        $conteosOrigen = [
+            'todos' => count($this->alumnos),
+            'local' => collect($this->alumnos)->where('foraneo', 'false')->count(),
+            'foraneo' => collect($this->alumnos)->where('foraneo', 'true')->count(),
+        ];
 
         $estadoSeleccionado = null;
         $auditoriaReciente = collect();
@@ -610,11 +609,28 @@ class Panel extends Component
             'asignaciones' => $asignaciones,
             'resumen' => $resumen,
             'alumnosVisibles' => $alumnosVisibles,
+            'conteosOrigen' => $conteosOrigen,
             'puedeAdministrar' => $this->puedeAdministrar(),
             'esProfesorRestringido' => $this->esProfesorRestringido(),
             'estadoSeleccionado' => $estadoSeleccionado,
             'auditoriaReciente' => $auditoriaReciente,
         ]);
+    }
+
+    private function alumnosVisiblesCaptura(): Collection
+    {
+        $needle = Str::lower(trim($this->buscarAlumno));
+        return collect($this->alumnos)->filter(function (array $a) use ($needle) {
+            if ($this->origenFiltro === 'local' && ($a['foraneo'] ?? 'false') !== 'false') return false;
+            if ($this->origenFiltro === 'foraneo' && ($a['foraneo'] ?? 'false') !== 'true') return false;
+            if ($needle === '') return true;
+
+            $texto = Str::lower(trim(collect([
+                $a['matricula'] ?? '', $a['matricula_interna'] ?? '', $a['nombre'] ?? '',
+                $a['apellido_paterno'] ?? '', $a['apellido_materno'] ?? '',
+            ])->implode(' ')));
+            return str_contains($texto, $needle);
+        })->values();
     }
 
     private function cargarAlumnosYCalificaciones(Collection $contextos): void
