@@ -9,6 +9,7 @@ use App\Models\CalificacionAuditoria;
 use App\Models\CalificacionDocenteCaptura;
 use App\Models\Inscripcion;
 use App\Services\CalificacionesDocenteService;
+use App\Services\CalificacionesHistoricasService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -30,12 +31,24 @@ class Panel extends Component
     public string $estadoFiltro = '';
 
     public string $modo = 'materia';
+    public string $buscarAlumnoGlobal = '';
+    public ?int $alumnoSeleccionadoId = null;
+    public string $pendientesFiltro = 'todos';
     public string $buscarAlumno = '';
     public string $origenFiltro = 'todos';
     public array $contextoSeleccionado = [];
     public array $asignacionesMatriz = [];
     public array $alumnos = [];
     public array $calificaciones = [];
+    public array $calificacionesGuardadas = [];
+
+    // Historial administrativo independiente del cuatrimestre actual.
+    public string $buscarAlumnoHistorico = '';
+    public ?int $alumnoHistoricoId = null;
+    public array $historialRegistros = [];
+    public array $notasHistoricas = [];
+    public array $notasHistoricasGuardadas = [];
+    public string $motivoCorreccionHistorica = '';
 
     public $archivoExcel = null;
     public array $vistaPreviaImportacion = [];
@@ -46,6 +59,7 @@ class Panel extends Component
     public function mount(): void
     {
         abort_unless(auth()->user()?->can('calificaciones-docente.ver'), 403);
+        abort_unless($this->puedeAdministrar() || $this->esProfesorRestringido(), 403);
 
         if ($this->esProfesorRestringido()) {
             $profesorId = $this->service()->profesorId(auth()->user());
@@ -59,6 +73,7 @@ class Panel extends Component
     public function updatedModalidadId(): void { $this->cerrarCaptura(); }
     public function updatedGeneracionId(): void { $this->cerrarCaptura(); }
     public function updatedCuatrimestreId(): void { $this->cerrarCaptura(); }
+    public function updatedOrigenFiltro(): void { $this->pendientesFiltro = 'todos'; }
 
     public function limpiarFiltros(): void
     {
@@ -71,6 +86,7 @@ class Panel extends Component
         $this->cuatrimestreId = null;
         $this->estadoFiltro = '';
         $this->origenFiltro = 'todos';
+        $this->buscarAlumnoGlobal = '';
         $this->cerrarCaptura();
     }
 
@@ -87,6 +103,7 @@ class Panel extends Component
         ]);
 
         $this->modo = 'materia';
+        $this->alumnoSeleccionadoId = null;
         $this->contextoSeleccionado = $contextoArray;
         $this->asignacionesMatriz = [$contextoArray];
         $this->buscarAlumno = '';
@@ -113,6 +130,7 @@ class Panel extends Component
         }
 
         $this->modo = 'matriz';
+        $this->alumnoSeleccionadoId = null;
         $this->contextoSeleccionado = (array) $contextos->first();
         $this->asignacionesMatriz = $contextos->map(fn ($r) => (array) $r)->all();
         $this->buscarAlumno = '';
@@ -121,13 +139,206 @@ class Panel extends Component
         $this->limpiarImportacion();
     }
 
+    /**
+     * Captura transversal por estudiante. Los profesores sólo ven las materias
+     * que les corresponden y cada contexto se vuelve a validar al guardar.
+     */
+    public function abrirAlumno(int $alumnoId, int $asignacionId, int $generacionId): void
+    {
+        $ancla = $this->service()->contextoAsignacion(auth()->user(), $asignacionId, $generacionId);
+        abort_unless($ancla, 403);
+
+        $alumno = $this->service()->alumnosParaContexto($ancla)->firstWhere('id', $alumnoId);
+        abort_unless($alumno, 403, 'El alumno no pertenece al grupo activo.');
+
+        $filtros = [
+            'licenciatura_id' => (int) $ancla->licenciatura_id,
+            'modalidad_id' => (int) $ancla->modalidad_id,
+            'generacion_id' => (int) $ancla->generacion_id,
+            'cuatrimestre_id' => (int) $ancla->cuatrimestre_id,
+        ];
+        $contextos = $this->service()->asignaciones(auth()->user(), $filtros)->values();
+        abort_if($contextos->isEmpty(), 403);
+
+        $this->modo = 'alumno';
+        $this->alumnoSeleccionadoId = $alumnoId;
+        $this->contextoSeleccionado = (array) $ancla;
+        $this->asignacionesMatriz = $contextos->map(fn ($r) => (array) $r)->all();
+        $this->origenFiltro = 'todos';
+        $this->pendientesFiltro = 'todos';
+        $this->buscarAlumno = '';
+        $this->cargarAlumnosYCalificaciones($contextos, $alumnoId);
+        $this->fechaLimite = null;
+        $this->limpiarImportacion();
+        $this->dispatch('captura-docente-abierta');
+    }
+
+    /** Abre todas las notas registradas de un alumno, incluso bajas y periodos antiguos. */
+    public function abrirHistorialAlumno(int $alumnoId): void
+    {
+        abort_unless($this->puedeAdministrar() && auth()->user()?->can('calificaciones-docente.ver'), 403);
+        $this->historico()->alumno(auth()->user(), $alumnoId);
+
+        $this->cerrarCaptura();
+        $this->modo = 'historial';
+        $this->alumnoHistoricoId = $alumnoId;
+        $this->buscarAlumnoHistorico = '';
+        $this->motivoCorreccionHistorica = '';
+        $this->recargarNotasHistoricas();
+        $this->dispatch('captura-docente-abierta');
+    }
+
+    /** Corrección exclusiva de Control Escolar y del registro original. */
+    public function guardarCalificacionHistorica(int $notaId): void
+    {
+        abort_unless($this->puedeAdministrar() && auth()->user()?->can('calificaciones-docente.ver'), 403);
+        abort_unless($this->modo === 'historial' && $this->alumnoHistoricoId, 403);
+
+        $nuevo = $this->normalizarCalificacion($this->notasHistoricas[$notaId] ?? null);
+        if (!$this->calificacionValida($nuevo)) {
+            $this->addError('notasHistoricas.'.$notaId, 'Escribe una nota entre 5 y 10, o NP.');
+            return;
+        }
+        $this->resetValidation('notasHistoricas.'.$notaId);
+        $this->validate([
+            'motivoCorreccionHistorica' => ['required', 'string', 'min:10', 'max:500'],
+        ], [
+            'motivoCorreccionHistorica.required' => 'Indica por qué se corrige la nota.',
+            'motivoCorreccionHistorica.min' => 'El motivo debe tener por lo menos 10 caracteres.',
+        ]);
+
+        // Conservar borradores de otras materias: el guardado sólo afecta una nota.
+        $borradores = collect($this->notasHistoricas)->filter(fn ($valor, $id) =>
+            (int) $id !== $notaId &&
+            (string) $valor !== (string) ($this->notasHistoricasGuardadas[$id] ?? '')
+        )->all();
+        $snapshots = $this->notasHistoricasGuardadas;
+
+        $cambio = $this->historico()->corregirNota(
+            auth()->user(),
+            $this->alumnoHistoricoId,
+            $notaId,
+            $nuevo,
+            $this->motivoCorreccionHistorica,
+            $this->notasHistoricasGuardadas[$notaId] ?? null
+        );
+        $this->recargarNotasHistoricas();
+        foreach ($borradores as $id => $valor) {
+            if (array_key_exists($id, $this->notasHistoricas)) {
+                $this->notasHistoricas[$id] = $valor;
+                $this->notasHistoricasGuardadas[$id] = $snapshots[$id] ?? null;
+            }
+        }
+        $this->motivoCorreccionHistorica = '';
+        $this->swal('success', $cambio
+            ? 'Calificación histórica corregida y auditada.'
+            : 'La nota ya tenía el mismo valor.');
+    }
+
+    public function cerrarHistorialAlumno(): void
+    {
+        $this->cerrarCaptura();
+    }
+
+    private function recargarNotasHistoricas(): void
+    {
+        abort_unless($this->alumnoHistoricoId && $this->puedeAdministrar(), 403);
+        $this->historialRegistros = $this->historico()
+            ->notas(auth()->user(), $this->alumnoHistoricoId)
+            ->map(fn ($registro) => (array) $registro)->all();
+        $this->notasHistoricas = collect($this->historialRegistros)
+            ->mapWithKeys(fn ($nota) => [(int) $nota['id'] => $nota['calificacion']])->all();
+        $this->notasHistoricasGuardadas = $this->notasHistoricas;
+    }
+
+    /** Guarda exclusivamente una casilla, sin descartar otras ediciones del formulario. */
+    public function guardarCalificacionIndividual(int $alumnoId, int $asignacionId): void
+    {
+        $contexto = $this->contextoEditableYAlumno($alumnoId, $asignacionId);
+        if (!$contexto) return;
+
+        $nuevo = $this->normalizarCalificacion($this->calificaciones[$alumnoId][$asignacionId] ?? null);
+        if ($nuevo === null || !$this->calificacionValida($nuevo)) {
+            $this->swal('warning', 'Escribe una calificación válida de 5 a 10 o NP. El campo vacío no modifica la nota.');
+            return;
+        }
+
+        $cambio = DB::transaction(function () use ($alumnoId, $asignacionId, $contexto, $nuevo) {
+            $cambio = $this->guardarUnaCalificacion($alumnoId, $contexto, $nuevo, 'individual');
+            $this->actualizarEstadoCalculado($contexto);
+            return $cambio;
+        });
+        $this->calificaciones[$alumnoId][$asignacionId] = $nuevo;
+        $this->calificacionesGuardadas[$alumnoId][$asignacionId] = $nuevo;
+        $this->swal('success', $cambio ? 'Calificación individual guardada.' : 'La calificación ya estaba actualizada.');
+    }
+
+    /** Guarda sólo las materias de la fila seleccionada. */
+    public function guardarAlumnoFila(int $alumnoId): void
+    {
+        abort_unless($this->alumnosVisiblesCaptura()->contains('id', $alumnoId), 403);
+        $contextos = $this->contextosAutorizadosActuales()->keyBy('asignacion_materia_id');
+        $valores = (array) ($this->calificaciones[$alumnoId] ?? []);
+        $guardar = [];
+
+        foreach ($valores as $asignacionId => $valor) {
+            $contexto = $contextos->get((int) $asignacionId);
+            if (!$contexto || $this->bloqueadaParaDocente($contexto)) continue;
+            $nuevo = $this->normalizarCalificacion($valor);
+            if ($nuevo === null) continue;
+            if (!$this->calificacionValida($nuevo)) {
+                $this->swal('error', 'La fila tiene valores inválidos. Usa de 5 a 10 o NP.');
+                return;
+            }
+            $guardar[] = [$contexto, $nuevo];
+        }
+
+        if (!$guardar) {
+            $this->swal('warning', 'Esta fila no contiene calificaciones nuevas editables.');
+            return;
+        }
+
+        $cambios = DB::transaction(function () use ($alumnoId, $guardar) {
+            $cambios = 0;
+            foreach ($guardar as [$contexto, $nuevo]) {
+                $cambios += (int) $this->guardarUnaCalificacion($alumnoId, $contexto, $nuevo, 'individual');
+                $this->actualizarEstadoCalculado($contexto);
+                $this->calificaciones[$alumnoId][$contexto->asignacion_materia_id] = $nuevo;
+                $this->calificacionesGuardadas[$alumnoId][$contexto->asignacion_materia_id] = $nuevo;
+            }
+            return $cambios;
+        });
+
+        $this->swal('success', $cambios ? "Se guardaron {$cambios} cambio(s) del alumno." : 'La fila ya estaba actualizada.');
+    }
+
+    private function contextoEditableYAlumno(int $alumnoId, int $asignacionId): ?object
+    {
+        // La propiedad pública no es una autorización: releemos asignación y pertenencia.
+        $contexto = $this->contextosAutorizadosActuales()->firstWhere('asignacion_materia_id', $asignacionId);
+        abort_unless($contexto && $this->alumnosVisiblesCaptura()->contains('id', $alumnoId), 403);
+        if ($this->bloqueadaParaDocente($contexto)) {
+            $this->swal('warning', 'La materia está entregada, validada o fuera del plazo de captura.');
+            return null;
+        }
+        return $contexto;
+    }
+
     public function cerrarCaptura(): void
     {
         $this->modo = 'materia';
+        $this->alumnoSeleccionadoId = null;
+        $this->alumnoHistoricoId = null;
+        $this->historialRegistros = [];
+        $this->notasHistoricas = [];
+        $this->notasHistoricasGuardadas = [];
+        $this->motivoCorreccionHistorica = '';
+        $this->pendientesFiltro = 'todos';
         $this->contextoSeleccionado = [];
         $this->asignacionesMatriz = [];
         $this->alumnos = [];
         $this->calificaciones = [];
+        $this->calificacionesGuardadas = [];
         $this->buscarAlumno = '';
         $this->fechaLimite = null;
         $this->limpiarImportacion();
@@ -568,7 +779,7 @@ class Panel extends Component
 
     public function render()
     {
-        $opciones = $this->service()->opciones(auth()->user());
+        $opciones = $this->service()->opciones(auth()->user(), $this->filtros());
         $asignacionesBase = $this->service()->asignaciones(auth()->user(), $this->filtros());
         $resumen = $this->service()->resumen($asignacionesBase);
         $asignaciones = $this->estadoFiltro
@@ -604,6 +815,40 @@ class Panel extends Component
             }
         }
 
+        $coincidenciasAlumno = $this->service()->buscarAlumnosAutorizados(
+            auth()->user(), $this->buscarAlumnoGlobal, $this->filtros()
+        );
+        $alumnoHistorico = null;
+        $auditoriaHistorica = collect();
+        if ($this->modo === 'historial' && $this->alumnoHistoricoId && $this->puedeAdministrar()) {
+            $alumnoHistorico = $this->historico()->alumno(auth()->user(), $this->alumnoHistoricoId);
+            $auditoriaHistorica = CalificacionAuditoria::query()
+                ->with('usuario:id,username')
+                ->where('alumno_id', $this->alumnoHistoricoId)
+                ->where('origen', 'historico')
+                ->latest('id')->limit(30)->get();
+        }
+        $coincidenciasHistoricas = $this->puedeAdministrar()
+            ? $this->historico()->buscarAlumnos(auth()->user(), $this->buscarAlumnoHistorico)
+            : collect();
+        $diagnosticoAlumno = null;
+        if ($this->modo === 'alumno' && $this->alumnoSeleccionadoId && !empty($this->contextoSeleccionado)) {
+            $cuatri = (int) ($this->contextoSeleccionado['cuatrimestre'] ?? 0);
+            $diagnosticoAlumno = $this->service()->diagnosticoAlumno($this->alumnoSeleccionadoId, $cuatri);
+        }
+
+        if ($this->modo === 'alumno' && $this->alumnoSeleccionadoId && !empty($this->contextoSeleccionado)) {
+            $auditoriaReciente = CalificacionAuditoria::query()
+                ->with(['usuario:id,username', 'alumno:id,matricula,matricula_interna,nombre,apellido_paterno,apellido_materno'])
+                ->where('alumno_id', $this->alumnoSeleccionadoId)
+                ->whereIn('asignacion_materia_id', collect($this->asignacionesMatriz)->pluck('asignacion_materia_id')->all())
+                ->where('licenciatura_id', (int) $this->contextoSeleccionado['licenciatura_id'])
+                ->where('modalidad_id', (int) $this->contextoSeleccionado['modalidad_id'])
+                ->where('generacion_id', (int) $this->contextoSeleccionado['generacion_id'])
+                ->where('cuatrimestre_id', (int) $this->contextoSeleccionado['cuatrimestre_id'])
+                ->latest('id')->limit(30)->get();
+        }
+
         return view('livewire.admin.calificaciones-docente.panel', [
             'opciones' => $opciones,
             'asignaciones' => $asignaciones,
@@ -614,6 +859,11 @@ class Panel extends Component
             'esProfesorRestringido' => $this->esProfesorRestringido(),
             'estadoSeleccionado' => $estadoSeleccionado,
             'auditoriaReciente' => $auditoriaReciente,
+            'coincidenciasAlumno' => $coincidenciasAlumno,
+            'diagnosticoAlumno' => $diagnosticoAlumno,
+            'alumnoHistorico' => $alumnoHistorico,
+            'auditoriaHistorica' => $auditoriaHistorica,
+            'coincidenciasHistoricas' => $coincidenciasHistoricas,
         ]);
     }
 
@@ -623,6 +873,12 @@ class Panel extends Component
         return collect($this->alumnos)->filter(function (array $a) use ($needle) {
             if ($this->origenFiltro === 'local' && ($a['foraneo'] ?? 'false') !== 'false') return false;
             if ($this->origenFiltro === 'foraneo' && ($a['foraneo'] ?? 'false') !== 'true') return false;
+            if ($this->pendientesFiltro !== 'todos') {
+                $notas = collect($this->calificacionesGuardadas[$a['id']] ?? [])
+                    ->filter(fn ($v) => $this->calificacionValida($this->normalizarCalificacion($v)));
+                if ($this->pendientesFiltro === 'pendientes' && $notas->count() >= count($this->asignacionesMatriz)) return false;
+                if ($this->pendientesFiltro === 'reprobadas' && !$notas->contains(fn ($v) => is_numeric($v) && (float) $v < 6)) return false;
+            }
             if ($needle === '') return true;
 
             $texto = Str::lower(trim(collect([
@@ -633,10 +889,13 @@ class Panel extends Component
         })->values();
     }
 
-    private function cargarAlumnosYCalificaciones(Collection $contextos): void
+    private function cargarAlumnosYCalificaciones(Collection $contextos, ?int $soloAlumnoId = null): void
     {
         $principal = $contextos->first();
         $alumnos = $this->service()->alumnosParaContexto($principal);
+        if ($soloAlumnoId !== null) {
+            $alumnos = $alumnos->where('id', $soloAlumnoId)->values();
+        }
         $this->alumnos = $alumnos->map(fn ($a) => [
             'id' => (int) $a->id,
             'matricula' => $a->matricula,
@@ -656,6 +915,7 @@ class Panel extends Component
                 $this->calificaciones[$alumnoId][$contexto->asignacion_materia_id] = $guardadas[$alumnoId] ?? null;
             }
         }
+        $this->calificacionesGuardadas = $this->calificaciones;
     }
 
     private function recargarCapturaActual(): void
@@ -666,6 +926,15 @@ class Panel extends Component
 
         if ($this->modo === 'matriz') {
             $this->abrirMatriz();
+            return;
+        }
+
+        if ($this->modo === 'alumno' && $this->alumnoSeleccionadoId) {
+            $this->abrirAlumno(
+                $this->alumnoSeleccionadoId,
+                (int) $this->contextoSeleccionado['asignacion_materia_id'],
+                (int) $this->contextoSeleccionado['generacion_id']
+            );
             return;
         }
 
@@ -683,7 +952,15 @@ class Panel extends Component
                 (int) $item['asignacion_materia_id'],
                 (int) $item['generacion_id']
             );
-        })->filter()->values();
+        })->filter(function ($contexto) {
+            if (empty($this->contextoSeleccionado)) return false;
+            foreach (['licenciatura_id', 'modalidad_id', 'generacion_id', 'cuatrimestre_id'] as $campo) {
+                if ((int) $contexto->{$campo} !== (int) $this->contextoSeleccionado[$campo]) return false;
+            }
+            if ($this->modo === 'materia' &&
+                (int) $contexto->asignacion_materia_id !== (int) $this->contextoSeleccionado['asignacion_materia_id']) return false;
+            return true;
+        })->values();
     }
 
     private function calificacionesActuales(object $contexto, array $alumnoIds): array
@@ -1062,6 +1339,11 @@ class Panel extends Component
     private function esProfesorRestringido(): bool
     {
         return $this->service()->esProfesorRestringido(auth()->user());
+    }
+
+    private function historico(): CalificacionesHistoricasService
+    {
+        return app(CalificacionesHistoricasService::class);
     }
 
     private function service(): CalificacionesDocenteService

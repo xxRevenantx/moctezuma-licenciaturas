@@ -104,24 +104,39 @@ class CalificacionesDocenteService
         return $this->anexarEstado($filas);
     }
 
-    public function opciones(User $user): array
+    /** Selectores dependientes de las demás dimensiones, sin ocultar su propio valor. */
+    public function opciones(User $user, array $filtros = []): array
     {
         $filas = $this->consultaAsignaciones($user)->get();
-
-        return [
-            'profesores' => $filas->map(fn ($r) => [
-                'id' => (int) $r->profesor_id,
-                'nombre' => trim("{$r->profesor_apellido_paterno} {$r->profesor_apellido_materno} {$r->profesor_nombre}"),
-            ])->unique('id')->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)->values(),
-            'licenciaturas' => $filas->map(fn ($r) => ['id' => (int) $r->licenciatura_id, 'nombre' => $r->licenciatura])
-                ->unique('id')->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)->values(),
-            'modalidades' => $filas->map(fn ($r) => ['id' => (int) $r->modalidad_id, 'nombre' => $r->modalidad])
-                ->unique('id')->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)->values(),
-            'generaciones' => $filas->map(fn ($r) => ['id' => (int) $r->generacion_id, 'nombre' => $r->generacion])
-                ->unique('id')->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)->values(),
-            'cuatrimestres' => $filas->map(fn ($r) => ['id' => (int) $r->cuatrimestre_id, 'nombre' => $r->cuatrimestre])
-                ->unique('id')->sortBy(fn ($r) => (int) $r['nombre'])->values(),
+        $opciones = [];
+        $campos = [
+            'profesores' => 'profesor_id',
+            'licenciaturas' => 'licenciatura_id',
+            'modalidades' => 'modalidad_id',
+            'generaciones' => 'generacion_id',
+            'cuatrimestres' => 'cuatrimestre_id',
         ];
+        foreach ($campos as $nombre => $idCampo) {
+            $permitidos = $filas->filter(function ($r) use ($filtros, $idCampo) {
+                foreach ($filtros as $campo => $valor) {
+                    if ($campo !== $idCampo && !empty($valor) && (int) $r->{$campo} !== (int) $valor) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+            $opciones[$nombre] = $permitidos->map(function ($r) use ($nombre, $idCampo) {
+                $nombreValor = match ($nombre) {
+                    'profesores' => trim("{$r->profesor_apellido_paterno} {$r->profesor_apellido_materno} {$r->profesor_nombre}"),
+                    'licenciaturas' => $r->licenciatura,
+                    'modalidades' => $r->modalidad,
+                    'generaciones' => $r->generacion,
+                    'cuatrimestres' => $r->cuatrimestre,
+                };
+                return ['id' => (int) $r->{$idCampo}, 'nombre' => $nombreValor];
+            })->unique('id')->sortBy('nombre', SORT_NATURAL | SORT_FLAG_CASE)->values();
+        }
+        return $opciones;
     }
 
     public function contextoAsignacion(User $user, int $asignacionId, int $generacionId): ?object
@@ -152,6 +167,114 @@ class CalificacionesDocenteService
             ->orderBy('apellido_materno')
             ->orderBy('nombre')
             ->get();
+    }
+
+    /**
+     * Sólo localiza alumnos pertenecientes a grupos con materias calificables en horario.
+     * La autorización de cada materia se comprueba nuevamente al abrir/guardar.
+     */
+    public function buscarAlumnosAutorizados(User $user, string $termino, array $filtros = []): Collection
+    {
+        $termino = trim($termino);
+        if (mb_strlen($termino) < 2) {
+            return collect();
+        }
+
+        $contextos = $this->consultaAsignaciones($user, $filtros)->get()
+            ->unique(fn ($a) => implode(':', [
+                $a->licenciatura_id, $a->modalidad_id, $a->generacion_id,
+            ]))->values();
+
+        if ($contextos->isEmpty()) {
+            return collect();
+        }
+
+        $alumnos = Inscripcion::query()
+            ->where('status', 'true')
+            ->where(function ($query) use ($contextos) {
+                foreach ($contextos as $contexto) {
+                    $query->orWhere(function ($grupo) use ($contexto) {
+                        $grupo->where('licenciatura_id', (int) $contexto->licenciatura_id)
+                            ->where('modalidad_id', (int) $contexto->modalidad_id)
+                            ->where('generacion_id', (int) $contexto->generacion_id);
+                    });
+                }
+            })
+            ->where(function ($query) use ($termino) {
+                $like = '%' . $termino . '%';
+                $query->where('matricula', 'like', $like)
+                    ->orWhere('matricula_interna', 'like', $like)
+                    ->orWhere('nombre', 'like', $like)
+                    ->orWhere('apellido_paterno', 'like', $like)
+                    ->orWhere('apellido_materno', 'like', $like);
+            })
+            ->orderBy('apellido_paterno')->orderBy('apellido_materno')->orderBy('nombre')
+            ->limit(25)
+            ->get(['id', 'matricula', 'matricula_interna', 'nombre', 'apellido_paterno',
+                'apellido_materno', 'licenciatura_id', 'modalidad_id', 'generacion_id', 'foraneo']);
+
+        $claves = $contextos->keyBy(fn ($a) => implode(':', [
+            $a->licenciatura_id, $a->modalidad_id, $a->generacion_id,
+        ]));
+
+        return $alumnos->map(function ($alumno) use ($claves) {
+            $key = implode(':', [$alumno->licenciatura_id, $alumno->modalidad_id, $alumno->generacion_id]);
+            $contexto = $claves->get($key);
+            return [
+                'id' => (int) $alumno->id,
+                'nombre' => trim("{$alumno->apellido_paterno} {$alumno->apellido_materno} {$alumno->nombre}"),
+                'matricula' => $alumno->matricula,
+                'matricula_interna' => $alumno->matricula_interna,
+                'foraneo' => $alumno->foraneo,
+                'asignacion_id' => (int) $contexto->asignacion_materia_id,
+                'generacion_id' => (int) $contexto->generacion_id,
+                'grupo' => "{$contexto->licenciatura} · {$contexto->modalidad} · {$contexto->generacion}",
+            ];
+        });
+    }
+
+    /**
+     * Indicadores orientativos basados exclusivamente en calificaciones registradas.
+     * No es un modelo predictivo ni sustituye las reglas de evaluación escolar.
+     */
+    public function diagnosticoAlumno(int $alumnoId, int $cuatrimestreActual): array
+    {
+        $registros = DB::table('calificaciones as cal')
+            ->join('cuatrimestres as c', 'c.id', '=', 'cal.cuatrimestre_id')
+            ->where('cal.alumno_id', $alumnoId)
+            ->select(['c.cuatrimestre', 'cal.calificacion'])
+            ->get()
+            ->filter(fn ($r) => is_numeric($r->calificacion)
+                && (float) $r->calificacion >= 5 && (float) $r->calificacion <= 10)
+            ->groupBy(fn ($r) => (int) $r->cuatrimestre)
+            ->sortKeys()
+            ->map(fn ($notas, $cuatri) => [
+                'cuatrimestre' => (int) $cuatri,
+                'promedio' => round((float) $notas->avg(fn ($r) => (float) $r->calificacion), 2),
+                'reprobadas' => $notas->filter(fn ($r) => (float) $r->calificacion < 6)->count(),
+                'materias' => $notas->count(),
+            ])->values();
+
+        $actual = $registros->firstWhere('cuatrimestre', $cuatrimestreActual);
+        $anteriores = $registros->filter(fn ($r) => $r['cuatrimestre'] < $cuatrimestreActual)->values();
+        $ultimo = $anteriores->last();
+        $alertas = [];
+        if ($actual && $actual['reprobadas'] > 0) {
+            $alertas[] = "{$actual['reprobadas']} materia(s) con calificación menor a 6 en este cuatrimestre.";
+        }
+        if ($actual && $actual['promedio'] < 7) {
+            $alertas[] = 'El promedio registrado del cuatrimestre es inferior a 7.';
+        }
+        if ($actual && $ultimo && $ultimo['promedio'] - $actual['promedio'] >= 1) {
+            $alertas[] = 'El promedio es al menos un punto menor al último cuatrimestre con notas.';
+        }
+
+        return [
+            'actual' => $actual,
+            'historial' => $registros->all(),
+            'alertas' => $alertas,
+            'sin_datos' => !$actual,
+        ];
     }
 
     public function resumen(Collection $asignaciones): array
