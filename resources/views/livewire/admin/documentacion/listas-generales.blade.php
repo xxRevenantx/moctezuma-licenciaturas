@@ -33,11 +33,14 @@
             </p>
         </div>
 
-        <form target="_blank" method="GET" action="{{ route('admin.pdf.matricula-foraneos-licenciaturas') }}">
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('admin.generador-listas') }}" wire:navigate class="rounded-xl bg-[#006492] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#004f73]">Abrir Generador de Listas PRO</a>
+            <form target="_blank" method="GET" action="{{ route('admin.pdf.matricula-foraneos-licenciaturas') }}">
             <flux:button type="submit" variant="primary" icon="eye" class="w-full sm:w-auto">
                 Ver todos los foráneos por licenciatura
             </flux:button>
-        </form>
+            </form>
+        </div>
     </div>
 
     {{-- Filtros principales --}}

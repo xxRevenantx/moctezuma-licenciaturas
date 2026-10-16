@@ -36,6 +36,7 @@
                 <flux:navlist class="school-nav-list">
                     <flux:navlist.group :heading="__('Documentación')" expandable class="school-nav-section">
                         <flux:navlist>
+                            <flux:navlist.item icon="document-text" :href="route('admin.generador-listas')" :current="request()->routeIs('admin.generador-listas')" wire:navigate>{{ __('Generador de Listas PRO') }}</flux:navlist.item>
                             <flux:navlist.item icon="rectangle-stack" :href="route('admin.listas-generales')" :current="request()->routeIs('admin.listas-generales')" wire:navigate>{{ __('Listas Generales') }}</flux:navlist.item>
                             <flux:navlist.item icon="document-text" :href="route('admin.constancias')" :current="request()->routeIs('admin.constancias')" wire:navigate>{{ __('Constancias') }}</flux:navlist.item>
                             <flux:navlist.item icon="book-open" :href="route('admin.boletas')" :current="request()->routeIs('admin.boletas')" wire:navigate>{{ __('Boletas') }}</flux:navlist.item>

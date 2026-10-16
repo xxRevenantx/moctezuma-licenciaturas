@@ -39,6 +39,7 @@ use App\Http\Controllers\MesController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\ProfesorController;
 use App\Http\Controllers\ReporteGeneracionController;
+use App\Http\Controllers\GeneradorListasController;
 use App\Livewire\Admin\Licenciaturas\SeleccionarModalidad;
 use App\Livewire\Admin\Usuarios\MostrarUsuarios;
 use App\Models\Generacion;
@@ -64,6 +65,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('admin.fotografias.estudiante');
 
     // DOCUMENTACIÓN
+    // GENERADOR DE LISTAS PRO (módulo independiente de Listas Generales)
+    Route::view('/generador-listas', 'admin.documentacion.generador-listas')->middleware('can:admin.administracion')->name('admin.generador-listas');
+    Route::post('/generador-listas/exportar', [GeneradorListasController::class, 'exportar'])->middleware('can:admin.administracion')->name('admin.generador-listas.exportar');
+
     Route::get('/listas-generales', [DocumentacionController::class, 'listasGenerales'])->middleware('can:admin.administracion')->name('admin.listas-generales');
     Route::get('/constancias', [DocumentacionController::class, 'constancias'])->middleware('can:admin.administracion')->name('admin.constancias');
     Route::get('/boletas', [DocumentacionController::class, 'boletas'])->middleware('can:admin.administracion')->name('admin.boletas');
