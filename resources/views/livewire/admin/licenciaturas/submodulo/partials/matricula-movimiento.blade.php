@@ -13,7 +13,7 @@
                     <span class="rounded-full bg-white/15 px-2 py-1">Paso {{ $movimientoPaso }} de 3</span>
                 </div>
                 <h3 class="mt-2 text-xl font-black">
-                    {{ $movimientoTipo === 'cambio_modalidad' ? 'Cambio de modalidad' : 'Cambio de cuatrimestre' }}
+                    {{ match($movimientoTipo) { 'cambio_modalidad' => 'Cambio de modalidad', 'cambio_cuatrimestre' => 'Cambio de cuatrimestre', 'cambio_generacion' => 'Cambio de generación', 'cambio_generacion_cuatrimestre' => 'Cambio de generación y cuatrimestre', default => 'Movimiento académico' } }}
                 </h3>
                 <p class="mt-1 text-sm text-white/80">
                     {{ count($movimientoAlumnoIds) }} estudiante(s) · validación previa obligatoria
@@ -39,7 +39,7 @@
                     <div class="space-y-5 lg:col-span-3">
                         <div class="rounded-2xl border border-slate-200 p-4 dark:border-neutral-700">
                             <h4 class="text-sm font-extrabold text-slate-800 dark:text-white">1. Define el destino</h4>
-                            <p class="mt-1 text-xs text-slate-500">La licenciatura y la generación permanecen sin cambios.</p>
+                            <p class="mt-1 text-xs text-slate-500">La licenciatura se mantiene. Las calificaciones históricas no se modifican en las transferencias de generación.</p>
 
                             <div class="mt-4">
                                 @if($movimientoTipo === 'cambio_modalidad')
@@ -53,6 +53,33 @@
                                         </flux:select>
                                         <flux:error name="movimientoModalidadDestinoId" />
                                     </flux:field>
+                                @elseif(in_array($movimientoTipo, ['cambio_generacion', 'cambio_generacion_cuatrimestre'], true))
+                                    <div class="space-y-4">
+                                        <flux:field>
+                                            <flux:label>Generación destino</flux:label>
+                                            <flux:select wire:model.live="movimientoGeneracionDestinoId">
+                                                <flux:select.option value="">Selecciona una generación asignada</flux:select.option>
+                                                @foreach($generacionesDestino as $destino)
+                                                    <flux:select.option value="{{ $destino->generacion_id }}">{{ $destino->generacion?->generacion }}</flux:select.option>
+                                                @endforeach
+                                            </flux:select>
+                                            <flux:error name="movimientoGeneracionDestinoId" />
+                                        </flux:field>
+                                        @if($movimientoTipo === 'cambio_generacion_cuatrimestre')
+                                            <flux:field>
+                                                <flux:label>Cuatrimestre destino</flux:label>
+                                                <flux:select wire:model="movimientoCuatrimestreDestinoId" :disabled="!$movimientoGeneracionDestinoId">
+                                                    <flux:select.option value="">Selecciona un periodo del nuevo grupo</flux:select.option>
+                                                    @foreach($cuatrimestresDestino as $periodo)
+                                                        <flux:select.option value="{{ $periodo->cuatrimestre_id }}">{{ $periodo->cuatrimestre?->nombre_cuatrimestre }}</flux:select.option>
+                                                    @endforeach
+                                                </flux:select>
+                                                <flux:error name="movimientoCuatrimestreDestinoId" />
+                                            </flux:field>
+                                        @else
+                                            <p class="text-xs text-slate-500">Cada alumno conservará su cuatrimestre vigente al incorporarse a la nueva generación.</p>
+                                        @endif
+                                    </div>
                                 @else
                                     <flux:field>
                                         <flux:label>Cuatrimestre destino</flux:label>
@@ -86,10 +113,8 @@
                                 </flux:field>
                                 <flux:field>
                                     <flux:label>Observaciones</flux:label>
-                                    <textarea wire:model="movimientoObservaciones" rows="3"
-                                              class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-[#006492] focus:ring-2 focus:ring-[#006492]/10 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-                                              placeholder="Opcional, excepto cuando eliges Otro"></textarea>
-                                    @error('movimientoObservaciones') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                    <flux:textarea wire:model="movimientoObservaciones" rows="3" placeholder="Opcional, excepto cuando eliges Otro" />
+                                    <flux:error name="movimientoObservaciones" />
                                 </flux:field>
                             </div>
                         </div>
@@ -111,6 +136,8 @@
                                             <span>ID: {{ $alumno->matricula_interna ?: '—' }}</span>
                                             <span>•</span>
                                             <span>{{ $alumno->modalidad?->nombre }}</span>
+                                            <span>•</span>
+                                            <span>{{ $alumno->generacion?->generacion }}</span>
                                             <span>•</span>
                                             <span>{{ $alumno->cuatrimestre?->nombre_cuatrimestre }}</span>
                                         </div>
@@ -199,7 +226,7 @@
                             <div class="rounded-2xl border border-slate-200 p-4 dark:border-neutral-700">
                                 <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Calificaciones históricas</div>
                                 <div class="mt-2 text-sm font-extrabold text-emerald-600">Sin cambios</div>
-                                <div class="mt-1 text-xs text-slate-500">Solo cambia el cuatrimestre actual del alumno.</div>
+                                <div class="mt-1 text-xs text-slate-500">El cambio no sobrescribe ninguna calificación histórica.</div>
                             </div>
                         @endif
                     </div>
@@ -216,7 +243,7 @@
                             @if($movimientoTipo === 'cambio_modalidad')
                                 Se conservarán <strong>{{ $movimientoAnalisis['calificaciones_total'] ?? 0 }} calificaciones</strong> y se cambiarán a las asignaciones equivalentes de la modalidad destino.
                             @else
-                                Las calificaciones históricas no serán modificadas.
+                                Las calificaciones históricas no serán modificadas ni reconocidas automáticamente como asignaturas de otra generación.
                             @endif
                         </p>
                     </div>

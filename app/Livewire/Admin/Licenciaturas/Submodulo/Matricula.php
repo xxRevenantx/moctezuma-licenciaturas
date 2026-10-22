@@ -36,12 +36,13 @@ class Matricula extends Component
     public $filtrar_foraneo = null;
     public int $perPage = 25;
 
-    // Movimiento académico seguro: modalidad / cuatrimestre.
+    // Movimiento académico seguro: modalidad, cuatrimestre y generación.
     public bool $movimientoOpen = false;
     public string $movimientoTipo = AcademicMovementService::TIPO_MODALIDAD;
     public array $movimientoAlumnoIds = [];
     public $movimientoModalidadDestinoId = null;
     public $movimientoCuatrimestreDestinoId = null;
+    public $movimientoGeneracionDestinoId = null;
     public string $movimientoMotivo = '';
     public ?string $movimientoObservaciones = null;
     public array $movimientoAnalisis = [];
@@ -147,7 +148,7 @@ class Matricula extends Component
         }
 
         return Inscripcion::query()
-            ->with(['modalidad:id,nombre', 'cuatrimestre:id,nombre_cuatrimestre'])
+            ->with(['modalidad:id,nombre', 'generacion:id,generacion', 'cuatrimestre:id,nombre_cuatrimestre'])
             ->whereIn('id', $this->movimientoAlumnoIds)
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
@@ -163,6 +164,8 @@ class Matricula extends Component
 
         return MovimientoAcademico::query()
             ->with([
+                'generacionOrigen:id,generacion',
+                'generacionDestino:id,generacion',
                 'modalidadOrigen:id,nombre',
                 'modalidadDestino:id,nombre',
                 'cuatrimestreOrigen:id,nombre_cuatrimestre',
@@ -170,7 +173,12 @@ class Matricula extends Component
                 'ejecutor:id,username',
             ])
             ->where('licenciatura_id', $this->licenciatura->id)
-            ->where('generacion_id', $this->filtrar_generacion)
+            ->where(function ($query) {
+                $query->where('generacion_id', $this->filtrar_generacion);
+                if (Schema::hasColumn('movimientos_academicos', 'generacion_destino_id')) {
+                    $query->orWhere('generacion_destino_id', $this->filtrar_generacion);
+                }
+            })
             ->where(function ($query) {
                 $query->where('modalidad_origen_id', $this->modalidad->id)
                     ->orWhere('modalidad_destino_id', $this->modalidad->id);
@@ -236,7 +244,12 @@ class Matricula extends Component
             return;
         }
 
-        if (! in_array($tipo, [AcademicMovementService::TIPO_MODALIDAD, AcademicMovementService::TIPO_CUATRIMESTRE], true)) {
+        if (! in_array($tipo, [
+            AcademicMovementService::TIPO_MODALIDAD,
+            AcademicMovementService::TIPO_CUATRIMESTRE,
+            AcademicMovementService::TIPO_GENERACION,
+            AcademicMovementService::TIPO_GENERACION_CUATRIMESTRE,
+        ], true)) {
             $tipo = AcademicMovementService::TIPO_MODALIDAD;
         }
 
@@ -284,6 +297,14 @@ class Matricula extends Component
         }
     }
 
+    public function updatedMovimientoGeneracionDestinoId(): void
+    {
+        $this->movimientoCuatrimestreDestinoId = null;
+        $this->movimientoAnalisis = [];
+        $this->movimientoPaso = 1;
+        $this->movimientoConfirmado = false;
+    }
+
     public function revisarImpacto(AcademicMovementService $service): void
     {
         if (! $this->movimientoIdsSiguenEnContexto()) {
@@ -300,7 +321,12 @@ class Matricula extends Component
             'movimientoObservaciones' => 'nullable|max:1000|required_if:movimientoMotivo,otro',
         ];
 
-        if ($this->movimientoTipo === AcademicMovementService::TIPO_MODALIDAD) {
+        if (in_array($this->movimientoTipo, [AcademicMovementService::TIPO_GENERACION, AcademicMovementService::TIPO_GENERACION_CUATRIMESTRE], true)) {
+            $reglas['movimientoGeneracionDestinoId'] = 'required|integer|exists:generaciones,id';
+            if ($this->movimientoTipo === AcademicMovementService::TIPO_GENERACION_CUATRIMESTRE) {
+                $reglas['movimientoCuatrimestreDestinoId'] = 'required|integer|exists:cuatrimestres,id';
+            }
+        } elseif ($this->movimientoTipo === AcademicMovementService::TIPO_MODALIDAD) {
             $reglas['movimientoModalidadDestinoId'] = 'required|integer|exists:modalidades,id';
         } else {
             $reglas['movimientoCuatrimestreDestinoId'] = 'required|integer|exists:cuatrimestres,id';
@@ -311,6 +337,7 @@ class Matricula extends Component
             'movimientoMotivo.in' => 'El motivo seleccionado no es válido.',
             'movimientoObservaciones.required_if' => 'Describe el motivo cuando seleccionas "Otro".',
             'movimientoModalidadDestinoId.required' => 'Selecciona la modalidad destino.',
+            'movimientoGeneracionDestinoId.required' => 'Selecciona la generación destino.',
             'movimientoCuatrimestreDestinoId.required' => 'Selecciona el cuatrimestre destino.',
         ]);
 
@@ -318,6 +345,13 @@ class Matricula extends Component
             $this->movimientoAnalisis = $service->analizarCambioModalidad(
                 $this->movimientoAlumnoIds,
                 (int) $this->movimientoModalidadDestinoId
+            );
+        } elseif (in_array($this->movimientoTipo, [AcademicMovementService::TIPO_GENERACION, AcademicMovementService::TIPO_GENERACION_CUATRIMESTRE], true)) {
+            $this->movimientoAnalisis = $service->analizarCambioGeneracion(
+                $this->movimientoAlumnoIds,
+                (int) $this->movimientoGeneracionDestinoId,
+                $this->movimientoTipo === AcademicMovementService::TIPO_GENERACION_CUATRIMESTRE
+                    ? (int) $this->movimientoCuatrimestreDestinoId : null
             );
         } else {
             $this->movimientoAnalisis = $service->analizarCambioCuatrimestre(
@@ -373,6 +407,16 @@ class Matricula extends Component
                 $resultado = $service->cambiarModalidad(
                     $this->movimientoAlumnoIds,
                     (int) $this->movimientoModalidadDestinoId,
+                    $this->movimientoMotivo,
+                    $this->movimientoObservaciones
+                );
+            } elseif (in_array($this->movimientoTipo, [AcademicMovementService::TIPO_GENERACION, AcademicMovementService::TIPO_GENERACION_CUATRIMESTRE], true)) {
+                // El servicio repite el análisis, dentro de la transacción y con las filas bloqueadas.
+                $resultado = $service->cambiarGeneracion(
+                    $this->movimientoAlumnoIds,
+                    (int) $this->movimientoGeneracionDestinoId,
+                    $this->movimientoTipo === AcademicMovementService::TIPO_GENERACION_CUATRIMESTRE
+                        ? (int) $this->movimientoCuatrimestreDestinoId : null,
                     $this->movimientoMotivo,
                     $this->movimientoObservaciones
                 );
@@ -549,7 +593,21 @@ class Matricula extends Component
             ->orderBy('nombre')
             ->get();
 
+        $generacionesDestino = AsignarGeneracion::query()
+            ->with('generacion:id,generacion,activa')
+            ->where('licenciatura_id', $this->licenciatura->id)
+            ->where('modalidad_id', $this->modalidad->id)
+            ->whereHas('generacion', fn ($q) => $q->where('activa', 'true'))
+            ->orderByDesc('generacion_id')->get()->unique('generacion_id');
+
+        $cuatrimestresDestino = $this->movimientoGeneracionDestinoId
+            ? Periodo::query()->with('cuatrimestre')->where('generacion_id', (int) $this->movimientoGeneracionDestinoId)
+                ->orderBy('order')->get()->unique('cuatrimestre_id')
+            : collect();
+
         return view('livewire.admin.licenciaturas.submodulo.matricula', [
+            'generacionesDestino' => $generacionesDestino,
+            'cuatrimestresDestino' => $cuatrimestresDestino,
             'matricula' => $this->matricula,
             'resumen' => $this->resumen,
             'modalidadesDestino' => $modalidadesDestino,
@@ -643,6 +701,7 @@ class Matricula extends Component
         $this->movimientoAlumnoIds = [];
         $this->movimientoModalidadDestinoId = null;
         $this->movimientoCuatrimestreDestinoId = null;
+        $this->movimientoGeneracionDestinoId = null;
         $this->movimientoMotivo = '';
         $this->movimientoObservaciones = null;
         $this->movimientoAnalisis = [];

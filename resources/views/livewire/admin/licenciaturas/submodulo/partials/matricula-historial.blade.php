@@ -59,6 +59,12 @@
                                 @if($movimiento->tipo === 'cambio_modalidad')
                                     <div class="font-bold">Modalidad</div>
                                     <div class="mt-0.5 text-[10px] text-slate-400">{{ $movimiento->modalidadOrigen?->nombre }} → {{ $movimiento->modalidadDestino?->nombre }}</div>
+                                @elseif(in_array($movimiento->tipo, ['cambio_generacion', 'cambio_generacion_cuatrimestre'], true))
+                                    <div class="font-bold">Generación{{ $movimiento->tipo === 'cambio_generacion_cuatrimestre' ? ' + cuatrimestre' : '' }}</div>
+                                    <div class="mt-0.5 text-[10px] text-slate-400">{{ $movimiento->generacionOrigen?->generacion }} → {{ $movimiento->generacionDestino?->generacion }}</div>
+                                    @if($movimiento->tipo === 'cambio_generacion_cuatrimestre')
+                                        <div class="mt-0.5 text-[10px] text-slate-400">{{ $movimiento->cuatrimestreOrigen?->nombre_cuatrimestre }} → {{ $movimiento->cuatrimestreDestino?->nombre_cuatrimestre }}</div>
+                                    @endif
                                 @else
                                     <div class="font-bold">Cuatrimestre</div>
                                     <div class="mt-0.5 text-[10px] text-slate-400">{{ $movimiento->cuatrimestreOrigen?->nombre_cuatrimestre }} → {{ $movimiento->cuatrimestreDestino?->nombre_cuatrimestre }}</div>

@@ -155,6 +155,12 @@
                             </svg>
                             Cambiar modalidad
                         </button>
+                        <flux:button type="button" wire:click="abrirMovimientoAcademico(null, 'cambio_generacion')" variant="outline" size="sm" icon="users">
+                            Cambiar generación
+                        </flux:button>
+                        <flux:button type="button" wire:click="abrirMovimientoAcademico(null, 'cambio_generacion_cuatrimestre')" variant="outline" size="sm" icon="arrows-right-left">
+                            Generación + cuatrimestre
+                        </flux:button>
                         <button type="button" wire:click="abrirMovimientoAcademico(null, 'cambio_cuatrimestre')"
                                 class="inline-flex items-center gap-2 rounded-xl bg-[#88AC2E] px-4 py-2 text-xs font-extrabold text-white shadow-sm transition hover:brightness-95">
                             Cambiar cuatrimestre
@@ -293,6 +299,13 @@
                                                     class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#006492]/10 text-[#006492] transition hover:bg-[#006492] hover:text-white">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-4 w-4" stroke-width="1.9">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h11m0 0-3-3m3 3-3 3M17 17H6m0 0 3 3m-3-3 3-3"/>
+                                                </svg>
+                                            </button>
+                                            <button type="button" wire:click="abrirMovimientoAcademico({{ $estudiante->id }}, 'cambio_generacion_cuatrimestre')"
+                                                    title="Cambiar generación y cuatrimestre"
+                                                    class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 transition hover:bg-emerald-600 hover:text-white dark:bg-emerald-900/30 dark:text-emerald-300">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-4 w-4" stroke-width="1.8">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8h18M3 16h18M16 4l4 4-4 4M8 12l-4 4 4 4" />
                                                 </svg>
                                             </button>
                                             <button type="button" @click="Livewire.dispatch('abrirEstudiante', { id: {{ $estudiante->id }} })"

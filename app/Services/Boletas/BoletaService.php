@@ -46,10 +46,18 @@ class BoletaService
     public function generacionesConAlumnos(int $licenciaturaId, int $modalidadId): EloquentCollection
     {
         return Generacion::query()
-            ->whereHas('inscripcion', function ($q) use ($licenciaturaId, $modalidadId) {
-                $q->where('licenciatura_id', $licenciaturaId)
-                    ->where('modalidad_id', $modalidadId)
-                    ->where('status', 'true');
+            ->where(function ($query) use ($licenciaturaId, $modalidadId) {
+                $query->whereHas('inscripcion', function ($q) use ($licenciaturaId, $modalidadId) {
+                    $q->where('licenciatura_id', $licenciaturaId)
+                        ->where('modalidad_id', $modalidadId)
+                        ->where('status', 'true');
+                })->orWhereHas('calificaciones', function ($q) use ($licenciaturaId, $modalidadId) {
+                    $q->where('licenciatura_id', $licenciaturaId)
+                        ->where('modalidad_id', $modalidadId)
+                        ->whereHas('alumno', fn ($alumno) => $alumno->where('status', 'true')
+                            ->where('licenciatura_id', $licenciaturaId)
+                            ->where('modalidad_id', $modalidadId));
+                });
             })
             ->orderByDesc('id')
             ->get(['id', 'generacion', 'activa']);
@@ -105,8 +113,15 @@ class BoletaService
             ->with('user:id,email')
             ->where('licenciatura_id', $licenciaturaId)
             ->where('modalidad_id', $modalidadId)
-            ->where('generacion_id', $generacionId)
             ->where('status', 'true')
+            ->where(function ($query) use ($licenciaturaId, $modalidadId, $generacionId) {
+                $query->where('generacion_id', $generacionId)
+                    ->orWhereHas('calificaciones', function ($notas) use ($licenciaturaId, $modalidadId, $generacionId) {
+                        $notas->where('licenciatura_id', $licenciaturaId)
+                            ->where('modalidad_id', $modalidadId)
+                            ->where('generacion_id', $generacionId);
+                    });
+            })
             ->when(trim((string) $search) !== '', function ($q) use ($search) {
                 $s = trim((string) $search);
                 $q->where(function ($sub) use ($s) {
@@ -136,7 +151,14 @@ class BoletaService
             ->whereKey($alumnoId)
             ->where('licenciatura_id', $licenciaturaId)
             ->where('modalidad_id', $modalidadId)
-            ->where('generacion_id', $generacionId)
+            ->where(function ($q) use ($licenciaturaId, $modalidadId, $generacionId) {
+                $q->where('generacion_id', $generacionId)
+                    ->orWhereHas('calificaciones', function ($notas) use ($licenciaturaId, $modalidadId, $generacionId) {
+                        $notas->where('licenciatura_id', $licenciaturaId)
+                            ->where('modalidad_id', $modalidadId)
+                            ->where('generacion_id', $generacionId);
+                    });
+            })
             ->when($soloActivo, fn ($q) => $q->where('status', 'true'))
             ->firstOrFail();
     }

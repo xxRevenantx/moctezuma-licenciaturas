@@ -7,6 +7,7 @@ use App\Models\AsignarGeneracion;
 use App\Models\Calificacion;
 use App\Models\CalificacionAuditoria;
 use App\Models\Cuatrimestre;
+use App\Models\Generacion;
 use App\Models\Inscripcion;
 use App\Models\Materia;
 use App\Models\Modalidad;
@@ -21,6 +22,8 @@ class AcademicMovementService
 {
     public const TIPO_MODALIDAD = 'cambio_modalidad';
     public const TIPO_CUATRIMESTRE = 'cambio_cuatrimestre';
+    public const TIPO_GENERACION = 'cambio_generacion';
+    public const TIPO_GENERACION_CUATRIMESTRE = 'cambio_generacion_cuatrimestre';
 
     /**
      * Analiza el cambio sin escribir datos. El resultado es serializable y puede
@@ -481,6 +484,210 @@ class AcademicMovementService
         }, 3);
     }
 
+    /**
+     * Transferencia REAL a otra generación. Las notas anteriores mantienen exactamente
+     * su generación, modalidad, materia, docente y cuatrimestre originales.
+     * No es una corrección retroactiva de calificaciones ni una equivalencia automática.
+     */
+    public function analizarCambioGeneracion(
+        array $alumnoIds,
+        int $generacionDestinoId,
+        ?int $cuatrimestreDestinoId = null
+    ): array {
+        $ids = $this->normalizarIds($alumnoIds);
+        $alumnos = $this->alumnosPorIds($ids);
+        $tipo = $cuatrimestreDestinoId === null ? self::TIPO_GENERACION : self::TIPO_GENERACION_CUATRIMESTRE;
+        $resultado = $this->resultadoBase($tipo, $alumnos);
+
+        if ($alumnos->count() !== count($ids)) {
+            $resultado['bloqueos'][] = 'Uno o más estudiantes ya no existen.';
+        }
+        if (! Schema::hasTable('movimientos_academicos')
+            || ! Schema::hasColumn('movimientos_academicos', 'generacion_origen_id')
+            || ! Schema::hasColumn('movimientos_academicos', 'generacion_destino_id')) {
+            $resultado['bloqueos'][] = 'Ejecuta la migración de transferencias de generación antes de continuar.';
+        }
+        $generacion = Generacion::query()->find($generacionDestinoId);
+        if (! $generacion || $generacion->activa !== 'true') {
+            $resultado['bloqueos'][] = 'La generación destino no existe o no está activa.';
+            return $this->finalizarAnalisis($resultado);
+        }
+        $resultado['generacion_destino'] = [
+            'id' => (int) $generacion->id,
+            'nombre' => (string) $generacion->generacion,
+        ];
+        if ($cuatrimestreDestinoId !== null) {
+            $cuatrimestre = Cuatrimestre::query()->find($cuatrimestreDestinoId);
+            if (! $cuatrimestre) {
+                $resultado['bloqueos'][] = 'No existe el cuatrimestre destino.';
+                return $this->finalizarAnalisis($resultado);
+            }
+            $resultado['cuatrimestre_destino'] = [
+                'id' => (int) $cuatrimestre->id,
+                'nombre' => (string) $cuatrimestre->nombre_cuatrimestre,
+            ];
+        }
+        if ($alumnos->isEmpty()) {
+            $resultado['bloqueos'][] = 'Selecciona alumnos válidos.';
+            return $this->finalizarAnalisis($resultado);
+        }
+
+        $cacheAsignadas = [];
+        $cachePeriodos = [];
+        $cacheMaterias = [];
+        $cacheHorarios = [];
+        foreach ($alumnos as $alumno) {
+            $bloqueos = [];
+            $advertencias = [];
+            $cuatrimestreId = $cuatrimestreDestinoId ?? (int) $alumno->cuatrimestre_id;
+            if ($alumno->status !== 'true' || $alumno->egresado === 'true') {
+                $bloqueos[] = 'Solo se pueden transferir estudiantes activos que no hayan egresado.';
+            }
+            if ((int) $alumno->generacion_id === $generacionDestinoId) {
+                $bloqueos[] = 'El alumno ya pertenece a esta generación. Para cambiar solo cuatrimestre utiliza la opción existente.';
+            }
+            $claveAsignacion = $alumno->licenciatura_id.'-'.$alumno->modalidad_id.'-'.$generacionDestinoId;
+            if (! array_key_exists($claveAsignacion, $cacheAsignadas)) {
+                $cacheAsignadas[$claveAsignacion] = AsignarGeneracion::query()
+                    ->where('licenciatura_id', $alumno->licenciatura_id)
+                    ->where('modalidad_id', $alumno->modalidad_id)
+                    ->where('generacion_id', $generacionDestinoId)->exists();
+            }
+            if (! $cacheAsignadas[$claveAsignacion]) {
+                $bloqueos[] = 'La generación destino no está asignada a esta licenciatura y modalidad. Habilítala en Generaciones > Asignar.';
+            }
+            $clavePeriodo = $generacionDestinoId.'-'.$cuatrimestreId;
+            if (! array_key_exists($clavePeriodo, $cachePeriodos)) {
+                $cachePeriodos[$clavePeriodo] = Periodo::query()
+                    ->where('generacion_id', $generacionDestinoId)
+                    ->where('cuatrimestre_id', $cuatrimestreId)->exists();
+            }
+            if (! $cachePeriodos[$clavePeriodo]) {
+                $bloqueos[] = 'No hay periodo configurado para la nueva generación y cuatrimestre.';
+            }
+            $claveMaterias = $alumno->licenciatura_id.'-'.$alumno->modalidad_id.'-'.$cuatrimestreId;
+            if (! isset($cacheMaterias[$claveMaterias])) {
+                $cacheMaterias[$claveMaterias] = $this->validarMateriasDestino(
+                    (int) $alumno->licenciatura_id, (int) $alumno->modalidad_id, $cuatrimestreId
+                );
+            }
+            array_push($bloqueos, ...$cacheMaterias[$claveMaterias]['bloqueos']);
+            array_push($advertencias, ...$cacheMaterias[$claveMaterias]['advertencias']);
+            $resultado['materias_faltantes'] = array_merge(
+                $resultado['materias_faltantes'], $cacheMaterias[$claveMaterias]['materias_faltantes']
+            );
+            $claveHorario = $claveAsignacion.'-'.$cuatrimestreId;
+            if (! array_key_exists($claveHorario, $cacheHorarios)) {
+                $cacheHorarios[$claveHorario] = Schema::hasTable('horarios') && DB::table('horarios')
+                    ->where('licenciatura_id', $alumno->licenciatura_id)
+                    ->where('modalidad_id', $alumno->modalidad_id)
+                    ->where('generacion_id', $generacionDestinoId)
+                    ->where('cuatrimestre_id', $cuatrimestreId)
+                    ->whereNotNull('asignacion_materia_id')->exists();
+            }
+            if (! $cacheHorarios[$claveHorario]) {
+                $advertencias[] = 'No hay horarios docentes en el grupo destino. Configúralos antes de capturar nuevas notas.';
+            }
+            $calificacionesPrevias = Calificacion::query()
+                ->where('alumno_id', $alumno->id)->where('licenciatura_id', $alumno->licenciatura_id)
+                ->where('generacion_id', $generacionDestinoId)->where('modalidad_id', $alumno->modalidad_id)->count();
+            if ($calificacionesPrevias > 0) {
+                $bloqueos[] = 'Ya existen '.$calificacionesPrevias.' calificaciones en la generación destino; requiere revisión académica para evitar duplicados.';
+            }
+            $historial = Calificacion::query()->where('alumno_id', $alumno->id)->count();
+            if ($historial > 0) {
+                $advertencias[] = 'Se conservarán '.$historial.' calificaciones con sus contextos originales. No se trasladan ni equivalen automáticamente a la nueva generación.';
+            }
+            $advertencias[] = 'Revisa los documentos oficiales y el historial antes de emitir un certificado de la nueva generación.';
+            $resultado['calificaciones_total'] += $historial;
+            $resultado['alumnos'][] = [
+                'id' => (int) $alumno->id,
+                'matricula' => (string) $alumno->matricula,
+                'nombre' => $this->nombreAlumno($alumno),
+                'calificaciones' => $historial,
+                'cuatrimestre_destino' => $cuatrimestreId,
+                'bloqueos' => array_values(array_unique($bloqueos)),
+                'advertencias' => array_values(array_unique($advertencias)),
+            ];
+            foreach ($bloqueos as $error) {
+                $resultado['bloqueos'][] = $this->nombreAlumno($alumno).': '.$error;
+            }
+            foreach ($advertencias as $aviso) {
+                $resultado['advertencias'][] = $this->nombreAlumno($alumno).': '.$aviso;
+            }
+        }
+        // No confundir con traslado de calificaciones (solo cambia la inscripción).
+        $resultado['calificaciones_trasladables'] = 0;
+        return $this->finalizarAnalisis($resultado);
+    }
+
+    public function cambiarGeneracion(
+        array $alumnoIds,
+        int $generacionDestinoId,
+        ?int $cuatrimestreDestinoId,
+        string $motivo,
+        ?string $observaciones = null
+    ): array {
+        return DB::transaction(function () use ($alumnoIds, $generacionDestinoId, $cuatrimestreDestinoId, $motivo, $observaciones) {
+            $ids = $this->normalizarIds($alumnoIds);
+            // La misma selección se bloquea y se vuelve a validar DENTRO de la transacción.
+            $alumnos = Inscripcion::query()->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get();
+            $this->asegurarAnalisisValido($this->analizarCambioGeneracion($ids, $generacionDestinoId, $cuatrimestreDestinoId));
+            $lote = $this->generarCodigoLote('CG');
+            $movimientos = [];
+            foreach ($alumnos as $alumno) {
+                $origenGeneracionId = (int) $alumno->generacion_id;
+                $origenCuatrimestreId = (int) $alumno->cuatrimestre_id;
+                $destinoCuatrimestreId = $cuatrimestreDestinoId ?? $origenCuatrimestreId;
+                $notasDestino = Calificacion::query()
+                    ->where('alumno_id', $alumno->id)
+                    ->where('licenciatura_id', $alumno->licenciatura_id)
+                    ->where('generacion_id', $generacionDestinoId)
+                    ->where('modalidad_id', $alumno->modalidad_id)
+                    ->lockForUpdate()->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+                // Eloquent dispara InscripcionObserver para fotografiar el nuevo contexto.
+                $alumno->forceFill([
+                    'generacion_id' => $generacionDestinoId,
+                    'cuatrimestre_id' => $destinoCuatrimestreId,
+                ])->save();
+
+                $movimiento = MovimientoAcademico::query()->create([
+                    'lote' => $lote,
+                    'tipo' => $cuatrimestreDestinoId === null ? self::TIPO_GENERACION : self::TIPO_GENERACION_CUATRIMESTRE,
+                    'inscripcion_id' => $alumno->id,
+                    'matricula_snapshot' => $alumno->matricula,
+                    'matricula_interna_snapshot' => $alumno->matricula_interna,
+                    'alumno_snapshot' => $this->nombreAlumno($alumno),
+                    'licenciatura_id' => $alumno->licenciatura_id,
+                    'generacion_id' => $origenGeneracionId, // Compatibilidad con la bitácora existente.
+                    'generacion_origen_id' => $origenGeneracionId,
+                    'generacion_destino_id' => $generacionDestinoId,
+                    'modalidad_origen_id' => $alumno->modalidad_id,
+                    'modalidad_destino_id' => $alumno->modalidad_id,
+                    'cuatrimestre_origen_id' => $origenCuatrimestreId,
+                    'cuatrimestre_destino_id' => $destinoCuatrimestreId,
+                    'motivo' => $motivo,
+                    'observaciones' => $observaciones,
+                    'calificaciones_trasladadas' => 0,
+                    'estado' => 'aplicado',
+                    'ejecutado_por' => auth()->id(),
+                    'detalles' => [
+                        'criterio' => 'traslado_real_sin_remapear_calificaciones',
+                        'calificaciones_destino_preexistentes_ids' => $notasDestino,
+                    ],
+                ]);
+                $movimientos[] = $movimiento->id;
+            }
+            return [
+                'lote' => $lote,
+                'total_alumnos' => count($movimientos),
+                'movimientos_ids' => $movimientos,
+                'calificaciones_trasladadas' => 0,
+            ];
+        }, 3);
+    }
+
     public function revertir(int $movimientoId): MovimientoAcademico
     {
         return DB::transaction(function () use ($movimientoId) {
@@ -498,14 +705,22 @@ class AcademicMovementService
             }
 
             if ((int) $alumno->licenciatura_id !== (int) $movimiento->licenciatura_id
-                || (int) $alumno->generacion_id !== (int) $movimiento->generacion_id) {
+                || (int) $alumno->generacion_id !== (int) ($movimiento->generacion_destino_id ?? $movimiento->generacion_id)) {
                 throw new DomainException('El contexto académico del alumno cambió después del movimiento. Se requiere revisión manual.');
+            }
+
+            // La presencia de cualquier movimiento posterior exige revisión manual, incluso si se revirtió.
+            if (MovimientoAcademico::query()->where('inscripcion_id', $alumno->id)
+                ->where('id', '>', $movimiento->id)->exists()) {
+                throw new DomainException('Existen movimientos académicos posteriores. No se permite revertir automáticamente.');
             }
 
             if ($movimiento->tipo === self::TIPO_MODALIDAD) {
                 $this->revertirModalidad($movimiento, $alumno);
             } elseif ($movimiento->tipo === self::TIPO_CUATRIMESTRE) {
                 $this->revertirCuatrimestre($movimiento, $alumno);
+            } elseif (in_array($movimiento->tipo, [self::TIPO_GENERACION, self::TIPO_GENERACION_CUATRIMESTRE], true)) {
+                $this->revertirGeneracion($movimiento, $alumno);
             } else {
                 throw new DomainException('El tipo de movimiento no admite reversión automática.');
             }
@@ -601,6 +816,34 @@ class AcademicMovementService
         }
 
         $alumno->forceFill(['cuatrimestre_id' => $movimiento->cuatrimestre_origen_id])->save();
+    }
+
+    private function revertirGeneracion(MovimientoAcademico $movimiento, Inscripcion $alumno): void
+    {
+        if (! $movimiento->generacion_origen_id || ! $movimiento->generacion_destino_id) {
+            throw new DomainException('El movimiento carece del contexto de generación necesario para revertir.');
+        }
+        if ((int) $alumno->generacion_id !== (int) $movimiento->generacion_destino_id
+            || (int) $alumno->cuatrimestre_id !== (int) $movimiento->cuatrimestre_destino_id
+            || (int) $alumno->modalidad_id !== (int) $movimiento->modalidad_destino_id
+            || $alumno->status !== 'true' || $alumno->egresado === 'true') {
+            throw new DomainException('El estado actual del estudiante no permite volver automáticamente al origen.');
+        }
+        $preexistentes = collect((array) data_get($movimiento->detalles, 'calificaciones_destino_preexistentes_ids', []))
+            ->map(fn ($id) => (int) $id);
+        $actuales = Calificacion::query()
+            ->where('alumno_id', $alumno->id)
+            ->where('licenciatura_id', $movimiento->licenciatura_id)
+            ->where('generacion_id', $movimiento->generacion_destino_id)
+            ->where('modalidad_id', $movimiento->modalidad_destino_id)
+            ->lockForUpdate()->pluck('id')->map(fn ($id) => (int) $id);
+        if ($actuales->diff($preexistentes)->isNotEmpty()) {
+            throw new DomainException('Existen nuevas calificaciones en la generación destino: no es seguro revertir.');
+        }
+        $alumno->forceFill([
+            'generacion_id' => $movimiento->generacion_origen_id,
+            'cuatrimestre_id' => $movimiento->cuatrimestre_origen_id,
+        ])->save();
     }
 
     private function validarMateriasDestino(int $licenciaturaId, int $modalidadId, int $cuatrimestreId): array

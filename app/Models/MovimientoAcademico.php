@@ -20,6 +20,8 @@ class MovimientoAcademico extends Model
         'alumno_snapshot',
         'licenciatura_id',
         'generacion_id',
+        'generacion_origen_id',
+        'generacion_destino_id',
         'modalidad_origen_id',
         'modalidad_destino_id',
         'cuatrimestre_origen_id',
@@ -56,6 +58,16 @@ class MovimientoAcademico extends Model
     public function generacion()
     {
         return $this->belongsTo(Generacion::class);
+    }
+
+    public function generacionOrigen()
+    {
+        return $this->belongsTo(Generacion::class, 'generacion_origen_id');
+    }
+
+    public function generacionDestino()
+    {
+        return $this->belongsTo(Generacion::class, 'generacion_destino_id');
     }
 
     public function modalidadOrigen()
