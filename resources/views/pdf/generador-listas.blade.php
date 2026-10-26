@@ -41,7 +41,7 @@
         }
 
         .nombre {
-            font-size: 15px;
+            font-size: 20px;
             font-weight: bold;
             color: #006492;
             border-bottom: 1px solid #006492;
@@ -53,7 +53,7 @@
         }
 
         .titulo {
-            font-size: 13px;
+            font-size: 15px;
             margin: 7px 0 3px;
             font-weight: bold;
             text-align: center;
@@ -63,7 +63,7 @@
             text-align: center;
             font-weight: bold;
             color: #006492;
-            font-size: 11px;
+            font-size: 14px;
             margin: 2px 0;
         }
 
@@ -169,7 +169,7 @@
                             </div>
                             <div class="direccion">{{ $institucion['escuela']->calle ?? '' }}
                                 {{ $institucion['escuela']->no_exterior ?? '' }} ·
-                                {{ $institucion['escuela']->ciudad ?? '' }} ·
+                                Cd. {{ $institucion['escuela']->ciudad ?? '' }} ·
                                 {{ $institucion['escuela']->telefono ?? '' }}</div>
                         </td>
                         <td style="width:20%">

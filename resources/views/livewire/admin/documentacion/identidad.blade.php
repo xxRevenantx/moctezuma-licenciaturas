@@ -472,6 +472,14 @@
                         <p class="mt-2">También se incluye <span class="font-mono font-semibold">REPORTE_DE_EXPEDIENTES.xlsx</span> y, cuando falte documentación, <span class="font-mono font-semibold">DOCUMENTOS_FALTANTES.txt</span> dentro de la carpeta del alumno.</p>
                     </div>
 
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
+                        <strong>Descarga directa por lotes (máximo 50 alumnos por ZIP).</strong>
+                        Si hay más de 50 alumnos, el sistema divide automáticamente la selección en archivos de 50.
+                        Cada clic genera y descarga un solo lote; repite «Generar ZIP» para el siguiente.
+                        @if ($totalLotesExportacion > 1)
+                            <p class="mt-2 font-semibold">Próximo lote: {{ $loteExportacion }} de {{ $totalLotesExportacion }}.</p>
+                        @endif
+                    </div>
                     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                         <flux:modal.close>
                             <button type="button" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800">Cerrar</button>
@@ -497,7 +505,7 @@
                     <div class="flex items-center justify-between gap-3">
                         <div>
                             <p class="font-semibold text-slate-900 dark:text-white">Exportaciones recientes</p>
-                            <p class="text-xs text-slate-500 dark:text-neutral-400">Las descargas grandes se generan mediante colas y aparecerán aquí cuando estén listas.</p>
+                            <p class="text-xs text-slate-500 dark:text-neutral-400">Los ZIP se generan directamente y se descargan automáticamente al terminar. Puedes descargarlos otra vez desde aquí.</p>
                         </div>
                         <button type="button" wire:click="actualizarExportaciones" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#006492] hover:bg-[#006492]/10">Actualizar</button>
                     </div>
@@ -558,4 +566,19 @@
             </div>
         </flux:modal>
     @endcan
+    @script
+    <script>
+        $wire.on('expedientes-zip-descarga-directa', ({ url }) => {
+            if (typeof url !== 'string' || !url.startsWith('/')) return;
+            // Navegación a la ruta autenticada de descarga, sin ventana emergente.
+            const enlace = document.createElement('a');
+            enlace.href = url;
+            enlace.download = '';
+            enlace.style.display = 'none';
+            document.body.appendChild(enlace);
+            enlace.click();
+            enlace.remove();
+        });
+    </script>
+    @endscript
 </div>

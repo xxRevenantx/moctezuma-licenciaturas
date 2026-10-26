@@ -53,6 +53,7 @@ class ExpedienteIdentidadExportService
         $generaciones = $this->normalizarIds($filtros['generaciones'] ?? []);
         $estados = $this->normalizarEstados($filtros['estados'] ?? ['activos']);
         $alumnoId = isset($filtros['alumno_id']) ? (int) $filtros['alumno_id'] : null;
+        $idsLote = isset($filtros['ids_lote']) ? $this->normalizarIds($filtros['ids_lote']) : null;
         $tipos = $this->tiposExportables();
 
         return Inscripcion::query()
@@ -76,6 +77,7 @@ class ExpedienteIdentidadExportService
                 },
             ])
             ->when($alumnoId, fn (Builder $query, int $id) => $query->whereKey($id))
+            ->when($idsLote !== null, fn (Builder $query) => $query->whereIn('inscripciones.id', $idsLote))
             ->when($licenciaturas !== [], fn (Builder $query) => $query->whereIn('licenciatura_id', $licenciaturas))
             ->when($generaciones !== [], fn (Builder $query) => $query->whereIn('generacion_id', $generaciones))
             ->when(! $this->incluyeTodosLosEstados($estados), function (Builder $query) use ($estados): void {
@@ -124,6 +126,10 @@ class ExpedienteIdentidadExportService
         ])->save();
 
         $alumnos = $this->consultaAlumnos($descarga->filtros ?? [])->get();
+
+        if ($alumnos->count() > 50) {
+            throw new RuntimeException('El límite por ZIP es de 50 alumnos. Selecciona un lote.');
+        }
 
         if ($alumnos->isEmpty()) {
             throw new RuntimeException('No se encontraron alumnos con los filtros seleccionados.');
@@ -212,6 +218,10 @@ class ExpedienteIdentidadExportService
 
         clearstatcache(true, $rutaAbsoluta);
         $nombreArchivo = $this->nombreZip($descarga->tipo, $descarga->filtros ?? [], $alumnos);
+        $numeroLote = (int) (($descarga->filtros ?? [])['numero_lote'] ?? 0);
+        if ($numeroLote > 0) {
+            $nombreArchivo = preg_replace('/\.zip$/i', '_LOTE_' . str_pad((string) $numeroLote, 2, '0', STR_PAD_LEFT) . '.zip', $nombreArchivo);
+        }
 
         $descarga->forceFill([
             'estado' => 'listo',

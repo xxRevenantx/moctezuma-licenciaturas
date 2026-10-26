@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\Documentacion;
 
-use App\Jobs\GenerarExpedientesIdentidadZip;
 use App\Models\DescargaExpedienteIdentidad;
 use App\Models\Generacion;
 use App\Models\Inscripcion;
@@ -19,6 +18,11 @@ use Throwable;
 class Identidad extends Component
 {
     public string $query = '';
+
+    // Se descarga un máximo de 50 alumnos por petición HTTP.
+    public int $loteExportacion = 1;
+    public string $firmaLoteExportacion = '';
+    public int $totalLotesExportacion = 0;
 
     public array $alumnos = [];
 
@@ -329,6 +333,9 @@ class Identidad extends Component
             ? 'alumno'
             : ($this->selectedGeneracion ? 'generacion' : ($this->selectedLicenciatura ? 'licenciatura' : 'generacion'));
 
+        $this->loteExportacion = 1;
+        $this->firmaLoteExportacion = '';
+        $this->totalLotesExportacion = 0;
         $this->resetValidation();
         $this->cargarExportacionesRecientes();
     }
@@ -406,34 +413,68 @@ class Identidad extends Component
             return;
         }
 
+        // El lote es una partición estable de la misma selección y nunca supera 50 alumnos.
+        $firma = hash('sha256', json_encode([$this->tipoExportacion, $filtros]));
+        if ($this->firmaLoteExportacion !== $firma) {
+            $this->loteExportacion = 1;
+            $this->firmaLoteExportacion = $firma;
+        }
+
+        $totalLotes = (int) ceil($total / 50);
+        $this->totalLotesExportacion = $totalLotes;
+        $loteActual = max(1, min($this->loteExportacion, $totalLotes));
+        $ids = (clone $service->consultaAlumnos($filtros))
+            ->offset(($loteActual - 1) * 50)
+            ->limit(50)
+            ->pluck('inscripciones.id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+
+        if ($ids === []) {
+            $this->dispatch('swal', title: 'Sin alumnos en este lote', text: 'Actualiza los filtros e inténtalo de nuevo.', icon: 'warning', position: 'top');
+            return;
+        }
+        $filtros['ids_lote'] = $ids;
+        $filtros['numero_lote'] = $totalLotes > 1 ? $loteActual : 0;
+        $totalDelLote = count($ids);
+
         $descarga = DescargaExpedienteIdentidad::query()->create([
             'usuario_id' => auth()->id(),
             'tipo' => $this->tipoExportacion,
             'formato' => 'zip',
             'estado' => 'pendiente',
             'filtros' => $filtros,
-            'total_alumnos' => $total,
+            'total_alumnos' => $totalDelLote,
             'ip' => request()->ip(),
             'user_agent' => mb_substr((string) request()->userAgent(), 0, 500),
             'solicitado_at' => now(),
         ]);
 
-        $limiteSincrono = max(1, (int) config('documentos_identidad.export.sync_limit', 25));
-
         try {
-            if ($total <= $limiteSincrono) {
-                $service->generarZip($descarga);
-                $mensaje = "El ZIP con {$total} alumno(s) ya está listo para descargar.";
-            } else {
-                GenerarExpedientesIdentidadZip::dispatch($descarga->id);
-                $mensaje = "La exportación de {$total} alumno(s) se procesará en segundo plano.";
+            // Descarga directa solicitada: nunca despachar este ZIP a la cola.
+            // Mantener el proceso HTTP activo durante la generación (Laragon local).
+            if (function_exists('set_time_limit')) {
+                @set_time_limit(0);
+            }
+
+            $service->generarZip($descarga);
+            $descarga->refresh();
+
+            if (! $descarga->estaLista()) {
+                throw new \RuntimeException('El archivo ZIP no terminó de generarse correctamente.');
             }
 
             $this->dispatch('swal',
-                title: $total <= $limiteSincrono ? 'Exportación lista' : 'Exportación en proceso',
-                text: $mensaje,
+                title: 'Exportación lista',
+                text: "Lote {$loteActual}/{$totalLotes}: ZIP con {$totalDelLote} alumno(s) listo. La descarga comenzará automáticamente.",
                 icon: 'success',
                 position: 'top'
+            );
+
+            $this->loteExportacion = $loteActual < $totalLotes ? $loteActual + 1 : 1;
+
+            $this->dispatch('expedientes-zip-descarga-directa',
+                url: route('admin.expedientes-identidad.exportacion.descargar', $descarga)
             );
         } catch (Throwable $e) {
             $descarga->forceFill([
