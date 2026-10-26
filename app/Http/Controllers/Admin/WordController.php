@@ -392,27 +392,63 @@ class WordController extends Controller
         ));
         $section->addTextBreak();
 
-        foreach ($data['grupos'] as $generacionNombre => $alumnos) {
-            $section->addText('Generación ' . $generacionNombre, ['bold' => true, 'size' => 12, 'color' => '006492']);
-            $headers = ['#', 'Matrícula', 'Alumno'];
-            foreach ($data['tipos'] as $config) {
-                $headers[] = $config['label'] ?? $config['nombre'] ?? 'Documento';
-            }
-            $headers[] = 'Avance';
+        // Reporte jerárquico: generación → licenciaturas → alumnos.
+        // Cada licenciatura tiene su propia tabla y subtotal de expedientes.
+        foreach ($data['secciones'] as $generacion) {
+            $section->addText(
+                'GENERACIÓN: ' . $generacion['generacion'],
+                ['bold' => true, 'size' => 12, 'color' => '38520D'],
+                ['spaceBefore' => 160, 'spaceAfter' => 100, 'keepNext' => true]
+            );
 
-            $table = $section->addTable($this->tablaEstilo());
-            $this->filaEncabezado($table, $headers);
-            foreach ($alumnos->values() as $index => $alumno) {
-                $table->addRow();
-                $table->addCell(400)->addText((string) ($index + 1));
-                $table->addCell(1300)->addText((string) ($alumno->matricula ?: $alumno->matricula_interna ?: 'N/A'));
-                $table->addCell(3000)->addText(trim("{$alumno->apellido_paterno} {$alumno->apellido_materno} {$alumno->nombre}"));
-                foreach (array_keys($data['tipos']) as $tipo) {
-                    $table->addCell(900)->addText(($alumno->documentos_estado[$tipo] ?? false) ? '✓' : '—', [], ['alignment' => Jc::CENTER]);
+            foreach ($generacion['licenciaturas'] as $licenciatura) {
+                $section->addText(
+                    'LICENCIATURA: ' . $licenciatura['nombre'],
+                    ['bold' => true, 'size' => 11, 'color' => '006492'],
+                    ['spaceBefore' => 140, 'spaceAfter' => 70, 'keepNext' => true]
+                );
+                $r = $licenciatura['resumen'];
+                $section->addText(sprintf(
+                    'Alumnos: %d · Expedientes completos: %d · Con documentación: %d · Sin documentación: %d',
+                    $r['alumnos'], $r['completos'], $r['con_documentos'], $r['sin_documentos']
+                ), ['size' => 8, 'color' => '526071'], ['spaceAfter' => 100, 'keepNext' => true]);
+
+                $headers = ['#', 'Matrícula', 'Alumno', 'Foráneo'];
+                foreach ($data['tipos'] as $config) {
+                    $headers[] = $config['label'] ?? $config['nombre'] ?? 'Documento';
                 }
-                $table->addCell(900)->addText(($alumno->documentos_porcentaje ?? 0) . '%', ['bold' => true]);
+                $headers[] = 'Avance';
+
+                $table = $section->addTable($this->tablaEstilo());
+                $this->filaEncabezado($table, $headers);
+                foreach ($licenciatura['alumnos'] as $index => $alumno) {
+                    $table->addRow();
+                    $table->addCell(400)->addText((string) ($index + 1));
+                    $table->addCell(1300)->addText((string) ($alumno->matricula ?: $alumno->matricula_interna ?: 'N/A'));
+                    $table->addCell(3000)->addText(trim("{$alumno->apellido_paterno} {$alumno->apellido_materno} {$alumno->nombre}"));
+
+                    $foraneo = match ($alumno->foraneo) {
+                        'true' => 'SÍ',
+                        'false' => 'NO',
+                        default => '—',
+                    };
+                    $table->addCell(800)->addText(
+                        $foraneo,
+                        ['bold' => true, 'size' => 8, 'color' => $foraneo === 'SÍ' ? '006492' : '526071'],
+                        ['alignment' => Jc::CENTER]
+                    );
+
+                    foreach (array_keys($data['tipos']) as $tipo) {
+                        $table->addCell(900)->addText(($alumno->documentos_estado[$tipo] ?? false) ? '✓' : '—', [], ['alignment' => Jc::CENTER]);
+                    }
+                    $table->addCell(900)->addText(($alumno->documentos_porcentaje ?? 0) . '%', ['bold' => true]);
+                }
+                $section->addTextBreak(1);
             }
-            $section->addTextBreak(2);
+        }
+
+        if ($data['secciones']->isEmpty()) {
+            $section->addText('No hay alumnos con los filtros seleccionados.');
         }
 
         return $this->descargar($phpWord, 'CONTROL_DOCUMENTAL_' . $exports->nombreSeguro($data['licenciaturaNombre']) . '.docx');

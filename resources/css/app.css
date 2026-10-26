@@ -98,7 +98,7 @@ button{
     }
   }
 
-/* ========================================================================== 
+/* ==========================================================================
    Moctezuma · UI institucional escolar
    Sidebar + Calificaciones por docente
    ========================================================================== */
@@ -516,4 +516,185 @@ button{
     .school-grades .school-gradebook {
         border-radius: var(--mobile-card-radius);
     }
+}
+
+/* ==========================================================================
+   Panel académico PRO · componentes aislados para no afectar otros módulos
+   ========================================================================== */
+.school-dashboard {
+    --dashboard-ink: #10254b;
+}
+
+.school-dashboard-welcome {
+    border: 1px solid rgba(189, 218, 232, .75);
+    background: linear-gradient(109deg, #f9fdff 3%, #eaf7fd 58%, #edf8f0 100%);
+    box-shadow: 0 7px 24px rgba(28, 69, 94, .055);
+}
+
+.school-cycle-card {
+    background-image: linear-gradient(112deg, rgba(238, 253, 245, .88), rgba(255, 255, 255, 1) 50%, rgba(221, 247, 255, .83));
+    box-shadow: 0 12px 36px rgba(15, 71, 94, .075);
+}
+
+.school-save-button[data-flux-button] {
+    background: linear-gradient(105deg, #00a86b, #008b7c) !important;
+    border-color: #00977a !important;
+    color: #fff !important;
+    box-shadow: 0 8px 16px rgba(0, 150, 112, .16);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.school-save-button[data-flux-button]:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0, 150, 112, .24);
+}
+
+.school-cycle-control [data-flux-control] {
+    min-height: 42px;
+    border-radius: 12px;
+}
+
+.school-summary-card {
+    transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.school-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(30, 56, 95, .095);
+}
+
+.school-summary-rose {
+    border-color: #f2dbe9;
+    background: linear-gradient(118deg, #fff7fc, #fff 55%, #fdf3fa);
+}
+
+.school-summary-blue {
+    border-color: #cde3f9;
+    background: linear-gradient(118deg, #f5f9ff, #fff 55%, #ecf6ff);
+}
+
+.school-student-card {
+    --student-chart: #008e68;
+    --student-detail: #047857;
+    --student-icon-bg: #c9f9e2;
+    --student-icon-fg: #008964;
+    border-color: #d5eee4;
+    background: linear-gradient(150deg, #f4fffa 0%, #fff 61%);
+}
+
+.school-student-naranja {
+    --student-chart: #ef7839;
+    --student-detail: #c55419;
+    --student-icon-bg: #ffe8d4;
+    --student-icon-fg: #d86a2a;
+    border-color: #f8e1d1;
+    background: linear-gradient(150deg, #fff8f2 0%, #fff 61%);
+}
+
+.school-student-azul {
+    --student-chart: #2581e7;
+    --student-detail: #1465bb;
+    --student-icon-bg: #dbecff;
+    --student-icon-fg: #0867ce;
+    border-color: #d4e6f9;
+    background: linear-gradient(150deg, #f2f8ff 0%, #fff 61%);
+}
+
+.school-student-rosa {
+    --student-chart: #ea4f83;
+    --student-detail: #c52760;
+    --student-icon-bg: #ffe0eb;
+    --student-icon-fg: #e52e73;
+    border-color: #f6dce6;
+    background: linear-gradient(150deg, #fff5f9 0%, #fff 61%);
+}
+
+.school-student-icon {
+    color: var(--student-icon-fg);
+    background: var(--student-icon-bg);
+}
+
+.school-student-bar {
+    background: linear-gradient(180deg, var(--student-chart), color-mix(in srgb, var(--student-chart) 30%, white));
+    opacity: .86;
+    transition: opacity .16s ease;
+}
+
+.school-student-bar:hover {
+    opacity: 1;
+}
+
+.school-student-detail-button {
+    color: var(--student-detail);
+}
+
+.school-topbar {
+    box-shadow: 0 9px 28px rgba(15, 43, 72, .055);
+}
+
+.school-topbar-pill {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 118px;
+    padding: 6px 12px;
+    border: 1px solid #e3ebf4;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.school-topbar-pill span {
+    font-size: 10px;
+    font-weight: 800;
+    color: #67768c;
+}
+
+.school-topbar-pill strong {
+    font-size: 12px;
+    color: #19416f;
+}
+
+/* El cambio de tema respeta la preferencia guardada por Flux. */
+.dark .school-dashboard-welcome {
+    border-color: rgba(51, 103, 132, .38);
+    background: linear-gradient(110deg, #101e31, #102d3b 75%, #153f3d);
+}
+
+.dark .school-cycle-card {
+    background-image: linear-gradient(112deg, #132f35, #111e32 58%, #102e3b);
+}
+
+.dark .school-summary-rose {
+    border-color: rgba(131, 61, 103, .42);
+    background: linear-gradient(120deg, #302034, #1f2637);
+}
+
+.dark .school-summary-blue {
+    border-color: rgba(53, 103, 162, .42);
+    background: linear-gradient(120deg, #192b41, #1f2637);
+}
+
+.dark .school-student-card {
+    border-color: rgba(67, 96, 114, .5);
+    background: linear-gradient(140deg, #1e3040, #192536 72%);
+}
+
+.dark .school-topbar-pill {
+    border-color: #35465b;
+    background: #1d2a3b;
+}
+
+.dark .school-topbar-pill span { color: #a5b6ce; }
+.dark .school-topbar-pill strong { color: #cae9ff; }
+
+@media (prefers-reduced-motion: reduce) {
+    .school-summary-card,
+    .school-save-button,
+    .school-student-bar { transition: none !important; }
+    .school-summary-card:hover,
+    .school-save-button:hover { transform: none !important; }
+}
+
+.school-dashboard .school-chart-card {
+    box-shadow: 0 8px 24px rgba(24, 62, 94, .045);
 }

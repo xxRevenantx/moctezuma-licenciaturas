@@ -406,14 +406,47 @@ class DocumentacionExportService
             ->groupBy(fn ($alumno) => optional($alumno->generacion)->generacion ?: 'Sin generación')
             ->sortKeys();
 
-        $resumen = [
+        // Agrupar por generación Y licenciatura para evitar mezclar carreras
+        // cuando el filtro de licenciatura está en «Todas las licenciaturas».
+        // Se agrupa por ID: dos carreras con el mismo nombre no se fusionan.
+        $secciones = $alumnos
+            ->groupBy(fn (Inscripcion $alumno) => (string) ($alumno->generacion_id ?: 0))
+            ->map(function (Collection $alumnosGeneracion): array {
+                $generacion = $alumnosGeneracion->first()->generacion?->generacion ?: 'Sin generación';
+
+                $licenciaturas = $alumnosGeneracion
+                    ->groupBy(fn (Inscripcion $alumno) => (string) ($alumno->licenciatura_id ?: 0))
+                    ->map(function (Collection $alumnosLicenciatura): array {
+                        $nombre = $alumnosLicenciatura->first()->licenciatura?->nombre ?: 'Sin licenciatura';
+
+                        return [
+                            'nombre' => $nombre,
+                            'alumnos' => $alumnosLicenciatura->values(),
+                            'resumen' => $this->resumenControlDocumental($alumnosLicenciatura),
+                        ];
+                    })
+                    ->sortBy(fn (array $grupo) => Str::lower($grupo['nombre']), SORT_NATURAL)
+                    ->values();
+
+                return ['generacion' => $generacion, 'licenciaturas' => $licenciaturas];
+            })
+            ->sortBy(fn (array $grupo) => $grupo['generacion'], SORT_NATURAL)
+            ->values();
+
+        $resumen = $this->resumenControlDocumental($alumnos);
+
+        // «grupos» se conserva por compatibilidad con posibles consumidores existentes.
+        return compact('licenciaturaNombre', 'generacionNombre', 'estado', 'grupos', 'secciones', 'tipos', 'resumen');
+    }
+
+    private function resumenControlDocumental(Collection $alumnos): array
+    {
+        return [
             'alumnos' => $alumnos->count(),
             'completos' => $alumnos->where('documentos_porcentaje', 100)->count(),
             'con_documentos' => $alumnos->where('documentos_entregados', '>', 0)->count(),
             'sin_documentos' => $alumnos->where('documentos_entregados', 0)->count(),
         ];
-
-        return compact('licenciaturaNombre', 'generacionNombre', 'estado', 'grupos', 'tipos', 'resumen');
     }
 
     public function nombreSeguro(?string $texto): string
