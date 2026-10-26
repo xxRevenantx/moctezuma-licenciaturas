@@ -20,7 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // $middleware->append(\App\Http\Middleware\ModoMantenimiento::class);
+        // Comprueba el estado también en sesiones abiertas (no solo durante el login).
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnsureActiveUser::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

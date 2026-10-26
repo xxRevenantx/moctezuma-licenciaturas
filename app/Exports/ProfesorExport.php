@@ -2,123 +2,94 @@
 
 namespace App\Exports;
 
-use App\Models\Profesor;
-use Maatwebsite\Excel\Concerns\FromCollection;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
+/** Mantiene las columnas históricas y distingue disponibilidad docente de acceso. */
 class ProfesorExport implements FromCollection, WithHeadings, WithStyles, ShouldAutoSize, WithEvents
 {
-    protected $profesores;
-
-    public function __construct(Collection $profesores)
-    {
-        $this->profesores = $profesores;
-    }
+    public function __construct(protected Collection $profesores) {}
 
     public function collection()
     {
-        return $this->profesores->map(function ($profesor) {
-            return [
-               'apellido_paterno' => $profesor->apellido_paterno,
-              'apellido_materno' => $profesor->apellido_materno,
-              'nombre' => $profesor->nombre,
-              'CURP'=> $profesor->user->CURP,
-              'email' => $profesor->user->email,
-              'telefono' => $profesor->telefono,
-              'perfil' => $profesor->perfil,
-              'color' => $profesor->color,
-              'status' => $profesor->user->status,
-
-            ];
-        });
+        return $this->profesores->map(fn ($profesor) => [
+            'apellido_paterno' => $profesor->apellido_paterno,
+            'apellido_materno' => $profesor->apellido_materno,
+            'nombre' => $profesor->nombre,
+            'CURP' => $profesor->user?->CURP,
+            'email' => $profesor->user?->email,
+            'telefono' => $profesor->telefono,
+            'perfil' => $profesor->perfil,
+            'color' => $profesor->color,
+            'disponibilidad' => $profesor->status === 'true' ? 'Disponible' : 'No disponible',
+            'acceso' => $profesor->user?->status === 'true' ? 'Activo' : 'Pendiente / inactivo',
+            'asignaciones' => $profesor->asignacion_materias_count ?? $profesor->asignacionMaterias()->count(),
+        ]);
     }
 
     public function headings(): array
     {
         return [
-            'Apellido Paterno',
-            'Apellido Materno',
-            'Nombre',
-            'CURP',
-            'Email',
-            'Teléfono',
-            'Perfil',
-            'Color',
-            'Status',
+            'Apellido Paterno', 'Apellido Materno', 'Nombre', 'CURP', 'Email',
+            'Teléfono', 'Perfil', 'Color', 'Disponibilidad docente',
+            'Acceso al sistema', 'Materias asignadas',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        // Estilo del encabezado
-        $sheet->getStyle('A1:I1')->applyFromArray([
+        $sheet->getStyle('A1:K1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '4CAF50'],
+                'startColor' => ['rgb' => '08749C'],
             ],
         ]);
     }
 
-
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function (AfterSheet $event) {
-                $sheet = $event->sheet;
-                $highestRow = $sheet->getHighestRow();
-                $highestColumn = $sheet->getHighestColumn();
-
-                // Aplicar bordes a todas las celdas
-                $sheet->getStyle('A1:' . $highestColumn . $highestRow)->applyFromArray([
+            AfterSheet::class => function (AfterSheet $event): void {
+                $sheet = $event->sheet->getDelegate();
+                $max = $sheet->getHighestRow();
+                $sheet->getStyle("A1:K{$max}")->applyFromArray([
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => Border::BORDER_THIN,
-                            'color' => ['argb' => '000000'],
+                            'color' => ['rgb' => 'E5E7EB'],
                         ],
                     ],
                 ]);
-
-                // Colorear la columna "Color" según el valor de la propiedad color
-                // La columna "Color" es la H (índice 6)
-                for ($row = 2; $row <= $highestRow; $row++) {
-                    $colorValue = $sheet->getCell('H' . $row)->getValue();
-                    // Limpiar el valor y asegurarse que sea un color hexadecimal válido
-                    $hexColor = ltrim($colorValue, '#');
-                    if (preg_match('/^[A-Fa-f0-9]{6}$/', $hexColor)) {
-                        $sheet->getStyle('H' . $row)->getFill()->setFillType(Fill::FILL_SOLID)
-                            ->getStartColor()->setRGB($hexColor);
-                    }
+                $sheet->freezePane('A2');
+                if ($max < 2) {
+                    return;
                 }
+                $sheet->getStyle("D2:D{$max}")->getNumberFormat()->setFormatCode('@');
+                $sheet->getStyle("F2:F{$max}")->getNumberFormat()->setFormatCode('@');
 
-
-                for ($row = 2; $row <= $highestRow; $row++) {
-                    $cellValue = $event->sheet->getCell("I{$row}")->getValue();
-                    if ($cellValue === 'true') {
-                        $event->sheet->setCellValue("I{$row}", 'Activo');
-                        $color = '00FF00';
-                    } else {
-                         $event->sheet->setCellValue("I{$row}", 'Inactivo');
-                        $color = 'ff6464';
+                for ($row = 2; $row <= $max; $row++) {
+                    $colorValue = $sheet->getCell("H{$row}")->getValue();
+                    $color = ltrim((string) $colorValue, '#');
+                    if (preg_match('/^[0-9a-fA-F]{6}$/', $color)) {
+                        $sheet->getStyle("H{$row}")->getFill()->setFillType(Fill::FILL_SOLID)
+                            ->getStartColor()->setRGB($color);
                     }
-
-                    $event->sheet->getStyle("I{$row}")->applyFromArray([
-                        'fill' => [
-                            'fillType' => Fill::FILL_SOLID,
-                            'startColor' => ['rgb' => $color],
-                        ],
-                    ]);
+                    foreach (['I' => 'Disponible', 'J' => 'Activo'] as $columna => $positivo) {
+                        $valor = $sheet->getCell("{$columna}{$row}")->getValue();
+                        $sheet->getStyle("{$columna}{$row}")->getFill()->setFillType(Fill::FILL_SOLID)
+                            ->getStartColor()->setRGB($valor === $positivo ? 'DCFCE7' : 'FEF3C7');
+                    }
                 }
             },
         ];
     }
-
 }

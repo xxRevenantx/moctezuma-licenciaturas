@@ -2,166 +2,245 @@
 
 namespace App\Livewire\Admin\Profesor;
 
+use App\Models\Licenciatura;
+use App\Models\Profesor;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithPagination;
 
+/**
+ * Credenciales docentes PRO: sólo consulta expedientes y prepara los PDFs históricos.
+ * No modifica estados, roles, horarios, inscripciones ni calificaciones.
+ */
 class CredencialProfesor extends Component
 {
-    public $query = '';
-    public $profesores = [];
-    public $selectedIndex = 0;
-    public $profesoresSeleccionados = []; // <= aquí cambia
+    use WithPagination;
 
+    public const MAX_CREDENCIALES = 100;
 
-    public $query_profesor_estudiante = '';
-    public $profesores_estudiante = [];
-    public $selectedIndexProfesorEstudiante = 0;
-    public $profesoresEstudianteSeleccionados = []; // <- corregido nombre
-    public $licenciaturas; // <- para almacenar las licenciaturas
+    public string $tipo = 'docente';
+    public string $busqueda = '';
+    public string $disponibilidad = '';
+    public string $fotografia = '';
+    public string $licenciaturaId = '';
 
-    public function updatedQuery()
+    /** @var list<int> */
+    public array $seleccionados = [];
+    public bool $seleccionarPagina = false;
+    public bool $vistaPrevia = false;
+    public ?int $previewIndividualId = null;
+
+    public function mount(): void
     {
-        $this->buscarProfesores();
+        abort_unless(auth()->user()?->can('admin.administracion'), 403);
     }
 
-    public function buscarProfesores()
+    public function updatingPage($page, $pageName = 'page'): void
     {
-        if (strlen($this->query) > 0) {
-           $this->profesores = \App\Models\Profesor::where('nombre', 'like', '%' . $this->query . '%')
-            ->orWhere('apellido_paterno', 'like', '%' . $this->query . '%')
-            ->orWhere('apellido_materno', 'like', '%' . $this->query . '%')
-            ->orWhereHas('user', function ($q) {
-                $q->where('CURP', 'like', '%' . $this->query . '%');
-            })
-            ->get();
-        } else {
-            $this->profesores = [];
+        $this->seleccionarPagina = false;
+        $this->cerrarVistaPrevia();
+    }
+
+    public function updated($name, $value): void
+    {
+        if (in_array($name, ['busqueda', 'disponibilidad', 'fotografia'], true)) {
+            $this->resetPage('credenciales_page');
+            $this->limpiarSeleccion();
         }
-
-        $this->selectedIndex = 0;
     }
 
-    public function selectProfesor($index)
+    public function cambiarTipo(string $tipo): void
     {
-        if (isset($this->profesores[$index])) {
-            $profesor = $this->profesores[$index];
+        abort_unless(in_array($tipo, ['docente', 'estudiante'], true), 422);
+        $this->tipo = $tipo;
+        $this->cerrarVistaPrevia();
+        $this->limpiarSeleccion();
+        $this->resetPage('credenciales_page');
+    }
 
-            // Evitar duplicados
-            if (!collect($this->profesoresSeleccionados)->contains('id', $profesor['id'])) {
-                $this->profesoresSeleccionados[] = $profesor;
-            }
+    public function limpiarFiltros(): void
+    {
+        $this->busqueda = '';
+        $this->disponibilidad = '';
+        $this->fotografia = '';
+        $this->resetPage('credenciales_page');
+        $this->limpiarSeleccion();
+    }
 
-            $this->query = ''; // limpiar el input
-            $this->profesores = [];
-        } else {
-            $this->dispatch('swal', [
-                'title' => 'Profesor no encontrado',
-                'icon' => 'error',
-                'position' => 'top',
+    public function limpiarSeleccion(): void
+    {
+        $this->seleccionados = [];
+        $this->seleccionarPagina = false;
+        $this->cerrarVistaPrevia();
+    }
+
+    public function seleccionarResultados(): void
+    {
+        $consulta = $this->consultaFiltrada();
+        $cantidad = (clone $consulta)->count();
+        if ($cantidad < 1 || $cantidad > self::MAX_CREDENCIALES) {
+            throw ValidationException::withMessages([
+                'seleccionados' => 'Filtra entre 1 y '.self::MAX_CREDENCIALES.' profesores para seleccionarlos a todos.',
             ]);
         }
+
+        $this->seleccionados = $consulta->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')->orderBy('nombre')
+            ->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->seleccionarPagina = false;
+        $this->cerrarVistaPrevia();
     }
 
-    public function eliminarProfesorSeleccionado($id)
+    public function updatedSeleccionarPagina($value): void
     {
-        $this->profesoresSeleccionados = array_filter($this->profesoresSeleccionados, function ($a) use ($id) {
-            return $a['id'] !== $id;
-        });
+        $idsPagina = $this->profesores->getCollection()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $anteriores = array_values(array_unique(array_map('intval', $this->seleccionados)));
+        if ($value) {
+            $nuevos = array_values(array_unique(array_merge($anteriores, $idsPagina)));
+            if (count($nuevos) > self::MAX_CREDENCIALES) {
+                $this->seleccionarPagina = false;
+                throw ValidationException::withMessages(['seleccionados' => 'Máximo '.self::MAX_CREDENCIALES.' credenciales por PDF.']);
+            }
+            $this->seleccionados = $nuevos;
+        } else {
+            $this->seleccionados = array_values(array_diff($anteriores, $idsPagina));
+        }
+        $this->cerrarVistaPrevia();
     }
 
-    public function selectIndexUp()
+    public function updatedSeleccionados(): void
     {
-        if ($this->profesores) {
-            $this->selectedIndex = ($this->selectedIndex - 1 + count($this->profesores)) % count($this->profesores);
+        $this->seleccionados = array_values(array_unique(array_filter(
+            array_map('intval', $this->seleccionados), fn (int $id) => $id > 0
+        )));
+        if (count($this->seleccionados) > self::MAX_CREDENCIALES) {
+            throw ValidationException::withMessages(['seleccionados' => 'Máximo '.self::MAX_CREDENCIALES.' credenciales por PDF.']);
+        }
+        $pagina = $this->profesores->getCollection()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->seleccionarPagina = count($pagina) > 0 && empty(array_diff($pagina, $this->seleccionados));
+        $this->cerrarVistaPrevia();
+    }
+
+    public function quitarSeleccionado(int $id): void
+    {
+        $this->seleccionados = array_values(array_diff($this->seleccionados, [$id]));
+        $this->seleccionarPagina = false;
+        $this->cerrarVistaPrevia();
+    }
+
+    public function seleccionarProfesor(int $id): void
+    {
+        abort_unless(Profesor::query()->whereKey($id)->exists(), 404);
+        if (! in_array($id, $this->seleccionados, true)) {
+            if (count($this->seleccionados) >= self::MAX_CREDENCIALES) {
+                throw ValidationException::withMessages(['seleccionados' => 'Llegaste al máximo permitido.']);
+            }
+            $this->seleccionados[] = $id;
+        }
+        $this->cerrarVistaPrevia();
+    }
+
+    public function abrirVistaPrevia(?int $profesorId = null): void
+    {
+        if ($this->tipo === 'estudiante' && ! Licenciatura::query()->whereKey((int) $this->licenciaturaId)->exists()) {
+            throw ValidationException::withMessages(['licenciaturaId' => 'Selecciona la licenciatura para esta credencial.']);
+        }
+        $ids = $profesorId !== null ? [$profesorId] : $this->seleccionados;
+        $this->validarIds($ids);
+        $this->previewIndividualId = $profesorId;
+        $this->vistaPrevia = true;
+    }
+
+    public function cerrarVistaPrevia(): void
+    {
+        $this->vistaPrevia = false;
+        $this->previewIndividualId = null;
+    }
+
+    private function validarIds(array $ids): void
+    {
+        $ids = array_map('intval', $ids);
+        if (! $ids || count($ids) > self::MAX_CREDENCIALES || count(array_unique($ids)) !== count($ids)
+            || min($ids) <= 0 || Profesor::query()->whereIn('id', $ids)->count() !== count($ids)) {
+            throw ValidationException::withMessages(['seleccionados' => 'Selecciona entre 1 y 100 profesores válidos para generar las credenciales.']);
         }
     }
 
-    public function selectIndexDown()
+    #[Computed]
+    public function urlPdf(): ?string
     {
-        if ($this->profesores) {
-            $this->selectedIndex = ($this->selectedIndex + 1) % count($this->profesores);
+        $ids = $this->previewIndividualId === null ? $this->seleccionados : [$this->previewIndividualId];
+        if (! $ids || count($ids) > self::MAX_CREDENCIALES) {
+            return null;
         }
-    }
-
-
-    // CREDENCIAL DEL PROFESOR COMO ESTUDIANTE
-
-
-   public function updatedQueryProfesorEstudiante()
-{
-    $this->buscarProfesoresEstudiante();
-}
-
-public function buscarProfesoresEstudiante()
-{
-    if (strlen($this->query_profesor_estudiante) > 0) {
-        $this->profesores_estudiante = \App\Models\Profesor::with('user')
-            ->where('nombre', 'like', '%' . $this->query_profesor_estudiante . '%')
-            ->orWhere('apellido_paterno', 'like', '%' . $this->query_profesor_estudiante . '%')
-            ->orWhere('apellido_materno', 'like', '%' . $this->query_profesor_estudiante . '%')
-            ->orWhereHas('user', function ($q) {
-                $q->where('CURP', 'like', '%' . $this->query_profesor_estudiante . '%');
-            })
-            ->get()
-            ->toArray(); // Para trabajar con arrays
-    } else {
-        $this->profesores_estudiante = [];
-    }
-
-    $this->selectedIndexProfesorEstudiante = 0;
-}
-
-public function selectProfesorEstudiante($index)
-{
-    if (isset($this->profesores_estudiante[$index])) {
-        $profesor = $this->profesores_estudiante[$index];
-
-        if (!collect($this->profesoresEstudianteSeleccionados)->contains('id', $profesor['id'])) {
-            $this->profesoresEstudianteSeleccionados[] = $profesor;
+        $parametros = ['profesores_ids' => array_values(array_map('intval', $ids))];
+        if ($this->tipo === 'estudiante') {
+            $parametros['licenciatura_id'] = (int) $this->licenciaturaId;
         }
-
-        $this->query_profesor_estudiante = '';
-        $this->profesores_estudiante = [];
-    } else {
-        $this->dispatch('swal', [
-            'title' => 'Profesor no encontrado',
-            'icon' => 'error',
-            'position' => 'top',
-        ]);
+        $ruta = $this->tipo === 'estudiante'
+            ? 'admin.pdf.documentacion.credencial_profesor_estudiante'
+            : 'admin.pdf.documentacion.credencial_profesor';
+        return route($ruta).'?'.http_build_query($parametros);
     }
-}
 
-public function eliminarProfesorEstudianteSeleccionado($id)
-{
-    $this->profesoresEstudianteSeleccionados = array_filter($this->profesoresEstudianteSeleccionados, function ($a) use ($id) {
-        return $a['id'] !== $id;
-    });
-}
-
-public function selectIndexProfesorEstudianteUp()
-{
-    if ($this->profesores_estudiante) {
-        $this->selectedIndexProfesorEstudiante = ($this->selectedIndexProfesorEstudiante - 1 + count($this->profesores_estudiante)) % count($this->profesores_estudiante);
-    }
-}
-
-public function selectIndexProfesorEstudianteDown()
-{
-    if ($this->profesores_estudiante) {
-        $this->selectedIndexProfesorEstudiante = ($this->selectedIndexProfesorEstudiante + 1) % count($this->profesores_estudiante);
-    }
-}
-
-    public function mount()
+    #[Computed]
+    public function seleccionDetalle()
     {
-        // Aquí puedes cargar las licenciaturas si es necesario
-        $this->licenciaturas = \App\Models\Licenciatura::all();
+        return Profesor::query()->whereIn('id', $this->seleccionados)
+            ->with('user:id,CURP')->orderBy('apellido_paterno')->orderBy('apellido_materno')->orderBy('nombre')->get();
     }
 
+    private function consultaFiltrada(): Builder
+    {
+        $consulta = Profesor::query();
+        if (in_array($this->disponibilidad, ['true', 'false'], true)) {
+            $consulta->where('status', $this->disponibilidad);
+        }
+        if ($this->fotografia === 'con') {
+            $consulta->whereNotNull('foto')->where('foto', '<>', '');
+        } elseif ($this->fotografia === 'sin') {
+            $consulta->where(fn (Builder $q) => $q->whereNull('foto')->orWhere('foto', ''));
+        }
+        $texto = trim($this->busqueda);
+        if ($texto !== '') {
+            $escapado = str_replace(['%', '_'], ['\\%', '\\_'], $texto);
+            $consulta->where(function (Builder $q) use ($escapado) {
+                $q->where('nombre', 'like', "%{$escapado}%")
+                    ->orWhere('apellido_paterno', 'like', "%{$escapado}%")
+                    ->orWhere('apellido_materno', 'like', "%{$escapado}%")
+                    ->orWhereRaw("CONCAT_WS(' ', apellido_paterno, apellido_materno, nombre) LIKE ?", ["%{$escapado}%"])
+                    ->orWhereHas('user', fn (Builder $u) => $u->where('CURP', 'like', "%{$escapado}%"));
+            });
+        }
+        return $consulta;
+    }
 
+    #[Computed]
+    public function profesores()
+    {
+        return $this->consultaFiltrada()->with('user:id,CURP,status')
+            ->orderBy('apellido_paterno')->orderBy('apellido_materno')->orderBy('nombre')
+            ->paginate(12, ['*'], 'credenciales_page');
+    }
 
+    #[Computed]
+    public function indicadores(): array
+    {
+        $q = $this->consultaFiltrada();
+        return [
+            'total' => (clone $q)->count(),
+            'disponibles' => (clone $q)->where('status', 'true')->count(),
+            'con_foto' => (clone $q)->whereNotNull('foto')->where('foto', '<>', '')->count(),
+            'seleccionados' => count($this->seleccionados),
+        ];
+    }
 
     public function render()
     {
-        return view('livewire.admin.profesor.credencial-profesor');
+        return view('livewire.admin.profesor.credencial-profesor', [
+            'licenciaturas' => Licenciatura::query()->orderBy('nombre')->get(['id', 'nombre']),
+        ]);
     }
 }

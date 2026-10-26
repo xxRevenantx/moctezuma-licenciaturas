@@ -3,7 +3,8 @@
         visor: false,
         confirmarEliminacion: false,
         progreso: 0,
-        subiendo: false
+        subiendo: false,
+        arrastrando: false
     }"
     x-on:livewire-upload-start="subiendo = true; progreso = 0"
     x-on:livewire-upload-progress="progreso = $event.detail.progress"
@@ -11,7 +12,7 @@
     x-on:livewire-upload-error="subiendo = false; progreso = 0"
     class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
 >
-    <div class="h-1 bg-gradient-to-r from-[#006492] to-[#88AC2E]"></div>
+    <div class="h-1" @class(['bg-emerald-500' => $guardado, 'bg-amber-400' => ! $guardado])></div>
 
     <div class="p-5">
         <div class="flex items-start justify-between gap-4">
@@ -90,9 +91,16 @@
             @endif
 
             @can($guardado ? 'documentos-identidad.reemplazar' : 'documentos-identidad.subir')
-                <label class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#006492] px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-[#00547b]">
+                <label
+                    @dragover.prevent="arrastrando = true"
+                    @dragenter.prevent="arrastrando = true"
+                    @dragleave.prevent="arrastrando = false"
+                    @drop.prevent="arrastrando = false; if ($event.dataTransfer.files.length > 0) { $wire.upload('archivo', $event.dataTransfer.files[0]) }"
+                    :class="arrastrando ? 'ring-4 ring-sky-200 scale-[1.02]' : ''"
+                    class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#006492] px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-[#00547b]">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 16.5V3.75m0 0L7.5 8.25M12 3.75l4.5 4.5M3.75 15v3.75A2.25 2.25 0 006 21h12a2.25 2.25 0 002.25-2.25V15"/></svg>
                     {{ $guardado ? 'Agregar o reemplazar' : 'Subir archivo' }}
+                    <span class="hidden font-normal opacity-80 sm:inline">· o arrastra aquí</span>
                     <input wire:model="archivo" type="file" accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png" class="sr-only">
                 </label>
             @endcan

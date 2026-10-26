@@ -52,6 +52,10 @@ class Identidad extends Component
 
     public int $porcentaje = 0;
 
+    public bool $mostrarSoloPendientes = false;
+
+    public int $porcentajeObligatorios = 0;
+
     public bool $tieneDocumentos = false;
 
     public bool $tieneDocumentosExportables = false;
@@ -132,13 +136,114 @@ class Identidad extends Component
             return;
         }
 
-        $this->alumnos = Inscripcion::query()
-            ->with([
-                'licenciatura:id,nombre',
-                'generacion:id,generacion,activa',
-                'modalidad:id,nombre',
-                'cuatrimestre:id,nombre_cuatrimestre,cuatrimestre',
-            ])
+        Gate::authorize('documentos-identidad.ver');
+
+        $this->alumnos = $this->consultaAlumnosFiltrada()
+            ->with($this->relacionesAlumno())
+            ->where(function (Builder $q) use ($texto): void {
+                // Los comodines escritos en el buscador no deben convertirse en filtros globales.
+                $patron = '%'.addcslashes($texto, '%_\\').'%';
+                $q->where('nombre', 'like', $patron)
+                    ->orWhere('apellido_paterno', 'like', $patron)
+                    ->orWhere('apellido_materno', 'like', $patron)
+                    ->orWhere('CURP', 'like', $patron)
+                    ->orWhere('matricula', 'like', $patron)
+                    ->orWhere('matricula_interna', 'like', $patron)
+                    ->orWhere('folio', 'like', $patron);
+
+                // Permite localizar nombres completos separados por espacios,
+                // aunque cada parte esté en una columna distinta. Compatible con MySQL y SQLite.
+                $palabras = array_slice(preg_split('/\s+/u', $texto, -1, PREG_SPLIT_NO_EMPTY) ?: [], 0, 5);
+                if (count($palabras) > 1) {
+                    $q->orWhere(function (Builder $nombreCompleto) use ($palabras): void {
+                        foreach ($palabras as $palabra) {
+                            $patronParte = '%'.addcslashes($palabra, '%_\\').'%';
+                            $nombreCompleto->where(function (Builder $parte) use ($patronParte): void {
+                                $parte->where('nombre', 'like', $patronParte)
+                                    ->orWhere('apellido_paterno', 'like', $patronParte)
+                                    ->orWhere('apellido_materno', 'like', $patronParte);
+                            });
+                        }
+                    });
+                }
+            })
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->orderBy('nombre')
+            ->limit(12)
+            ->get()
+            ->toArray();
+
+        $this->selectedIndex = 0;
+    }
+
+    public function selectAlumno(int $index): void
+    {
+        if (! isset($this->alumnos[$index]['id'])) {
+            $this->dispatch('swal', title: 'Alumno no encontrado', icon: 'error', position: 'top');
+
+            return;
+        }
+
+        $this->seleccionarAlumnoPorId((int) $this->alumnos[$index]['id']);
+    }
+
+    /**
+     * Utiliza la clave del alumno, nunca la posición visible en un listado dinámico.
+     * Los filtros se verifican nuevamente contra MySQL antes de mostrar el expediente.
+     */
+    public function seleccionarAlumnoPorId(int $id): void
+    {
+        Gate::authorize('documentos-identidad.ver');
+
+        if ($id < 1 || ! in_array($id, array_map('intval', array_column($this->alumnos, 'id')), true)) {
+            $this->dispatch('swal', title: 'Selecciona un alumno del listado actual', icon: 'warning', position: 'top');
+
+            return;
+        }
+
+        $alumno = $this->consultaAlumnosFiltrada()
+            ->with($this->relacionesAlumno())
+            ->find($id);
+
+        if (! $alumno) {
+            $this->dispatch('swal', title: 'El alumno no coincide con los filtros', icon: 'warning', position: 'top');
+
+            return;
+        }
+
+        $this->selectedAlumno = $alumno->toArray();
+        $this->query = $this->textoAlumno($this->selectedAlumno);
+        $this->alumnos = [];
+        $this->selectedIndex = 0;
+        $this->mostrarSoloPendientes = false;
+        $this->actualizarResumen();
+    }
+
+    public function limpiarAlumno(): void
+    {
+        $this->reiniciarSeleccion();
+    }
+
+    public function cambiarVistaDocumentos(bool $soloPendientes): void
+    {
+        $this->mostrarSoloPendientes = $soloPendientes;
+    }
+
+    /** @return array<int, string> */
+    protected function relacionesAlumno(): array
+    {
+        return [
+            'licenciatura:id,nombre',
+            'generacion:id,generacion,activa',
+            'modalidad:id,nombre',
+            'cuatrimestre:id,nombre_cuatrimestre,cuatrimestre',
+        ];
+    }
+
+    protected function consultaAlumnosFiltrada(): Builder
+    {
+        return Inscripcion::query()
             ->when($this->selectedLicenciatura, fn (Builder $q, int $id) => $q->where('licenciatura_id', $id))
             ->when($this->selectedGeneracion, fn (Builder $q, int $id) => $q->where('generacion_id', $id))
             ->when($this->estado === 'activos', fn (Builder $q) => $q
@@ -151,54 +256,7 @@ class Identidad extends Component
                 ->where('status', 'false')
                 ->where(function (Builder $estadoQuery): void {
                     $estadoQuery->whereNull('egresado')->orWhere('egresado', 'false');
-                }))
-            ->where(function (Builder $q) use ($texto): void {
-                $q->where('nombre', 'like', "%{$texto}%")
-                    ->orWhere('apellido_paterno', 'like', "%{$texto}%")
-                    ->orWhere('apellido_materno', 'like', "%{$texto}%")
-                    ->orWhere('CURP', 'like', "%{$texto}%")
-                    ->orWhere('matricula', 'like', "%{$texto}%")
-                    ->orWhere('matricula_interna', 'like', "%{$texto}%")
-                    ->orWhere('folio', 'like', "%{$texto}%");
-            })
-            ->orderBy('apellido_paterno')
-            ->orderBy('apellido_materno')
-            ->orderBy('nombre')
-            ->limit(10)
-            ->get()
-            ->toArray();
-
-        $this->selectedIndex = 0;
-    }
-
-    public function selectAlumno(int $index): void
-    {
-        if (! isset($this->alumnos[$index])) {
-            $this->dispatch('swal', title: 'Alumno no encontrado', icon: 'error', position: 'top');
-
-            return;
-        }
-
-        $alumno = Inscripcion::query()
-            ->with([
-                'licenciatura:id,nombre',
-                'generacion:id,generacion,activa',
-                'modalidad:id,nombre',
-                'cuatrimestre:id,nombre_cuatrimestre,cuatrimestre',
-            ])
-            ->find($this->alumnos[$index]['id']);
-
-        if (! $alumno) {
-            $this->dispatch('swal', title: 'Alumno no encontrado', icon: 'error', position: 'top');
-
-            return;
-        }
-
-        $this->selectedAlumno = $alumno->toArray();
-        $this->query = $this->textoAlumno($this->selectedAlumno);
-        $this->alumnos = [];
-        $this->selectedIndex = 0;
-        $this->actualizarResumen();
+                }));
     }
 
     #[On('documento-identidad-actualizado')]
@@ -259,15 +317,17 @@ class Identidad extends Component
     {
         Gate::authorize('documentos-identidad.descargar');
 
-        $this->exportLicenciaturas = $this->selectedLicenciatura ? [$this->selectedLicenciatura] : [];
-        $this->exportGeneraciones = $this->selectedGeneracion ? [$this->selectedGeneracion] : [];
+        $licenciatura = $this->selectedLicenciatura ?: ($this->selectedAlumno['licenciatura_id'] ?? null);
+        $generacion = $this->selectedGeneracion ?: ($this->selectedAlumno['generacion_id'] ?? null);
+        $this->exportLicenciaturas = $licenciatura ? [(int) $licenciatura] : [];
+        $this->exportGeneraciones = $generacion ? [(int) $generacion] : [];
         $this->exportEstados = $this->estado === 'todos'
             ? ['activos', 'egresados', 'bajas']
             : [$this->estado];
 
-        $this->tipoExportacion = $this->selectedGeneracion
-            ? 'generacion'
-            : ($this->selectedLicenciatura ? 'licenciatura' : ($this->selectedAlumno ? 'alumno' : 'generacion'));
+        $this->tipoExportacion = $this->selectedAlumno
+            ? 'alumno'
+            : ($this->selectedGeneracion ? 'generacion' : ($this->selectedLicenciatura ? 'licenciatura' : 'generacion'));
 
         $this->resetValidation();
         $this->cargarExportacionesRecientes();
@@ -495,6 +555,9 @@ class Identidad extends Component
         $this->porcentaje = $this->documentosTotales > 0
             ? (int) round(($this->documentosEntregados / $this->documentosTotales) * 100)
             : 0;
+        $this->porcentajeObligatorios = $this->obligatoriosTotales > 0
+            ? (int) round(($this->obligatoriosEntregados / $this->obligatoriosTotales) * 100)
+            : 100;
         $this->tieneDocumentos = $this->documentosEntregados > 0;
     }
 
@@ -516,6 +579,7 @@ class Identidad extends Component
         $this->alumnos = [];
         $this->selectedIndex = 0;
         $this->selectedAlumno = null;
+        $this->mostrarSoloPendientes = false;
         $this->limpiarResumen();
     }
 
@@ -528,6 +592,7 @@ class Identidad extends Component
         $this->obligatoriosEntregados = 0;
         $this->obligatoriosTotales = 0;
         $this->porcentaje = 0;
+        $this->porcentajeObligatorios = 0;
         $this->tieneDocumentos = false;
         $this->tieneDocumentosExportables = false;
         $this->organizacionPendiente = false;

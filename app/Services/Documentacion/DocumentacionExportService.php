@@ -2,7 +2,6 @@
 
 namespace App\Services\Documentacion;
 
-use App\Models\AsignarGeneracion;
 use App\Models\Cuatrimestre;
 use App\Models\Dashboard;
 use App\Models\Directivo;
@@ -14,6 +13,7 @@ use App\Models\Licenciatura;
 use App\Models\Materia;
 use App\Models\Modalidad;
 use App\Models\Periodo;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -79,7 +79,57 @@ class DocumentacionExportService
         };
     }
 
-    public function oficio(int $generacionId, string $documento, string $fecha): array
+    /**
+     * Generaciones que poseen al menos una licenciatura asignada, con RVOE
+     * registrado y estudiantes activos en esa misma generación.
+     * No se utiliza el campo generaciones.activa: también pueden necesitar
+     * oficios las generaciones que ya concluyeron sus estudios.
+     */
+    public function generacionesDisponiblesParaOficios(): Collection
+    {
+        return Generacion::query()
+            ->whereIn('id', function ($query) {
+                $query->select('asignaciones.generacion_id')
+                    ->from('asignar_generaciones as asignaciones')
+                    ->join('licenciaturas as carreras', 'carreras.id', '=', 'asignaciones.licenciatura_id')
+                    ->join('inscripciones as alumnos', function ($join) {
+                        $join->on('alumnos.licenciatura_id', '=', 'asignaciones.licenciatura_id')
+                            ->on('alumnos.generacion_id', '=', 'asignaciones.generacion_id');
+                    })
+                    ->whereNotNull('carreras.RVOE')
+                    ->where('alumnos.status', 'true');
+            })
+            ->orderByDesc('generacion')
+            ->get(['id', 'generacion']);
+    }
+
+    /**
+     * Única fuente de verdad para los filtros de UI y la expedición PDF/Word.
+     * La tabla licenciaturas no tiene columna status/activa: una carrera es
+     * elegible aquí si está asignada a la generación, tiene RVOE y al menos
+     * un alumno con inscripciones.status = true en esa generación.
+     */
+    public function licenciaturasDisponiblesParaOficio(int $generacionId): Collection
+    {
+        return Licenciatura::query()
+            ->whereNotNull('RVOE')
+            ->whereHas('asignarGeneraciones', fn ($query) => $query
+                ->where('generacion_id', $generacionId))
+            ->whereHas('inscripciones', fn ($query) => $query
+                ->where('generacion_id', $generacionId)
+                ->where('status', 'true'))
+            ->withCount(['inscripciones as alumnos_activos_count' => fn ($query) => $query
+                ->where('generacion_id', $generacionId)
+                ->where('status', 'true')])
+            ->orderBy('nombre')
+            ->get(['id', 'nombre', 'RVOE']);
+    }
+
+    /**
+     * @param array<int>|null $licenciaturaIds null = todas las disponibles;
+     *        array explícito = selección de una o varias licenciaturas.
+     */
+    public function oficio(int $generacionId, string $documento, string $fecha, ?array $licenciaturaIds = null): array
     {
         $generacion = Generacion::findOrFail($generacionId);
         $escuela = Escuela::query()->first();
@@ -89,15 +139,28 @@ class DocumentacionExportService
         $subjefe = Directivo::where('identificador', 'subjefe')->where('status', 'true')->first();
         $revisado = Directivo::where('identificador', 'revisado')->where('status', 'true')->first();
 
-        $licenciaturas = AsignarGeneracion::where('generacion_id', $generacionId)
-            ->whereHas('licenciatura', fn ($query) => $query->whereNotNull('RVOE'))
-            ->with('licenciatura')
-            ->get()
-            ->unique('licenciatura_id')
-            ->pluck('licenciatura');
+        $disponibles = $this->licenciaturasDisponiblesParaOficio($generacionId);
+        abort_if($disponibles->isEmpty(), 422,
+            'La generación no tiene licenciaturas con RVOE y alumnos activos para este oficio.');
+
+        // Nunca confiar únicamente en los checkboxes del navegador.
+        if ($licenciaturaIds !== null) {
+            $ids = collect($licenciaturaIds)->map(fn ($id) => (int) $id)->unique()->sort()->values();
+            abort_if($ids->isEmpty(), 422, 'Selecciona al menos una licenciatura.');
+
+            $idsValidos = $disponibles->whereIn('id', $ids)->pluck('id')->sort()->values();
+            abort_unless($idsValidos->all() === $ids->all(), 422,
+                'La selección incluye licenciaturas sin alumnos activos, sin RVOE o ajenas a esta generación.');
+
+            $licenciaturas = $disponibles->whereIn('id', $ids)->values();
+            $identificador = '_LIC_' . $ids->implode('-');
+        } else {
+            $licenciaturas = $disponibles;
+            $identificador = '';
+        }
 
         $base = compact('generacion', 'escuela', 'rector', 'directora', 'fecha', 'jefe', 'subjefe', 'licenciaturas');
-        $gen = $this->nombreSeguro($generacion->generacion);
+        $gen = $this->nombreSeguro($generacion->generacion) . $identificador;
 
         return match ($documento) {
             'matriculas' => $this->definition(

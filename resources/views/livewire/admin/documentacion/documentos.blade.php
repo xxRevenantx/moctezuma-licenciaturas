@@ -590,51 +590,33 @@
 
                 <div x-show="openAccordion" x-transition
                     class="mt-1 rounded-2xl bg-white dark:bg-neutral-900 shadow-lg ring-1 ring-neutral-200/80 dark:ring-neutral-800 px-4 sm:px-5 py-4 sm:py-5">
-                    <p class="text-sm sm:text-base text-neutral-700 dark:text-neutral-200 mb-4">
-                        Para la expedición de oficios, selecciona la generación, el tipo de documento y la fecha de
-                        expedición.
-                    </p>
+                    <livewire:admin.documentacion.oficios-solicitud />
+                </div>
+            </div>
 
-                    <form action="{{ route('admin.pdf.documentacion.documento_oficios') }}" method="GET"
-                        target="_blank" class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <flux:select name="generacion" label="Selecciona la generación" class="w-full" required>
-                                <flux:select.option value="">Selecciona una generación</flux:select.option>
-
-                                @foreach ($generaciones as $generacion)
-                                    <flux:select.option value="{{ $generacion->id }}">
-                                        {{ $generacion->generacion }}
-                                    </flux:select.option>
-                                @endforeach
-                            </flux:select>
-
-                            <flux:select name="tipo_documento" label="Selecciona el tipo de documento" class="w-full"
-                                required>
-                                <flux:select.option value="">Selecciona un tipo de documento</flux:select.option>
-                                <flux:select.option value="matriculas">Matrículas</flux:select.option>
-                                <flux:select.option value="kardex">Kardex</flux:select.option>
-                                <flux:select.option value="registro-boletos">Registro y boletas</flux:select.option>
-                                <flux:select.option value="folios">Folios</flux:select.option>
-                                <flux:select.option value="certificados">Certificados</flux:select.option>
-                            </flux:select>
-
-                            <flux:input required label="Fecha de expedición" name="fecha_expedicion" id="fecha_of"
-                                type="date" placeholder="Selecciona una fecha" class="w-full" />
-
-                            <div class="flex flex-wrap gap-2 md:items-end">
-                                <button type="submit"
-                                    formaction="{{ route('admin.pdf.documentacion.documento_oficios') }}"
-                                    class="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700">
-                                    PDF
-                                </button>
-                                <button type="submit"
-                                    formaction="{{ route('admin.word.documentacion.documento_oficios') }}"
-                                    class="inline-flex items-center justify-center rounded-xl bg-[#006492] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#00547b]">
-                                    Word
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+            <!-- Expedición de Matrículas SEG PRO: Fases 1 y 2 -->
+            <div x-data="{
+                openAccordion: localStorage.getItem('doc_expedicion_matriculas') === 'true',
+                toggle() { this.openAccordion = !this.openAccordion; localStorage.setItem('doc_expedicion_matriculas', this.openAccordion); }
+            }">
+                <button type="button" @click="toggle()"
+                    class="w-full flex items-center justify-between rounded-2xl px-4 sm:px-5 py-3.5 bg-neutral-100/80 dark:bg-neutral-800/80 text-neutral-900 dark:text-neutral-50 ring-1 ring-neutral-200/80 dark:ring-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition group">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-lime-500/10 text-lime-700 dark:text-lime-300">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3h6l3 3v15H6V3h3zm1 6h4m-4 4h4m-4 4h4" />
+                            </svg>
+                        </span>
+                        <span class="text-sm sm:text-base font-semibold">Expedición de Matrículas</span>
+                        <span class="rounded-full bg-[#88AC2E]/15 text-[#688525] px-2 py-0.5 text-[10px] font-bold">PRO · Excel + Word</span>
+                    </div>
+                    <svg :class="{ 'rotate-180': openAccordion }" class="w-5 h-5 transition-transform text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="openAccordion" x-transition x-cloak
+                    class="mt-1 rounded-2xl bg-white dark:bg-neutral-900 shadow-lg ring-1 ring-neutral-200/80 dark:ring-neutral-800 px-4 sm:px-5 py-4 sm:py-5">
+                    <livewire:admin.documentacion.expedicion-matriculas />
                 </div>
             </div>
 

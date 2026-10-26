@@ -15,11 +15,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        // Fetch all users from the database
-        $users = User::all();
-
-        // Return the view with the users data
-        return view('admin.users.index', compact('users'));
+        // Los componentes Livewire cargan los usuarios paginados bajo autorización.
+        return view('admin.users.index');
     }
 
 

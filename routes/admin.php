@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\SeleccionarModalidadController;
 use App\Http\Controllers\Admin\SubmoduloController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WordController;
+use App\Http\Controllers\Admin\ExpedicionMatriculasController;
 use App\Http\Controllers\Admin\FotografiaEstudianteController;
 use App\Http\Controllers\CiudadController;
 use App\Http\Controllers\BoletaController;
@@ -74,6 +75,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/boletas', [DocumentacionController::class, 'boletas'])->middleware('can:admin.administracion')->name('admin.boletas');
     Route::post('/boletas/exportar', [BoletaController::class, 'exportar'])->middleware('can:admin.administracion')->name('admin.boletas.exportar');
     Route::get('/documentacion', [DocumentacionController::class, 'documentacion'])->middleware('can:admin.administracion')->name('admin.documentacion');
+    // Expedición de matrículas SEG (solo lectura y descargas durante las fases 1 y 2).
+    Route::post('/documentacion/expedicion-matriculas/descargar', [ExpedicionMatriculasController::class, 'descargar'])
+        ->middleware('can:admin.administracion')->name('admin.documentacion.expedicion-matriculas.descargar');
     Route::get('/reportes/generacion/pdf', [ReporteGeneracionController::class, 'pdf'])->middleware('can:admin.administracion')->name('admin.reportes.generacion.pdf');
     Route::get('/reportes/generacion/excel', [ReporteGeneracionController::class, 'excel'])->middleware('can:admin.administracion')->name('admin.reportes.generacion.excel');
     Route::get('/reportes/generacion/word', [ReporteGeneracionController::class, 'word'])->middleware('can:admin.administracion')->name('admin.reportes.generacion.word');

@@ -1,126 +1,57 @@
-<!-- modal-pro -->
-<div x-data="{ show: @entangle('open') }"
-     x-show="show"
-     x-cloak
-     @keydown.escape.window="show = false; $wire.cerrarModal()"
-     class="fixed inset-0 z-50 flex items-center justify-center">
-
-    <!-- Backdrop -->
-    <div x-show="show"
-         x-transition:enter="transition ease-out duration-150"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="absolute inset-0 bg-gray-900/50 dark:bg-black/50 backdrop-blur-sm">
-    </div>
-
-    <!-- Card -->
-    <div x-show="show"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
-         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-         class="relative w-full max-w-3xl mx-4 sm:mx-6">
-
-        <form wire:submit.prevent="actualizarProfesor"
-              class="relative overflow-hidden rounded-2xl ring-1 ring-gray-200 dark:ring-neutral-700 bg-white dark:bg-neutral-900 shadow-xl">
-
-            <div class="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500"></div>
-
-            <button type="button"
-                    @click="show = false; $wire.cerrarModal()"
-                    class="absolute top-3 right-3 inline-flex items-center justify-center rounded-full p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    aria-label="Cerrar">&times;</button>
-
-            <flux:field>
-                <div class="px-6 pt-6">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white text-center flex items-center justify-center gap-2">
-                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0Z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z"/>
-                            </svg>
-                        </span>
-                        Editar Profesor
-                        <flux:badge color="indigo" class="ml-1">
-                            {{ $nombre }} {{ $apellido_paterno }} {{ $apellido_materno }}
-                        </flux:badge>
-                    </h2>
-                </div>
-
-                <div class="px-6 pb-6 mt-4 space-y-6">
-                    <div class="rounded-xl border border-gray-200 dark:border-neutral-800 p-4 bg-gray-50/70 dark:bg-neutral-800/40">
-                        <flux:input wire:model.live="foto_nueva" :label="__('Foto del profesor')" type="file" accept="image/jpeg,image/jpg,image/png" />
-                        <div wire:loading wire:target="foto_nueva" class="mt-3 flex items-center justify-center gap-2 text-indigo-600 dark:text-indigo-400">
-                            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                            </svg>
-                            <span>Cargando imagen…</span>
-                        </div>
-
-                        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="rounded-lg p-3 ring-1 ring-gray-200 dark:ring-neutral-700 bg-white dark:bg-neutral-900">
-                                <p class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Imagen actual</p>
-                                @if ($foto)
-                                    <img src="{{ asset('storage/profesores/' . $foto) }}" alt="Foto del profesor" class="w-24 h-24 rounded-full object-cover mx-auto">
-                                @else
-                                    <p class="text-center text-gray-500 dark:text-gray-400 italic">Sin foto</p>
-                                @endif
-                            </div>
-                            <div class="rounded-lg p-3 ring-1 ring-gray-200 dark:ring-neutral-700 bg-white dark:bg-neutral-900">
-                                <p class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Nueva foto</p>
-                                @if ($foto_nueva)
-                                    <img src="{{ $foto_nueva->temporaryUrl() }}" alt="Nueva foto del profesor" class="w-24 h-24 rounded-full object-cover mx-auto">
-                                @else
-                                    <p class="text-center text-gray-500 dark:text-gray-400 italic">Aún no seleccionada</p>
-                                @endif
-                            </div>
-                        </div>
+<div>
+    <flux:modal name="editar-profesor" wire:model="open" variant="flyout" class="w-full md:max-w-xl">
+        <form wire:submit="actualizarProfesor" class="space-y-5">
+            <div class="space-y-1">
+                <flux:heading size="lg">Editar expediente docente</flux:heading>
+                <flux:text>{{ $nombre }} {{ $apellido_paterno }} {{ $apellido_materno }}</flux:text>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <flux:badge color="sky">Disponibilidad: {{ $estadoDocente }}</flux:badge>
+                <flux:badge color="{{ $estadoCuenta === 'Activa' ? 'green' : 'amber' }}">Acceso: {{ $estadoCuenta }}</flux:badge>
+            </div>
+            <flux:text class="text-xs">La edición no altera cuentas, roles, horarios, materias ni calificaciones.</flux:text>
+            <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+                <flux:input wire:model="foto_nueva" type="file" label="Cambiar fotografía (máx. 2 MB)" accept="image/jpeg,image/png" />
+                @error('foto_nueva')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                <div wire:loading wire:target="foto_nueva" class="mt-2 text-sm text-sky-600">Cargando fotografía…</div>
+                <div class="mt-3 flex gap-5">
+                    <div class="space-y-1 text-center">
+                        <p class="text-xs text-zinc-500">Actual</p>
+                        @if($foto)
+                            <img src="{{ asset('storage/profesores/' . basename($foto)) }}" alt="Foto actual" class="size-24 rounded-xl object-cover" />
+                        @else
+                            <div class="grid size-24 place-items-center rounded-xl bg-zinc-100 dark:bg-zinc-800"><flux:icon.user class="size-8 text-zinc-400" /></div>
+                        @endif
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <flux:input type="text" badge="Requerido" label="Nombre" placeholder="Nombre" wire:model.live="nombre" />
-                        <flux:input type="text" badge="Requerido" label="Apellido Paterno" placeholder="Apellido Paterno" wire:model="apellido_paterno" />
-                        <flux:input type="text" badge="Opcional" label="Apellido Materno" placeholder="Apellido Materno" wire:model="apellido_materno" />
-                        <flux:input type="text" badge="Opcional" label="Teléfono" placeholder="Teléfono" wire:model="telefono" />
-                        <flux:input type="text" badge="Opcional" label="Perfil" placeholder="Perfil" wire:model="perfil" />
-                        <flux:input type="color" badge="Opcional" label="Color" placeholder="Color" wire:model="color" />
+                    <div class="space-y-1 text-center">
+                        <p class="text-xs text-zinc-500">Nueva</p>
+                        @if($foto_nueva)
+                            <img src="{{ $foto_nueva->temporaryUrl() }}" alt="Foto nueva" class="size-24 rounded-xl object-cover" />
+                        @else
+                            <div class="grid size-24 place-items-center rounded-xl bg-zinc-100 text-xs text-zinc-400 dark:bg-zinc-800">Sin cambios</div>
+                        @endif
                     </div>
-
-                    <div class="flex flex-col sm:flex-row sm:justify-end gap-2 pt-2">
-                        <flux:button type="button" @click="show = false; $wire.cerrarModal()" class="cursor-pointer">
-                            Cancelar
-                        </flux:button>
-                        <flux:button variant="primary" type="submit"
-                                     class="cursor-pointer bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500"
-                                     wire:loading.attr="disabled"
-                                     wire:target="actualizarProfesor, foto_nueva">
-                            <div class="flex items-center gap-2">
-                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                {{ __('Actualizar') }}
-                            </div>
-                        </flux:button>
-                    </div>
-                </div>
-            </flux:field>
-
-            <div wire:loading.delay wire:target="actualizarProfesor"
-                 class="absolute inset-0 grid place-items-center bg-white/70 dark:bg-neutral-900/70 backdrop-blur-sm">
-                <div class="flex items-center gap-3 rounded-xl bg-white dark:bg-neutral-900 px-4 py-3 ring-1 ring-gray-200 dark:ring-neutral-800 shadow">
-                    <svg class="h-5 w-5 animate-spin text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                    </svg>
-                    <span class="text-sm text-gray-800 dark:text-gray-200">Guardando cambios…</span>
                 </div>
             </div>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <flux:input wire:model="nombre" label="Nombre(s)" badge="Obligatorio" maxlength="255" />
+                <flux:input wire:model="apellido_paterno" label="Apellido paterno" badge="Obligatorio" maxlength="255" />
+                <flux:input wire:model="apellido_materno" label="Apellido materno" maxlength="255" />
+                <flux:input wire:model="telefono" label="Teléfono" maxlength="10" placeholder="10 dígitos" />
+                <div class="sm:col-span-2"><flux:input wire:model="perfil" label="Perfil académico" maxlength="255" /></div>
+                <div class="sm:col-span-2">
+                    <flux:label>Color docente (horarios)</flux:label>
+                    <div class="mt-2 flex items-center gap-3 rounded-lg border border-zinc-200 p-2 dark:border-zinc-700">
+                        <input type="color" wire:model="color" class="h-9 w-12 cursor-pointer" aria-label="Color de horarios" />
+                        <span class="text-sm text-zinc-500">{{ $color }}</span>
+                    </div>
+                    @error('color')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+                <flux:button type="button" variant="ghost" wire:click="cerrarModal">Cancelar</flux:button>
+                <flux:button type="submit" variant="primary" icon="check" wire:loading.attr="disabled" wire:target="actualizarProfesor,foto_nueva" class="!bg-sky-700 hover:!bg-sky-800">Guardar cambios</flux:button>
+            </div>
         </form>
-    </div>
+    </flux:modal>
 </div>

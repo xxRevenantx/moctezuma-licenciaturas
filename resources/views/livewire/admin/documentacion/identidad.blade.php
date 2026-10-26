@@ -1,17 +1,19 @@
-<div x-data="{ buscadorAbierto: false }" class="space-y-6">
-    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <div class="h-1.5 bg-gradient-to-r from-[#006492] to-[#88AC2E]"></div>
-        <div class="p-5 sm:p-6">
-            <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#006492]/10 text-[#006492] dark:bg-[#006492]/20 dark:text-sky-300">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 9h3.75A2.25 2.25 0 0121 11.25v7.5A2.25 2.25 0 0118.75 21H5.25A2.25 2.25 0 013 18.75v-7.5A2.25 2.25 0 015.25 9H9m6 0V5.25A3.375 3.375 0 0011.25 2.25h0A3.375 3.375 0 009 5.625V9m6 0H9m3 3.75v4.5m-2.25-2.25h4.5"/></svg>
-                        </span>
-                        <div>
-                            <h1 class="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">Expediente de identidad</h1>
-                            <p class="mt-1 text-sm text-slate-600 dark:text-neutral-400">Carga segura, validación de PDF, conversión automática de imágenes e historial de versiones.</p>
+<div x-data="{ buscadorAbierto: false }" class="space-y-4">
+    <section class="overflow-visible rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        <div class="h-1.5 rounded-t-2xl bg-gradient-to-r from-[#006492] via-[#159bb6] to-[#88AC2E]"></div>
+        <div class="p-4 sm:p-6">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div class="flex min-w-0 items-start gap-3">
+                    <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#006492]/10 text-[#006492] dark:bg-sky-950/50 dark:text-sky-300">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M4.5 6.75V5.25A2.25 2.25 0 016.75 3h6.879c.597 0 1.17.237 1.591.659L19.5 7.94v10.81A2.25 2.25 0 0117.25 21H6.75a2.25 2.25 0 01-2.25-2.25V6.75zm3.75 5.25h7.5m-7.5 3.75h7.5"/></svg>
+                    </span>
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="rounded-full bg-[#88AC2E]/15 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-[#638324] dark:text-lime-300">CONTROL ESCOLAR · PRO</span>
+                            <span class="text-xs text-slate-400">Documentación institucional</span>
                         </div>
+                        <h2 class="mt-1 text-xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-2xl">Expediente de identidad</h2>
+                        <p class="mt-1 max-w-2xl text-sm text-slate-600 dark:text-neutral-400">Consulta y organiza la documentación oficial del estudiante, con control de versiones y exportación segura.</p>
                     </div>
                 </div>
 
@@ -58,95 +60,82 @@
                 </div>
             </div>
 
-            <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div class="mt-5 flex flex-wrap gap-2 border-b border-slate-100 pb-4 text-xs dark:border-neutral-800">
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-700 dark:bg-neutral-800 dark:text-neutral-200"><span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#006492] text-[10px] text-white">1</span> Filtrar</span>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-700 dark:bg-neutral-800 dark:text-neutral-200"><span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#006492] text-[10px] text-white">2</span> Seleccionar alumno</span>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-700 dark:bg-neutral-800 dark:text-neutral-200"><span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#006492] text-[10px] text-white">3</span> Validar documentos</span>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-700 dark:bg-neutral-800 dark:text-neutral-200"><span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#88AC2E] text-[10px] text-white">4</span> Exportar</span>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
                 <flux:select label="Licenciatura" wire:model.live="selectedLicenciatura" class="w-full">
                     <option value="">Todas las licenciaturas</option>
                     @foreach ($licenciaturas as $licenciatura)
                         <option value="{{ $licenciatura['id'] }}">{{ $licenciatura['nombre'] }}</option>
                     @endforeach
                 </flux:select>
-
                 <flux:select label="Generación" wire:model.live="selectedGeneracion" class="w-full">
                     <option value="">Todas las generaciones</option>
                     @foreach ($generaciones as $generacion)
                         <option value="{{ $generacion['id'] }}">{{ $generacion['generacion'] }}</option>
                     @endforeach
                 </flux:select>
-
                 <flux:select label="Estado del alumno" wire:model.live="estado" class="w-full">
                     <option value="activos">Activos</option>
                     <option value="egresados">Egresados</option>
                     <option value="bajas">Bajas</option>
-                    <option value="todos">Todos</option>
+                    <option value="todos">Todos los estados</option>
                 </flux:select>
             </div>
-        </div>
-    </section>
 
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-6">
-        <div class="relative max-w-4xl">
-            <flux:input
-                id="buscar-alumno-identidad"
-                label="Buscar alumno"
-                wire:model.live.debounce.400ms="query"
-                type="search"
-                placeholder="Nombre, apellidos, matrícula, folio o CURP…"
-                autocomplete="off"
-                @focus="buscadorAbierto = true"
-                @input="buscadorAbierto = true"
-                @blur="setTimeout(() => buscadorAbierto = false, 180)"
-                wire:keydown.arrow-down="selectIndexDown"
-                wire:keydown.arrow-up="selectIndexUp"
-                wire:keydown.enter.prevent="selectAlumno({{ $selectedIndex }})"
-            />
-
-            @if ($query !== '' && mb_strlen(trim($query)) < 2)
-                <p class="mt-2 text-xs text-slate-500 dark:text-neutral-400">Escribe al menos dos caracteres.</p>
-            @endif
-
-            @if ($alumnos !== [])
-                <ul
-                    x-cloak
-                    x-show="buscadorAbierto"
-                    x-transition
-                    role="listbox"
-                    class="absolute z-30 mt-2 max-h-80 w-full overflow-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
-                >
-                    @foreach ($alumnos as $index => $alumno)
-                        <li
-                            role="option"
-                            wire:click="selectAlumno({{ $index }})"
-                            @mouseenter="buscadorAbierto = true"
-                            class="cursor-pointer rounded-xl p-3 transition {{ $selectedIndex === $index ? 'bg-[#006492]/10 ring-1 ring-[#006492]/20' : 'hover:bg-slate-50 dark:hover:bg-neutral-800' }}"
-                        >
-                            <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <p class="font-semibold text-slate-900 dark:text-white">
-                                        {{ $alumno['apellido_paterno'] ?? '' }} {{ $alumno['apellido_materno'] ?? '' }} {{ $alumno['nombre'] ?? '' }}
-                                    </p>
-                                    <p class="text-xs text-slate-500 dark:text-neutral-400">
-                                        {{ $alumno['licenciatura']['nombre'] ?? 'Sin licenciatura' }} · {{ $alumno['generacion']['generacion'] ?? 'Sin generación' }}
-                                    </p>
-                                </div>
-                                <div class="text-xs text-slate-600 dark:text-neutral-300 sm:text-right">
-                                    <div class="font-mono">{{ $alumno['matricula'] ?? 'Sin matrícula' }}</div>
-                                    <div class="font-mono">{{ $alumno['CURP'] ?? 'Sin CURP' }}</div>
-                                </div>
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
-            @elseif (mb_strlen(trim($query)) >= 2 && ! $selectedAlumno)
-                <div class="mt-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-neutral-700 dark:bg-neutral-800/50 dark:text-neutral-300">
-                    No se encontraron alumnos con los filtros actuales.
+            <div class="relative mt-4 rounded-xl border border-[#006492]/20 bg-[#006492]/[0.035] p-3 dark:border-sky-900/50 dark:bg-sky-950/10 sm:p-4">
+                <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <label for="buscar-alumno-identidad" class="text-sm font-bold text-slate-800 dark:text-white">Localizar expediente estudiantil</label>
+                    @if ($selectedAlumno)
+                        <button type="button" wire:click="limpiarAlumno" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-[#006492] hover:bg-sky-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-sky-300">Cambiar alumno</button>
+                    @else
+                        <span class="text-xs text-slate-500 dark:text-neutral-400">Hasta 12 coincidencias · usa ↑ ↓ y Enter</span>
+                    @endif
                 </div>
-            @endif
-        </div>
-
-        <div wire:loading.delay wire:target="query,selectAlumno,selectedLicenciatura,selectedGeneracion,estado" class="mt-4">
-            <div class="flex items-center gap-2 rounded-xl bg-sky-50 px-4 py-3 text-sm font-medium text-sky-800 dark:bg-sky-950/30 dark:text-sky-200">
-                <svg class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-                Consultando expediente…
+                <div class="max-w-5xl">
+                    <flux:input
+                        id="buscar-alumno-identidad"
+                        wire:model.live.debounce.400ms="query"
+                        type="search"
+                        icon="magnifying-glass"
+                        placeholder="Nombre, apellidos, matrícula, folio o CURP…"
+                        autocomplete="off"
+                        @focus="buscadorAbierto = true"
+                        @input="buscadorAbierto = true"
+                        @blur="setTimeout(() => buscadorAbierto = false, 180)"
+                        wire:keydown.arrow-down="selectIndexDown"
+                        wire:keydown.arrow-up="selectIndexUp"
+                        wire:keydown.enter.prevent="selectAlumno({{ $selectedIndex }})"
+                    />
+                </div>
+                @if ($query !== '' && mb_strlen(trim($query)) < 2)
+                    <p class="mt-2 text-xs text-slate-500">Escribe al menos dos caracteres para iniciar la búsqueda.</p>
+                @endif
+                @if ($alumnos !== [])
+                    <ul x-cloak x-show="buscadorAbierto" x-transition role="listbox" aria-label="Resultados de alumnos"
+                        class="absolute left-3 right-3 top-full z-40 mt-2 max-h-80 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xl dark:border-neutral-700 dark:bg-neutral-900 sm:left-4 sm:right-4">
+                        @foreach ($alumnos as $index => $alumno)
+                            <li role="option" wire:key="identidad-opcion-{{ $alumno['id'] }}" aria-selected="{{ $selectedIndex === $index ? 'true' : 'false' }}"
+                                class="rounded-lg transition {{ $selectedIndex === $index ? 'bg-sky-50 ring-1 ring-sky-200 dark:bg-sky-950/40' : 'hover:bg-slate-50 dark:hover:bg-neutral-800' }}">
+                                <button type="button" wire:click="seleccionarAlumnoPorId({{ (int) $alumno['id'] }})" class="flex w-full flex-col gap-1 p-3 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-semibold text-slate-900 dark:text-white">{{ $alumno['apellido_paterno'] ?? '' }} {{ $alumno['apellido_materno'] ?? '' }} {{ $alumno['nombre'] ?? '' }}</span>
+                                        <span class="block text-xs text-slate-500 dark:text-neutral-400">{{ $alumno['licenciatura']['nombre'] ?? 'Sin licenciatura' }} · Gen. {{ $alumno['generacion']['generacion'] ?? '—' }}</span>
+                                    </span>
+                                    <span class="shrink-0 text-xs text-slate-600 dark:text-neutral-300 sm:text-right"><span class="block font-mono">{{ $alumno['matricula'] ?: 'Sin matrícula' }}</span><span class="block font-mono">{{ $alumno['CURP'] ?: 'Sin CURP' }}</span></span>
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
+                @elseif (mb_strlen(trim($query)) >= 2 && ! $selectedAlumno)
+                    <p class="mt-3 text-sm font-medium text-amber-700 dark:text-amber-300">No hay coincidencias con los filtros actuales. Prueba otra búsqueda o cambia los filtros.</p>
+                @endif
+                <div wire:loading.delay wire:target="query,seleccionarAlumnoPorId,selectedLicenciatura,selectedGeneracion,estado" class="mt-3 text-xs font-semibold text-[#006492] dark:text-sky-300">Buscando y comprobando expediente…</div>
             </div>
         </div>
     </section>
@@ -232,43 +221,78 @@
                         <p class="font-semibold">Hay una organización de páginas pendiente de confirmar.</p>
                         <p class="mt-0.5 text-xs">{{ $paginasSinClasificar }} página(s) están sin clasificar. Las descargas siguen usando la última versión confirmada.</p>
                     </div>
-                    <button type="button" wire:click="abrirOrganizadorGeneral" class="shrink-0 rounded-xl bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-amber-700">Revisar páginas</button>
+                    @canany(['documentos-identidad.subir', 'documentos-identidad.reemplazar'])
+                        <button type="button" wire:click="abrirOrganizadorGeneral" class="shrink-0 rounded-xl bg-amber-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-amber-700">Revisar páginas</button>
+                    @endcanany
                 </div>
             @endif
 
-            <div class="mt-6 grid gap-4 lg:grid-cols-[1fr_320px]">
-                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/50">
-                    <div class="flex items-center justify-between gap-4">
-                        <div>
-                            <p class="text-sm font-semibold text-slate-900 dark:text-white">Avance documental</p>
-                            <p class="text-xs text-slate-500 dark:text-neutral-400">{{ $documentosEntregados }} de {{ $documentosTotales }} documentos · {{ $obligatoriosEntregados }} de {{ $obligatoriosTotales }} obligatorios</p>
-                        </div>
-                        <span class="text-2xl font-bold text-[#006492] dark:text-sky-300">{{ $porcentaje }}%</span>
-                    </div>
-                    <div class="mt-3 h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-neutral-700">
-                        <div class="h-full rounded-full bg-gradient-to-r from-[#006492] to-[#88AC2E] transition-all duration-500" style="width: {{ $porcentaje }}%"></div>
-                    </div>
+            <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-4 dark:border-neutral-700 dark:bg-neutral-800/60">
+                    <p class="text-xs font-semibold text-slate-500 dark:text-neutral-400">Documentos registrados</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{{ $documentosEntregados }} <span class="text-base font-normal text-slate-400">/ {{ $documentosTotales }}</span></p>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-neutral-400">{{ $porcentaje }}% de cobertura total</p>
                 </div>
-
-                <div class="rounded-2xl border border-slate-200 p-4 dark:border-neutral-700">
-                    <p class="text-sm font-semibold text-slate-900 dark:text-white">Pendientes</p>
-                    @if ($pendientes === [])
-                        <p class="mt-2 text-sm text-emerald-700 dark:text-emerald-300">Expediente documental completo.</p>
-                    @else
-                        <p class="mt-2 text-sm text-slate-600 dark:text-neutral-300">{{ implode(', ', $pendientes) }}.</p>
-                    @endif
+                <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+                    <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Documentos obligatorios</p>
+                    <p class="mt-1 text-2xl font-bold text-emerald-800 dark:text-emerald-200">{{ $obligatoriosEntregados }} <span class="text-base font-normal text-emerald-600/70">/ {{ $obligatoriosTotales }}</span></p>
+                    <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-950"><div class="h-full rounded-full bg-[#88AC2E]" style="width: {{ $porcentajeObligatorios }}%"></div></div>
                 </div>
+                <div class="rounded-xl border border-amber-200 bg-amber-50/70 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+                    <p class="text-xs font-semibold text-amber-700 dark:text-amber-300">Pendientes</p>
+                    <p class="mt-1 text-2xl font-bold text-amber-800 dark:text-amber-200">{{ $documentosTotales - $documentosEntregados }}</p>
+                    <p class="mt-1 text-xs text-amber-800/80 dark:text-amber-300">{{ $obligatoriosTotales - $obligatoriosEntregados }} obligatorio(s) por entregar</p>
+                </div>
+                <div class="rounded-xl border border-sky-200 bg-sky-50/80 p-4 dark:border-sky-900/60 dark:bg-sky-950/20">
+                    <p class="text-xs font-semibold text-[#006492] dark:text-sky-300">Archivos fuente</p>
+                    <p class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{{ $fuentesDocumentales }}</p>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-neutral-400">{{ $paginasSinClasificar }} páginas por clasificar</p>
+                </div>
+            </div>
+            <div class="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-900">
+                <p class="mr-auto text-sm font-semibold text-slate-800 dark:text-neutral-200">Lista de comprobación</p>
+                @if ($obligatoriosEntregados === $obligatoriosTotales)
+                    <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">Obligatorios completos</span>
+                @else
+                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">Faltan {{ $obligatoriosTotales - $obligatoriosEntregados }} obligatorios</span>
+                @endif
+            </div>
+            <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                @foreach ($documentosResumen as $tipo => $documento)
+                    <div wire:key="resumen-{{ $selectedAlumno['id'] }}-{{ $tipo }}" class="flex min-w-0 items-center gap-2.5 rounded-xl border px-3 py-2.5 {{ $documento['entregado'] ? 'border-emerald-200 bg-emerald-50/30 dark:border-emerald-900/50 dark:bg-emerald-950/10' : 'border-amber-200 bg-amber-50/30 dark:border-amber-900/50 dark:bg-amber-950/10' }}">
+                        <span aria-hidden="true" class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold {{ $documento['entregado'] ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' }}">{{ $documento['entregado'] ? '✓' : '!' }}</span>
+                        <span class="min-w-0"><span class="block truncate text-xs font-semibold text-slate-800 dark:text-neutral-100">{{ $documento['label'] }}</span><span class="block text-[11px] text-slate-500 dark:text-neutral-400">{{ $documento['obligatorio'] ? 'Obligatorio' : 'Opcional' }} · {{ $documento['entregado'] ? 'Entregado' : 'Pendiente' }}</span></span>
+                    </div>
+                @endforeach
             </div>
         </section>
 
-        <section class="grid grid-cols-1 gap-5 xl:grid-cols-2">
-            @foreach (config('documentos_identidad.types') as $tipo => $config)
-                <livewire:admin.documentacion.carga-documentos
-                    :inscripcion-id="$selectedAlumno['id']"
-                    :tipo="$tipo"
-                    :key="$selectedAlumno['id'].'_'.$tipo"
-                />
-            @endforeach
+        <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-5">
+            <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Gestor de documentos</h3>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-neutral-400">Cada tarjeta permite cargar, consultar, reorganizar y revisar versiones anteriores del documento.</p>
+                </div>
+                <div class="inline-flex w-fit rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-neutral-700 dark:bg-neutral-800">
+                    <button type="button" wire:click="cambiarVistaDocumentos(false)" @class(['rounded-lg px-3 py-2 text-xs font-bold transition', 'bg-white text-[#006492] shadow-sm dark:bg-neutral-700 dark:text-sky-300' => ! $mostrarSoloPendientes, 'text-slate-500 hover:text-slate-700 dark:text-neutral-300' => $mostrarSoloPendientes])>Todos ({{ $documentosTotales }})</button>
+                    <button type="button" wire:click="cambiarVistaDocumentos(true)" @class(['rounded-lg px-3 py-2 text-xs font-bold transition', 'bg-white text-[#006492] shadow-sm dark:bg-neutral-700 dark:text-sky-300' => $mostrarSoloPendientes, 'text-slate-500 hover:text-slate-700 dark:text-neutral-300' => ! $mostrarSoloPendientes])>Pendientes ({{ $documentosTotales - $documentosEntregados }})</button>
+                </div>
+            </div>
+            @if ($mostrarSoloPendientes && $documentosEntregados === $documentosTotales)
+                <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center text-sm text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-300">Todos los documentos están registrados. Puedes cambiar a “Todos” para consultar los archivos e historiales.</div>
+            @else
+                <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                    @foreach (config('documentos_identidad.types') as $tipo => $config)
+                        @if (! $mostrarSoloPendientes || ! ($documentosResumen[$tipo]['entregado'] ?? false))
+                            <livewire:admin.documentacion.carga-documentos
+                                :inscripcion-id="$selectedAlumno['id']"
+                                :tipo="$tipo"
+                                :key="$selectedAlumno['id'].'_'.$tipo"
+                            />
+                        @endif
+                    @endforeach
+                </div>
+            @endif
         </section>
 
         <livewire:admin.documentacion.organizador-paginas-identidad
@@ -276,12 +300,20 @@
             :key="'organizador_identidad_'.$selectedAlumno['id']"
         />
     @else
-        <section class="rounded-2xl border border-dashed border-[#006492]/40 bg-[#006492]/5 p-8 text-center dark:border-sky-700/50 dark:bg-sky-950/20">
-            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#006492] shadow-sm dark:bg-neutral-900 dark:text-sky-300">
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.75 15.75l-2.489-2.489m0 0a5.25 5.25 0 10-7.424-7.424 5.25 5.25 0 007.424 7.424zM21 21l-5.197-5.197"/></svg>
+        <section class="rounded-2xl border border-dashed border-sky-200 bg-white p-5 shadow-sm dark:border-sky-900/50 dark:bg-neutral-900 sm:p-8">
+            <div class="flex flex-col items-center gap-4 text-center md:flex-row md:items-center md:text-left">
+                <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#006492]/10 text-[#006492] dark:text-sky-300">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M10.5 6H6.75A2.25 2.25 0 004.5 8.25v10.5A2.25 2.25 0 006.75 21h10.5a2.25 2.25 0 002.25-2.25V12M10.5 6l4.5-4.5 4.5 4.5M15 1.5v12"/></svg>
+                </span>
+                <div class="flex-1">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Comienza seleccionando un estudiante</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-slate-600 dark:text-neutral-400">Filtra por licenciatura, generación y estado; después busca por nombre, matrícula o CURP. El expediente mostrará documentos entregados, faltantes y su historial.</p>
+                </div>
+                <div class="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs dark:border-neutral-800 dark:bg-neutral-800">
+                    <p class="font-bold text-slate-700 dark:text-neutral-200">{{ count(config('documentos_identidad.types', [])) }} tipos documentales</p>
+                    <p class="mt-1 text-slate-500 dark:text-neutral-400">{{ collect(config('documentos_identidad.types', []))->where('required', true)->count() }} obligatorios · {{ collect(config('documentos_identidad.types', []))->where('required', false)->count() }} opcionales</p>
+                </div>
             </div>
-            <h3 class="mt-4 font-semibold text-slate-900 dark:text-white">Selecciona un alumno</h3>
-            <p class="mt-1 text-sm text-slate-600 dark:text-neutral-400">Los filtros se aplican también al buscador para evitar cargar documentación en una licenciatura o generación incorrecta.</p>
         </section>
     @endif
 

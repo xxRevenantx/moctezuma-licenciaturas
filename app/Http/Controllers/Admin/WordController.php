@@ -9,6 +9,7 @@ use App\Models\Generacion;
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
 use App\Services\Documentacion\DocumentacionExportService;
+use App\Services\Documentacion\KardexWordService;
 use App\Services\EstadisticaLicenciaturasService;
 use App\Support\Pdf\RegistroEscolaridadHeader;
 use Carbon\Carbon;
@@ -828,8 +829,8 @@ class WordController extends Controller
     {
         $phpWord = $this->nuevoDocumento();
         foreach ($definitions as $definition) {
-            $section = $this->agregarSeccion($phpWord, $definition['paper'] ?? 'letter', $definition['orientation'] ?? 'portrait');
-            $this->agregarVistaEditable($section, $definition);
+            $section = $this->agregarSeccion($phpWord, $definition['paper'] ?? 'letter', $definition['orientation'] ?? 'portrait', $this->esKardex($definition) ? 0.34 : 0.55);
+            $this->agregarDocumentoWord($section, $definition);
         }
 
         return $this->descargar($phpWord, $filename);
@@ -845,13 +846,29 @@ class WordController extends Controller
 
         foreach ($definitions as $definition) {
             $phpWord = $this->nuevoDocumento();
-            $section = $this->agregarSeccion($phpWord, $definition['paper'] ?? 'letter', $definition['orientation'] ?? 'portrait');
-            $this->agregarVistaEditable($section, $definition);
+            $section = $this->agregarSeccion($phpWord, $definition['paper'] ?? 'letter', $definition['orientation'] ?? 'portrait', $this->esKardex($definition) ? 0.34 : 0.55);
+            $this->agregarDocumentoWord($section, $definition);
             $zip->addFromString($definition['filenameBase'] . '.docx', $this->bytes($phpWord));
         }
         $zip->close();
 
         return response()->download($zipPath, $filename, ['Content-Type' => 'application/zip'])->deleteFileAfterSend(true);
+    }
+
+    /** Solo el Kardex usa maquetación con tablas nativas; PDF y demás rutas se mantienen. */
+    private function esKardex(array $definition): bool
+    {
+        return ($definition['view'] ?? '') === 'livewire.admin.licenciaturas.submodulo.pdf.kardexPDF';
+    }
+
+    private function agregarDocumentoWord($section, array $definition): void
+    {
+        if ($this->esKardex($definition)) {
+            app(KardexWordService::class)->agregar($section, $definition['data']);
+            return;
+        }
+
+        $this->agregarVistaEditable($section, $definition);
     }
 
     private function agregarVistaEditable($section, array $definition): void

@@ -36,7 +36,12 @@ return [
     ],
 
     'curp_api' => [
-    'key' => env('CURP_API_KEY'),
-],
+        // CURP_API_TOKEN es la variable usada por la integración actual.
+        // CURP_API_KEY se conserva para instalaciones anteriores.
+        'key' => env('CURP_API_TOKEN') ?: env('CURP_API_KEY'),
+        'url' => env('CURP_API_URL', 'https://api.valida-curp.com.mx/curp/obtener_datos/'),
+        'timeout' => (int) env('CURP_API_TIMEOUT', 15),
+        'connect_timeout' => (int) env('CURP_API_CONNECT_TIMEOUT', 5),
+    ],
 
 ];

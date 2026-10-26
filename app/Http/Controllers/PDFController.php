@@ -1431,68 +1431,56 @@ class PDFController extends Controller
         return $pdf->stream("LISTA_EVALUACION_" . $nombreLista . ".pdf");
     }
 
-    // CREDENCIAL DEL PROFESOR
+    // CREDENCIALES DOCENTES PRO. Mantener endpoints y vistas PDF históricas.
+    // Validar SIEMPRE los IDs en el servidor, aunque la interfaz Livewire ya haya validado.
+    private function profesoresParaCredencial(Request $request)
+    {
+        $datos = $request->validate([
+            'profesores_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'profesores_ids.*' => ['required', 'integer', 'distinct', 'exists:profesores,id'],
+        ]);
+
+        $ids = array_map('intval', $datos['profesores_ids']);
+
+        return Profesor::query()
+            ->with('user')
+            ->whereIn('id', $ids)
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->orderBy('nombre')
+            ->get();
+    }
 
     public function credencial_profesor(Request $request)
     {
-        // Obtén los IDs como un array desde el input "profesores_ids[]"
-        $profesoresIds = $request->input('profesores_ids', []);
+        $profesores = $this->profesoresParaCredencial($request);
+        $ciclo_escolar = Dashboard::query()->latest('id')->first();
 
-
-        // Verifica si llegaron datos
-        if (empty($profesoresIds)) {
-            return redirect()->back()->with('error', 'No se seleccionaron profesores.');
-        }
-
-        // Obtiene los datos de los profesores
-        $profesores = Profesor::whereIn('id', $profesoresIds)->with('user')->get();
-
-        // CICLO ESCOLAR
-        $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
-
-
-
-        // Puedes ver los datos si estás probando
-        // dd($alumnos);
-
-        // Genera el PDF
-        $data = [
-            'profesores' => $profesores,
-            'ciclo_escolar' => $ciclo_escolar
-        ];
-
-        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialProfesorPDF', $data)
-            ->setPaper('letter', 'portrait');
-
-        return $pdf->stream("CREDENCIAL(S).pdf");
-    }
-
-    // CREDENCIAL DEL PROFESOR ESTUDIANTE
-    public function credencial_profesor_estudiante(Request $request)
-    {
-        // Obtén los IDs como un array desde el input "profesores_ids[]"
-        $profesoresIds = $request->input('profesores_ids', []);
-        // Verifica si llegaron datos
-        if (empty($profesoresIds)) {
-            return redirect()->back()->with('error', 'No se seleccionaron profesores.');
-        }
-        // Obtiene los datos de los profesores
-        $profesores = Profesor::whereIn('id', $profesoresIds)->with('user')->get();
-        // CICLO ESCOLAR
-        $ciclo_escolar = Dashboard::orderBy('id', 'desc')->first();
-        // Puedes ver los datos si estás probando
-        // dd($alumnos);
-
-        $licenciatura = Licenciatura::where('id', $request->input('licenciatura_id'))->first();
-        // Genera el PDF
-        $data = [
+        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialProfesorPDF', [
             'profesores' => $profesores,
             'ciclo_escolar' => $ciclo_escolar,
-            'licenciatura' => $licenciatura
-        ];
-        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialProfesorEstudiantePDF', $data)
-            ->setPaper('letter', 'portrait');
-        return $pdf->stream("CREDENCIAL(S).pdf");
+        ])->setPaper('letter', 'portrait');
+
+        return $pdf->stream('CREDENCIALES_PROFESORES.pdf');
+    }
+
+    public function credencial_profesor_estudiante(Request $request)
+    {
+        $request->validate([
+            'licenciatura_id' => ['required', 'integer', 'exists:licenciaturas,id'],
+        ]);
+
+        $profesores = $this->profesoresParaCredencial($request);
+        $licenciatura = Licenciatura::query()->findOrFail($request->integer('licenciatura_id'));
+        $ciclo_escolar = Dashboard::query()->latest('id')->first();
+
+        $pdf = Pdf::loadView('livewire.admin.licenciaturas.submodulo.pdf.credencialProfesorEstudiantePDF', [
+            'profesores' => $profesores,
+            'ciclo_escolar' => $ciclo_escolar,
+            'licenciatura' => $licenciatura,
+        ])->setPaper('letter', 'portrait');
+
+        return $pdf->stream('CREDENCIALES_PROFESORES_ESTUDIANTES.pdf');
     }
 
     // CALIFICACION DEL ALUMNO
