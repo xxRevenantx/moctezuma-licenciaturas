@@ -156,6 +156,10 @@ class ExpedienteIdentidadExportService
         $reporte = [];
         $alumnosIncompletos = 0;
         $documentosFaltantes = 0;
+        // Se reutilizan los PDF individuales ya generados. Los grupos permiten
+        // producir un PDF por alumno y otro general por licenciatura, sin
+        // modificar el arbol de expedientes ni sus archivos de faltantes.
+        $gruposImpresion = [];
 
         try {
             foreach ($alumnos as $indice => $alumno) {
@@ -173,8 +177,30 @@ class ExpedienteIdentidadExportService
                 $rutaPdfTemporal = $directorioTrabajo . DIRECTORY_SEPARATOR . 'alumno-' . $alumno->id . '.pdf';
                 $resultadoPdf = $this->generarPdfAlumnoEnRuta($alumno, $rutaPdfTemporal, $directorioTrabajo);
 
-                if ($resultadoPdf['paginas'] > 0 && File::exists($rutaPdfTemporal)) {
-                    $zip->addFile($rutaPdfTemporal, $rutaAlumnoZip . '/' . $this->nombrePdfAlumno($alumno));
+                $tienePdfOriginal = $resultadoPdf['paginas'] > 0 && File::exists($rutaPdfTemporal);
+                if ($tienePdfOriginal) {
+                    // Se respeta exactamente la ubicacion original del PDF.
+                    if (! $zip->addFile($rutaPdfTemporal, $rutaAlumnoZip . '/' . $this->nombrePdfAlumno($alumno))) {
+                        throw new RuntimeException("No se pudo archivar el expediente de {$alumno->id}.");
+                    }
+                }
+
+                if ($descarga->tipo !== 'alumno') {
+                    // Un alumno sin documentos debe seguir apareciendo en la
+                    // impresion y en la lista: se incluye una hoja informativa,
+                    // sin simular que se entrego documentacion inexistente.
+                    if (! $tienePdfOriginal) {
+                        $rutaPdfTemporal = $directorioTrabajo . DIRECTORY_SEPARATOR
+                            . 'sin-documentos-' . $alumno->id . '.pdf';
+                        $this->generarHojaSinDocumentos($alumno, $rutaPdfTemporal);
+                    }
+
+                    $grupo = $this->carpetaPdfImprimibles($alumno, $descarga->tipo);
+                    $gruposImpresion[$grupo][] = [
+                        'alumno' => $alumno,
+                        'ruta' => $rutaPdfTemporal,
+                        'paginas' => $tienePdfOriginal ? $resultadoPdf['paginas'] : 1,
+                    ];
                 }
 
                 $faltantes = array_values(array_unique(array_merge(
@@ -203,6 +229,11 @@ class ExpedienteIdentidadExportService
                     ])->save();
                 }
             }
+
+            // Cada carrera incluye sus PDFs individuales, numerados segun el
+            // listado alfabetico, y UN solo PDF continuo para imprimir.
+            // Se realiza al final, mientras los PDF temporales aun existen.
+            $this->agregarPdfsImprimibles($zip, $gruposImpresion, $directorioTrabajo);
 
             $rutaReporte = $directorioTrabajo . DIRECTORY_SEPARATOR . 'REPORTE_DE_EXPEDIENTES.xlsx';
             $this->generarReporteExcel($reporte, $rutaReporte);
@@ -237,6 +268,152 @@ class ExpedienteIdentidadExportService
         ])->save();
 
         return $descarga->refresh();
+    }
+
+    /**
+     * Carpeta que contiene los PDFs listos para imprimir de una licenciatura.
+     * Nunca se alteran las carpetas preexistentes de cada alumno.
+     */
+    protected function carpetaPdfImprimibles(Inscripcion $alumno, string $tipo): string
+    {
+        $carpetaPadre = $this->carpetaPadre($alumno, $tipo);
+
+        if ($tipo === 'licenciatura') {
+            // Si se exportan varias generaciones, el consolidado de la carrera
+            // contiene a todos sus estudiantes, no uno por cada generacion.
+            return explode('/', $carpetaPadre, 2)[0];
+        }
+
+        return $carpetaPadre;
+    }
+
+    /**
+     * Archivos adicionales dentro de cada carpeta de licenciatura:
+     * - 001_APELLIDO_APELLIDO_NOMBRE_GEN_XXXX.pdf (uno por alumno, con paginas).
+     * - 00_TODOS_LOS_EXPEDIENTES_PARA_IMPRIMIR.pdf (todos en el mismo orden).
+     * Si no hay documentos exportables se agrega una hoja identificadora,
+     * mientras que DOCUMENTOS_FALTANTES.txt sigue en la carpeta original.
+     *
+     * @param array<string, array<int, array{alumno: Inscripcion, ruta: string, paginas: int}>> $grupos
+     */
+    protected function agregarPdfsImprimibles(ZipArchive $zip, array $grupos, string $directorioTrabajo): void
+    {
+        uksort($grupos, 'strnatcasecmp');
+
+        foreach ($grupos as $carpetaLicenciatura => $entradas) {
+            // La consulta ordena por apellido paterno, materno, nombre e ID.
+            // El orden permanece estable aunque los estudiantes pertenezcan
+            // a generaciones distintas dentro de la misma licenciatura.
+            $rutasEnOrden = [];
+
+            foreach ($entradas as $index => $entrada) {
+                $numero = str_pad((string) ($index + 1), 3, '0', STR_PAD_LEFT);
+                $alumno = $entrada['alumno'];
+                $nombre = $numero . '_' . $this->nombrePdfAlumno($alumno);
+                $rutaEnZip = $carpetaLicenciatura . '/' . $nombre;
+
+                if (! $zip->addFile($entrada['ruta'], $rutaEnZip)) {
+                    throw new RuntimeException("No se pudo agregar el PDF del alumno {$alumno->id}.");
+                }
+
+                $rutasEnOrden[] = $entrada['ruta'];
+            }
+
+            if ($rutasEnOrden === []) {
+                continue;
+            }
+
+            // Un archivo temporal distinto por grupo; ZipArchive lee las
+            // fuentes al cerrar el ZIP, por eso se eliminan solo al final.
+            $rutaGeneral = $directorioTrabajo . DIRECTORY_SEPARATOR
+                . 'imprimible-' . hash('sha256', $carpetaLicenciatura) . '.pdf';
+
+            $this->unirPdfsParaImpresion($rutasEnOrden, $rutaGeneral);
+
+            if (! $zip->addFile(
+                $rutaGeneral,
+                $carpetaLicenciatura . '/00_TODOS_LOS_EXPEDIENTES_PARA_IMPRIMIR.pdf'
+            )) {
+                throw new RuntimeException("No se pudo agregar el PDF general de {$carpetaLicenciatura}.");
+            }
+        }
+    }
+
+    /**
+     * Representa de forma explicita al estudiante que no tiene ningun PDF
+     * vigente, evitando su desaparicion del archivo de impresion.
+     */
+    protected function generarHojaSinDocumentos(Inscripcion $alumno, string $rutaDestino): void
+    {
+        $pdf = new Fpdi();
+        $pdf->SetCompression(true);
+        $pdf->SetMargins(18, 18, 18);
+        $pdf->AddPage('P', 'A4');
+        $pdf->SetTextColor(0, 100, 146);
+        $pdf->SetFont('Helvetica', 'B', 15);
+        $pdf->Cell(0, 11, 'CENTRO UNIVERSITARIO MOCTEZUMA', 0, 1, 'C');
+        $pdf->Ln(12);
+        $pdf->SetTextColor(160, 40, 40);
+        $pdf->SetFont('Helvetica', 'B', 13);
+        $pdf->Cell(0, 10, 'EXPEDIENTE SIN DOCUMENTOS DISPONIBLES', 0, 1, 'C');
+        $pdf->Ln(12);
+        $pdf->SetTextColor(35, 45, 65);
+        $pdf->SetFont('Helvetica', '', 11);
+        $lineas = [
+            'ALUMNO: ' . $this->nombreAlumno($alumno),
+            'MATRICULA: ' . (string) ($alumno->matricula ?: 'SIN MATRICULA'),
+            'GENERACION: ' . $this->codigoGeneracion($alumno),
+            'LICENCIATURA: ' . $this->normalizarNombre((string) optional($alumno->licenciatura)->nombre),
+        ];
+
+        foreach ($lineas as $linea) {
+            $pdf->MultiCell(0, 9, $linea);
+        }
+
+        $pdf->Ln(9);
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->MultiCell(0, 7, 'Esta hoja solo conserva al alumno en el orden de impresion. No constituye un documento entregado ni valida un expediente completo.');
+        File::ensureDirectoryExists(dirname($rutaDestino));
+        $pdf->Output('F', $rutaDestino);
+    }
+
+    /**
+     * Une los PDF sin redimensionar ni convertir sus paginas a imagenes.
+     * Esto preserva legibilidad, orientacion y orden de impresion, con la
+     * compresion interna estandar de FPDF/FPDI habilitada.
+     *
+     * @param list<string> $rutasPdf
+     */
+    protected function unirPdfsParaImpresion(array $rutasPdf, string $rutaDestino): void
+    {
+        $pdf = new Fpdi();
+        $pdf->SetCompression(true);
+        $numeroPaginas = 0;
+
+        foreach ($rutasPdf as $rutaPdf) {
+            if (! File::isFile($rutaPdf)) {
+                throw new RuntimeException('Falta un expediente individual durante la integracion del PDF general.');
+            }
+
+            $paginas = $pdf->setSourceFile($rutaPdf);
+
+            for ($pagina = 1; $pagina <= $paginas; $pagina++) {
+                $plantilla = $pdf->importPage($pagina);
+                $tamano = $pdf->getTemplateSize($plantilla);
+                $pdf->AddPage($tamano['orientation'], [$tamano['width'], $tamano['height']]);
+                $pdf->useTemplate($plantilla);
+                $numeroPaginas++;
+            }
+        }
+
+        if ($numeroPaginas === 0) {
+            throw new RuntimeException('No hay paginas para preparar el PDF general.');
+        }
+
+        File::ensureDirectoryExists(dirname($rutaDestino));
+        // Output F escribe directamente en disco y evita otra copia del PDF
+        // completo como cadena de PHP.
+        $pdf->Output('F', $rutaDestino);
     }
 
     public function generarPdfAlumno(Inscripcion $alumno): array
@@ -286,6 +463,7 @@ class ExpedienteIdentidadExportService
         string $directorioTrabajo
     ): array {
         $pdf = new Fpdi();
+        $pdf->SetCompression(true);
         $documentos = $this->documentosActuales($alumno);
         $configuraciones = $this->documentosService->tipos();
         $faltantes = [];
@@ -329,7 +507,7 @@ class ExpedienteIdentidadExportService
 
         if ($paginas > 0) {
             File::ensureDirectoryExists(dirname($rutaDestino));
-            File::put($rutaDestino, $pdf->Output('S'));
+            $pdf->Output('F', $rutaDestino);
         }
 
         return [

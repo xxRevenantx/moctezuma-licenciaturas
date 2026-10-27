@@ -469,7 +469,8 @@
                     <div class="rounded-2xl border border-[#006492]/20 bg-[#006492]/5 p-4 text-sm text-slate-700 dark:border-sky-900/50 dark:bg-sky-950/20 dark:text-neutral-200">
                         <p class="font-semibold text-slate-900 dark:text-white">Estructura del ZIP</p>
                         <p class="mt-1">Generación → Licenciatura → Alumno, o Licenciatura → Generación → Alumno, según el tipo elegido. Los nombres se guardan en mayúsculas, sin acentos y con guion bajo.</p>
-                        <p class="mt-2">También se incluye <span class="font-mono font-semibold">REPORTE_DE_EXPEDIENTES.xlsx</span> y, cuando falte documentación, <span class="font-mono font-semibold">DOCUMENTOS_FALTANTES.txt</span> dentro de la carpeta del alumno.</p>
+                        <p class="mt-2">Dentro de cada licenciatura también encontrarás los <strong>PDF individuales numerados</strong> (orden por apellidos) y el archivo <span class="font-mono font-semibold">00_TODOS_LOS_EXPEDIENTES_PARA_IMPRIMIR.pdf</span>, con todos los alumnos juntos y listos para impresión. Si la descarga es por licenciatura, el PDF general incluye las generaciones seleccionadas; si es por generación, se genera uno por licenciatura de esa generación.</p>
+                        <p class="mt-2">El alumno sin documentos tendrá una hoja informativa en la versión imprimible para mantener el orden de lista. Cada archivo general incluye únicamente a los alumnos del lote descargado (máximo 50). Se conservan las carpetas originales, <span class="font-mono font-semibold">REPORTE_DE_EXPEDIENTES.xlsx</span> y los avisos <span class="font-mono font-semibold">DOCUMENTOS_FALTANTES.txt</span>.</p>
                     </div>
 
                     <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
