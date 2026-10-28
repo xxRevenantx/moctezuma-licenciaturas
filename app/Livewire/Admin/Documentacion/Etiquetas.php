@@ -22,12 +22,9 @@ class Etiquetas extends Component
     {
         if (strlen($this->query) > 0) {
             $this->alumnos = Inscripcion::with('licenciatura')
-                ->where('nombre', 'like', '%' . $this->query . '%')
-                ->orWhere('apellido_paterno', 'like', '%' . $this->query . '%')
-                ->orWhere('apellido_materno', 'like', '%' . $this->query . '%')
-                ->orWhere('curp', 'like', '%' . $this->query . '%')
-                ->orWhere('matricula', 'like', '%' . $this->query . '%')
-                ->orWhere('matricula_interna', 'like', '%' . $this->query . '%')
+                ->where(fn ($consulta) => \App\Support\BusquedaAlumno::aplicar($consulta, (string) $this->query))
+                ->orderBy('apellido_paterno')->orderBy('apellido_materno')->orderBy('nombre')
+                ->limit(15)
                 ->get()
                 ->toArray();
         } else {

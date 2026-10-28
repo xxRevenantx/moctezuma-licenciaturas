@@ -271,7 +271,7 @@
                     <div class="relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                         <input wire:model.live.debounce.250ms="search" type="search"
-                            placeholder="Buscar por nombre, apellidos, matrícula o CURP..."
+                            placeholder="Escribe nombre completo (en cualquier orden), matrícula o CURP..."
                             class="w-full rounded-xl border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm shadow-sm focus:border-[#006492] focus:ring-[#006492] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white" />
                     </div>
 

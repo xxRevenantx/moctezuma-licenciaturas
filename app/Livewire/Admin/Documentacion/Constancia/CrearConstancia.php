@@ -122,15 +122,7 @@ class CrearConstancia extends Component
                 'modalidad:id,nombre',
                 'cuatrimestre:id,nombre_cuatrimestre,cuatrimestre',
             ])
-            ->where(function ($consulta) use ($texto) {
-                $consulta->where('nombre', 'like', '%' . $texto . '%')
-                    ->orWhere('apellido_paterno', 'like', '%' . $texto . '%')
-                    ->orWhere('apellido_materno', 'like', '%' . $texto . '%')
-                    ->orWhere('CURP', 'like', '%' . $texto . '%')
-                    ->orWhere('matricula', 'like', '%' . $texto . '%')
-                    ->orWhere('matricula_interna', 'like', '%' . $texto . '%')
-                    ->orWhere('folio', 'like', '%' . $texto . '%');
-            })
+            ->where(fn ($consulta) => \App\Support\BusquedaAlumno::aplicar($consulta, $texto))
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
             ->orderBy('nombre')

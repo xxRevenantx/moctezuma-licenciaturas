@@ -122,17 +122,7 @@ class BoletaService
                             ->where('generacion_id', $generacionId);
                     });
             })
-            ->when(trim((string) $search) !== '', function ($q) use ($search) {
-                $s = trim((string) $search);
-                $q->where(function ($sub) use ($s) {
-                    $sub->where('nombre', 'like', "%{$s}%")
-                        ->orWhere('apellido_paterno', 'like', "%{$s}%")
-                        ->orWhere('apellido_materno', 'like', "%{$s}%")
-                        ->orWhere('matricula', 'like', "%{$s}%")
-                        ->orWhere('matricula_interna', 'like', "%{$s}%")
-                        ->orWhere('CURP', 'like', "%{$s}%");
-                });
-            })
+            ->when(trim((string) $search) !== '', fn ($q) => \App\Support\BusquedaAlumno::aplicar($q, (string) $search))
             ->orderBy('apellido_paterno')
             ->orderBy('apellido_materno')
             ->orderBy('nombre')

@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Documentacion;
 
 use App\Mail\BoletasAlumnoMail;
+use App\Support\BusquedaAlumno;
 use App\Services\Boletas\BoletaService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
@@ -446,6 +447,7 @@ class BoletasMasivas extends Component
                 'matricula' => $alumno->matricula,
                 'matricula_interna' => $alumno->matricula_interna,
                 'CURP' => $alumno->CURP,
+                'folio' => $alumno->folio,
                 'email' => $alumno->user?->email,
                 'foraneo' => $alumno->foraneo,
             ])
@@ -493,22 +495,13 @@ class BoletasMasivas extends Component
 
     private function alumnosVisibles(): Collection
     {
-        $search = mb_strtolower(trim($this->search));
+        $search = trim($this->search);
         $seleccionados = collect($this->seleccionados)->map(fn ($id) => (int) $id);
 
         return $this->alumnosDelOrigen()
             ->filter(function (array $alumno) use ($search, $seleccionados) {
-                if ($search !== '') {
-                    $haystack = mb_strtolower(implode(' ', [
-                        $alumno['nombre_completo'],
-                        $alumno['matricula'],
-                        $alumno['matricula_interna'] ?? '',
-                        $alumno['CURP'],
-                    ]));
-
-                    if (!str_contains($haystack, $search)) {
-                        return false;
-                    }
+                if ($search !== '' && !BusquedaAlumno::coincide($alumno, $search)) {
+                    return false;
                 }
 
                 $estado = $this->analisis['alumnos'][$alumno['id']]['estado'] ?? 'sin_calificaciones';

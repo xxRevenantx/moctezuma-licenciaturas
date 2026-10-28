@@ -81,15 +81,7 @@ class Documentos extends Component
                 'modalidad:id,nombre',
                 'cuatrimestre:id,nombre_cuatrimestre',
             ])
-            ->where(function ($consulta) use ($texto) {
-                $consulta->where('nombre', 'like', '%' . $texto . '%')
-                    ->orWhere('apellido_paterno', 'like', '%' . $texto . '%')
-                    ->orWhere('apellido_materno', 'like', '%' . $texto . '%')
-                    ->orWhere('CURP', 'like', '%' . $texto . '%')
-                    ->orWhere('matricula', 'like', '%' . $texto . '%')
-                    ->orWhere('matricula_interna', 'like', '%' . $texto . '%')
-                    ->orWhere('folio', 'like', '%' . $texto . '%');
-            })
+            ->where(fn ($consulta) => \App\Support\BusquedaAlumno::aplicar($consulta, $texto))
             ->when($this->filtro_licenciatura_id, function ($consulta) {
                 $consulta->where('licenciatura_id', $this->filtro_licenciatura_id);
             })
