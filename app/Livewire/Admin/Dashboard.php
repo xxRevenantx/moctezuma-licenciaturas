@@ -8,6 +8,7 @@ use App\Models\Generacion;
 use App\Models\Inscripcion;
 use App\Models\Licenciatura;
 use App\Models\Profesor;
+use App\Services\AcademicProgressAlertService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -239,6 +240,29 @@ class Dashboard extends Component
 
     public function render()
     {
-        return view('livewire.admin.dashboard');
+        // Resolver los avisos en Livewire, no en una directiva @php dentro de Blade.
+        // La consulta es informativa: no modifica matrícula ni calificaciones.
+        $alertasAvance = null;
+
+        if (auth()->user()?->can('admin.administracion')) {
+            try {
+                $resumen = app(AcademicProgressAlertService::class)->evaluar();
+
+                if (
+                    ($resumen['total_pendientes'] ?? 0) > 0
+                    || ($resumen['total_proximos'] ?? 0) > 0
+                    || ! empty($resumen['conflictos'])
+                ) {
+                    $alertasAvance = $resumen;
+                }
+            } catch (\Throwable $exception) {
+                // Una alerta no debe bloquear el acceso al panel si falla su consulta.
+                report($exception);
+            }
+        }
+
+        return view('livewire.admin.dashboard', [
+            'alertasAvance' => $alertasAvance,
+        ]);
     }
 }

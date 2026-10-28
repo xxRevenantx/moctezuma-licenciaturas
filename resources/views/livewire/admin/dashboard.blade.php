@@ -33,6 +33,22 @@
         </div>
     </section>
 
+    {{-- Los datos de alerta se preparan en Dashboard::render(), sin PHP ejecutable en la vista. --}}
+    @if ($alertasAvance)
+        <section class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4 shadow-sm dark:border-amber-800 dark:bg-amber-950/20" role="alert">
+            <div>
+                <h2 class="font-bold text-amber-900 dark:text-amber-200">Control de avance académico</h2>
+                <p class="mt-1 text-sm text-amber-800 dark:text-amber-300">
+                    {{ $alertasAvance['total_pendientes'] }} pendientes ·
+                    {{ $alertasAvance['total_criticos'] }} prioritarios ·
+                    {{ $alertasAvance['total_proximos'] }} próximos ·
+                    {{ count($alertasAvance['conflictos']) }} calendarios por revisar
+                </p>
+            </div>
+            <flux:button href="{{ route('admin.avance-academico') }}" variant="primary">Revisar ahora</flux:button>
+        </section>
+    @endif
+
     {{-- Configuración existente: conserva la captura libre y guardarDatos. --}}
     <section
         class="school-cycle-card relative isolate overflow-hidden rounded-[24px] border border-emerald-100 bg-white p-5 shadow-sm dark:border-emerald-900/40 dark:bg-slate-900 sm:p-7">

@@ -702,6 +702,35 @@
                 </div>
             </div>
 
+            <!-- Estadística General por Grados PRO: independiente de la estadística completa -->
+            <div x-data="{
+                openAccordion: localStorage.getItem('doc_estadistica_grados') === 'true',
+                toggle() {
+                    this.openAccordion = !this.openAccordion;
+                    localStorage.setItem('doc_estadistica_grados', this.openAccordion);
+                }
+            }" class="mb-1 mt-3">
+                <button type="button" @click="toggle()"
+                    class="group flex w-full items-center justify-between rounded-2xl bg-neutral-100/80 px-4 py-3.5 text-neutral-900 ring-1 ring-neutral-200/80 transition hover:bg-neutral-50 dark:bg-neutral-800/80 dark:text-neutral-50 dark:ring-neutral-700 dark:hover:bg-neutral-800 sm:px-5">
+                    <div class="flex items-center gap-3">
+                        <span class="flex size-8 items-center justify-center rounded-xl bg-[#88AC2E]/15 text-[#006492] dark:text-sky-300">
+                            <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15v3m5-8v8m5-13v13" />
+                            </svg>
+                        </span>
+                        <span class="text-sm font-semibold sm:text-base">Estadística general por grados</span>
+                        <span class="rounded-full bg-lime-100 px-2 py-0.5 text-[10px] font-bold text-lime-800 dark:bg-lime-900/40 dark:text-lime-300">PRO</span>
+                    </div>
+                    <svg :class="{ 'rotate-180': openAccordion }" class="size-5 text-neutral-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="openAccordion" x-transition class="mt-1 rounded-2xl bg-white px-4 py-4 shadow-lg ring-1 ring-neutral-200/80 dark:bg-neutral-900 dark:ring-neutral-800 sm:px-5 sm:py-5">
+                    <p class="mb-4 text-sm text-neutral-600 dark:text-neutral-300">Resumen institucional por licenciatura y 1.º, 2.º y 3.º grado, exclusivamente de alumnos y generaciones vigentes.</p>
+                    <livewire:admin.documentacion.estadistica-general-grados />
+                </div>
+            </div>
+
             <!-- Estadística -->
             <div x-data="{
                 openAccordion: localStorage.getItem('doc_estadistica') === 'true',

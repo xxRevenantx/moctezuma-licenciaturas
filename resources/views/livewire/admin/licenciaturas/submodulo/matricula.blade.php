@@ -16,6 +16,23 @@
         }
      }">
 
+    @if($filtrar_generacion)
+        @php($alertasMatricula = app(\App\Services\AcademicProgressAlertService::class)->evaluar([
+            'licenciatura_id' => $licenciatura->id,
+            'modalidad_id' => $modalidad->id,
+            'generacion_id' => $filtrar_generacion,
+        ]))
+        @if($alertasMatricula['total_pendientes'] > 0 || $alertasMatricula['total_proximos'] > 0)
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 dark:border-amber-900 dark:bg-amber-950/20" role="alert">
+                <div><p class="font-bold text-amber-900 dark:text-amber-200">Control de avance académico</p>
+                    <p class="mt-1 text-xs text-amber-800 dark:text-amber-300">{{ $alertasMatricula['total_pendientes'] }} por revisar · {{ $alertasMatricula['total_criticos'] }} prioritarios · {{ $alertasMatricula['total_proximos'] }} próximos al siguiente cuatrimestre</p></div>
+                <flux:button href="{{ route('admin.avance-academico', [
+                    'licenciatura_id' => $licenciatura->id, 'modalidad_id' => $modalidad->id, 'generacion_id' => $filtrar_generacion
+                ]) }}" variant="primary">Revisar alumnos</flux:button>
+            </div>
+        @endif
+    @endif
+
     {{-- Panel de control --}}
     <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div class="border-b border-slate-100 bg-gradient-to-r from-[#006492]/10 via-white to-[#88AC2E]/10 px-5 py-5 dark:border-neutral-800 dark:from-[#006492]/20 dark:via-neutral-900 dark:to-[#88AC2E]/15 sm:px-6">

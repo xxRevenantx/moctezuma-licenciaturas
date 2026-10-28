@@ -31,6 +31,7 @@ use App\Http\Controllers\EscuelaController;
 use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\EstadisticaLicenciaturasController;
+use App\Http\Controllers\EstadisticaGeneralGradosController;
 
 use App\Http\Controllers\HorarioGeneralController;
 use App\Http\Controllers\ListaProfesorChecklistController;
@@ -95,6 +96,21 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('can:admin.administracion')
         ->name('admin.estadistica-licenciaturas.word');
 
+
+    // Panel de avance académico supervisado (administración exclusivamente).
+    Route::view('/control-avance-academico', 'admin.avance-academico.index')
+        ->middleware('can:admin.administracion')->name('admin.avance-academico');
+
+    // Estadística General por Grados PRO (reporte independiente de la estadística completa).
+    Route::get('/estadistica-grados/pdf', [EstadisticaGeneralGradosController::class, 'pdf'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.estadistica-grados.pdf');
+    Route::get('/estadistica-grados/word', [EstadisticaGeneralGradosController::class, 'word'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.estadistica-grados.word');
+    Route::get('/estadistica-grados/excel', [EstadisticaGeneralGradosController::class, 'excel'])
+        ->middleware('can:admin.administracion')
+        ->name('admin.estadistica-grados.excel');
 
     ////////
     Route::resource('usuarios', UserController::class)->middleware('can:admin.usuarios')->names('admin.usuarios');

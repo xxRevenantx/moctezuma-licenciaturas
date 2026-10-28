@@ -109,6 +109,9 @@
                         <flux:navlist.item icon="calendar-days" :href="route('admin.periodos.index')"
                             :current="request()->routeIs('admin.periodos.index')" wire:navigate>{{ __('Periodos') }}
                         </flux:navlist.item>
+                        <flux:navlist.item icon="exclamation-triangle" :href="route('admin.avance-academico')"
+                            :current="request()->routeIs('admin.avance-academico')" wire:navigate>{{ __('Control de avance académico') }}
+                        </flux:navlist.item>
                         <flux:navlist.item icon="identification" :href="route('admin.directivos.index')"
                             :current="request()->routeIs('admin.directivos.index')" wire:navigate>
                             {{ __('Personal directivo') }}</flux:navlist.item>
