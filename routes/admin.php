@@ -32,8 +32,10 @@ use App\Http\Controllers\EstadoController;
 use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\EstadisticaLicenciaturasController;
 use App\Http\Controllers\EstadisticaGeneralGradosController;
+use App\Http\Controllers\ListaNominalGradosController;
 
 use App\Http\Controllers\HorarioGeneralController;
+use App\Http\Controllers\PlantillaDocenteLicenciaturaController;
 use App\Http\Controllers\ListaProfesorChecklistController;
 use App\Http\Controllers\ListaProfesorController;
 use App\Http\Controllers\MateriaController;
@@ -112,6 +114,14 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('can:admin.administracion')
         ->name('admin.estadistica-grados.excel');
 
+    // Listas nominales por licenciatura y grado, sólo usuarios de Control Escolar.
+    Route::get('/lista-nominal-grados/pdf', [ListaNominalGradosController::class, 'pdf'])
+        ->middleware('can:admin.administracion')->name('admin.lista-nominal-grados.pdf');
+    Route::get('/lista-nominal-grados/word', [ListaNominalGradosController::class, 'word'])
+        ->middleware('can:admin.administracion')->name('admin.lista-nominal-grados.word');
+    Route::get('/lista-nominal-grados/excel', [ListaNominalGradosController::class, 'excel'])
+        ->middleware('can:admin.administracion')->name('admin.lista-nominal-grados.excel');
+
     ////////
     Route::resource('usuarios', UserController::class)->middleware('can:admin.usuarios')->names('admin.usuarios');
 
@@ -152,6 +162,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/credencial-profesor', [ProfesorController::class, 'credencial_profesor'])->middleware('can:admin.administracion')->name('admin.profesor.credencial_profesor');
 
 
+
+    // PLANTILLA DOCENTE POR LICENCIATURA PRO (PDF, Word y Excel).
+    // Revisar con: php artisan route:list --name=plantilla-docente
+    // Es necesario actualizar este archivo junto a la vista y limpiar la caché de rutas.
+    Route::view('/plantilla-docente', 'admin.plantilla-docente.index')->middleware('can:admin.administracion')->name('admin.plantilla-docente.index');
+    Route::get('/plantilla-docente/preview', [PlantillaDocenteLicenciaturaController::class, 'preview'])->middleware('can:admin.administracion')->name('admin.plantilla-docente.preview');
+    Route::get('/plantilla-docente/pdf', [PlantillaDocenteLicenciaturaController::class, 'pdf'])->middleware('can:admin.administracion')->name('admin.plantilla-docente.pdf');
+    Route::get('/plantilla-docente/word', [PlantillaDocenteLicenciaturaController::class, 'word'])->middleware('can:admin.administracion')->name('admin.plantilla-docente.word');
+    Route::get('/plantilla-docente/excel', [PlantillaDocenteLicenciaturaController::class, 'excel'])->middleware('can:admin.administracion')->name('admin.plantilla-docente.excel');
 
     Route::resource('horario-general', HorarioGeneralController::class)->middleware('can:admin.administracion')->names('admin.horario-general');
     Route::view('/asignacion-docente', 'admin.asignacion-docente.index')->middleware('can:admin.administracion')->name('admin.asignacion-docente.index');

@@ -52,6 +52,13 @@
         $hayChecklist = ($checklistResumen['materias_grupos'] ?? 0) > 0;
     @endphp
 
+    @if (\Illuminate\Support\Facades\Route::has('admin.plantilla-docente.index'))
+    <a href="{{ route('admin.plantilla-docente.index') }}" class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-bold text-[#006492] hover:bg-sky-100 dark:border-neutral-700 dark:bg-sky-950/40 dark:text-sky-300">
+        <span>Plantilla docente por licenciatura · Profesores con horario en el periodo</span>
+        <span>PDF · Word · Excel →</span>
+    </a>
+    @endif
+
     {{-- Control de entrega de listas a todos los profesores con horario --}}
     <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
         <div class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-sky-100/60 dark:bg-sky-950/20"></div>

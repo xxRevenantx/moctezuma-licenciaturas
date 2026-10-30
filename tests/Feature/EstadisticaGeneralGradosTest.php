@@ -35,6 +35,7 @@ beforeEach(function (): void {
         $t->string('nombre')->default('Alumno'); $t->string('apellido_paterno')->default('Prueba');
         $t->string('apellido_materno')->nullable(); $t->string('matricula')->nullable(); $t->string('matricula_interna')->nullable();
         $t->dateTime('fecha_baja')->nullable();
+        $t->date('fecha_nacimiento')->nullable();
     });
 
     DB::table('generaciones')->insert([
@@ -226,4 +227,54 @@ it('avisa sobre el alumno en tercero cuando el calendario exige cuarto y desapar
     $despues = app(EstadisticaGeneralGradosService::class)->generar(['generacion_id' => 3]);
     expect($despues['alertas_avance']['total_pendientes'])->toBe(0);
     expect($despues['totales']['total'])->toBe(2);
+});
+
+
+it('produce listas nominales que cuadran con los totales por grado y ordena por apellidos', function (): void {
+    DB::table('inscripciones')->where('id', 1)->update([
+        'apellido_paterno' => 'Zapata', 'apellido_materno' => 'Pérez', 'nombre' => 'Ana',
+        'fecha_nacimiento' => '2005-12-10',
+    ]);
+    DB::table('inscripciones')->where('id', 2)->update([
+        'apellido_paterno' => 'Álvarez', 'apellido_materno' => 'Brito', 'nombre' => 'Carlos',
+        'fecha_nacimiento' => '2006-02-18',
+    ]);
+    $listado = app(\App\Services\ListaNominalGradosService::class)->generar();
+    $estadistica = app(EstadisticaGeneralGradosService::class)->generar();
+
+    expect($listado['totales'])->toBe($estadistica['totales']);
+    expect($listado['licenciaturas_count'])->toBe(2);
+    expect(count($listado['grupos']))->toBe(4);
+    $primero = $listado['grupos'][0];
+    expect($primero['grado'])->toBe(1);
+    expect($primero['totales'])->toBe(['hombres' => 1, 'mujeres' => 1, 'total' => 2]);
+    expect(collect($primero['alumnos'])->pluck('apellido_paterno')->all())->toBe(['Álvarez', 'Zapata']);
+    expect($primero['alumnos'][0]['edad'])->toBe(20);
+    expect($primero['alumnos'][1]['edad'])->toBe(20);
+});
+
+it('respeta todas las selecciones y distingue ninguna de todas sin alterar matrículas', function (): void {
+    $servicio = app(\App\Services\ListaNominalGradosService::class);
+    $listado = $servicio->generar([
+        'licenciatura_ids' => '1', 'modalidad_ids' => '1,2',
+        'generacion_ids' => '2', 'grados' => '2', 'renglones_vacios' => 5,
+    ]);
+    expect($listado['totales']['total'])->toBe(2);
+    expect(count($listado['grupos']))->toBe(1);
+    expect($listado['grupos'][0]['grado'])->toBe(2);
+    expect($listado['renglones_vacios'])->toBe(5);
+    expect($servicio->generar(['grados' => 'none'])['totales']['total'])->toBe(0);
+    expect($servicio->generar(['generacion_ids' => 'none'])['totales']['total'])->toBe(0);
+    expect($servicio->generar(['modalidad_ids' => 'none'])['grupos'])->toBe([]);
+    expect((int) DB::table('inscripciones')->where('id', 3)->value('cuatrimestre_id'))->toBe(14);
+});
+
+it('emite una hoja de Excel por licenciatura y grado además del resumen', function (): void {
+    $listado = app(\App\Services\ListaNominalGradosService::class)->generar(['grados' => '1,2']);
+    $exportacion = new \App\Exports\ListaNominalGradosExport($listado, ['nombre' => 'Moctezuma']);
+    $hojas = $exportacion->sheets();
+    expect(count($hojas))->toBe(1 + count($listado['grupos']));
+    expect($hojas[0]->title())->toBe('Resumen general');
+    expect($hojas[1]->array()[6])->toBe(['No.', 'Apellido Paterno', 'Apellido Materno', 'Nombre', 'Edad']);
+    expect($hojas[1]->title())->toStartWith('01 G1');
 });

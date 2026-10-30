@@ -123,6 +123,12 @@
                             <flux:navlist.item icon="clipboard-document-list" :href="route('admin.profesor.lista_profesores')"
                                 :current="request()->routeIs('admin.profesor.lista_profesores')" wire:navigate>
                                 {{ __('Lista de profesores') }}</flux:navlist.item>
+                            {{-- Evita que una instalación parcial o una caché de rutas obsoleta bloquee el Dashboard. --}}
+                            @if (\Illuminate\Support\Facades\Route::has('admin.plantilla-docente.index'))
+                                <flux:navlist.item icon="clipboard-document-check" :href="route('admin.plantilla-docente.index')"
+                                    :current="request()->routeIs('admin.plantilla-docente.*')" wire:navigate>
+                                    {{ __('Plantilla docente PRO') }}</flux:navlist.item>
+                            @endif
                             <flux:navlist.item icon="identification" :href="route('admin.profesor.credencial_profesor')"
                                 :current="request()->routeIs('admin.profesor.credencial_profesor')" wire:navigate>
                                 {{ __('Credencial') }}</flux:navlist.item>

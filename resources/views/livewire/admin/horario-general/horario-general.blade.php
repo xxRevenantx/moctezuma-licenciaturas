@@ -9,6 +9,17 @@
         </p>
     </div>
 
+    @if (\Illuminate\Support\Facades\Route::has('admin.plantilla-docente.index'))
+    <a href="{{ route('admin.plantilla-docente.index') }}"
+       class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 to-lime-50 p-4 shadow-sm transition hover:shadow-md dark:border-neutral-700 dark:from-sky-950/30 dark:to-neutral-900">
+        <span>
+            <strong class="block text-base text-[#006492] dark:text-sky-300">Plantilla Docente por Licenciatura PRO</strong>
+            <span class="text-xs text-slate-600 dark:text-slate-300">Profesores programados por ciclo y periodo · Filtros múltiples · PDF, Word y Excel</span>
+        </span>
+        <span class="rounded-lg bg-[#006492] px-4 py-2 text-xs font-extrabold text-white">Abrir reporte →</span>
+    </a>
+    @endif
+
     <!-- Acordeón: Escolarizada -->
     <div x-data="{ open: true }" x-cloak class="mb-4">
         <button

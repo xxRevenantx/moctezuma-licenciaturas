@@ -81,9 +81,12 @@ class EstadisticaGeneralGradosService
             ->all();
     }
 
-    public function generar(array $datos = []): array
+    /**
+     * Única fuente de matrícula vigente para estadísticas y listas nominales.
+     * Respeta grado REGISTRADO; las alertas de avance se muestran por separado.
+     */
+    public function consultaMatriculaVigente(array $filtros): Builder
     {
-        $filtros = $this->normalizarFiltros($datos);
         $hoy = now()->toDateString();
         $query = DB::table('inscripciones as i')
             ->join('licenciaturas as l', 'l.id', '=', 'i.licenciatura_id')
@@ -112,6 +115,16 @@ class EstadisticaGeneralGradosService
                         ->whereDate('p9.termino_periodo', '<', $hoy);
                 });
         });
+
+
+        return $query;
+    }
+
+    public function generar(array $datos = []): array
+    {
+        $filtros = $this->normalizarFiltros($datos);
+        $hoy = now()->toDateString();
+        $query = $this->consultaMatriculaVigente($filtros);
 
         // Se agrupa por cuatrimestre real, y el grado se calcula después:
         // no se asume que id de cuatrimestres coincida con su número.
