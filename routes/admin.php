@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AccionController;
+use App\Http\Controllers\ActaExamenProfesionalController;
 use App\Http\Controllers\Admin\AsignarGeneracionController;
 use App\Http\Controllers\Admin\CuatrimestreController;
 use App\Http\Controllers\Admin\DirectivoController;
@@ -78,6 +79,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/boletas', [DocumentacionController::class, 'boletas'])->middleware('can:admin.administracion')->name('admin.boletas');
     Route::post('/boletas/exportar', [BoletaController::class, 'exportar'])->middleware('can:admin.administracion')->name('admin.boletas.exportar');
     Route::get('/documentacion', [DocumentacionController::class, 'documentacion'])->middleware('can:admin.administracion')->name('admin.documentacion');
+
+    // ACTA DE EXAMEN PROFESIONAL PRO 2.0: no interfiere con las rutas legacy.
+    Route::get('/actas-examen-pro/{acta}/pdf', [ActaExamenProfesionalController::class, 'pdf'])->middleware('can:admin.administracion')->name('admin.actas-examen.pdf');
+    Route::get('/actas-examen-pro/{acta}/word', [ActaExamenProfesionalController::class, 'word'])->middleware('can:admin.administracion')->name('admin.actas-examen.word');
+    Route::post('/actas-examen-pro/exportar', [ActaExamenProfesionalController::class, 'exportar'])->middleware('can:admin.administracion')->name('admin.actas-examen.exportar');
+
     // Expedición de matrículas SEG (solo lectura y descargas durante las fases 1 y 2).
     Route::post('/documentacion/expedicion-matriculas/descargar', [ExpedicionMatriculasController::class, 'descargar'])
         ->middleware('can:admin.administracion')->name('admin.documentacion.expedicion-matriculas.descargar');

@@ -27,34 +27,8 @@ class WordController extends Controller
 {
     public function acta_examen(Request $request)
     {
-        // Conserva el formato Word existente de Titulación / Acta de examen.
-        $tempPath = storage_path('app/phpword-temp');
-        if (! is_dir($tempPath)) {
-            mkdir($tempPath, 0775, true);
-        }
-        Settings::setTempDir($tempPath);
-
-        $html = view('admin.word.acta-examen', [
-            'nombreAlumno' => 'Juan Pérez de Prueba',
-        ])->render();
-
-        $phpWord = new PhpWord();
-        $section = $phpWord->addSection([
-            'pageSizeW' => Converter::inchToTwip(8.5),
-            'pageSizeH' => Converter::inchToTwip(13.38),
-            'marginTop' => Converter::cmToTwip(2.5),
-            'marginBottom' => Converter::cmToTwip(2.5),
-            'marginLeft' => Converter::cmToTwip(2.5),
-            'marginRight' => Converter::cmToTwip(2.5),
-        ]);
-
-        Html::addHtml($section, $html, false, false);
-
-        $fileName = 'Acta_Examen_' . time() . '.docx';
-        $filePath = storage_path('app/' . $fileName);
-        IOFactory::createWriter($phpWord, 'Word2007')->save($filePath);
-
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        // Enlace histórico de Titulación: ya no se descarga un Word con datos ficticios.
+        return redirect(route('admin.documentacion') . '#acta-examen-pro');
     }
 
     public function documento_personal(Request $request, DocumentacionExportService $exports)
